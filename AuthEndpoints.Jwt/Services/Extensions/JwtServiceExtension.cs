@@ -14,7 +14,7 @@ using System.Text;
 
 namespace AuthEndpoints.Jwt.Services.Extensions;
 
-public static class AuthenticationServiceConfiguration
+public static class JwtServiceExtension
 {
     public static void AddJwtEndpoints<TUserKey, TUser, TRefreshToken>(this IServiceCollection services, ConfigurationManager configurationManager)
         where TUserKey : IEquatable<TUserKey>
@@ -55,7 +55,7 @@ public static class AuthenticationServiceConfiguration
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ClockSkew = TimeSpan.Zero,
-            }; ;
+            };
         });
     }
 
