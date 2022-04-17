@@ -7,6 +7,7 @@ using AuthEndpoints.Jwt.Services.TokenValidators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using System.Security.Claims;
 
 namespace AuthEndpoints.Jwt.Controllers;
@@ -137,13 +138,39 @@ public class JwtController<TUserKey, TUser, TRefreshToken> : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("verify")]
+    public IActionResult Verify([FromBody] VerifyRequest verifyRequest)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequestModelState();
+        }
+        
+        string headerToken = Request.Headers[HeaderNames.Authorization].ToString().Replace("Bearer ", "");
+
+        if (headerToken == verifyRequest.Token!)
+        {
+            return Ok();
+        }
+
+        bool isValidRefreshToken = refreshTokenValidator.Validate(verifyRequest.Token!);
+
+        if (isValidRefreshToken)
+        {
+            return Ok();
+        }
+
+        return Unauthorized();
+    }
+
+    [Authorize]
     [HttpDelete("logout")]
     public async Task<IActionResult> Logout()
     {
         string rawUserId = HttpContext.User.FindFirstValue("id");
-        TUserKey key = (TUserKey)Convert.ChangeType(rawUserId, typeof(TUserKey));
-        // Validate Key
-        // ...
+        
+        TUserKey key = (TUserKey) Convert.ChangeType(rawUserId, typeof(TUserKey));
+
         await refreshTokenRepository.DeleteAll(key);
         return NoContent();
     }
