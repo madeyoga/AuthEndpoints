@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AuthEndpoints.Demo.Data;
 
 public class MyDbContext
-    : DbContext, IAuthenticationDbContext<RefreshToken>
+    : DbContext, IJwtDbContext<RefreshToken>
 {
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {
@@ -17,7 +17,7 @@ public class MyDbContext
         base.OnModelCreating(modelBuilder);
     }
 
-    public DbSet<User>? Users { get; set; }
+    public DbSet<MyCustomIdentityUser>? Users { get; set; }
     //public DbSet<Slot>? Slots { get; set; }
     //public DbSet<Tourney>? Tourneys { get; set; }
     //public DbSet<TournamentStage>? TournamentStages { get; set; }

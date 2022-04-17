@@ -2,7 +2,7 @@
 
 namespace AuthEndpoints.Jwt.Data;
 
-public interface IAuthenticationDbContext<TRefreshToken>
+public interface IJwtDbContext<TRefreshToken>
     where TRefreshToken : class
 {
     DbSet<TRefreshToken>? RefreshTokens { get; set; }

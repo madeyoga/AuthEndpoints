@@ -19,7 +19,7 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 	}
 });
 
-builder.Services.AddIdentityCore<User>(option =>
+builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 {
 	option.User.RequireUniqueEmail = true;
 	// For testing only, remove this for production
@@ -29,9 +29,9 @@ builder.Services.AddIdentityCore<User>(option =>
 	option.Password.RequiredLength = 0;
 }).AddEntityFrameworkStores<MyDbContext>();
 
-builder.Services.AddScoped(typeof(IAuthenticationDbContext<RefreshToken>), typeof(MyDbContext));
+builder.Services.AddScoped(typeof(IJwtDbContext<RefreshToken>), typeof(MyDbContext));
 
-builder.Services.AddJwtEndpoints<string, User, RefreshToken>(builder.Configuration);
+builder.Services.AddJwtEndpoints<string, MyCustomIdentityUser, RefreshToken>(builder.Configuration);
 
 var app = builder.Build();
 
@@ -39,7 +39,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

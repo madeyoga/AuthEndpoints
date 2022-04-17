@@ -9,10 +9,10 @@ using AuthEndpoints.Demo.Models;
 namespace AuthEndpoints.Demo.Controllers;
 
 [ApiController]
-public class AuthenticationController : JwtController<string, User, RefreshToken>
+public class AuthenticationController : JwtController<string, MyCustomIdentityUser, RefreshToken>
 {
-    public AuthenticationController(UserManager<User> userRepository, IRefreshTokenRepository<string, RefreshToken> refreshTokenRepository,
-        UserAuthenticator<string, User, RefreshToken> authenticator, ITokenValidator refreshTokenValidator, IdentityErrorDescriber errorDescriber)
+    public AuthenticationController(UserManager<MyCustomIdentityUser> userRepository, IRefreshTokenRepository<string, RefreshToken> refreshTokenRepository,
+        UserAuthenticator<string, MyCustomIdentityUser, RefreshToken> authenticator, ITokenValidator refreshTokenValidator, IdentityErrorDescriber errorDescriber)
         : base(userRepository, refreshTokenRepository, authenticator, refreshTokenValidator, errorDescriber)
     {
     }
