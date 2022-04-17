@@ -29,7 +29,7 @@ builder.Services.AddIdentityCore<User>(option =>
 	option.Password.RequiredLength = 0;
 }).AddEntityFrameworkStores<MyDbContext>();
 
-builder.Services.AddScoped(typeof(IAuthenticationDbContext<RefreshToken>), typeof(MyDbContext));
+builder.Services.AddScoped(typeof(IJwtDbContext<RefreshToken>), typeof(MyDbContext));
 
 builder.Services.AddJwtEndpoints<string, User, RefreshToken>(builder.Configuration);
 
@@ -39,7 +39,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+	app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
