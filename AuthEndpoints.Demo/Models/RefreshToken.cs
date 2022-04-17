@@ -2,6 +2,6 @@
 
 namespace AuthEndpoints.Demo.Models;
 
-public class RefreshToken : GenericRefreshToken<User, string>
+public class RefreshToken : GenericRefreshToken<MyCustomIdentityUser, string>
 {
 }

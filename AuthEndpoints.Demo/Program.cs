@@ -19,7 +19,7 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 	}
 });
 
-builder.Services.AddIdentityCore<User>(option =>
+builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 {
 	option.User.RequireUniqueEmail = true;
 	// For testing only, remove this for production
@@ -31,7 +31,7 @@ builder.Services.AddIdentityCore<User>(option =>
 
 builder.Services.AddScoped(typeof(IJwtDbContext<RefreshToken>), typeof(MyDbContext));
 
-builder.Services.AddJwtEndpoints<string, User, RefreshToken>(builder.Configuration);
+builder.Services.AddJwtEndpoints<string, MyCustomIdentityUser, RefreshToken>(builder.Configuration);
 
 var app = builder.Build();
 

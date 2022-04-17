@@ -2,7 +2,7 @@
 
 namespace AuthEndpoints.Demo.Models;
 
-public class User : IdentityUser
+public class MyCustomIdentityUser : IdentityUser
 {
     public string? Nickname { get; set; }
     //public Tourney? Tournaments { get; set; }
