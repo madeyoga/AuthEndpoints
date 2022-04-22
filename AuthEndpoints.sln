@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "AuthEndpoints.Demo\AuthEndpoints.Demo.csproj", "{C07671F3-3F29-4037-86EA-C87A9FB7B1BD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Jwt", "AuthEndpoints.Jwt\AuthEndpoints.Jwt.csproj", "{F44C64CF-147A-4722-AE05-0625A1CB77E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints", "AuthEndpoints\AuthEndpoints.csproj", "{F44C64CF-147A-4722-AE05-0625A1CB77E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

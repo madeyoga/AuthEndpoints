@@ -1,5 +1,5 @@
-﻿using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Jwt.Data;
+﻿using AuthEndpoints.Data;
+using AuthEndpoints.Demo.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Demo.Data;
