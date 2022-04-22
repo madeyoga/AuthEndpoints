@@ -1,4 +1,4 @@
-﻿using AuthEndpoints.Jwt.Models;
+﻿using AuthEndpoints.Models;
 
 namespace AuthEndpoints.Demo.Models;
 

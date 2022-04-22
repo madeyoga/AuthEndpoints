@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuthEndpoints.Jwt\AuthEndpoints.Jwt.csproj" />
+    <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
   </ItemGroup>
 
 </Project>

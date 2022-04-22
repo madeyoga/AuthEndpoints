@@ -1,7 +1,7 @@
+using AuthEndpoints.Data;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Jwt.Data;
-using AuthEndpoints.Jwt.Services.Extensions;
+using AuthEndpoints.Services.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +31,7 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 
 builder.Services.AddScoped(typeof(IJwtDbContext<RefreshToken>), typeof(MyDbContext));
 
-builder.Services.AddJwtEndpoints<string, MyCustomIdentityUser, RefreshToken>(builder.Configuration);
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser, RefreshToken>(builder.Configuration);
 
 var app = builder.Build();
 
