@@ -12,7 +12,7 @@ using System.Security.Claims;
 
 namespace AuthEndpoints.Jwt.Controllers;
 
-public class JwtController<TUserKey, TUser, TRefreshToken> : ControllerBase
+public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
     where TRefreshToken : GenericRefreshToken<TUser, TUserKey>, new()
@@ -21,9 +21,8 @@ public class JwtController<TUserKey, TUser, TRefreshToken> : ControllerBase
     private readonly ITokenValidator refreshTokenValidator;
     private readonly UserManager<TUser> userRepository;
     private readonly UserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator;
-    private readonly IdentityErrorDescriber errorDescriber;
 
-    public JwtController(UserManager<TUser> userRepository,
+    public JwtEndpointsController(UserManager<TUser> userRepository,
         IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository,
         UserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator,
         ITokenValidator refreshTokenValidator,
@@ -33,50 +32,10 @@ public class JwtController<TUserKey, TUser, TRefreshToken> : ControllerBase
         this.refreshTokenRepository = refreshTokenRepository;
         this.authenticator = authenticator;
         this.refreshTokenValidator = refreshTokenValidator;
-        this.errorDescriber = errorDescriber;
     }
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
-
-        if (registerRequest.Password != registerRequest.ConfirmPassword)
-        {
-            return BadRequest(new ErrorResponse("Password not match confirm password."));
-        }
-
-        TUser registrationUser = new TUser();
-        registrationUser.Email = registerRequest.Email;
-        registrationUser.UserName = registerRequest.Username;
-        IdentityResult result = await userRepository.CreateAsync(registrationUser, registerRequest.Password);
-
-        if (!result.Succeeded)
-        {
-            IdentityError? primaryError = result.Errors.FirstOrDefault();
-
-            if (primaryError!.Code == nameof(errorDescriber.DuplicateEmail))
-            {
-                return Conflict(new ErrorResponse("Email already exists."));
-            }
-            else if (primaryError?.Code == nameof(errorDescriber.DuplicateUserName))
-            {
-                return Conflict(new ErrorResponse("Username already exists."));
-            }
-            else
-            {
-                return Conflict(new ErrorResponse("Error response. !result.Succeeded"));
-            }
-        }
-
-        return Ok();
-    }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
+    [HttpPost("create")]
+    public async Task<IActionResult> Create([FromBody] LoginRequest loginRequest)
     {
         if (!ModelState.IsValid)
         {

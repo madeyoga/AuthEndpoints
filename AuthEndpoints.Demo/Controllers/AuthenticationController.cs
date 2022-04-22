@@ -9,7 +9,7 @@ using AuthEndpoints.Demo.Models;
 namespace AuthEndpoints.Demo.Controllers;
 
 [ApiController]
-public class AuthenticationController : JwtController<string, MyCustomIdentityUser, RefreshToken>
+public class AuthenticationController : JwtEndpointsController<string, MyCustomIdentityUser, RefreshToken>
 {
     public AuthenticationController(UserManager<MyCustomIdentityUser> userRepository, IRefreshTokenRepository<string, RefreshToken> refreshTokenRepository,
         UserAuthenticator<string, MyCustomIdentityUser, RefreshToken> authenticator, ITokenValidator refreshTokenValidator, IdentityErrorDescriber errorDescriber)
