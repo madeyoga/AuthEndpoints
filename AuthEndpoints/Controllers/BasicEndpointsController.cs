@@ -72,8 +72,6 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         string identity = HttpContext.User.FindFirstValue("id");
         TUser currentUser = await userRepository.FindByIdAsync(identity);
 
-        await userRepository.DeleteAsync(currentUser);
-
         return Ok(currentUser);
     }
 
