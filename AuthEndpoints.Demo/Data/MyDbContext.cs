@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace AuthEndpoints.Demo.Data;
 
 public class MyDbContext
-    : DbContext, IJwtDbContext<RefreshToken>
+    : DbContext, IRefreshTokenDbContext<RefreshToken>
 {
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {
