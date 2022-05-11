@@ -10,9 +10,9 @@ public class DatabaseRefreshTokenRepository<TUserKey, TUser, TRefreshToken> : IR
     where TUser : IdentityUser<TUserKey>
     where TRefreshToken : GenericRefreshToken<TUser, TUserKey>
 {
-    private readonly IJwtDbContext<TRefreshToken> context;
+    private readonly IRefreshTokenDbContext<TRefreshToken> context;
 
-    public DatabaseRefreshTokenRepository(IJwtDbContext<TRefreshToken> context)
+    public DatabaseRefreshTokenRepository(IRefreshTokenDbContext<TRefreshToken> context)
     {
         this.context = context;
     }

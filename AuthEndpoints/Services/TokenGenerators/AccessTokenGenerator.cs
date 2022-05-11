@@ -1,6 +1,7 @@
 ﻿namespace AuthEndpoints.Services.TokenGenerators;
 
 using AuthEndpoints.Models.Configurations;
+using AuthEndpoints.Services.Providers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
@@ -13,9 +14,11 @@ public class AccessTokenGenerator<TUserKey, TUser> : ITokenGenerator<TUser>
     where TUser : IdentityUser<TUserKey>
 {
     private readonly AuthenticationConfiguration configuration;
+    private readonly IClaimsProvider<TUser> claimsProvider;
 
-    public AccessTokenGenerator(AuthenticationConfiguration configuration)
+    public AccessTokenGenerator(IClaimsProvider<TUser> claimsProvider, AuthenticationConfiguration configuration)
     {
+        this.claimsProvider = claimsProvider;
         this.configuration = configuration;
     }
 
@@ -24,12 +27,7 @@ public class AccessTokenGenerator<TUserKey, TUser> : ITokenGenerator<TUser>
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.AccessTokenSecret!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        List<Claim> claims = new List<Claim>()
-        {
-            new Claim("id", user.Id.ToString()!),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.UserName),
-        };
+        List<Claim> claims = claimsProvider.provideClaims(user);
 
         JwtSecurityToken token = new JwtSecurityToken(
             configuration.Issuer,
