@@ -1,6 +1,7 @@
 ﻿using AuthEndpoints.Models;
 using AuthEndpoints.Models.Configurations;
 using AuthEndpoints.Services.Authenticators;
+using AuthEndpoints.Services.Providers;
 using AuthEndpoints.Services.Repositories;
 using AuthEndpoints.Services.TokenGenerators;
 using AuthEndpoints.Services.TokenValidators;
@@ -35,6 +36,7 @@ public static class AuthEndpointsServiceExtension
             ClockSkew = TimeSpan.Zero,
         };
         services.TryAddSingleton(authConfig);
+        services.TryAddSingleton(typeof(IClaimsProvider<TUser>), typeof(DefaultClaimsProvider<TUserKey, TUser>));
         services.TryAddScoped(typeof(IRefreshTokenRepository<TUserKey, TRefreshToken>), typeof(DatabaseRefreshTokenRepository<TUserKey, TUser, TRefreshToken>));
         services.TryAddSingleton<IdentityErrorDescriber>();
         services.TryAddScoped<UserAuthenticator<TUserKey, TUser, TRefreshToken>>();
