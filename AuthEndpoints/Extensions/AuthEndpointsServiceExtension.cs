@@ -14,7 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-namespace AuthEndpoints.Services.Extensions;
+namespace AuthEndpoints.Extensions;
 
 public static class AuthEndpointsServiceExtension
 {

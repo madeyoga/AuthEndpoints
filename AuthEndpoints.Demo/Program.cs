@@ -1,7 +1,7 @@
 using AuthEndpoints.Data;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Services.Extensions;
+using AuthEndpoints.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
