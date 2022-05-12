@@ -1,7 +1,5 @@
 ﻿namespace AuthEndpoints.Models.Responses;
-
-public class AuthenticatedUserResponse
+internal class AuthenticatedTokenResponse
 {
     public string? AccessToken { get; set; }
-    public string? RefreshToken { get; set; }
 }

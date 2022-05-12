@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.Models;
+﻿using AuthEndpoints.Controllers;
+using AuthEndpoints.Models;
 using AuthEndpoints.Models.Configurations;
 using AuthEndpoints.Services.Authenticators;
 using AuthEndpoints.Services.Providers;
@@ -36,14 +37,14 @@ public static class AuthEndpointsServiceExtension
             ClockSkew = TimeSpan.Zero,
         };
         services.TryAddSingleton(authConfig);
+        services.TryAddSingleton(refreshTokenValidationParameters);
         services.TryAddSingleton(typeof(IClaimsProvider<TUser>), typeof(DefaultClaimsProvider<TUserKey, TUser>));
         services.TryAddScoped(typeof(IRefreshTokenRepository<TUserKey, TRefreshToken>), typeof(DatabaseRefreshTokenRepository<TUserKey, TUser, TRefreshToken>));
         services.TryAddSingleton<IdentityErrorDescriber>();
-        services.TryAddScoped<UserAuthenticator<TUserKey, TUser, TRefreshToken>>();
-        services.TryAddSingleton<AccessTokenGenerator<TUserKey, TUser>>();
+        services.TryAddScoped<JwtUserAuthenticator<TUserKey, TUser, TRefreshToken>>();
+        services.TryAddSingleton<AccessJwtGenerator<TUserKey, TUser>>();
         services.TryAddSingleton<RefreshTokenGenerator<TUserKey, TUser>>();
         services.TryAddSingleton<ITokenValidator, RefreshTokenValidator>();
-        services.TryAddSingleton(refreshTokenValidationParameters);
         services.TryAddSingleton<JwtSecurityTokenHandler>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
         {

@@ -1,11 +1,12 @@
 ﻿using AuthEndpoints.Data;
 using AuthEndpoints.Demo.Models;
+using AuthEndpoints.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Demo.Data;
 
 public class MyDbContext
-    : DbContext, IRefreshTokenDbContext<RefreshToken>
+    : DbContext, IAuthDbContext<MyCustomIdentityUser, RefreshToken>
 {
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {
@@ -18,12 +19,6 @@ public class MyDbContext
     }
 
     public DbSet<MyCustomIdentityUser>? Users { get; set; }
-    //public DbSet<Slot>? Slots { get; set; }
-    //public DbSet<Tourney>? Tourneys { get; set; }
-    //public DbSet<TournamentStage>? TournamentStages { get; set; }
-    //public DbSet<Match>? Matches { get; set; }
-    //public DbSet<Game>? Games { get; set; }
-    //public DbSet<OfficialTeam>? OfficialTeams { get; set; }
-    //public DbSet<TeamMembership>? TeamMemberships { get; set; }
     public DbSet<RefreshToken>? RefreshTokens { get; set; }
+    public DbSet<Token<MyCustomIdentityUser>>? Tokens { get; set; }
 }

@@ -29,8 +29,8 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 	option.Password.RequiredLength = 0;
 }).AddEntityFrameworkStores<MyDbContext>();
 
-builder.Services.AddScoped(typeof(IRefreshTokenDbContext<RefreshToken>), typeof(MyDbContext));
-
+//builder.Services.AddScoped(typeof(IAuthDbContext<MyCustomIdentityUser, RefreshToken>), typeof(MyDbContext));
+builder.Services.AddDbContext<IAuthDbContext<MyCustomIdentityUser, RefreshToken>, MyDbContext>();
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser, RefreshToken>(builder.Configuration);
 
 var app = builder.Build();

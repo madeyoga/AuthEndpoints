@@ -20,13 +20,12 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
     private readonly IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository;
     private readonly ITokenValidator refreshTokenValidator;
     private readonly UserManager<TUser> userRepository;
-    private readonly UserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator;
+    private readonly JwtUserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator;
 
     public JwtEndpointsController(UserManager<TUser> userRepository,
         IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository,
-        UserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator,
-        ITokenValidator refreshTokenValidator,
-        IdentityErrorDescriber errorDescriber)
+        JwtUserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator,
+        ITokenValidator refreshTokenValidator)
     {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -56,7 +55,7 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
             return Unauthorized();
         }
 
-        AuthenticatedUserResponse response = await authenticator.Authenticate(user);
+        AuthenticatedJwtResponse response = await authenticator.Authenticate(user);
 
         return Ok(response);
     }
@@ -92,7 +91,8 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
             return NotFound(new ErrorResponse("IdentityUser not found."));
         }
 
-        AuthenticatedUserResponse response = await authenticator.Authenticate(user);
+        AuthenticatedJwtResponse response = await authenticator.Authenticate(user);
+
         return Ok(response);
     }
 
@@ -131,12 +131,14 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
         TUserKey key = (TUserKey)Convert.ChangeType(rawUserId, typeof(TUserKey));
 
         await refreshTokenRepository.DeleteAll(key);
+
         return NoContent();
     }
 
     private IActionResult BadRequestModelState()
     {
         IEnumerable<string> errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+
         return BadRequest(new ErrorResponse(errors));
     }
 }

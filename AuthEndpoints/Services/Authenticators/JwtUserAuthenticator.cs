@@ -6,7 +6,7 @@ using AuthEndpoints.Services.Repositories;
 using AuthEndpoints.Services.TokenGenerators;
 using Microsoft.AspNetCore.Identity;
 
-public class UserAuthenticator<TUserKey, TUser, TRefreshToken>
+public class JwtUserAuthenticator<TUserKey, TUser, TRefreshToken> : IAuthenticator<TUser, AuthenticatedJwtResponse>
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
     where TRefreshToken : GenericRefreshToken<TUser, TUserKey>, new()
@@ -15,8 +15,8 @@ public class UserAuthenticator<TUserKey, TUser, TRefreshToken>
     private readonly ITokenGenerator<TUser> accessTokenGenerator;
     private readonly ITokenGenerator<TUser> refreshTokenGenerator;
 
-    public UserAuthenticator(IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository,
-        AccessTokenGenerator<TUserKey, TUser> accessTokenGenerator,
+    public JwtUserAuthenticator(IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository,
+        AccessJwtGenerator<TUserKey, TUser> accessTokenGenerator,
         RefreshTokenGenerator<TUserKey, TUser> refreshTokenGenerator)
     {
         this.refreshTokenRepository = refreshTokenRepository;
@@ -24,7 +24,7 @@ public class UserAuthenticator<TUserKey, TUser, TRefreshToken>
         this.refreshTokenGenerator = refreshTokenGenerator;
     }
 
-    public async Task<AuthenticatedUserResponse> Authenticate(TUser user)
+    public async Task<AuthenticatedJwtResponse> Authenticate(TUser user)
     {
         string accessToken = accessTokenGenerator.GenerateToken(user);
         string refreshToken = refreshTokenGenerator.GenerateToken(user);
@@ -35,7 +35,7 @@ public class UserAuthenticator<TUserKey, TUser, TRefreshToken>
 
         await refreshTokenRepository.Create(refreshTokenDTO);
 
-        return new AuthenticatedUserResponse()
+        return new AuthenticatedJwtResponse()
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,

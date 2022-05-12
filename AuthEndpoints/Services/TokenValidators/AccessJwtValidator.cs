@@ -5,12 +5,12 @@ using System.Text;
 
 namespace AuthEndpoints.Services.TokenValidators;
 
-internal class AccessTokenValidator : ITokenValidator
+internal class AccessJwtValidator : ITokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public AccessTokenValidator(AuthenticationConfiguration authConfig, JwtSecurityTokenHandler tokenHandler)
+    public AccessJwtValidator(AuthenticationConfiguration authConfig, JwtSecurityTokenHandler tokenHandler)
     {
         validationParameters = new TokenValidationParameters()
         {
