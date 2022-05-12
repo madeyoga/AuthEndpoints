@@ -2,14 +2,14 @@
 
 namespace AuthEndpoints.Services.Authenticators;
 
-internal class TokenUserAuthenticator<TUser> : IAuthenticator<TUser, AuthenticatedTokenResponse>
+public class TokenUserAuthenticator<TUser> : IAuthenticator<TUser, AuthenticatedTokenResponse>
     where TUser : class
 {
-    public async Task<AuthenticatedTokenResponse> Authenticate(TUser user)
+    public Task<AuthenticatedTokenResponse> Authenticate(TUser user)
     {
-        return new AuthenticatedTokenResponse()
+        return Task.FromResult(new AuthenticatedTokenResponse()
         {
             AccessToken = ""
-        };
+        });
     }
 }

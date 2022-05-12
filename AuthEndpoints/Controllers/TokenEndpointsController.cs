@@ -8,7 +8,7 @@ namespace AuthEndpoints.Controllers;
 
 [ApiController]
 [Route("token/")]
-internal class TokenEndpointsController<TUserKey, TUser> : ControllerBase
+public class TokenEndpointsController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
 {

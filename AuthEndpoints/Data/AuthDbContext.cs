@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Data;
 
-public abstract class AuthDbContext<TUser, TRefreshToken> : DbContext, IAuthDbContext<TUser, TRefreshToken>
+internal abstract class AuthDbContext<TUser, TRefreshToken> : DbContext, IAuthDbContext<TUser, TRefreshToken>
     where TUser : class
     where TRefreshToken : class
 {
