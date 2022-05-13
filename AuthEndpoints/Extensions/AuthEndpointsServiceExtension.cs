@@ -1,8 +1,6 @@
-﻿using AuthEndpoints.Models;
-using AuthEndpoints.Models.Configurations;
+﻿using AuthEndpoints.Models.Configurations;
 using AuthEndpoints.Services.Authenticators;
 using AuthEndpoints.Services.Claims;
-using AuthEndpoints.Services.Repositories;
 using AuthEndpoints.Services.TokenGenerators;
 using AuthEndpoints.Services.TokenValidators;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

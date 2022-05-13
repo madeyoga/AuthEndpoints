@@ -2,7 +2,7 @@
 
 namespace AuthEndpoints.Data;
 
-public abstract class AuthDbContext<TUser, TRefreshToken> : DbContext, IRefreshTokenDbContext<TUser, TRefreshToken>
+public abstract class AuthDbContext<TUser, TRefreshToken> : DbContext
     where TUser : class
     where TRefreshToken : class
 {

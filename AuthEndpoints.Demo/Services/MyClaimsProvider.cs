@@ -12,4 +12,11 @@ public class MyClaimsProvider : IClaimsProvider<MyCustomIdentityUser>
         {
         };
     }
+
+    public List<Claim> provideRefreshTokenClaims(MyCustomIdentityUser user)
+    {
+        return new List<Claim>()
+        {
+        };
+    }
 }
