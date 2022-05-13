@@ -1,4 +1,3 @@
-using AuthEndpoints.Data;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
 using AuthEndpoints.Extensions;
@@ -29,9 +28,7 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 	option.Password.RequiredLength = 0;
 }).AddEntityFrameworkStores<MyDbContext>();
 
-//builder.Services.AddScoped(typeof(IAuthDbContext<MyCustomIdentityUser, RefreshToken>), typeof(MyDbContext));
-builder.Services.AddDbContext<IAuthDbContext<MyCustomIdentityUser, RefreshToken>, MyDbContext>();
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser, RefreshToken>(builder.Configuration);
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(builder.Configuration);
 
 var app = builder.Build();
 
