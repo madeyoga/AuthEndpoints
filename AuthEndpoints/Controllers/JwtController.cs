@@ -1,54 +1,47 @@
-﻿using AuthEndpoints.Models;
-using AuthEndpoints.Models.Requests;
+﻿using AuthEndpoints.Models.Requests;
 using AuthEndpoints.Models.Responses;
 using AuthEndpoints.Services.Authenticators;
-using AuthEndpoints.Services.Repositories;
 using AuthEndpoints.Services.TokenValidators;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
-using System.Security.Claims;
 
 namespace AuthEndpoints.Controllers;
 
-public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : ControllerBase
+public class JwtController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
-    where TUser : IdentityUser<TUserKey>, new()
-    where TRefreshToken : GenericRefreshToken<TUser, TUserKey>, new()
+    where TUser : IdentityUser<TUserKey>
 {
-    private readonly IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository;
     private readonly ITokenValidator refreshTokenValidator;
     private readonly UserManager<TUser> userRepository;
-    private readonly JwtUserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator;
+    private readonly JwtUserAuthenticator<TUser> authenticator;
 
-    public JwtEndpointsController(UserManager<TUser> userRepository,
-        IRefreshTokenRepository<TUserKey, TRefreshToken> refreshTokenRepository,
-        JwtUserAuthenticator<TUserKey, TUser, TRefreshToken> authenticator,
+    public JwtController(UserManager<TUser> userRepository,
+        JwtUserAuthenticator<TUser> authenticator,
         ITokenValidator refreshTokenValidator)
     {
         this.userRepository = userRepository;
-        this.refreshTokenRepository = refreshTokenRepository;
         this.authenticator = authenticator;
         this.refreshTokenValidator = refreshTokenValidator;
     }
 
     [HttpPost("create")]
-    public async Task<IActionResult> Create([FromBody] LoginRequest loginRequest)
+    public virtual async Task<IActionResult> Create([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid)
         {
             return BadRequestModelState();
         }
 
-        TUser user = await userRepository.FindByNameAsync(loginRequest.Username);
+        TUser user = await userRepository.FindByNameAsync(request.Username);
 
         if (user == null)
         {
             return Unauthorized();
         }
 
-        bool correctPassword = await userRepository.CheckPasswordAsync(user, loginRequest.Password);
+        bool correctPassword = await userRepository.CheckPasswordAsync(user, request.Password);
 
         if (!correctPassword)
         {
@@ -61,14 +54,14 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> Refresh([FromBody] RefreshRequest refreshRequest)
+    public virtual async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
     {
         if (!ModelState.IsValid)
         {
             return BadRequestModelState();
         }
 
-        bool isValidRefreshToken = refreshTokenValidator.Validate(refreshRequest.RefreshToken);
+        bool isValidRefreshToken = refreshTokenValidator.Validate(request.RefreshToken);
 
         if (!isValidRefreshToken)
         {
@@ -76,15 +69,9 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
             return BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or invalid."));
         }
 
-        TRefreshToken? refreshTokenDTO = await refreshTokenRepository.GetByToken(refreshRequest.RefreshToken);
-
-        if (refreshTokenDTO == null)
-        {
-            return NotFound(new ErrorResponse("Invaliid refresh token. Token is not registered in repository."));
-        }
-
-        await refreshTokenRepository.Delete(refreshTokenDTO.Id);
-        TUser user = await userRepository.FindByIdAsync(refreshTokenDTO.UserId!.ToString());
+        var jwt = refreshTokenValidator.ReadJwtToken(request.RefreshToken);
+        string userId = jwt.Claims.First(claim => claim.Type == "id").Value;
+        TUser user = await userRepository.FindByIdAsync(userId);
 
         if (user == null)
         {
@@ -98,7 +85,7 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
 
     [Authorize]
     [HttpPost("verify")]
-    public IActionResult Verify([FromBody] VerifyRequest verifyRequest)
+    public virtual IActionResult Verify([FromBody] VerifyRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -107,12 +94,12 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
 
         string headerToken = Request.Headers[HeaderNames.Authorization].ToString().Replace("Bearer ", "");
 
-        if (headerToken == verifyRequest.Token!)
+        if (headerToken == request.Token!)
         {
             return Ok();
         }
 
-        bool isValidRefreshToken = refreshTokenValidator.Validate(verifyRequest.Token!);
+        bool isValidRefreshToken = refreshTokenValidator.Validate(request.Token!);
 
         if (isValidRefreshToken)
         {
@@ -120,19 +107,6 @@ public class JwtEndpointsController<TUserKey, TUser, TRefreshToken> : Controller
         }
 
         return Unauthorized();
-    }
-
-    [Authorize]
-    [HttpDelete("logout")]
-    public async Task<IActionResult> Logout()
-    {
-        string rawUserId = HttpContext.User.FindFirstValue("id");
-
-        TUserKey key = (TUserKey)Convert.ChangeType(rawUserId, typeof(TUserKey));
-
-        await refreshTokenRepository.DeleteAll(key);
-
-        return NoContent();
     }
 
     private IActionResult BadRequestModelState()

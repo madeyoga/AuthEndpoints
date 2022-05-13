@@ -1,32 +1,32 @@
 ﻿namespace AuthEndpoints.Services.TokenGenerators;
 
 using AuthEndpoints.Models.Configurations;
-using Microsoft.AspNetCore.Identity;
+using AuthEndpoints.Services.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-public class RefreshTokenGenerator<TUserKey, TUser> : ITokenGenerator<TUser>
-    where TUserKey : IEquatable<TUserKey>
-    where TUser : IdentityUser<TUserKey>
+public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
+    where TUser : class
 {
+    private readonly IClaimsProvider<TUser> claimsProvider;
     private readonly AuthenticationConfiguration configuration;
 
-    public RefreshTokenGenerator(AuthenticationConfiguration configuration)
+    public RefreshTokenGenerator(IClaimsProvider<TUser> claimsProvider, AuthenticationConfiguration configuration)
     {
+        this.claimsProvider = claimsProvider;
         this.configuration = configuration;
     }
 
     public string GenerateToken(TUser user)
     {
-        // key used to sign jwt is gonna be the same as the key used for verify jwt
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.RefreshTokenSecret!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         JwtSecurityToken token = new JwtSecurityToken(
-            configuration.Issuer, // issuer domain
-            configuration.Audience, // audience
-            null, // claims
+            configuration.Issuer,
+            configuration.Audience,
+            claimsProvider.provideRefreshTokenClaims(user),
             DateTime.UtcNow, // token valid datetime
             DateTime.UtcNow.AddMinutes(configuration.RefreshTokenExpirationMinutes), // token expired datetime
             credentials);

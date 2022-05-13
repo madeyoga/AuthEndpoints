@@ -1,8 +1,7 @@
-﻿using AuthEndpoints.Controllers;
-using AuthEndpoints.Models;
+﻿using AuthEndpoints.Models;
 using AuthEndpoints.Models.Configurations;
 using AuthEndpoints.Services.Authenticators;
-using AuthEndpoints.Services.Providers;
+using AuthEndpoints.Services.Claims;
 using AuthEndpoints.Services.Repositories;
 using AuthEndpoints.Services.TokenGenerators;
 using AuthEndpoints.Services.TokenValidators;
@@ -17,15 +16,17 @@ using System.Text;
 
 namespace AuthEndpoints.Extensions;
 
+/// <summary>
+/// Provides extensions to easily bootstrap authendpoints
+/// </summary>
 public static class AuthEndpointsServiceExtension
 {
-    private static void Configure<TUserKey, TUser, TRefreshToken>(IServiceCollection services, ConfigurationManager configurationManager)
+    private static void Configure<TUserKey, TUser>(IServiceCollection services, ConfigurationManager configurationManager)
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
-        where TRefreshToken : GenericRefreshToken<TUser, TUserKey>, new()
     {
         var authConfig = new AuthenticationConfiguration();
-        configurationManager.Bind("Authentication", authConfig);
+        configurationManager.Bind("AuthEndpoints", authConfig);
         var refreshTokenValidationParameters = new TokenValidationParameters()
         {
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authConfig.RefreshTokenSecret!)),
@@ -38,14 +39,13 @@ public static class AuthEndpointsServiceExtension
         };
         services.TryAddSingleton(authConfig);
         services.TryAddSingleton(refreshTokenValidationParameters);
-        services.TryAddSingleton(typeof(IClaimsProvider<TUser>), typeof(DefaultClaimsProvider<TUserKey, TUser>));
-        services.TryAddScoped(typeof(IRefreshTokenRepository<TUserKey, TRefreshToken>), typeof(DatabaseRefreshTokenRepository<TUserKey, TUser, TRefreshToken>));
         services.TryAddSingleton<IdentityErrorDescriber>();
-        services.TryAddScoped<JwtUserAuthenticator<TUserKey, TUser, TRefreshToken>>();
-        services.TryAddSingleton<AccessJwtGenerator<TUserKey, TUser>>();
-        services.TryAddSingleton<RefreshTokenGenerator<TUserKey, TUser>>();
-        services.TryAddSingleton<ITokenValidator, RefreshTokenValidator>();
         services.TryAddSingleton<JwtSecurityTokenHandler>();
+        services.TryAddSingleton<IClaimsProvider<TUser>, DefaultClaimsProvider<TUserKey, TUser>>();
+        services.TryAddScoped<JwtUserAuthenticator<TUser>>();
+        services.TryAddSingleton<AccessJwtGenerator<TUser>>();
+        services.TryAddSingleton<RefreshTokenGenerator<TUser>>();
+        services.TryAddSingleton<ITokenValidator, RefreshTokenValidator>();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
         {
             option.TokenValidationParameters = new TokenValidationParameters()
@@ -61,18 +61,16 @@ public static class AuthEndpointsServiceExtension
         });
     }
 
-    public static void AddAuthEndpoints<TUserKey, TUser, TRefreshToken>(this IServiceCollection services, ConfigurationManager configurationManager)
+    public static void AddAuthEndpoints<TUserKey, TUser>(this IServiceCollection services, ConfigurationManager configurationManager)
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
-        where TRefreshToken : GenericRefreshToken<TUser, TUserKey>, new()
     {
-        Configure<TUserKey, TUser, TRefreshToken>(services, configurationManager);
+        Configure<TUserKey, TUser>(services, configurationManager);
     }
 
-    public static void AddAuthEndpoints<TUser, TRefreshToken>(this IServiceCollection services, ConfigurationManager configurationManager)
+    public static void AddAuthEndpoints<TUser>(this IServiceCollection services, ConfigurationManager configurationManager)
         where TUser : IdentityUser
-        where TRefreshToken : GenericRefreshToken<TUser, string>, new()
     {
-        Configure<string, TUser, TRefreshToken>(services, configurationManager);
+        Configure<string, TUser>(services, configurationManager);
     }
 }

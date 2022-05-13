@@ -21,7 +21,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     }
 
     [HttpPost("users")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+    public virtual async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
     {
         if (!ModelState.IsValid)
         {
@@ -62,7 +62,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
 
     [Authorize]
     [HttpGet("users/me")]
-    public async Task<IActionResult> GetMe()
+    public virtual async Task<IActionResult> GetMe()
     {
         if (!ModelState.IsValid)
         {
@@ -77,7 +77,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
 
     [Authorize]
     [HttpPost("users/set_password")]
-    public async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
+    public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
         if (!ModelState.IsValid)
         {

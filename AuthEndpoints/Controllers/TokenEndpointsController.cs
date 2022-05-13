@@ -15,9 +15,9 @@ public class TokenEndpointsController<TUserKey, TUser> : ControllerBase
     private readonly UserManager<TUser> userManager;
     private readonly TokenUserAuthenticator<TUser> authenticator;
 
-    public TokenEndpointsController(UserManager<TUser> userRepository, TokenUserAuthenticator<TUser> authenticator)
+    public TokenEndpointsController(UserManager<TUser> userManager, TokenUserAuthenticator<TUser> authenticator)
     {
-        this.userManager = userRepository;
+        this.userManager = userManager;
         this.authenticator = authenticator;
     }
 

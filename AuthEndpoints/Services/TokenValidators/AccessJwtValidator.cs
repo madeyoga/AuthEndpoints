@@ -26,6 +26,11 @@ internal class AccessJwtValidator : ITokenValidator
         this.tokenHandler = tokenHandler;
     }
 
+    public JwtSecurityToken ReadJwtToken(string token)
+    {
+        return tokenHandler.ReadJwtToken(token);
+    }
+
     public bool Validate(string token)
     {
         try
