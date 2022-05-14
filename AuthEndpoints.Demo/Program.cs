@@ -2,13 +2,24 @@ using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
 using AuthEndpoints.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+	options.SwaggerDoc("v1", new OpenApiInfo()
+	{
+		Title = "My API - v1",
+		Version = "v1"
+	});
+
+	var filePath = Path.Combine(System.AppContext.BaseDirectory, "AuthEndpoints.Demo.xml");
+	options.IncludeXmlComments(filePath);
+});
 
 builder.Services.AddDbContext<MyDbContext>(options =>
 {
