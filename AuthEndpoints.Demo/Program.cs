@@ -3,6 +3,7 @@ using AuthEndpoints.Demo.Models;
 using AuthEndpoints.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,11 +15,25 @@ builder.Services.AddSwaggerGen(options =>
 	options.SwaggerDoc("v1", new OpenApiInfo()
 	{
 		Title = "My API - v1",
-		Version = "v1"
+		Version = "v1",
+		Description = "A simple example ASP.NET Core Web API",
+		TermsOfService = new Uri("https://example.com/terms"),
+		Contact = new OpenApiContact
+		{
+			Name = "Shayne Boyer",
+			Email = string.Empty,
+			Url = new Uri("https://twitter.com/spboyer"),
+		},
+		License = new OpenApiLicense
+		{
+			Name = "Use under LICX",
+			Url = new Uri("https://example.com/license"),
+		}
 	});
 
-	var filePath = Path.Combine(System.AppContext.BaseDirectory, "AuthEndpoints.Demo.xml");
-	options.IncludeXmlComments(filePath);
+	var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+	var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+	options.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddDbContext<MyDbContext>(options =>
@@ -39,7 +54,7 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 	option.Password.RequiredLength = 0;
 }).AddEntityFrameworkStores<MyDbContext>();
 
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(builder.Configuration);
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>();
 
 var app = builder.Build();
 
