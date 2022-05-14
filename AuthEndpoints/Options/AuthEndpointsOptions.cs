@@ -1,6 +1,6 @@
-﻿namespace AuthEndpoints.Models.Configurations;
+﻿namespace AuthEndpoints.Options;
 
-public class AuthenticationConfiguration
+public class AuthEndpointsOptions
 {
     public string? AccessTokenSecret { get; set; }
     public int AccessTokenExpirationMinutes { get; set; }

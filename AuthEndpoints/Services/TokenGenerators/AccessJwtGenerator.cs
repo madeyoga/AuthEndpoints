@@ -1,6 +1,6 @@
 ﻿namespace AuthEndpoints.Services.TokenGenerators;
 
-using AuthEndpoints.Models.Configurations;
+using AuthEndpoints.Options;
 using AuthEndpoints.Services.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.Collections.Generic;
@@ -11,28 +11,28 @@ using System.Text;
 public class AccessJwtGenerator<TUser> : IAccessTokenGenerator<TUser>
     where TUser : class
 {
-    private readonly AuthenticationConfiguration configuration;
+    private readonly AuthEndpointsOptions options;
     private readonly IClaimsProvider<TUser> claimsProvider;
 
-    public AccessJwtGenerator(IClaimsProvider<TUser> claimsProvider, AuthenticationConfiguration configuration)
+    public AccessJwtGenerator(IClaimsProvider<TUser> claimsProvider, AuthEndpointsOptions options)
     {
         this.claimsProvider = claimsProvider;
-        this.configuration = configuration;
+        this.options = options;
     }
 
     public string GenerateToken(TUser user)
     {
-        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.AccessTokenSecret!));
+        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.AccessTokenSecret!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         List<Claim> claims = claimsProvider.provideAccessTokenClaims(user);
 
         JwtSecurityToken token = new JwtSecurityToken(
-            configuration.Issuer,
-            configuration.Audience,
+            options.Issuer,
+            options.Audience,
             claims,
             DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(configuration.AccessTokenExpirationMinutes),
+            DateTime.UtcNow.AddMinutes(options.AccessTokenExpirationMinutes),
             credentials
         );
 

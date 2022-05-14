@@ -34,11 +34,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to obtain jwt
     /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    /// <response code="200">Valid username and password, return: access and refresh token</response>
-    /// <response code="400">Invalid model state</response>
-    /// <response code="401">Invalid username or password</response>
     [HttpPost("create")]
     public virtual async Task<IActionResult> Create([FromBody] LoginRequest request)
     {
@@ -70,11 +65,9 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to refresh jwt
     /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    /// <response code="200">Valid refresh token, return an new: access and refresh token</response>
-    /// <response code="400">Invalid model state or Invalid token. Token may be expired or invalid</response>
-    /// <response code="404">User associated by this token is not found</response>
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
     [HttpPost("refresh")]
     public virtual async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
     {
@@ -108,11 +101,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to verify jwt
     /// </summary>
-    /// <param name="request"></param>
-    /// <returns></returns>
-    /// <response code="200">Valid jwt</response>
-    /// <response code="400">Invalid model state</response>
-    /// <response code="401">Invalid jwt</response>
     [Authorize]
     [HttpPost("verify")]
     public virtual IActionResult Verify([FromBody] VerifyRequest request)
