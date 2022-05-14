@@ -20,8 +20,16 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         this.errorDescriber = errorDescriber;
     }
 
+    /// <summary>
+    /// Use this endpoint to register new user
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
     [HttpPost("users")]
-    public virtual async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+    public virtual async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -29,15 +37,17 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
             return BadRequest(new ErrorResponse(errors));
         }
 
-        if (registerRequest.Password != registerRequest.ConfirmPassword)
+        if (request.Password != request.ConfirmPassword)
         {
             return BadRequest(new ErrorResponse("Password not match confirm password."));
         }
 
-        TUser registrationUser = new TUser();
-        registrationUser.Email = registerRequest.Email;
-        registrationUser.UserName = registerRequest.Username;
-        IdentityResult result = await userRepository.CreateAsync(registrationUser, registerRequest.Password);
+        TUser registrationUser = new TUser()
+        {
+            Email = request.Email,
+            UserName = request.Username
+        };
+        IdentityResult result = await userRepository.CreateAsync(registrationUser, request.Password);
 
         if (!result.Succeeded)
         {
@@ -60,6 +70,11 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+
+    /// <summary>
+    /// Use this endpoint to retrieve the authenticated user
+    /// </summary>
+    /// <returns></returns>
     [Authorize]
     [HttpGet("users/me")]
     public virtual async Task<IActionResult> GetMe()
@@ -75,6 +90,11 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok(currentUser);
     }
 
+    /// <summary>
+    /// Use this endpoint to change user password
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [Authorize]
     [HttpPost("users/set_password")]
     public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
