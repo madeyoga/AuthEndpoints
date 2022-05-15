@@ -1,27 +1,18 @@
-﻿using AuthEndpoints.Models.Configurations;
+﻿using AuthEndpoints.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 namespace AuthEndpoints.Services.TokenValidators;
 
-internal class AccessJwtValidator : ITokenValidator
+internal class AccessTokenValidator : ITokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public AccessJwtValidator(AuthenticationConfiguration authConfig, JwtSecurityTokenHandler tokenHandler)
+    public AccessTokenValidator(AuthEndpointsOptions authConfig, JwtSecurityTokenHandler tokenHandler)
     {
-        validationParameters = new TokenValidationParameters()
-        {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authConfig.AccessTokenSecret!)),
-            ValidIssuer = authConfig.Issuer,
-            ValidAudience = authConfig.Audience,
-            ValidateIssuerSigningKey = true,
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ClockSkew = TimeSpan.Zero,
-        };
+        validationParameters = authConfig.AccessTokenValidationParameters!;
 
         this.tokenHandler = tokenHandler;
     }
@@ -43,5 +34,11 @@ internal class AccessJwtValidator : ITokenValidator
         }
 
         return true;
+    }
+
+    public async Task<bool> ValidateAsync(string token)
+    {
+        var result = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+        return result.IsValid;
     }
 }

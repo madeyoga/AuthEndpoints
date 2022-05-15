@@ -10,7 +10,7 @@ public class JwtUserAuthenticator<TUser> : IAuthenticator<TUser, AuthenticatedJw
     private readonly ITokenGenerator<TUser> refreshTokenGenerator;
 
     public JwtUserAuthenticator(
-        AccessJwtGenerator<TUser> accessTokenGenerator,
+        AccessTokenGenerator<TUser> accessTokenGenerator,
         RefreshTokenGenerator<TUser> refreshTokenGenerator)
     {
         this.accessTokenGenerator = accessTokenGenerator;

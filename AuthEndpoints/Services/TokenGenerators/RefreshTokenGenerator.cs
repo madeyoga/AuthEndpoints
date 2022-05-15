@@ -24,11 +24,11 @@ public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         JwtSecurityToken token = new JwtSecurityToken(
-            options.Issuer,
-            options.Audience,
+            options.RefreshTokenValidationParameters!.ValidIssuer,
+            options.RefreshTokenValidationParameters!.ValidAudience,
             claimsProvider.provideRefreshTokenClaims(user),
-            DateTime.UtcNow, // token valid datetime
-            DateTime.UtcNow.AddMinutes(options.RefreshTokenExpirationMinutes), // token expired datetime
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(options.RefreshTokenExpirationMinutes),
             credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

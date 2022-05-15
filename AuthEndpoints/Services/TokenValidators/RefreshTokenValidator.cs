@@ -1,16 +1,18 @@
 ﻿namespace AuthEndpoints.Services.TokenValidators;
 
+using AuthEndpoints.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
 
 public class RefreshTokenValidator : ITokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public RefreshTokenValidator(TokenValidationParameters validationParameters, JwtSecurityTokenHandler tokenHandler)
+    public RefreshTokenValidator(AuthEndpointsOptions authConfig, JwtSecurityTokenHandler tokenHandler)
     {
-        this.validationParameters = validationParameters;
+        validationParameters = authConfig.RefreshTokenValidationParameters!;
         this.tokenHandler = tokenHandler;
     }
 
@@ -30,5 +32,11 @@ public class RefreshTokenValidator : ITokenValidator
             return false;
         }
         return true;
+    }
+
+    public async Task<bool> ValidateAsync(string token)
+    {
+        var result = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+        return result.IsValid;
     }
 }
