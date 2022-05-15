@@ -3,15 +3,15 @@
 using AuthEndpoints.Models.Responses;
 using AuthEndpoints.Services.TokenGenerators;
 
-public class JwtUserAuthenticator<TUser> : IAuthenticator<TUser, AuthenticatedJwtResponse>
+public class UserAuthenticator<TUser> : IAuthenticator<TUser, AuthenticatedJwtResponse>
     where TUser : class
 {
     private readonly ITokenGenerator<TUser> accessTokenGenerator;
     private readonly ITokenGenerator<TUser> refreshTokenGenerator;
 
-    public JwtUserAuthenticator(
-        AccessTokenGenerator<TUser> accessTokenGenerator,
-        RefreshTokenGenerator<TUser> refreshTokenGenerator)
+    public UserAuthenticator(
+        IAccessTokenGenerator<TUser> accessTokenGenerator,
+        IRefreshTokenGenerator<TUser> refreshTokenGenerator)
     {
         this.accessTokenGenerator = accessTokenGenerator;
         this.refreshTokenGenerator = refreshTokenGenerator;

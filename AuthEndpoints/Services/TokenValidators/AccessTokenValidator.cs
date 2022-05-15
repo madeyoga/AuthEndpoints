@@ -1,7 +1,7 @@
 ﻿using AuthEndpoints.Options;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using System.Text;
 
 namespace AuthEndpoints.Services.TokenValidators;
 
@@ -10,9 +10,9 @@ internal class AccessTokenValidator : ITokenValidator
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public AccessTokenValidator(AuthEndpointsOptions authConfig, JwtSecurityTokenHandler tokenHandler)
+    public AccessTokenValidator(IOptions<AuthEndpointsOptions> options, JwtSecurityTokenHandler tokenHandler)
     {
-        validationParameters = authConfig.AccessTokenValidationParameters!;
+        validationParameters = options.Value.AccessTokenValidationParameters!;
 
         this.tokenHandler = tokenHandler;
     }

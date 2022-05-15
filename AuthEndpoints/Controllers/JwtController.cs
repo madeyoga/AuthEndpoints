@@ -20,10 +20,10 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 {
     private readonly ITokenValidator refreshTokenValidator;
     private readonly UserManager<TUser> userRepository;
-    private readonly JwtUserAuthenticator<TUser> authenticator;
+    private readonly UserAuthenticator<TUser> authenticator;
 
     public JwtController(UserManager<TUser> userRepository,
-        JwtUserAuthenticator<TUser> authenticator,
+        UserAuthenticator<TUser> authenticator,
         ITokenValidator refreshTokenValidator)
     {
         this.userRepository = userRepository;

@@ -24,10 +24,10 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
         services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
         services.TryAddScoped<ITokenValidator, RefreshTokenValidator>();
-        services.TryAddScoped<IAuthenticator<TUser, AuthenticatedJwtResponse>, JwtUserAuthenticator<TUser>>();
+        services.TryAddScoped<IAuthenticator<TUser, AuthenticatedJwtResponse>, UserAuthenticator<TUser>>();
 
         services.TryAddScoped<IdentityErrorDescriber>();
-        services.TryAddSingleton<JwtSecurityTokenHandler>();
+        services.TryAddScoped<JwtSecurityTokenHandler>();
 
         return new AuthEndpointsBuilder(typeof(TUser), services);
     }
