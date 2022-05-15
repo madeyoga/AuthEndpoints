@@ -14,7 +14,7 @@ namespace AuthEndpoints.Demo.Controllers;
 public class AuthenticationController : JwtController<string, MyCustomIdentityUser>
 {
     public AuthenticationController(UserManager<MyCustomIdentityUser> userRepository, 
-        JwtUserAuthenticator<MyCustomIdentityUser> authenticator, 
+        UserAuthenticator<MyCustomIdentityUser> authenticator, 
         ITokenValidator refreshTokenValidator)
         : base(userRepository, authenticator, refreshTokenValidator)
     {

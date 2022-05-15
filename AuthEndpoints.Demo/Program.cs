@@ -24,9 +24,9 @@ builder.Services.AddSwaggerGen(options =>
 		TermsOfService = new Uri("https://example.com/terms"),
 		Contact = new OpenApiContact
 		{
-			Name = "Shayne Boyer",
+			Name = "contact",
 			Email = string.Empty,
-			Url = new Uri("https://twitter.com/spboyer"),
+			Url = new Uri("https://example.com/contact"),
 		},
 		License = new OpenApiLicense
 		{
@@ -82,7 +82,7 @@ var refreshTokenValidationParameters = new TokenValidationParameters()
 
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
-	AccessTokenSecret = "9GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",	
+	AccessTokenSecret = "9GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
 	RefreshTokenSecret = "8GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
 	AccessTokenExpirationMinutes = 15,
 	RefreshTokenExpirationMinutes = 6000,
@@ -90,8 +90,7 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
 	Issuer = "https://localhost:8000",
 	AccessTokenValidationParameters = accessTokenValidationParameters,
 	RefreshTokenValidationParameters = refreshTokenValidationParameters
-}).AddJwtBearerAuthenticationScheme(accessTokenValidationParameters)
-	.AddClaimsProvider<MyClaimsProvider>();
+}).AddJwtBearerAuthenticationScheme(accessTokenValidationParameters);
 
 var app = builder.Build();
 
