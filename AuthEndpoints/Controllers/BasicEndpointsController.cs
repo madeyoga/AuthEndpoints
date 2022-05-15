@@ -7,6 +7,7 @@ using System.Security.Claims;
 
 namespace AuthEndpoints.Controllers;
 
+[Route("users/")]
 public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
@@ -20,8 +21,11 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         this.errorDescriber = errorDescriber;
     }
 
-    [HttpPost("users")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+    /// <summary>
+    /// Use this endpoint to register new user
+    /// </summary>
+    [HttpPost("")]
+    public virtual async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -29,15 +33,17 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
             return BadRequest(new ErrorResponse(errors));
         }
 
-        if (registerRequest.Password != registerRequest.ConfirmPassword)
+        if (request.Password != request.ConfirmPassword)
         {
             return BadRequest(new ErrorResponse("Password not match confirm password."));
         }
 
-        TUser registrationUser = new TUser();
-        registrationUser.Email = registerRequest.Email;
-        registrationUser.UserName = registerRequest.Username;
-        IdentityResult result = await userRepository.CreateAsync(registrationUser, registerRequest.Password);
+        TUser registrationUser = new TUser()
+        {
+            Email = request.Email,
+            UserName = request.Username
+        };
+        IdentityResult result = await userRepository.CreateAsync(registrationUser, request.Password);
 
         if (!result.Succeeded)
         {
@@ -60,9 +66,13 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+
+    /// <summary>
+    /// Use this endpoint to retrieve the authenticated user
+    /// </summary>
     [Authorize]
-    [HttpGet("users/me")]
-    public async Task<IActionResult> GetMe()
+    [HttpGet("me")]
+    public virtual async Task<IActionResult> GetMe()
     {
         if (!ModelState.IsValid)
         {
@@ -75,9 +85,12 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok(currentUser);
     }
 
+    /// <summary>
+    /// Use this endpoint to change user password
+    /// </summary>
     [Authorize]
-    [HttpPost("users/set_password")]
-    public async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
+    [HttpPost("set_password")]
+    public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
         if (!ModelState.IsValid)
         {
@@ -87,6 +100,11 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         if (request.NewPassword != request.ConfirmNewPassword)
         {
             return BadRequest(new ErrorResponse("New password not match confirm password"));
+        }
+
+        if (request.CurrentPassword == request.NewPassword)
+        {
+            return BadRequest(new ErrorResponse("New password cannot be the same as current password"));
         }
 
         string identity = HttpContext.User.FindFirstValue("id");
@@ -105,7 +123,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
             return Conflict($"Error occured while updating password. Code: {result.Errors.First().Code}");
         }
 
-        return Ok();
+        return NoContent();
     }
 
     private IActionResult BadRequestModelState()

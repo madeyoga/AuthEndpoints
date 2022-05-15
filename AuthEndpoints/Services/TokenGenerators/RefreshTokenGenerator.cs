@@ -1,36 +1,39 @@
-﻿namespace AuthEndpoints.Services.TokenGenerators;
-
-using AuthEndpoints.Models.Configurations;
-using Microsoft.AspNetCore.Identity;
+﻿using AuthEndpoints.Options;
+using AuthEndpoints.Services.Claims;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-public class RefreshTokenGenerator<TUserKey, TUser> : ITokenGenerator<TUser>
-    where TUserKey : IEquatable<TUserKey>
-    where TUser : IdentityUser<TUserKey>
-{
-    private readonly AuthenticationConfiguration configuration;
+namespace AuthEndpoints.Services.TokenGenerators;
 
-    public RefreshTokenGenerator(AuthenticationConfiguration configuration)
+public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
+    where TUser : class
+{
+    private readonly IClaimsProvider<TUser> claimsProvider;
+    private readonly IOptions<AuthEndpointsOptions> options;
+    private readonly JwtSecurityTokenHandler tokenHandler;
+
+    public RefreshTokenGenerator(IClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options, JwtSecurityTokenHandler tokenHandler)
     {
-        this.configuration = configuration;
+        this.claimsProvider = claimsProvider;
+        this.options = options;
+        this.tokenHandler = tokenHandler;
     }
 
-    public string GenerateToken(TUser user)
+    public string Generate(TUser user)
     {
-        // key used to sign jwt is gonna be the same as the key used for verify jwt
-        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.RefreshTokenSecret!));
+        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.RefreshTokenSecret!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         JwtSecurityToken token = new JwtSecurityToken(
-            configuration.Issuer, // issuer domain
-            configuration.Audience, // audience
-            null, // claims
-            DateTime.UtcNow, // token valid datetime
-            DateTime.UtcNow.AddMinutes(configuration.RefreshTokenExpirationMinutes), // token expired datetime
+            options.Value.RefreshTokenValidationParameters!.ValidIssuer,
+            options.Value.RefreshTokenValidationParameters!.ValidAudience,
+            claimsProvider.provideRefreshTokenClaims(user),
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(options.Value.RefreshTokenExpirationMinutes),
             credentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return tokenHandler.WriteToken(token);
     }
 }

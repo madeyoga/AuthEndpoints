@@ -2,5 +2,5 @@
 
 public interface ITokenGenerator<TUser>
 {
-    string GenerateToken(TUser user);
+    string Generate(TUser user);
 }
