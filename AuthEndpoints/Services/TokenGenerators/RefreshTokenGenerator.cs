@@ -12,14 +12,16 @@ public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
 {
     private readonly IClaimsProvider<TUser> claimsProvider;
     private readonly IOptions<AuthEndpointsOptions> options;
+    private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public RefreshTokenGenerator(IClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options)
+    public RefreshTokenGenerator(IClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options, JwtSecurityTokenHandler tokenHandler)
     {
         this.claimsProvider = claimsProvider;
         this.options = options;
+        this.tokenHandler = tokenHandler;
     }
 
-    public string GenerateToken(TUser user)
+    public string Generate(TUser user)
     {
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.RefreshTokenSecret!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -32,6 +34,6 @@ public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
             DateTime.UtcNow.AddMinutes(options.Value.RefreshTokenExpirationMinutes),
             credentials);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return tokenHandler.WriteToken(token);
     }
 }

@@ -14,14 +14,16 @@ public class AccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
 {
     private readonly IOptions<AuthEndpointsOptions> options;
     private readonly IClaimsProvider<TUser> claimsProvider;
+    private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public AccessTokenGenerator(IClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options)
+    public AccessTokenGenerator(IClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options, JwtSecurityTokenHandler tokenHandler)
     {
         this.claimsProvider = claimsProvider;
         this.options = options;
+        this.tokenHandler = tokenHandler;
     }
 
-    public string GenerateToken(TUser user)
+    public string Generate(TUser user)
     {
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.Value.AccessTokenSecret!));
         SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -37,7 +39,7 @@ public class AccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
             credentials
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return tokenHandler.WriteToken(token);
     }
 }
 

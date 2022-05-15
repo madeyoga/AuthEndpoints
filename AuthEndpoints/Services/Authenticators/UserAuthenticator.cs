@@ -19,8 +19,8 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser, AuthenticatedJwtRe
 
     public Task<AuthenticatedJwtResponse> Authenticate(TUser user)
     {
-        string accessToken = accessTokenGenerator.GenerateToken(user);
-        string refreshToken = refreshTokenGenerator.GenerateToken(user);
+        string accessToken = accessTokenGenerator.Generate(user);
+        string refreshToken = refreshTokenGenerator.Generate(user);
 
         return Task.FromResult(new AuthenticatedJwtResponse()
         {
