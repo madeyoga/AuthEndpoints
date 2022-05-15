@@ -7,6 +7,7 @@ using System.Security.Claims;
 
 namespace AuthEndpoints.Controllers;
 
+[Route("users/")]
 public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
@@ -23,7 +24,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to register new user
     /// </summary>
-    [HttpPost("users")]
+    [HttpPost("")]
     public virtual async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid)
@@ -70,7 +71,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     /// Use this endpoint to retrieve the authenticated user
     /// </summary>
     [Authorize]
-    [HttpGet("users/me")]
+    [HttpGet("me")]
     public virtual async Task<IActionResult> GetMe()
     {
         if (!ModelState.IsValid)
@@ -88,7 +89,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     /// Use this endpoint to change user password
     /// </summary>
     [Authorize]
-    [HttpPost("users/set_password")]
+    [HttpPost("set_password")]
     public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
         if (!ModelState.IsValid)
@@ -99,6 +100,11 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         if (request.NewPassword != request.ConfirmNewPassword)
         {
             return BadRequest(new ErrorResponse("New password not match confirm password"));
+        }
+
+        if (request.CurrentPassword == request.NewPassword)
+        {
+            return BadRequest(new ErrorResponse("New password cannot be the same as current password"));
         }
 
         string identity = HttpContext.User.FindFirstValue("id");
@@ -117,7 +123,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
             return Conflict($"Error occured while updating password. Code: {result.Errors.First().Code}");
         }
 
-        return Ok();
+        return NoContent();
     }
 
     private IActionResult BadRequestModelState()

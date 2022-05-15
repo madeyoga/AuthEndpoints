@@ -14,16 +14,17 @@ namespace AuthEndpoints.Controllers;
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
+[Route("jwt/")]
 public class JwtController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
 {
-    private readonly ITokenValidator refreshTokenValidator;
     private readonly UserManager<TUser> userRepository;
-    private readonly UserAuthenticator<TUser> authenticator;
+    private readonly ITokenValidator refreshTokenValidator;
+    private readonly IAuthenticator<TUser, AuthenticatedJwtResponse> authenticator;
 
     public JwtController(UserManager<TUser> userRepository,
-        UserAuthenticator<TUser> authenticator,
+        IAuthenticator<TUser, AuthenticatedJwtResponse> authenticator,
         ITokenValidator refreshTokenValidator)
     {
         this.userRepository = userRepository;
@@ -60,7 +61,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 
         return Ok(response);
     }
-
 
     /// <summary>
     /// Use this endpoint to refresh jwt
