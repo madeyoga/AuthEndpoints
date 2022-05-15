@@ -3,6 +3,7 @@ using AuthEndpoints.Demo.Models;
 using AuthEndpoints.Demo.Services;
 using AuthEndpoints.Extensions;
 using AuthEndpoints.Options;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -30,7 +31,7 @@ builder.Services.AddSwaggerGen(options =>
 		},
 		License = new OpenApiLicense
 		{
-			Name = "Use under LICX",
+			Name = "Use under MIT",
 			Url = new Uri("https://example.com/license"),
 		}
 	});
@@ -56,7 +57,9 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 	option.Password.RequireNonAlphanumeric = false;
 	option.Password.RequireUppercase = false;
 	option.Password.RequiredLength = 0;
-}).AddEntityFrameworkStores<MyDbContext>();
+})
+	.AddEntityFrameworkStores<MyDbContext>()
+	.AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
 var accessTokenValidationParameters = new TokenValidationParameters()
 {
@@ -90,7 +93,8 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
 	Issuer = "https://localhost:8000",
 	AccessTokenValidationParameters = accessTokenValidationParameters,
 	RefreshTokenValidationParameters = refreshTokenValidationParameters
-}).AddJwtBearerAuthenticationScheme(accessTokenValidationParameters);
+})
+	.AddJwtBearerAuthenticationScheme(accessTokenValidationParameters);
 
 var app = builder.Build();
 

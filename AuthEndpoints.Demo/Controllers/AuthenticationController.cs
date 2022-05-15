@@ -1,6 +1,7 @@
 ﻿using AuthEndpoints.Controllers;
 using AuthEndpoints.Demo.Models;
 using AuthEndpoints.Models.Requests;
+using AuthEndpoints.Models.Responses;
 using AuthEndpoints.Services.Authenticators;
 using AuthEndpoints.Services.TokenValidators;
 using Microsoft.AspNetCore.Identity;
@@ -9,14 +10,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace AuthEndpoints.Demo.Controllers;
 
 [ApiController]
-[Route("jwt/")]
 [Tags("JSON Web Token")]
 public class AuthenticationController : JwtController<string, MyCustomIdentityUser>
 {
     public AuthenticationController(UserManager<MyCustomIdentityUser> userRepository, 
-        UserAuthenticator<MyCustomIdentityUser> authenticator, 
-        ITokenValidator refreshTokenValidator)
-        : base(userRepository, authenticator, refreshTokenValidator)
+        IAuthenticator<MyCustomIdentityUser, AuthenticatedJwtResponse> authenticator, 
+        ITokenValidator refreshTokenValidator) : base(userRepository, authenticator, refreshTokenValidator)
     {
     }
 
@@ -30,7 +29,6 @@ public class AuthenticationController : JwtController<string, MyCustomIdentityUs
     [ProducesResponseType(200)]
     [ProducesResponseType(typeof(LoginRequest), 400)]
     [ProducesResponseType(typeof(LoginRequest), 401)]
-    [HttpPost("login")]
     public override async Task<IActionResult> Create([FromBody] LoginRequest request)
     {
         return await base.Create(request);
