@@ -1,4 +1,13 @@
-# This is the **HOMEPAGE**.
-Refer to [Markdown](http://daringfireball.net/projects/markdown/) for how to write markdown files.
-## Quick Start Notes:
-1. Add images to the *images* folder if the file is referencing an image.
+[![license](https://img.shields.io/github/license/nano-devs/AuthEndpoints?color=blue&label=license&logo=Github&style=flat-square)](https://github.com/nano-devs/AuthEndpoints/blob/master/README.md)
+
+A simple authentication library for ASP.Net 6.
+
+AuthEndpoints library provides a set of API controllers to handle basic web & JWT authentication actions such as registration, login, reset password, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
+
+# Benefits
+- Easy to use
+- Allows quicker development
+- Works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data)
+- Highly customizable
+- You won't have to reinvent the wheel
+- It just works
