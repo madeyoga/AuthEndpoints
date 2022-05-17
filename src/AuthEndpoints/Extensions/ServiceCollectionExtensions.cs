@@ -3,7 +3,9 @@ using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 
 namespace AuthEndpoints;
 
@@ -21,7 +23,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
         services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
         services.TryAddScoped<ITokenValidator, RefreshTokenValidator>();
-        services.TryAddScoped<IAuthenticator<TUser, AuthenticatedJwtResponse>, UserAuthenticator<TUser>>();
+        services.TryAddScoped<IAuthenticator<TUser, AuthenticatedUserResponse>, UserAuthenticator<TUser>>();
 
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();

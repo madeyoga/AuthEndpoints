@@ -20,10 +20,10 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 {
     private readonly UserManager<TUser> userRepository;
     private readonly ITokenValidator refreshTokenValidator;
-    private readonly IAuthenticator<TUser, AuthenticatedJwtResponse> authenticator;
+    private readonly IAuthenticator<TUser> authenticator;
 
     public JwtController(UserManager<TUser> userRepository,
-        IAuthenticator<TUser, AuthenticatedJwtResponse> authenticator,
+        IAuthenticator<TUser> authenticator,
         ITokenValidator refreshTokenValidator)
     {
         this.userRepository = userRepository;
@@ -42,21 +42,14 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        TUser user = await userRepository.FindByNameAsync(request.Username);
+        TUser? user = await authenticator.Authenticate(request.Username, request.Password);
 
         if (user == null)
         {
             return Unauthorized();
         }
 
-        bool correctPassword = await userRepository.CheckPasswordAsync(user, request.Password);
-
-        if (!correctPassword)
-        {
-            return Unauthorized();
-        }
-
-        AuthenticatedJwtResponse response = await authenticator.Authenticate(user);
+        AuthenticatedUserResponse response = await authenticator.Login(user);
 
         return Ok(response);
     }
@@ -89,7 +82,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return NotFound(new ErrorResponse("User not found."));
         }
 
-        AuthenticatedJwtResponse response = await authenticator.Authenticate(user);
+        AuthenticatedUserResponse response = await authenticator.Login(user);
 
         return Ok(response);
     }

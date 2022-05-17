@@ -46,7 +46,7 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="IAccessTokenClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IAccessTokenClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
@@ -56,7 +56,7 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="IRefreshTokenClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IRefreshTokenClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
@@ -66,7 +66,7 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
     /// </summary>
     /// <typeparam name="TGenerator">The type of the token generator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
@@ -76,7 +76,7 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="IRefreshTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IRefreshTokenGenerator{TUser}"/>.
     /// </summary>
     /// <typeparam name="TGenerator">The type of the token generator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
@@ -86,7 +86,7 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="ITokenValidator"/>.
+    /// Adds an <see cref="ITokenValidator"/>.
     /// </summary>
     /// <typeparam name="TValidator">The type of the token validator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
@@ -96,13 +96,13 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="IAuthenticator{TUser, TResponse}"/>.
+    /// Adds an <see cref="IAuthenticator{TUser}"/>.
     /// </summary>
     /// <typeparam name="TAuthenticator">The type of the token validator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddUserAuthenticator<TAuthenticator>() where TAuthenticator : class
     {
-        return AddScoped(typeof(IAuthenticator<,>).MakeGenericType(UserType, typeof(AuthenticatedJwtResponse)), typeof(TAuthenticator));
+        return AddScoped(typeof(IAuthenticator<>).MakeGenericType(UserType), typeof(TAuthenticator));
     }
 
     /// <summary>

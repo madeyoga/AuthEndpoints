@@ -5,9 +5,9 @@ namespace AuthEndpoints;
 /// <summary>
 /// Represents all the options you can use to configure the AuthEndpoints system.
 /// </summary>
-public class AuthEndpointsOptions 
+public class AuthEndpointsOptions
 {
-    public const string Key = "AuthEndpointsOptions";
+    public const string Key = "AuthEndpoints";
     public string? AccessTokenSecret { get; set; }
     public string? RefreshTokenSecret { get; set; }
     public string? Issuer { get; set; }

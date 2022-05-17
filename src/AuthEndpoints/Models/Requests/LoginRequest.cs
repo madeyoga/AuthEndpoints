@@ -2,6 +2,9 @@
 
 namespace AuthEndpoints.Models
 {
+    /// <summary>
+    /// The dto used for login request
+    /// </summary>
     public class LoginRequest
     {
         [Required]
