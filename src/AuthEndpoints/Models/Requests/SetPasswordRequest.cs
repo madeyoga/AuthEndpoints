@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthEndpoints.Models.Requests;
+namespace AuthEndpoints.Models;
 
 public class SetPasswordRequest
 {

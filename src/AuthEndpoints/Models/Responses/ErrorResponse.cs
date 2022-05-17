@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints.Models.Responses;
+﻿namespace AuthEndpoints.Models;
 
 public class ErrorResponse
 {

@@ -1,5 +1,4 @@
-﻿using AuthEndpoints.Models.Responses;
-using AuthEndpoints.Models.Requests;
+﻿using AuthEndpoints.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +6,13 @@ using System.Security.Claims;
 
 namespace AuthEndpoints.Controllers;
 
+/// <summary>
+/// Use this base class for defnining endpoints that contain basic authentication actions such as registration, password, etc.
+/// </summary>
+/// <typeparam name="TUserKey"></typeparam>
+/// <typeparam name="TUser"></typeparam>
 [Route("users/")]
+[ApiController]
 public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
@@ -22,7 +27,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     }
 
     /// <summary>
-    /// Use this endpoint to register new user
+    /// Use this endpoint to register a new user
     /// </summary>
     [HttpPost("")]
     public virtual async Task<IActionResult> Register([FromBody] RegisterRequest request)

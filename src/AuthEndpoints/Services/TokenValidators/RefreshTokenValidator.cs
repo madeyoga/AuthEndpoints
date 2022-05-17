@@ -1,6 +1,6 @@
-﻿namespace AuthEndpoints.Services.TokenValidators;
+﻿namespace AuthEndpoints.Services;
 
-using AuthEndpoints.Options;
+using AuthEndpoints;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

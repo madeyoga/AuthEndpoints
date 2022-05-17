@@ -1,20 +1,18 @@
-﻿using AuthEndpoints.Options;
-using AuthEndpoints.Services.Claims;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
-namespace AuthEndpoints.Services.TokenGenerators;
+namespace AuthEndpoints.Services;
 
 public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
     where TUser : class
 {
-    private readonly IClaimsProvider<TUser> claimsProvider;
+    private readonly IRefreshTokenClaimsProvider<TUser> claimsProvider;
     private readonly IOptions<AuthEndpointsOptions> options;
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public RefreshTokenGenerator(IClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options, JwtSecurityTokenHandler tokenHandler)
+    public RefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser> claimsProvider, IOptions<AuthEndpointsOptions> options, JwtSecurityTokenHandler tokenHandler)
     {
         this.claimsProvider = claimsProvider;
         this.options = options;
@@ -29,7 +27,7 @@ public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
         JwtSecurityToken token = new JwtSecurityToken(
             options.Value.RefreshTokenValidationParameters!.ValidIssuer,
             options.Value.RefreshTokenValidationParameters!.ValidAudience,
-            claimsProvider.provideRefreshTokenClaims(user),
+            claimsProvider.provideClaims(user),
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(options.Value.RefreshTokenExpirationMinutes),
             credentials);

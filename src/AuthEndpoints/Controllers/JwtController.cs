@@ -1,7 +1,5 @@
-﻿using AuthEndpoints.Models.Requests;
-using AuthEndpoints.Models.Responses;
-using AuthEndpoints.Services.Authenticators;
-using AuthEndpoints.Services.TokenValidators;
+﻿using AuthEndpoints.Models;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +8,12 @@ using Microsoft.Net.Http.Headers;
 namespace AuthEndpoints.Controllers;
 
 /// <summary>
-/// Contain jwt endpoints
+/// Use this base class for defnining endpoints that contain simple jwt actions such as create and refresh.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
 [Route("jwt/")]
+[ApiController]
 public class JwtController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
@@ -65,9 +64,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to refresh jwt
     /// </summary>
-    [ProducesResponseType(200)]
-    [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
     [HttpPost("refresh")]
     public virtual async Task<IActionResult> Refresh([FromBody] RefreshRequest request)
     {

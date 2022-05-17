@@ -1,8 +1,6 @@
+using AuthEndpoints;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Demo.Services;
-using AuthEndpoints.Extensions;
-using AuthEndpoints.Options;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

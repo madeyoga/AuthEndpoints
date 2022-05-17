@@ -1,6 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 
-namespace AuthEndpoints.Services.TokenValidators;
+namespace AuthEndpoints.Services;
 
 public interface ITokenValidator
 {

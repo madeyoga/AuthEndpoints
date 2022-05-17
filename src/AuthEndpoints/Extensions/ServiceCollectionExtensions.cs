@@ -1,15 +1,11 @@
-﻿using AuthEndpoints.Models.Responses;
-using AuthEndpoints.Options;
-using AuthEndpoints.Services.Authenticators;
-using AuthEndpoints.Services.Claims;
-using AuthEndpoints.Services.TokenGenerators;
-using AuthEndpoints.Services.TokenValidators;
+﻿using AuthEndpoints.Models;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace AuthEndpoints.Extensions;
+namespace AuthEndpoints;
 
 /// <summary>
 /// Provides extensions to easily bootstrap authendpoints
@@ -20,7 +16,8 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
-        services.TryAddSingleton<IClaimsProvider<TUser>, DefaultClaimsProvider<TUserKey, TUser>>();
+        services.TryAddSingleton<IAccessTokenClaimsProvider<TUser>, AccessTokenClaimsProvider<TUserKey, TUser>>();
+        services.TryAddSingleton<IRefreshTokenClaimsProvider<TUser>, RefreshTokenClaimsProvider<TUserKey, TUser>>();
         services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
         services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
         services.TryAddScoped<ITokenValidator, RefreshTokenValidator>();
@@ -32,6 +29,13 @@ public static class ServiceCollectionExtensions
         return new AuthEndpointsBuilder(typeof(TUser), services);
     }
 
+    /// <summary>
+    /// Adds the AuthEndpoints core services
+    /// </summary>
+    /// <typeparam name="TUserKey"></typeparam>
+    /// <typeparam name="TUser"></typeparam>
+    /// <param name="services"></param>
+    /// <returns>A <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
     public static AuthEndpointsBuilder AddAuthEndpoints<TUserKey, TUser>(this IServiceCollection services)
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
@@ -41,7 +45,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds and configures the authendpoints system for the specified User type.
+    /// Adds and configures the AuthEndpoints system.
     /// </summary>
     /// <typeparam name="TUserKey">The type representing a User's primary key in the system.</typeparam>
     /// <typeparam name="TUser">The type representing a User in the system.</typeparam>
@@ -60,6 +64,14 @@ public static class ServiceCollectionExtensions
         return ConfigureServices<TUserKey, TUser>(services);
     }
 
+    /// <summary>
+    /// Adds and configures the AuthEndpoints system.
+    /// </summary>
+    /// <typeparam name="TUserKey"></typeparam>
+    /// <typeparam name="TUser"></typeparam>
+    /// <param name="services"></param>
+    /// <param name="customOptions"></param>
+    /// <returns>A <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
     public static AuthEndpointsBuilder AddAuthEndpoints<TUserKey, TUser>(this IServiceCollection services, AuthEndpointsOptions customOptions)
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>

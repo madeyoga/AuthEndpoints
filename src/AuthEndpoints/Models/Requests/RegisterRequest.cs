@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints.Models.Requests;
+﻿namespace AuthEndpoints.Models;
 
 using System.ComponentModel.DataAnnotations;
 

@@ -1,18 +1,19 @@
-﻿namespace AuthEndpoints.Models.Requests;
+﻿using System.ComponentModel.DataAnnotations;
 
-using System.ComponentModel.DataAnnotations;
-
-public class LoginRequest
+namespace AuthEndpoints.Models
 {
-    [Required]
-    public string Username { get; set; }
-
-    [Required]
-    public string Password { get; set; }
-
-    public LoginRequest(string username, string password)
+    public class LoginRequest
     {
-        Username = username;
-        Password = password;
+        [Required]
+        public string Username { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+
+        public LoginRequest(string username, string password)
+        {
+            Username = username;
+            Password = password;
+        }
     }
 }

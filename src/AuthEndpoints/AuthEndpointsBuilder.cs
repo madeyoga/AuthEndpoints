@@ -1,8 +1,5 @@
-﻿using AuthEndpoints.Models.Responses;
-using AuthEndpoints.Services.Authenticators;
-using AuthEndpoints.Services.Claims;
-using AuthEndpoints.Services.TokenGenerators;
-using AuthEndpoints.Services.TokenValidators;
+﻿using AuthEndpoints.Models;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,13 +46,23 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds a <see cref="IClaimsProvider{TUser}"/>.
+    /// Adds a <see cref="IAccessTokenClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddClaimsProvider<TProvider>() where TProvider : class
+    public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider<TProvider>() where TProvider : class
     {
-        return AddScoped(typeof(IClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        return AddScoped(typeof(IAccessTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+    }
+
+    /// <summary>
+    /// Adds a <see cref="IRefreshTokenClaimsProvider{TUser}"/>.
+    /// </summary>
+    /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider<TProvider>() where TProvider : class
+    {
+        return AddScoped(typeof(IRefreshTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
     }
 
     /// <summary>
@@ -83,7 +90,7 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <typeparam name="TValidator">The type of the token validator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddTokenValidator<TValidator>() where TValidator : class
+    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : ITokenValidator
     {
         return AddScoped(typeof(ITokenValidator), typeof(TValidator));
     }

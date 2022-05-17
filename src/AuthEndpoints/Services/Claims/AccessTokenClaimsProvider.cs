@@ -1,27 +1,19 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
-namespace AuthEndpoints.Services.Claims;
+namespace AuthEndpoints.Services;
 
-public class DefaultClaimsProvider<TUserKey, TUser> : IClaimsProvider<TUser>
+public class AccessTokenClaimsProvider<TUserKey, TUser> : IAccessTokenClaimsProvider<TUser>
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
 {
-    public List<Claim> provideAccessTokenClaims(TUser user)
+    public IList<Claim> provideClaims(TUser user)
     {
         return new List<Claim>()
         {
             new Claim("id", user.Id.ToString()!),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.UserName),
-        };
-    }
-
-    public List<Claim> provideRefreshTokenClaims(TUser user)
-    {
-        return new List<Claim>()
-        {
-            new Claim("id", user.Id.ToString()!),
         };
     }
 }

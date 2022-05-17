@@ -1,5 +1,5 @@
 ﻿using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Services.Claims;
+using AuthEndpoints.Services;
 using System.Security.Claims;
 
 namespace AuthEndpoints.Demo.Services;

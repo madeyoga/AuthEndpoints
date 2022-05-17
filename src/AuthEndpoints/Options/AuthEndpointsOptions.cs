@@ -1,7 +1,10 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints.Options;
+namespace AuthEndpoints;
 
+/// <summary>
+/// Represents all the options you can use to configure the AuthEndpoints system.
+/// </summary>
 public class AuthEndpointsOptions 
 {
     public const string Key = "AuthEndpointsOptions";

@@ -1,9 +1,7 @@
 ﻿using AuthEndpoints.Controllers;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Models.Requests;
-using AuthEndpoints.Models.Responses;
-using AuthEndpoints.Services.Authenticators;
-using AuthEndpoints.Services.TokenValidators;
+using AuthEndpoints.Models;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

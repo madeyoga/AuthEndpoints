@@ -1,9 +1,8 @@
-﻿using AuthEndpoints.Options;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace AuthEndpoints.Services.TokenValidators;
+namespace AuthEndpoints.Services;
 
 internal class AccessTokenValidator : ITokenValidator
 {
