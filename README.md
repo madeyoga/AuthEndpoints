@@ -9,12 +9,12 @@ A simple authentication library for ASP.Net 6. AuthEndpoints library provides a 
 ```cs
 // in your Program.cs
 
-var accessTokenValidationParameters = new TokenValidationParameters()
+var accessParameters = new TokenValidationParameters()
 {
 	...
 };
 
-var refreshTokenValidationParameters = new TokenValidationParameters()
+var refreshParameters = new TokenValidationParameters()
 {
 	...
 };
@@ -27,9 +27,9 @@ builder.Services.AddAuthEndpoints<string, IdentityUser>(new AuthEndpointsOptions
 	RefreshTokenExpirationMinutes = 6000,
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
-	AccessTokenValidationParameters = accessTokenValidationParameters,
-	RefreshTokenValidationParameters = refreshTokenValidationParameters
-}).AddJwtBearerAuthenticationScheme(accessTokenValidationParameters);
+	AccessTokenValidationParameters = accessParameters,
+	RefreshTokenValidationParameters = refreshParameters
+}).AddJwtBearerAuthenticationScheme(accessParameters);
 
 
 // Now create a controller, then simply inherit
