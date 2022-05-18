@@ -14,7 +14,7 @@ public interface IAuthenticator<TUser>
     /// </summary>
     /// <param name="username"></param>
     /// <param name="password"></param>
-    /// <returns>An instance of <see cref="TUser"/> if credentials are valid, else return null</returns>
+    /// <returns>An instance of TUser if credentials are valid, else return null</returns>
     Task<TUser?> Authenticate(string username, string password);
 
     /// <summary>

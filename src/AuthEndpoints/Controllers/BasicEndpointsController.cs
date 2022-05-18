@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace AuthEndpoints.Controllers;
 
 /// <summary>
-/// Use this base class for defnining endpoints that contain basic authentication actions such as registration, password, etc.
+/// Use this base class for defining endpoints that contain basic authentication actions such as registration, password, etc.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
@@ -17,12 +17,12 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
 {
-    private readonly UserManager<TUser> userRepository;
-    private readonly IdentityErrorDescriber errorDescriber;
+    protected readonly UserManager<TUser> userManager;
+    protected readonly IdentityErrorDescriber errorDescriber;
 
-    public BasicEndpointsController(UserManager<TUser> userRepository, IdentityErrorDescriber errorDescriber)
+    public BasicEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber)
     {
-        this.userRepository = userRepository;
+        this.userManager = userManager;
         this.errorDescriber = errorDescriber;
     }
 
@@ -48,7 +48,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
             Email = request.Email,
             UserName = request.Username
         };
-        IdentityResult result = await userRepository.CreateAsync(registrationUser, request.Password);
+        IdentityResult result = await userManager.CreateAsync(registrationUser, request.Password);
 
         if (!result.Succeeded)
         {
@@ -85,7 +85,7 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         }
 
         string identity = HttpContext.User.FindFirstValue("id");
-        TUser currentUser = await userRepository.FindByIdAsync(identity);
+        TUser currentUser = await userManager.FindByIdAsync(identity);
 
         return Ok(currentUser);
     }
@@ -113,15 +113,15 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         }
 
         string identity = HttpContext.User.FindFirstValue("id");
-        TUser currentUser = await userRepository.FindByIdAsync(identity);
+        TUser currentUser = await userManager.FindByIdAsync(identity);
 
-        if (await userRepository.CheckPasswordAsync(currentUser, request.CurrentPassword) is false)
+        if (await userManager.CheckPasswordAsync(currentUser, request.CurrentPassword) is false)
         {
             return BadRequest(new ErrorResponse("Invalid current password"));
         }
 
-        var token = await userRepository.GeneratePasswordResetTokenAsync(currentUser);
-        var result = await userRepository.ResetPasswordAsync(currentUser, token, request.NewPassword);
+        var token = await userManager.GeneratePasswordResetTokenAsync(currentUser);
+        var result = await userManager.ResetPasswordAsync(currentUser, token, request.NewPassword);
 
         if (!result.Succeeded)
         {
