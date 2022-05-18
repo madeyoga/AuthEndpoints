@@ -20,15 +20,18 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     where TUser : IdentityUser<TUserKey>
 {
     protected readonly UserManager<TUser> userManager;
+    protected readonly IAccessTokenValidator accessTokenValidator;
     protected readonly ITokenValidator refreshTokenValidator;
     protected readonly IAuthenticator<TUser> authenticator;
 
     public JwtController(UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator,
-        ITokenValidator refreshTokenValidator)
+        IAccessTokenValidator accessTokenValidator,
+        IRefreshTokenValidator refreshTokenValidator)
     {
         this.userManager = userManager;
         this.authenticator = authenticator;
+        this.accessTokenValidator = accessTokenValidator;
         this.refreshTokenValidator = refreshTokenValidator;
     }
 
@@ -101,7 +104,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 
         string headerToken = Request.Headers[HeaderNames.Authorization].ToString().Replace("Bearer ", "");
 
-        if (headerToken == request.Token!)
+        if (accessTokenValidator.Validate(request.Token!))
         {
             return Ok();
         }
