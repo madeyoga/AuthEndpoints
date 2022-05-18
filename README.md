@@ -11,24 +11,12 @@ A simple authentication library for ASP.Net 6. AuthEndpoints library provides a 
 
 var accessTokenValidationParameters = new TokenValidationParameters()
 {
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<accesstoken_secret_key>")),
-	ValidIssuer = "https://localhost:8000",
-	ValidAudience = "https://localhost:8000",
-	ValidateIssuerSigningKey = true,
-	ValidateIssuer = true,
-	ValidateAudience = true,
-	ClockSkew = TimeSpan.Zero,
+	...
 };
 
 var refreshTokenValidationParameters = new TokenValidationParameters()
 {
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<refreshtoken_secret_key>")),
-	ValidIssuer = "https://localhost:8000",
-	ValidAudience = "https://localhost:8000",
-	ValidateIssuerSigningKey = true,
-	ValidateIssuer = true,
-	ValidateAudience = true,
-	ClockSkew = TimeSpan.Zero,
+	...
 };
 
 builder.Services.AddAuthEndpoints<string, IdentityUser>(new AuthEndpointsOptions()
@@ -51,16 +39,6 @@ public class AuthenticationController : JwtController<string, IdentityUser>
 public class UserController : BasicEndpointsController<string, IdentityUser>
 {}
 ```
-
-JwtController<,> contains
-- (post) /jwt/create
-- (post) /jwt/refresh
-- (post) /jwt/verify
-
-BasicEndpoints<,> contains
-- (post) /users
-- (get)  /users/me
-- (post) /set_password
 
 ## Documentations
 Documentation is available at tbd and in tbd directory.
