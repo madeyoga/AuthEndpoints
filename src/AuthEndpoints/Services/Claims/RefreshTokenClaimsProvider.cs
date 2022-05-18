@@ -13,7 +13,7 @@ public class RefreshTokenClaimsProvider<TUserKey, TUser> : IRefreshTokenClaimsPr
     where TUser : IdentityUser<TUserKey>
 {
     /// <summary>
-    /// Use this method to get a list of claims for when generating a refresh token
+    /// Use this method to get a list of claims for a refresh token
     /// </summary>
     /// <param name="user"></param>
     /// <returns>A list of Claims</returns>

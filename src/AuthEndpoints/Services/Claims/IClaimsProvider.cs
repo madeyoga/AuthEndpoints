@@ -2,6 +2,10 @@
 
 namespace AuthEndpoints.Services;
 
+/// <summary>
+/// Implements <see cref="IClaimsProvider{TUser}"/> to define your claims provider
+/// </summary>
+/// <typeparam name="TUser"></typeparam>
 public interface IClaimsProvider<TUser> where TUser : class
 {
     /// <summary>

@@ -2,6 +2,9 @@
 
 using System.ComponentModel.DataAnnotations;
 
+/// <summary>
+/// the dto used for register request
+/// </summary>
 public class RegisterRequest
 {
     [Required]

@@ -1,5 +1,4 @@
 ﻿using AuthEndpoints.Models;
-using AuthEndpoints.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +7,7 @@ using System.Security.Claims;
 namespace AuthEndpoints.Controllers;
 
 /// <summary>
-/// Use this base class for defining endpoints that contain basic authentication actions such as registration, password, etc.
+/// Use this base class for defining endpoints that contain base authentication actions such as registration, set password, etc.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>

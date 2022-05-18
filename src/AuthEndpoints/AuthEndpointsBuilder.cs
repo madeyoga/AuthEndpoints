@@ -39,7 +39,7 @@ public class AuthEndpointsBuilder
         Services = services;
     }
 
-    private AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
+    protected AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
     {
         Services.AddScoped(serviceType, concreteType);
         return this;

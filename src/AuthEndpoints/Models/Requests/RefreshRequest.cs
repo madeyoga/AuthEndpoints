@@ -2,6 +2,9 @@
 
 using System.ComponentModel.DataAnnotations;
 
+/// <summary>
+/// the dto used for refresh jwt request
+/// </summary>
 public class RefreshRequest
 {
     [Required]

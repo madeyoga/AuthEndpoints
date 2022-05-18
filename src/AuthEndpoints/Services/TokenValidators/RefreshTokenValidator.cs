@@ -6,6 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 
+/// <summary>
+/// Use this class to validate a refresh token
+/// </summary>
 public class RefreshTokenValidator : ITokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
@@ -17,11 +20,21 @@ public class RefreshTokenValidator : ITokenValidator
         this.tokenHandler = tokenHandler;
     }
 
+    /// <summary>
+    /// Use this method to convert string jwt to <see cref="JwtSecurityToken"/>
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns>An instance of <see cref="JwtSecurityToken"/></returns>
     public JwtSecurityToken ReadJwtToken(string token)
     {
         return tokenHandler.ReadJwtToken(token);
     }
 
+    /// <summary>
+    /// Use this method to validate a refresh token. Token may be expired or invalid.
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns></returns>
     public bool Validate(string token)
     {
         try
