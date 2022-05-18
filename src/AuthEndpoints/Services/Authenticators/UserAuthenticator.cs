@@ -26,8 +26,9 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     /// <summary>
     /// Use this method to verify a set of credentials. It takes credentials as argument, username and password for the default case.
     /// </summary>
-    /// <param name="user"></param>
-    /// <returns>An instance of <see cref="TUser"/> if credentials are valid</returns>
+    /// <param name="username"></param>
+    /// <param name="password"></param>
+    /// <returns>An instance of TUser if credentials are valid</returns>
     public async Task<TUser?> Authenticate(string username, string password)
     {
         TUser user = await userManager.FindByNameAsync(username);
@@ -48,7 +49,7 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     }
 
     /// <summary>
-    /// Use this method to get an access token and a refresh token for the given <see cref="TUser"/>
+    /// Use this method to get an access token and a refresh token for the given TUser
     /// </summary>
     /// <param name="user"></param>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access token and a refresh token</returns>

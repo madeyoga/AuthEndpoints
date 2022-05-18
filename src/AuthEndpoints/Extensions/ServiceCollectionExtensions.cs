@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthEndpoints;
@@ -15,11 +16,14 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
+        services.ConfigureOptions<AuthEndpointsOptionsConfigurator>();
+
         services.TryAddSingleton<IAccessTokenClaimsProvider<TUser>, AccessTokenClaimsProvider<TUserKey, TUser>>();
         services.TryAddSingleton<IRefreshTokenClaimsProvider<TUser>, RefreshTokenClaimsProvider<TUserKey, TUser>>();
         services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
         services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
-        services.TryAddScoped<ITokenValidator, RefreshTokenValidator>();
+        services.TryAddScoped<IAccessTokenValidator, AccessTokenValidator>();
+        services.TryAddScoped<IRefreshTokenValidator, RefreshTokenValidator>();
         services.TryAddScoped<IAuthenticator<TUser>, UserAuthenticator<TUser>>();
 
         services.TryAddScoped<IdentityErrorDescriber>();

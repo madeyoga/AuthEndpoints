@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthEndpoints.Controllers;
 
 /// <summary>
-/// Use this base class for defnining endpoints that contain simple jwt actions such as create and refresh.
+/// Use this base class for defnining endpoints that contain simple jwt auth actions such as create and refresh.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
@@ -18,16 +19,19 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
 {
-    private readonly UserManager<TUser> userRepository;
-    private readonly ITokenValidator refreshTokenValidator;
-    private readonly IAuthenticator<TUser> authenticator;
+    protected readonly UserManager<TUser> userManager;
+    protected readonly IAccessTokenValidator accessTokenValidator;
+    protected readonly ITokenValidator refreshTokenValidator;
+    protected readonly IAuthenticator<TUser> authenticator;
 
-    public JwtController(UserManager<TUser> userRepository,
+    public JwtController(UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator,
-        ITokenValidator refreshTokenValidator)
+        IAccessTokenValidator accessTokenValidator,
+        IRefreshTokenValidator refreshTokenValidator)
     {
-        this.userRepository = userRepository;
+        this.userManager = userManager;
         this.authenticator = authenticator;
+        this.accessTokenValidator = accessTokenValidator;
         this.refreshTokenValidator = refreshTokenValidator;
     }
 
@@ -73,9 +77,9 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or invalid."));
         }
 
-        var jwt = refreshTokenValidator.ReadJwtToken(request.RefreshToken);
+        JwtSecurityToken jwt = refreshTokenValidator.ReadJwtToken(request.RefreshToken);
         string userId = jwt.Claims.First(claim => claim.Type == "id").Value;
-        TUser user = await userRepository.FindByIdAsync(userId);
+        TUser user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
@@ -90,7 +94,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to verify jwt
     /// </summary>
-    [Authorize]
     [HttpPost("verify")]
     public virtual IActionResult Verify([FromBody] VerifyRequest request)
     {
@@ -101,14 +104,12 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 
         string headerToken = Request.Headers[HeaderNames.Authorization].ToString().Replace("Bearer ", "");
 
-        if (headerToken == request.Token!)
+        if (accessTokenValidator.Validate(request.Token!))
         {
             return Ok();
         }
 
-        bool isValidRefreshToken = refreshTokenValidator.Validate(request.Token!);
-
-        if (isValidRefreshToken)
+        if (refreshTokenValidator.Validate(request.Token!))
         {
             return Ok();
         }

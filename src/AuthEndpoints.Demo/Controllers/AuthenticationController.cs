@@ -11,9 +11,10 @@ namespace AuthEndpoints.Demo.Controllers;
 [Tags("JSON Web Token")]
 public class AuthenticationController : JwtController<string, MyCustomIdentityUser>
 {
-    public AuthenticationController(UserManager<MyCustomIdentityUser> userRepository, 
+    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, 
         IAuthenticator<MyCustomIdentityUser> authenticator, 
-        ITokenValidator refreshTokenValidator) : base(userRepository, authenticator, refreshTokenValidator)
+        IAccessTokenValidator accessTokenValidator, 
+        IRefreshTokenValidator refreshTokenValidator) : base(userManager, authenticator, accessTokenValidator, refreshTokenValidator)
     {
     }
 

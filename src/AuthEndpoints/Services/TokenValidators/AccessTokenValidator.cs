@@ -4,7 +4,10 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthEndpoints.Services;
 
-internal class AccessTokenValidator : ITokenValidator
+/// <summary>
+/// Use this class to validate an access jwt
+/// </summary>
+internal class AccessTokenValidator : IAccessTokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;
@@ -21,6 +24,11 @@ internal class AccessTokenValidator : ITokenValidator
         return tokenHandler.ReadJwtToken(token);
     }
 
+    /// <summary>
+    /// Use this method to validate an access token
+    /// </summary>
+    /// <param name="token"></param>
+    /// <returns>a boolean. True if valid token else false. Token may be expired or invalid.</returns>
     public bool Validate(string token)
     {
         try

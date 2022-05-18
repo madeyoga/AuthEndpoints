@@ -13,12 +13,12 @@ namespace AuthEndpoints;
 public class AuthEndpointsBuilder
 {
     /// <summary>
-    /// Gets the <see cref="Type"/> used for users.
+    /// Gets the type used for users.
     /// </summary>
     /// <value>
-    /// The <see cref="Type"/> used for users.
+    /// The type used for users.
     /// </value>
-    public Type UserType { get; private set; }
+    public Type UserType { get; }
 
     /// <summary>
     /// Gets the <see cref="IServiceCollection"/> services are attached to.
@@ -26,12 +26,12 @@ public class AuthEndpointsBuilder
     /// <value>
     /// The <see cref="IServiceCollection"/> services are attached to.
     /// </value>
-    public IServiceCollection Services { get; private set; }
+    public IServiceCollection Services { get; }
 
     /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
     /// </summary>
-    /// <param name="userType">The <see cref="Type"/> to use for the users.</param>
+    /// <param name="userType">The type to use for the users.</param>
     /// <param name="services">The <see cref="IServiceCollection"/> to attach to.</param>
     public AuthEndpointsBuilder(Type userType, IServiceCollection services)
     {
@@ -39,7 +39,7 @@ public class AuthEndpointsBuilder
         Services = services;
     }
 
-    private AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
+    protected AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
     {
         Services.AddScoped(serviceType, concreteType);
         return this;
@@ -86,13 +86,23 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="ITokenValidator"/>.
+    /// Adds an <see cref="IAccessTokenValidator"/>
+    /// </summary>
+    /// <typeparam name="TValidator"></typeparam>
+    /// <returns></returns>
+    public virtual AuthEndpointsBuilder AddAccessTokenValidator<TValidator>() where TValidator : IAccessTokenValidator
+    {
+        return AddScoped(typeof(IAccessTokenValidator), typeof(TValidator));
+    }
+
+    /// <summary>
+    /// Adds an <see cref="IRefreshTokenValidator"/>.
     /// </summary>
     /// <typeparam name="TValidator">The type of the token validator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : ITokenValidator
+    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : IRefreshTokenValidator
     {
-        return AddScoped(typeof(ITokenValidator), typeof(TValidator));
+        return AddScoped(typeof(IRefreshTokenValidator), typeof(TValidator));
     }
 
     /// <summary>
@@ -109,7 +119,7 @@ public class AuthEndpointsBuilder
     /// Adds an <see cref="IdentityErrorDescriber"/>.
     /// </summary>
     /// <typeparam name="TDescriber">The type of the error describer.</typeparam>
-    /// <returns>The current <see cref="IdentityBuilder"/> instance.</returns>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddErrorDescriber<TDescriber>() where TDescriber : IdentityErrorDescriber
     {
         Services.AddScoped<IdentityErrorDescriber, TDescriber>();
@@ -119,8 +129,8 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Adds a jwt bearer defaults authentication scheme.
     /// </summary>
-    /// <typeparam name="TDescriber">The type of the error describer.</typeparam>
-    /// <returns>The current <see cref="IdentityBuilder"/> instance.</returns>
+    /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddJwtBearerAuthenticationScheme(TokenValidationParameters parameters)
     {
         Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>

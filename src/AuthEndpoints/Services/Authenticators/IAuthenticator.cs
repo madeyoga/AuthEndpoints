@@ -3,7 +3,7 @@
 namespace AuthEndpoints.Services;
 
 /// <summary>
-/// Implements IAuthenticator to define your authenticator
+/// Implements <see cref="IAuthenticator{TUser}"/> to define your authenticator
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
 public interface IAuthenticator<TUser> 
@@ -14,7 +14,7 @@ public interface IAuthenticator<TUser>
     /// </summary>
     /// <param name="username"></param>
     /// <param name="password"></param>
-    /// <returns>An instance of <see cref="TUser"/> if credentials are valid, else return null</returns>
+    /// <returns>An instance of TUser if credentials are valid, else return null</returns>
     Task<TUser?> Authenticate(string username, string password);
 
     /// <summary>

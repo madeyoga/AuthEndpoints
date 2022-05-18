@@ -2,6 +2,9 @@
 
 namespace AuthEndpoints.Models;
 
+/// <summary>
+/// the dto used for set password request
+/// </summary>
 public class SetPasswordRequest
 {
     [Required]
