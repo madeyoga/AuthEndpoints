@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// Use this class to validate a refresh token
 /// </summary>
-public class RefreshTokenValidator : ITokenValidator
+public class RefreshTokenValidator : IRefreshTokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;

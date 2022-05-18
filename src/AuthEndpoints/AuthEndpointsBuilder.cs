@@ -13,10 +13,10 @@ namespace AuthEndpoints;
 public class AuthEndpointsBuilder
 {
     /// <summary>
-    /// Gets the <see cref="Type"/> used for users.
+    /// Gets the type used for users.
     /// </summary>
     /// <value>
-    /// The <see cref="Type"/> used for users.
+    /// The type used for users.
     /// </value>
     public Type UserType { get; }
 
@@ -31,7 +31,7 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
     /// </summary>
-    /// <param name="userType">The <see cref="Type"/> to use for the users.</param>
+    /// <param name="userType">The type to use for the users.</param>
     /// <param name="services">The <see cref="IServiceCollection"/> to attach to.</param>
     public AuthEndpointsBuilder(Type userType, IServiceCollection services)
     {
@@ -86,13 +86,23 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="ITokenValidator"/>.
+    /// Adds an <see cref="IAccessTokenValidator"/>
+    /// </summary>
+    /// <typeparam name="TValidator"></typeparam>
+    /// <returns></returns>
+    public virtual AuthEndpointsBuilder AddAccessTokenValidator<TValidator>() where TValidator : IAccessTokenValidator
+    {
+        return AddScoped(typeof(IAccessTokenValidator), typeof(TValidator));
+    }
+
+    /// <summary>
+    /// Adds an <see cref="IRefreshTokenValidator"/>.
     /// </summary>
     /// <typeparam name="TValidator">The type of the token validator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : ITokenValidator
+    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : IRefreshTokenValidator
     {
-        return AddScoped(typeof(ITokenValidator), typeof(TValidator));
+        return AddScoped(typeof(IRefreshTokenValidator), typeof(TValidator));
     }
 
     /// <summary>

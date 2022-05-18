@@ -91,7 +91,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to verify jwt
     /// </summary>
-    [Authorize]
     [HttpPost("verify")]
     public virtual IActionResult Verify([FromBody] VerifyRequest request)
     {
@@ -107,9 +106,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return Ok();
         }
 
-        bool isValidRefreshToken = refreshTokenValidator.Validate(request.Token!);
-
-        if (isValidRefreshToken)
+        if (refreshTokenValidator.Validate(request.Token!))
         {
             return Ok();
         }
