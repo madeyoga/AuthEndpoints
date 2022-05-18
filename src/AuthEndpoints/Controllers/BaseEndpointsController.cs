@@ -1,4 +1,5 @@
 ﻿using AuthEndpoints.Models;
+using AuthEndpoints.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,14 +14,14 @@ namespace AuthEndpoints.Controllers;
 /// <typeparam name="TUser"></typeparam>
 [Route("users/")]
 [ApiController]
-public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
+public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
 {
     protected readonly UserManager<TUser> userManager;
     protected readonly IdentityErrorDescriber errorDescriber;
 
-    public BasicEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber)
+    public BaseEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber)
     {
         this.userManager = userManager;
         this.errorDescriber = errorDescriber;
@@ -91,6 +92,34 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
     }
 
     /// <summary>
+    /// Use this endpoint to change user's username
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [Authorize]
+    [HttpPost("set_username")]
+    public virtual async Task<IActionResult> SetUsername([FromBody] SetUsernameRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequestModelState();
+        }
+
+        string identity = HttpContext.User.FindFirstValue("id");
+        TUser user = await userManager.FindByIdAsync(identity);
+
+        if (await userManager.CheckPasswordAsync(user, request.CurrentPassword) is false)
+        {
+            return BadRequest(new ErrorResponse("Invalid current password"));
+        }
+
+        user.UserName = request.NewUsername;
+        await userManager.UpdateAsync(user);
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Use this endpoint to change user password
     /// </summary>
     [Authorize]
@@ -113,15 +142,15 @@ public class BasicEndpointsController<TUserKey, TUser> : ControllerBase
         }
 
         string identity = HttpContext.User.FindFirstValue("id");
-        TUser currentUser = await userManager.FindByIdAsync(identity);
+        TUser user = await userManager.FindByIdAsync(identity);
 
-        if (await userManager.CheckPasswordAsync(currentUser, request.CurrentPassword) is false)
+        if (await userManager.CheckPasswordAsync(user, request.CurrentPassword) is false)
         {
             return BadRequest(new ErrorResponse("Invalid current password"));
         }
 
-        var token = await userManager.GeneratePasswordResetTokenAsync(currentUser);
-        var result = await userManager.ResetPasswordAsync(currentUser, token, request.NewPassword);
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, token, request.NewPassword);
 
         if (!result.Succeeded)
         {

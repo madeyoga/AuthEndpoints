@@ -109,7 +109,7 @@ public class AuthEndpointsBuilder
     /// Adds an <see cref="IdentityErrorDescriber"/>.
     /// </summary>
     /// <typeparam name="TDescriber">The type of the error describer.</typeparam>
-    /// <returns>The current <see cref="IdentityBuilder"/> instance.</returns>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddErrorDescriber<TDescriber>() where TDescriber : IdentityErrorDescriber
     {
         Services.AddScoped<IdentityErrorDescriber, TDescriber>();
@@ -119,8 +119,8 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Adds a jwt bearer defaults authentication scheme.
     /// </summary>
-    /// <typeparam name="TDescriber">The type of the error describer.</typeparam>
-    /// <returns>The current <see cref="IdentityBuilder"/> instance.</returns>
+    /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddJwtBearerAuthenticationScheme(TokenValidationParameters parameters)
     {
         Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
