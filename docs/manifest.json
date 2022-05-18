@@ -1,0 +1,555 @@
+{
+  "homepages": [],
+  "source_base_path": "G:/Work/TournamentProject/JwtEndpoints/Documentation",
+  "xrefmap": "xrefmap.yml",
+  "files": [
+    {
+      "type": "Resource",
+      "output": {
+        "resource": {
+          "relative_path": "index.json"
+        }
+      },
+      "is_incremental": false
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.AuthEndpointsBuilder.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.AuthEndpointsBuilder.html",
+          "hash": "zx/AyUzdsWNXMxPc9p/1dV9Ke8zJuGpJsFz+zeEMIaA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.AuthEndpointsOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.AuthEndpointsOptions.html",
+          "hash": "iM8C0FT5+zOy2R7+8aQ8BV3SWqikrdJs3NlBDq2gK7E="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Controllers.BaseEndpointsController-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Controllers.BaseEndpointsController-2.html",
+          "hash": "g9tz6PIlztpkR6ZSUbSvOItLUlp76V+o0q+o3HXDNrQ="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Controllers.JwtController-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Controllers.JwtController-2.html",
+          "hash": "2arUp14yZyKuv2BUr2JbB/hoqjIXkP7dPA+K+3uASnA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Controllers.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Controllers.html",
+          "hash": "eIaKEnannMZvj7wlH+gwyB4i1e6lzNQxyzL4kbZc4Dg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.AuthenticatedUserResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.AuthenticatedUserResponse.html",
+          "hash": "Pepx+PjUymOHsAsNgSZ43Kvs5QE9/GuwGJPTGfLs3Ec="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.ErrorResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.ErrorResponse.html",
+          "hash": "1b225ZHzxWJpqNb5CPmD9ilrGlUSFCrT+1T/hosKnwI="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.LoginRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.LoginRequest.html",
+          "hash": "KzzlGyQE/ANiN8zErOEOk+Kmo5umatagIGz3hPCfWVI="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.RefreshRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.RefreshRequest.html",
+          "hash": "ldVnQuP0smHuCCFL7rFWpAk5IZX1atOc6kpI4iBpIwQ="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.RegisterRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.RegisterRequest.html",
+          "hash": "/K35z1FMhN7YBxyzC9Gc3IlN+caxI1Cr0cLm+VjnH18="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.SetPasswordRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.SetPasswordRequest.html",
+          "hash": "LGpn2BCcCOv3VXUTLEIZymTWbXqQW2KKnoFuFGQl2yk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.SetUsernameRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.SetUsernameRequest.html",
+          "hash": "/AvwSzCEx7437fZpRBjS1X07g1597tL1SdCuynAVQDw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.VerifyRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.VerifyRequest.html",
+          "hash": "zUKnppFHK1TwV68U3h44CE4qd56FUDMS6Ujifkc7Ul0="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Models.html",
+          "hash": "xaPTH3nOOA1wAIYDxcpOiqerTKnVMfbeOFuN1mS4x3U="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.html",
+          "hash": "gOqs3oVkwMqv7b18/0erQIqGvlJFmj9HRMx83lnEosg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.AccessTokenClaimsProvider-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.AccessTokenClaimsProvider-2.html",
+          "hash": "OY+OZArqBdQo+qzWcPAOWDcadxsh7WO5k8CFDKLVo9w="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.AccessTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.AccessTokenGenerator-1.html",
+          "hash": "rCu5dRBD6Te74cpe1pT0iNENI3eAuF9xf1qo+tc8flQ="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IAccessTokenClaimsProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html",
+          "hash": "+XpRmNejLDnT5Eui7I1NDQrb+HXotj67OZvQE9+J+Vs="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IAccessTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IAccessTokenGenerator-1.html",
+          "hash": "jBjCs9gyAhFRmBwo0Rd3wdLsZ/+WhFZatKOUJmDJEaA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IAccessTokenValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IAccessTokenValidator.html",
+          "hash": "nLhF0c+p9MIA7l4mhpk5TQ0AONGdpPSRV8+FYDcvzSU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IAuthenticator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IAuthenticator-1.html",
+          "hash": "3kGLQioKtU5pR/q+I6MtL1khEVqW+J/qLCjbilWv/I8="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IClaimsProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IClaimsProvider-1.html",
+          "hash": "YwGsDmYo79lznGEivYUnVT2XiRQpfs7JXAtymQAEjwY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html",
+          "hash": "5f+ZZLBBqXJpWAnNZbQ6NDV0g2diu7R4ERkpbWG3mbE="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IRefreshTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IRefreshTokenGenerator-1.html",
+          "hash": "NOkeiKvPP2wEa66JINObW6bd3xRrW8cPNPh3H+is2RI="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.IRefreshTokenValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.IRefreshTokenValidator.html",
+          "hash": "t2hYfMpCEYEV7iTEsYITlRS/lvhMZcveyDcuHBc64ZM="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.ITokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.ITokenGenerator-1.html",
+          "hash": "c8ytGvvV3D30jUnazVRRhGmlbUbOdnsot7mzMSQmk3k="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.ITokenValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.ITokenValidator.html",
+          "hash": "3jf4Ccq7RLnUgvBnuaZC+UxdT9tpjQtiXrW7qqv+Uus="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.html",
+          "hash": "dUtQQhEbjXw0s1MZmXyEH0AX1jKPOfIMooavj0ObrQw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.RefreshTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.RefreshTokenGenerator-1.html",
+          "hash": "uc+6YDQ1zsnA7Bo/3nm0OeLEsNJAtKy+QPNobRC8830="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.RefreshTokenValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.RefreshTokenValidator.html",
+          "hash": "cTDSa7MfmUvSRKP8JEtdwrbYWu2Hf+RnU2rQt5lXTNE="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.UserAuthenticator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.UserAuthenticator-1.html",
+          "hash": "qSQIybw38G6OFwTBta/wkSk60ohS96gKFjJsIfy+krY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.html",
+          "hash": "g7DtHWxdy1Ux787Ptd+2TZNAFQH9RejVGf903KM+wwo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.html",
+          "hash": "H5YUrNVrbF6eEjPgVk7cR06bD6p1TS7AXIiB24Svymk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "api/index.md",
+      "output": {
+        ".html": {
+          "relative_path": "api/index.html",
+          "hash": "78u9pMmr4GhoTpjuB+mMlUt5aySpHi0oPCnC5tGj+P8="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "api/toc.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/toc.html",
+          "hash": "hz2rleOZNYFjN8DtWH7YamPrMzCdwTIBQgNPsjNMsyA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "index.md",
+      "output": {
+        ".html": {
+          "relative_path": "index.html",
+          "hash": "0KnCMJw/l2J/hbF72gOnkvixYwsp5HcISRW9nwIbinw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "toc.md",
+      "output": {
+        ".html": {
+          "relative_path": "toc.html",
+          "hash": "f2hYWeBwqd3m5ogGDIPVISXC2D8/1ovN+phnM0fs+dA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/get-started.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/get-started.html",
+          "hash": "2fERqW1wnK3QFdv3nEyu+Ao7DrzWNk236u7ClywyD54="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/intro.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/intro.html",
+          "hash": "ou5comkItYc0kxHTUxgWNBFPrfXygxVV76143vp6aXg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Toc",
+      "source_relative_path": "wiki/toc.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/toc.html",
+          "hash": "rjjMnX0McEdYX+uO0wZ6e2RMMbILnuGAGq//J5yO20Y="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/tutorial.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/tutorial.html",
+          "hash": "l5qtUvkpTlin3H8HCZag1SC3POOxq6kstee1+y0Ciaw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    }
+  ],
+  "incremental_info": [
+    {
+      "status": {
+        "can_incremental": true,
+        "incrementalPhase": "build",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {
+        "ConceptualDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 5,
+          "skipped_file_count": 5
+        },
+        "ManagedReferenceDocumentProcessor": {
+          "can_incremental": true,
+          "incrementalPhase": "build",
+          "total_file_count": 33,
+          "skipped_file_count": 29
+        },
+        "TocDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor TocDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
+        }
+      }
+    },
+    {
+      "status": {
+        "can_incremental": false,
+        "details": "Cannot support incremental post processing, the reason is: should not trace intermediate info.",
+        "incrementalPhase": "postProcessing",
+        "total_file_count": 0,
+        "skipped_file_count": 0
+      },
+      "processors": {}
+    }
+  ],
+  "version_info": {},
+  "groups": [
+    {
+      "xrefmap": "xrefmap.yml"
+    }
+  ]
+}
