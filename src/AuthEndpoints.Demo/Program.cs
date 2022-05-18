@@ -85,8 +85,8 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
 	RefreshTokenExpirationMinutes = 6000,
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
-	AccessTokenValidationParameters = accessValidationParameters,
-	RefreshTokenValidationParameters = refreshValidationParameters
+    AccessTokenValidationParameters = accessValidationParameters,
+    RefreshTokenValidationParameters = refreshValidationParameters
 })
 	.AddJwtBearerAuthenticationScheme(accessValidationParameters);
 
