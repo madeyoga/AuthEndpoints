@@ -16,16 +16,13 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
-        // Symmetric services
         services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, AuthEndpointsOptionsValidator>();
         services.ConfigureOptions<AuthEndpointsOptionsConfigurator>();
 
         services.TryAddSingleton<IAccessTokenClaimsProvider<TUser>, AccessTokenClaimsProvider<TUserKey, TUser>>();
         services.TryAddSingleton<IRefreshTokenClaimsProvider<TUser>, RefreshTokenClaimsProvider<TUserKey, TUser>>();
-        services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
-        services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
-        services.TryAddScoped<IAccessTokenValidator, AccessTokenValidator>();
-        services.TryAddScoped<IRefreshTokenValidator, RefreshTokenValidator>();
+        services.TryAddScoped<IJwtFactory, DefaultJwtFactory>();
+        services.TryAddScoped<IJwtValidator, DefaultJwtValidator>();
         services.TryAddScoped<IAuthenticator<TUser>, UserAuthenticator<TUser>>();
 
         services.TryAddScoped<IdentityErrorDescriber>();

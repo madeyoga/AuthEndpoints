@@ -1,5 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace AuthEndpoints.Services;
@@ -8,20 +9,17 @@ namespace AuthEndpoints.Services;
 /// Symmetric jwt factory
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
-public class DefaultJwtFactory<TUser> : IJwtFactory<TUser>
-    where TUser : class
+public class DefaultJwtFactory : IJwtFactory
 {
-    private readonly IRefreshTokenClaimsProvider<TUser> claimsProvider;
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public DefaultJwtFactory(IRefreshTokenClaimsProvider<TUser> claimsProvider, JwtSecurityTokenHandler tokenHandler)
+    public DefaultJwtFactory(JwtSecurityTokenHandler tokenHandler)
     {
-        this.claimsProvider = claimsProvider;
         this.tokenHandler = tokenHandler;
     }
 
     /// <summary>
-    /// Use this method to create a symmetric jwt
+    /// Use this method to create a symmetric signed (HmacSha256) jwt
     /// </summary>
     /// <param name="user"></param>
     /// <param name="secret"></param>
@@ -29,7 +27,7 @@ public class DefaultJwtFactory<TUser> : IJwtFactory<TUser>
     /// <param name="audience"></param>
     /// <param name="expirationMinutes"></param>
     /// <returns>a jwt in string</returns>
-    public string Create(TUser user, string secret, string issuer, string audience, int expirationMinutes)
+    public string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes)
     {
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -38,7 +36,7 @@ public class DefaultJwtFactory<TUser> : IJwtFactory<TUser>
         var payload = new JwtPayload(
             issuer,
             audience,
-            claimsProvider.provideClaims(user),
+            claims,
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(expirationMinutes)
         );

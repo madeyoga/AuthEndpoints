@@ -1,9 +1,8 @@
 ﻿using AuthEndpoints.Models;
 using AuthEndpoints.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Net.Http.Headers;
+using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthEndpoints.Controllers;
@@ -20,19 +19,19 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     where TUser : IdentityUser<TUserKey>
 {
     protected readonly UserManager<TUser> userManager;
-    protected readonly IAccessTokenValidator accessTokenValidator;
-    protected readonly ITokenValidator refreshTokenValidator;
+    protected readonly IJwtValidator jwtValidator;
     protected readonly IAuthenticator<TUser> authenticator;
+    protected readonly IOptions<AuthEndpointsOptions> options;
 
     public JwtController(UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator,
-        IAccessTokenValidator accessTokenValidator,
-        IRefreshTokenValidator refreshTokenValidator)
+        IJwtValidator jwtValidator,
+        IOptions<AuthEndpointsOptions> options)
     {
         this.userManager = userManager;
         this.authenticator = authenticator;
-        this.accessTokenValidator = accessTokenValidator;
-        this.refreshTokenValidator = refreshTokenValidator;
+        this.jwtValidator = jwtValidator;
+        this.options = options;
     }
 
     /// <summary>
@@ -69,7 +68,8 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        bool isValidRefreshToken = refreshTokenValidator.Validate(request.RefreshToken);
+        bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken, 
+            options.Value.RefreshTokenValidationParameters!);
 
         if (!isValidRefreshToken)
         {
@@ -77,7 +77,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or invalid."));
         }
 
-        JwtSecurityToken jwt = refreshTokenValidator.ReadJwtToken(request.RefreshToken);
+        JwtSecurityToken jwt = jwtValidator.ReadJwtToken(request.RefreshToken);
         string userId = jwt.Claims.First(claim => claim.Type == "id").Value;
         TUser user = await userManager.FindByIdAsync(userId);
 
@@ -95,19 +95,19 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// Use this endpoint to verify jwt
     /// </summary>
     [HttpPost("verify")]
-    public virtual IActionResult Verify([FromBody] VerifyRequest request)
+    public virtual async Task<IActionResult> Verify([FromBody] VerifyRequest request)
     {
         if (!ModelState.IsValid)
         {
             return BadRequestModelState();
         }
 
-        if (accessTokenValidator.Validate(request.Token!))
+        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.AccessTokenValidationParameters!))
         {
             return Ok();
         }
 
-        if (refreshTokenValidator.Validate(request.Token!))
+        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.RefreshTokenValidationParameters!))
         {
             return Ok();
         }
