@@ -7,7 +7,7 @@ namespace AuthEndpoints.Services;
 /// <summary>
 /// Use this class to validate an access jwt
 /// </summary>
-internal class AccessTokenValidator : IAccessTokenValidator
+public class AccessTokenValidator : IAccessTokenValidator
 {
     private readonly TokenValidationParameters validationParameters;
     private readonly JwtSecurityTokenHandler tokenHandler;

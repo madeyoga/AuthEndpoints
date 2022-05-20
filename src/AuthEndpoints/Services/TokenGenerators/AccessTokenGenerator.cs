@@ -38,14 +38,16 @@ public class AccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
 
         IList<Claim> claims = claimsProvider.provideClaims(user);
 
-        JwtSecurityToken token = new JwtSecurityToken(
-            options.Value.Issuer,
-            options.Value.Audience,
-            claims,
-            DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(options.Value.AccessTokenExpirationMinutes),
-            credentials
+        var header = new JwtHeader(credentials);
+        var payload = new JwtPayload(
+            options.Value.Issuer, 
+            options.Value.Audience, 
+            claims, 
+            DateTime.UtcNow, 
+            DateTime.UtcNow.AddMinutes(options.Value.AccessTokenExpirationMinutes)
         );
+
+        JwtSecurityToken token = new JwtSecurityToken(header, payload);
 
         return tokenHandler.WriteToken(token);
     }

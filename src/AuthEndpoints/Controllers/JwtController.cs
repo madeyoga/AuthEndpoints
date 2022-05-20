@@ -102,8 +102,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        string headerToken = Request.Headers[HeaderNames.Authorization].ToString().Replace("Bearer ", "");
-
         if (accessTokenValidator.Validate(request.Token!))
         {
             return Ok();

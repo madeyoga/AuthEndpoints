@@ -52,7 +52,8 @@ public class AuthEndpointsBuilder
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider<TProvider>() where TProvider : class
     {
-        return AddScoped(typeof(IAccessTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        Services.AddSingleton(typeof(IAccessTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        return this;
     }
 
     /// <summary>
@@ -62,7 +63,8 @@ public class AuthEndpointsBuilder
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider<TProvider>() where TProvider : class
     {
-        return AddScoped(typeof(IRefreshTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        Services.AddSingleton(typeof(IRefreshTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        return this;
     }
 
     /// <summary>
@@ -131,9 +133,9 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtBearerAuthenticationScheme(TokenValidationParameters parameters)
+    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(string name, TokenValidationParameters parameters)
     {
-        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
+        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(name, option =>
         {
             option.TokenValidationParameters = parameters;
         });

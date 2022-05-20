@@ -16,6 +16,8 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
+        // Symmetric services
+        services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, AuthEndpointsOptionsValidator>();
         services.ConfigureOptions<AuthEndpointsOptionsConfigurator>();
 
         services.TryAddSingleton<IAccessTokenClaimsProvider<TUser>, AccessTokenClaimsProvider<TUserKey, TUser>>();
@@ -43,7 +45,7 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
-        services.AddOptions<AuthEndpointsOptions>();
+        services.AddOptions<AuthEndpointsOptions>().ValidateOnStart();
         return services.AddAuthEndpoints<TUserKey, TUser>(o => { });
     }
 
@@ -61,7 +63,9 @@ public static class ServiceCollectionExtensions
     {
         if (setup != null)
         {
-            services.Configure(setup);
+            services.AddOptions<AuthEndpointsOptions>()
+                .Configure(setup)
+                .ValidateOnStart();
         }
 
         return ConfigureServices<TUserKey, TUser>(services);
@@ -89,7 +93,7 @@ public static class ServiceCollectionExtensions
             options.Issuer = customOptions.Issuer;
             options.AccessTokenValidationParameters = customOptions.AccessTokenValidationParameters;
             options.RefreshTokenValidationParameters = customOptions.RefreshTokenValidationParameters;
-        });
+        }).ValidateOnStart();
         return ConfigureServices<TUserKey, TUser>(services);
     }
 }
