@@ -21,9 +21,9 @@ internal class AsymAccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
 
     public string Generate(TUser user)
     {
-        var rsa = RSA.Create();
         string key = options.Value.AccessTokenSecret!;
-        rsa.FromXmlString(key);
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(key);
         var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
         var header = new JwtHeader(credentials);
         var payload = new JwtPayload(

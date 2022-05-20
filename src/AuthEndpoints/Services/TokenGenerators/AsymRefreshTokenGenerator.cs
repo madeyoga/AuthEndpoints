@@ -23,10 +23,7 @@ public class AsymRefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
     {
         string key = options.Value.RefreshTokenSecret!;
         using var rsa = RSA.Create();
-
-        rsa.FromXmlString(key);
         rsa.ImportFromPem(key);
-
         var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
         var header = new JwtHeader(credentials);
         var payload = new JwtPayload(
