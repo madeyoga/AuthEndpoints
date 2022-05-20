@@ -80,7 +80,7 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Adds an <see cref="IJwtValidator"/>
     /// </summary>
-    /// <typeparam name="TValidator"></typeparam>
+    /// <typeparam name="TValidator">The type of the jwt validator</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddJwtValidator<TValidator>() where TValidator : IJwtValidator
     {
@@ -90,7 +90,7 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Adds an <see cref="IAuthenticator{TUser}"/>.
     /// </summary>
-    /// <typeparam name="TAuthenticator">The type of the token validator.</typeparam>
+    /// <typeparam name="TAuthenticator">The type of the authenticator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddUserAuthenticator<TAuthenticator>() where TAuthenticator : class
     {

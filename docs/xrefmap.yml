@@ -42,38 +42,6 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenClaimsProvider(Of TProvider)()
   nameWithType: AuthEndpointsBuilder.AddAccessTokenClaimsProvider<TProvider>()
   nameWithType.vb: AuthEndpointsBuilder.AddAccessTokenClaimsProvider(Of TProvider)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator*
-  name: AddAccessTokenGenerator
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenGenerator_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator
-  nameWithType: AuthEndpointsBuilder.AddAccessTokenGenerator
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator``1
-  name: AddAccessTokenGenerator<TGenerator>()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenGenerator__1
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator``1
-  name.vb: AddAccessTokenGenerator(Of TGenerator)()
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator<TGenerator>()
-  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenGenerator(Of TGenerator)()
-  nameWithType: AuthEndpointsBuilder.AddAccessTokenGenerator<TGenerator>()
-  nameWithType.vb: AuthEndpointsBuilder.AddAccessTokenGenerator(Of TGenerator)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator*
-  name: AddAccessTokenValidator
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenValidator_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator
-  nameWithType: AuthEndpointsBuilder.AddAccessTokenValidator
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator``1
-  name: AddAccessTokenValidator<TValidator>()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenValidator__1
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator``1
-  name.vb: AddAccessTokenValidator(Of TValidator)()
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator<TValidator>()
-  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenValidator(Of TValidator)()
-  nameWithType: AuthEndpointsBuilder.AddAccessTokenValidator<TValidator>()
-  nameWithType.vb: AuthEndpointsBuilder.AddAccessTokenValidator(Of TValidator)()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddErrorDescriber*
   name: AddErrorDescriber
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddErrorDescriber_
@@ -103,6 +71,38 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme
   nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthScheme
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory*
+  name: AddJwtFactory
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtFactory_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory
+  nameWithType: AuthEndpointsBuilder.AddJwtFactory
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory``1
+  name: AddJwtFactory<TGenerator>()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtFactory__1
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory``1
+  name.vb: AddJwtFactory(Of TGenerator)()
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory<TGenerator>()
+  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddJwtFactory(Of TGenerator)()
+  nameWithType: AuthEndpointsBuilder.AddJwtFactory<TGenerator>()
+  nameWithType.vb: AuthEndpointsBuilder.AddJwtFactory(Of TGenerator)()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator*
+  name: AddJwtValidator
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtValidator_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator
+  nameWithType: AuthEndpointsBuilder.AddJwtValidator
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator``1
+  name: AddJwtValidator<TValidator>()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtValidator__1
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator``1
+  name.vb: AddJwtValidator(Of TValidator)()
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator<TValidator>()
+  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator(Of TValidator)()
+  nameWithType: AuthEndpointsBuilder.AddJwtValidator<TValidator>()
+  nameWithType.vb: AuthEndpointsBuilder.AddJwtValidator(Of TValidator)()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider*
   name: AddRefreshTokenClaimsProvider
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider_
@@ -119,38 +119,6 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider(Of TProvider)()
   nameWithType: AuthEndpointsBuilder.AddRefreshTokenClaimsProvider<TProvider>()
   nameWithType.vb: AuthEndpointsBuilder.AddRefreshTokenClaimsProvider(Of TProvider)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator*
-  name: AddRefreshTokenGenerator
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenGenerator_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator
-  nameWithType: AuthEndpointsBuilder.AddRefreshTokenGenerator
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator``1
-  name: AddRefreshTokenGenerator<TGenerator>()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenGenerator__1
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator``1
-  name.vb: AddRefreshTokenGenerator(Of TGenerator)()
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator<TGenerator>()
-  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenGenerator(Of TGenerator)()
-  nameWithType: AuthEndpointsBuilder.AddRefreshTokenGenerator<TGenerator>()
-  nameWithType.vb: AuthEndpointsBuilder.AddRefreshTokenGenerator(Of TGenerator)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator*
-  name: AddRefreshTokenValidator
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenValidator_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator
-  nameWithType: AuthEndpointsBuilder.AddRefreshTokenValidator
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator``1
-  name: AddRefreshTokenValidator<TValidator>()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenValidator__1
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator``1
-  name.vb: AddRefreshTokenValidator(Of TValidator)()
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator<TValidator>()
-  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenValidator(Of TValidator)()
-  nameWithType: AuthEndpointsBuilder.AddRefreshTokenValidator<TValidator>()
-  nameWithType.vb: AuthEndpointsBuilder.AddRefreshTokenValidator(Of TValidator)()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddScoped(Type,Type)
   name: AddScoped(Type, Type)
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddScoped_Type_Type_
