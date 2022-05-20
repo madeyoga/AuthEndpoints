@@ -68,43 +68,23 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IJwtFactory"/>.
     /// </summary>
-    /// <typeparam name="TGenerator">The type of the token generator.</typeparam>
+    /// <typeparam name="TGenerator">The type of the jwt factory.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenGenerator<TGenerator>() where TGenerator : class
+    public virtual AuthEndpointsBuilder AddJwtFactory<TGenerator>() where TGenerator : IJwtFactory
     {
-        return AddScoped(typeof(IAccessTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
+        return AddScoped(typeof(IJwtFactory), typeof(TGenerator));
     }
 
     /// <summary>
-    /// Adds an <see cref="IRefreshTokenGenerator{TUser}"/>.
-    /// </summary>
-    /// <typeparam name="TGenerator">The type of the token generator.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenGenerator<TGenerator>() where TGenerator : class
-    {
-        return AddScoped(typeof(IRefreshTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IAccessTokenValidator"/>
+    /// Adds an <see cref="IJwtValidator"/>
     /// </summary>
     /// <typeparam name="TValidator"></typeparam>
-    /// <returns></returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenValidator<TValidator>() where TValidator : IAccessTokenValidator
-    {
-        return AddScoped(typeof(IAccessTokenValidator), typeof(TValidator));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IRefreshTokenValidator"/>.
-    /// </summary>
-    /// <typeparam name="TValidator">The type of the token validator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : IRefreshTokenValidator
+    public virtual AuthEndpointsBuilder AddJwtValidator<TValidator>() where TValidator : IJwtValidator
     {
-        return AddScoped(typeof(IRefreshTokenValidator), typeof(TValidator));
+        return AddScoped(typeof(IJwtValidator), typeof(TValidator));
     }
 
     /// <summary>
