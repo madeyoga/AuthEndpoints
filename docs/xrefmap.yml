@@ -90,19 +90,19 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddErrorDescriber(Of TDescriber)()
   nameWithType: AuthEndpointsBuilder.AddErrorDescriber<TDescriber>()
   nameWithType.vb: AuthEndpointsBuilder.AddErrorDescriber(Of TDescriber)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
-  name: AddJwtBearerAuthenticationScheme(TokenValidationParameters)
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthenticationScheme_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
-  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme(TokenValidationParameters)
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme*
-  name: AddJwtBearerAuthenticationScheme
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthenticationScheme_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  name: AddJwtBearerAuthScheme(String, TokenValidationParameters)
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme_System_String_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(System.String, Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthScheme(String, TokenValidationParameters)
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme*
+  name: AddJwtBearerAuthScheme
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme
-  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthenticationScheme
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme
+  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthScheme
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider*
   name: AddRefreshTokenClaimsProvider
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider_
@@ -322,6 +322,44 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
   nameWithType: AuthEndpointsOptions.RefreshTokenValidationParameters
+- uid: AuthEndpoints.AuthEndpointsOptionsConfigurator
+  name: AuthEndpointsOptionsConfigurator
+  href: api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html
+  commentId: T:AuthEndpoints.AuthEndpointsOptionsConfigurator
+  fullName: AuthEndpoints.AuthEndpointsOptionsConfigurator
+  nameWithType: AuthEndpointsOptionsConfigurator
+- uid: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure(System.String,AuthEndpoints.AuthEndpointsOptions)
+  name: PostConfigure(String, AuthEndpointsOptions)
+  href: api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html#AuthEndpoints_AuthEndpointsOptionsConfigurator_PostConfigure_System_String_AuthEndpoints_AuthEndpointsOptions_
+  commentId: M:AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure(System.String,AuthEndpoints.AuthEndpointsOptions)
+  fullName: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure(System.String, AuthEndpoints.AuthEndpointsOptions)
+  nameWithType: AuthEndpointsOptionsConfigurator.PostConfigure(String, AuthEndpointsOptions)
+- uid: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure*
+  name: PostConfigure
+  href: api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html#AuthEndpoints_AuthEndpointsOptionsConfigurator_PostConfigure_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure
+  nameWithType: AuthEndpointsOptionsConfigurator.PostConfigure
+- uid: AuthEndpoints.AuthEndpointsOptionsValidator
+  name: AuthEndpointsOptionsValidator
+  href: api/AuthEndpoints.AuthEndpointsOptionsValidator.html
+  commentId: T:AuthEndpoints.AuthEndpointsOptionsValidator
+  fullName: AuthEndpoints.AuthEndpointsOptionsValidator
+  nameWithType: AuthEndpointsOptionsValidator
+- uid: AuthEndpoints.AuthEndpointsOptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
+  name: Validate(String, AuthEndpointsOptions)
+  href: api/AuthEndpoints.AuthEndpointsOptionsValidator.html#AuthEndpoints_AuthEndpointsOptionsValidator_Validate_System_String_AuthEndpoints_AuthEndpointsOptions_
+  commentId: M:AuthEndpoints.AuthEndpointsOptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
+  fullName: AuthEndpoints.AuthEndpointsOptionsValidator.Validate(System.String, AuthEndpoints.AuthEndpointsOptions)
+  nameWithType: AuthEndpointsOptionsValidator.Validate(String, AuthEndpointsOptions)
+- uid: AuthEndpoints.AuthEndpointsOptionsValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.AuthEndpointsOptionsValidator.html#AuthEndpoints_AuthEndpointsOptionsValidator_Validate_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptionsValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsOptionsValidator.Validate
+  nameWithType: AuthEndpointsOptionsValidator.Validate
 - uid: AuthEndpoints.Controllers
   name: AuthEndpoints.Controllers
   href: api/AuthEndpoints.Controllers.html
@@ -448,15 +486,15 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser)
   nameWithType: JwtController<TUserKey, TUser>
   nameWithType.vb: JwtController(Of TUserKey, TUser)
-- uid: AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IAccessTokenValidator,AuthEndpoints.Services.IRefreshTokenValidator)
-  name: JwtController(UserManager<TUser>, IAuthenticator<TUser>, IAccessTokenValidator, IRefreshTokenValidator)
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IAccessTokenValidator_AuthEndpoints_Services_IRefreshTokenValidator_
-  commentId: M:AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IAccessTokenValidator,AuthEndpoints.Services.IRefreshTokenValidator)
-  name.vb: JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IAccessTokenValidator, IRefreshTokenValidator)
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.JwtController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>, AuthEndpoints.Services.IAccessTokenValidator, AuthEndpoints.Services.IRefreshTokenValidator)
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).JwtController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser), AuthEndpoints.Services.IAccessTokenValidator, AuthEndpoints.Services.IRefreshTokenValidator)
-  nameWithType: JwtController<TUserKey, TUser>.JwtController(UserManager<TUser>, IAuthenticator<TUser>, IAccessTokenValidator, IRefreshTokenValidator)
-  nameWithType.vb: JwtController(Of TUserKey, TUser).JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IAccessTokenValidator, IRefreshTokenValidator)
+- uid: AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name: JwtController(UserManager<TUser>, IAuthenticator<TUser>, IJwtValidator, IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IJwtValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IJwtValidator, IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.JwtController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>, AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).JwtController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser), AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: JwtController<TUserKey, TUser>.JwtController(UserManager<TUser>, IAuthenticator<TUser>, IJwtValidator, IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: JwtController(Of TUserKey, TUser).JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IJwtValidator, IOptions(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Controllers.JwtController`2.#ctor*
   name: JwtController
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2__ctor_
@@ -466,14 +504,6 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).JwtController
   nameWithType: JwtController<TUserKey, TUser>.JwtController
   nameWithType.vb: JwtController(Of TUserKey, TUser).JwtController
-- uid: AuthEndpoints.Controllers.JwtController`2.accessTokenValidator
-  name: accessTokenValidator
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_accessTokenValidator
-  commentId: F:AuthEndpoints.Controllers.JwtController`2.accessTokenValidator
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.accessTokenValidator
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).accessTokenValidator
-  nameWithType: JwtController<TUserKey, TUser>.accessTokenValidator
-  nameWithType.vb: JwtController(Of TUserKey, TUser).accessTokenValidator
 - uid: AuthEndpoints.Controllers.JwtController`2.authenticator
   name: authenticator
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_authenticator
@@ -499,6 +529,22 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Create
   nameWithType: JwtController<TUserKey, TUser>.Create
   nameWithType.vb: JwtController(Of TUserKey, TUser).Create
+- uid: AuthEndpoints.Controllers.JwtController`2.jwtValidator
+  name: jwtValidator
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_jwtValidator
+  commentId: F:AuthEndpoints.Controllers.JwtController`2.jwtValidator
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.jwtValidator
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).jwtValidator
+  nameWithType: JwtController<TUserKey, TUser>.jwtValidator
+  nameWithType.vb: JwtController(Of TUserKey, TUser).jwtValidator
+- uid: AuthEndpoints.Controllers.JwtController`2.options
+  name: options
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_options
+  commentId: F:AuthEndpoints.Controllers.JwtController`2.options
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.options
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).options
+  nameWithType: JwtController<TUserKey, TUser>.options
+  nameWithType.vb: JwtController(Of TUserKey, TUser).options
 - uid: AuthEndpoints.Controllers.JwtController`2.Refresh(AuthEndpoints.Models.RefreshRequest)
   name: Refresh(RefreshRequest)
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Refresh_AuthEndpoints_Models_RefreshRequest_
@@ -516,14 +562,6 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Refresh
   nameWithType: JwtController<TUserKey, TUser>.Refresh
   nameWithType.vb: JwtController(Of TUserKey, TUser).Refresh
-- uid: AuthEndpoints.Controllers.JwtController`2.refreshTokenValidator
-  name: refreshTokenValidator
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_refreshTokenValidator
-  commentId: F:AuthEndpoints.Controllers.JwtController`2.refreshTokenValidator
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.refreshTokenValidator
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).refreshTokenValidator
-  nameWithType: JwtController<TUserKey, TUser>.refreshTokenValidator
-  nameWithType.vb: JwtController(Of TUserKey, TUser).refreshTokenValidator
 - uid: AuthEndpoints.Controllers.JwtController`2.userManager
   name: userManager
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_userManager
@@ -988,6 +1026,204 @@ references:
   fullName.vb: AuthEndpoints.Services.AccessTokenGenerator(Of TUser).Generate
   nameWithType: AccessTokenGenerator<TUser>.Generate
   nameWithType.vb: AccessTokenGenerator(Of TUser).Generate
+- uid: AuthEndpoints.Services.AccessTokenValidator
+  name: AccessTokenValidator
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html
+  commentId: T:AuthEndpoints.Services.AccessTokenValidator
+  fullName: AuthEndpoints.Services.AccessTokenValidator
+  nameWithType: AccessTokenValidator
+- uid: AuthEndpoints.Services.AccessTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name: AccessTokenValidator(IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
+  commentId: M:AuthEndpoints.Services.AccessTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name.vb: AccessTokenValidator(IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
+  fullName: AuthEndpoints.Services.AccessTokenValidator.AccessTokenValidator(Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  fullName.vb: AuthEndpoints.Services.AccessTokenValidator.AccessTokenValidator(Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  nameWithType: AccessTokenValidator.AccessTokenValidator(IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
+  nameWithType.vb: AccessTokenValidator.AccessTokenValidator(IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
+- uid: AuthEndpoints.Services.AccessTokenValidator.#ctor*
+  name: AccessTokenValidator
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator__ctor_
+  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.AccessTokenValidator.AccessTokenValidator
+  nameWithType: AccessTokenValidator.AccessTokenValidator
+- uid: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken(System.String)
+  name: ReadJwtToken(String)
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ReadJwtToken_System_String_
+  commentId: M:AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken(System.String)
+  fullName: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken(System.String)
+  nameWithType: AccessTokenValidator.ReadJwtToken(String)
+- uid: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken*
+  name: ReadJwtToken
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ReadJwtToken_
+  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken
+  nameWithType: AccessTokenValidator.ReadJwtToken
+- uid: AuthEndpoints.Services.AccessTokenValidator.Validate(System.String)
+  name: Validate(String)
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_Validate_System_String_
+  commentId: M:AuthEndpoints.Services.AccessTokenValidator.Validate(System.String)
+  fullName: AuthEndpoints.Services.AccessTokenValidator.Validate(System.String)
+  nameWithType: AccessTokenValidator.Validate(String)
+- uid: AuthEndpoints.Services.AccessTokenValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_Validate_
+  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.AccessTokenValidator.Validate
+  nameWithType: AccessTokenValidator.Validate
+- uid: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync(System.String)
+  name: ValidateAsync(String)
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ValidateAsync_System_String_
+  commentId: M:AuthEndpoints.Services.AccessTokenValidator.ValidateAsync(System.String)
+  fullName: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync(System.String)
+  nameWithType: AccessTokenValidator.ValidateAsync(String)
+- uid: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync*
+  name: ValidateAsync
+  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ValidateAsync_
+  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.ValidateAsync
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync
+  nameWithType: AccessTokenValidator.ValidateAsync
+- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1
+  name: AsymRefreshTokenGenerator<TUser>
+  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html
+  commentId: T:AuthEndpoints.Services.AsymRefreshTokenGenerator`1
+  name.vb: AsymRefreshTokenGenerator(Of TUser)
+  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>
+  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser)
+  nameWithType: AsymRefreshTokenGenerator<TUser>
+  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser)
+- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name: AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
+  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1__ctor_AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
+  commentId: M:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name.vb: AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
+  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator(AuthEndpoints.Services.IRefreshTokenClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator(AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  nameWithType: AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
+  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
+- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor*
+  name: AsymRefreshTokenGenerator
+  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1__ctor_
+  commentId: Overload:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator
+  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator
+  nameWithType: AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator
+  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator
+- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate(`0)
+  name: Generate(TUser)
+  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1_Generate__0_
+  commentId: M:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate(`0)
+  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.Generate(TUser)
+  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).Generate(TUser)
+  nameWithType: AsymRefreshTokenGenerator<TUser>.Generate(TUser)
+  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).Generate(TUser)
+- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate*
+  name: Generate
+  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1_Generate_
+  commentId: Overload:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.Generate
+  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).Generate
+  nameWithType: AsymRefreshTokenGenerator<TUser>.Generate
+  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).Generate
+- uid: AuthEndpoints.Services.DefaultJwtFactory
+  name: DefaultJwtFactory
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html
+  commentId: T:AuthEndpoints.Services.DefaultJwtFactory
+  fullName: AuthEndpoints.Services.DefaultJwtFactory
+  nameWithType: DefaultJwtFactory
+- uid: AuthEndpoints.Services.DefaultJwtFactory.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name: DefaultJwtFactory(JwtSecurityTokenHandler)
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
+  commentId: M:AuthEndpoints.Services.DefaultJwtFactory.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  fullName: AuthEndpoints.Services.DefaultJwtFactory.DefaultJwtFactory(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  nameWithType: DefaultJwtFactory.DefaultJwtFactory(JwtSecurityTokenHandler)
+- uid: AuthEndpoints.Services.DefaultJwtFactory.#ctor*
+  name: DefaultJwtFactory
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory__ctor_
+  commentId: Overload:AuthEndpoints.Services.DefaultJwtFactory.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultJwtFactory.DefaultJwtFactory
+  nameWithType: DefaultJwtFactory.DefaultJwtFactory
+- uid: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
+  name: Create(String, String, String, IList<Claim>, Int32)
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
+  commentId: M:AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
+  name.vb: Create(String, String, String, IList(Of Claim), Int32)
+  fullName: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String, System.String, System.String, IList<System.Security.Claims.Claim>, System.Int32)
+  fullName.vb: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String, System.String, System.String, IList(Of System.Security.Claims.Claim), System.Int32)
+  nameWithType: DefaultJwtFactory.Create(String, String, String, IList<Claim>, Int32)
+  nameWithType.vb: DefaultJwtFactory.Create(String, String, String, IList(Of Claim), Int32)
+- uid: AuthEndpoints.Services.DefaultJwtFactory.Create*
+  name: Create
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_
+  commentId: Overload:AuthEndpoints.Services.DefaultJwtFactory.Create
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultJwtFactory.Create
+  nameWithType: DefaultJwtFactory.Create
+- uid: AuthEndpoints.Services.DefaultJwtValidator
+  name: DefaultJwtValidator
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html
+  commentId: T:AuthEndpoints.Services.DefaultJwtValidator
+  fullName: AuthEndpoints.Services.DefaultJwtValidator
+  nameWithType: DefaultJwtValidator
+- uid: AuthEndpoints.Services.DefaultJwtValidator.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name: DefaultJwtValidator(JwtSecurityTokenHandler)
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
+  commentId: M:AuthEndpoints.Services.DefaultJwtValidator.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.DefaultJwtValidator(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  nameWithType: DefaultJwtValidator.DefaultJwtValidator(JwtSecurityTokenHandler)
+- uid: AuthEndpoints.Services.DefaultJwtValidator.#ctor*
+  name: DefaultJwtValidator
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator__ctor_
+  commentId: Overload:AuthEndpoints.Services.DefaultJwtValidator.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.DefaultJwtValidator
+  nameWithType: DefaultJwtValidator.DefaultJwtValidator
+- uid: AuthEndpoints.Services.DefaultJwtValidator.ReadJwtToken(System.String)
+  name: ReadJwtToken(String)
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator_ReadJwtToken_System_String_
+  commentId: M:AuthEndpoints.Services.DefaultJwtValidator.ReadJwtToken(System.String)
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.ReadJwtToken(System.String)
+  nameWithType: DefaultJwtValidator.ReadJwtToken(String)
+- uid: AuthEndpoints.Services.DefaultJwtValidator.ReadJwtToken*
+  name: ReadJwtToken
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator_ReadJwtToken_
+  commentId: Overload:AuthEndpoints.Services.DefaultJwtValidator.ReadJwtToken
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.ReadJwtToken
+  nameWithType: DefaultJwtValidator.ReadJwtToken
+- uid: AuthEndpoints.Services.DefaultJwtValidator.Validate(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  name: Validate(String, TokenValidationParameters)
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator_Validate_System_String_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
+  commentId: M:AuthEndpoints.Services.DefaultJwtValidator.Validate(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.Validate(System.String, Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  nameWithType: DefaultJwtValidator.Validate(String, TokenValidationParameters)
+- uid: AuthEndpoints.Services.DefaultJwtValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator_Validate_
+  commentId: Overload:AuthEndpoints.Services.DefaultJwtValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.Validate
+  nameWithType: DefaultJwtValidator.Validate
+- uid: AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  name: ValidateAsync(String, TokenValidationParameters)
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator_ValidateAsync_System_String_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
+  commentId: M:AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync(System.String, Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  nameWithType: DefaultJwtValidator.ValidateAsync(String, TokenValidationParameters)
+- uid: AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync*
+  name: ValidateAsync
+  href: api/AuthEndpoints.Services.DefaultJwtValidator.html#AuthEndpoints_Services_DefaultJwtValidator_ValidateAsync_
+  commentId: Overload:AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync
+  nameWithType: DefaultJwtValidator.ValidateAsync
 - uid: AuthEndpoints.Services.IAccessTokenClaimsProvider`1
   name: IAccessTokenClaimsProvider<TUser>
   href: api/AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html
@@ -1081,6 +1317,73 @@ references:
   fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideClaims
   nameWithType: IClaimsProvider<TUser>.provideClaims
   nameWithType.vb: IClaimsProvider(Of TUser).provideClaims
+- uid: AuthEndpoints.Services.IJwtFactory
+  name: IJwtFactory
+  href: api/AuthEndpoints.Services.IJwtFactory.html
+  commentId: T:AuthEndpoints.Services.IJwtFactory
+  fullName: AuthEndpoints.Services.IJwtFactory
+  nameWithType: IJwtFactory
+- uid: AuthEndpoints.Services.IJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
+  name: Create(String, String, String, IList<Claim>, Int32)
+  href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
+  commentId: M:AuthEndpoints.Services.IJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
+  name.vb: Create(String, String, String, IList(Of Claim), Int32)
+  fullName: AuthEndpoints.Services.IJwtFactory.Create(System.String, System.String, System.String, IList<System.Security.Claims.Claim>, System.Int32)
+  fullName.vb: AuthEndpoints.Services.IJwtFactory.Create(System.String, System.String, System.String, IList(Of System.Security.Claims.Claim), System.Int32)
+  nameWithType: IJwtFactory.Create(String, String, String, IList<Claim>, Int32)
+  nameWithType.vb: IJwtFactory.Create(String, String, String, IList(Of Claim), Int32)
+- uid: AuthEndpoints.Services.IJwtFactory.Create*
+  name: Create
+  href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_
+  commentId: Overload:AuthEndpoints.Services.IJwtFactory.Create
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IJwtFactory.Create
+  nameWithType: IJwtFactory.Create
+- uid: AuthEndpoints.Services.IJwtValidator
+  name: IJwtValidator
+  href: api/AuthEndpoints.Services.IJwtValidator.html
+  commentId: T:AuthEndpoints.Services.IJwtValidator
+  fullName: AuthEndpoints.Services.IJwtValidator
+  nameWithType: IJwtValidator
+- uid: AuthEndpoints.Services.IJwtValidator.ReadJwtToken(System.String)
+  name: ReadJwtToken(String)
+  href: api/AuthEndpoints.Services.IJwtValidator.html#AuthEndpoints_Services_IJwtValidator_ReadJwtToken_System_String_
+  commentId: M:AuthEndpoints.Services.IJwtValidator.ReadJwtToken(System.String)
+  fullName: AuthEndpoints.Services.IJwtValidator.ReadJwtToken(System.String)
+  nameWithType: IJwtValidator.ReadJwtToken(String)
+- uid: AuthEndpoints.Services.IJwtValidator.ReadJwtToken*
+  name: ReadJwtToken
+  href: api/AuthEndpoints.Services.IJwtValidator.html#AuthEndpoints_Services_IJwtValidator_ReadJwtToken_
+  commentId: Overload:AuthEndpoints.Services.IJwtValidator.ReadJwtToken
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IJwtValidator.ReadJwtToken
+  nameWithType: IJwtValidator.ReadJwtToken
+- uid: AuthEndpoints.Services.IJwtValidator.Validate(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  name: Validate(String, TokenValidationParameters)
+  href: api/AuthEndpoints.Services.IJwtValidator.html#AuthEndpoints_Services_IJwtValidator_Validate_System_String_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
+  commentId: M:AuthEndpoints.Services.IJwtValidator.Validate(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  fullName: AuthEndpoints.Services.IJwtValidator.Validate(System.String, Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  nameWithType: IJwtValidator.Validate(String, TokenValidationParameters)
+- uid: AuthEndpoints.Services.IJwtValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.Services.IJwtValidator.html#AuthEndpoints_Services_IJwtValidator_Validate_
+  commentId: Overload:AuthEndpoints.Services.IJwtValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IJwtValidator.Validate
+  nameWithType: IJwtValidator.Validate
+- uid: AuthEndpoints.Services.IJwtValidator.ValidateAsync(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  name: ValidateAsync(String, TokenValidationParameters)
+  href: api/AuthEndpoints.Services.IJwtValidator.html#AuthEndpoints_Services_IJwtValidator_ValidateAsync_System_String_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
+  commentId: M:AuthEndpoints.Services.IJwtValidator.ValidateAsync(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  fullName: AuthEndpoints.Services.IJwtValidator.ValidateAsync(System.String, Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  nameWithType: IJwtValidator.ValidateAsync(String, TokenValidationParameters)
+- uid: AuthEndpoints.Services.IJwtValidator.ValidateAsync*
+  name: ValidateAsync
+  href: api/AuthEndpoints.Services.IJwtValidator.html#AuthEndpoints_Services_IJwtValidator_ValidateAsync_
+  commentId: Overload:AuthEndpoints.Services.IJwtValidator.ValidateAsync
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IJwtValidator.ValidateAsync
+  nameWithType: IJwtValidator.ValidateAsync
 - uid: AuthEndpoints.Services.IRefreshTokenClaimsProvider`1
   name: IRefreshTokenClaimsProvider<TUser>
   href: api/AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html
@@ -1316,15 +1619,15 @@ references:
   fullName.vb: AuthEndpoints.Services.UserAuthenticator(Of TUser)
   nameWithType: UserAuthenticator<TUser>
   nameWithType.vb: UserAuthenticator(Of TUser)
-- uid: AuthEndpoints.Services.UserAuthenticator`1.#ctor(AuthEndpoints.Services.IAccessTokenGenerator{`0},AuthEndpoints.Services.IRefreshTokenGenerator{`0},Microsoft.AspNetCore.Identity.UserManager{`0})
-  name: UserAuthenticator(IAccessTokenGenerator<TUser>, IRefreshTokenGenerator<TUser>, UserManager<TUser>)
-  href: api/AuthEndpoints.Services.UserAuthenticator-1.html#AuthEndpoints_Services_UserAuthenticator_1__ctor_AuthEndpoints_Services_IAccessTokenGenerator__0__AuthEndpoints_Services_IRefreshTokenGenerator__0__Microsoft_AspNetCore_Identity_UserManager__0__
-  commentId: M:AuthEndpoints.Services.UserAuthenticator`1.#ctor(AuthEndpoints.Services.IAccessTokenGenerator{`0},AuthEndpoints.Services.IRefreshTokenGenerator{`0},Microsoft.AspNetCore.Identity.UserManager{`0})
-  name.vb: UserAuthenticator(IAccessTokenGenerator(Of TUser), IRefreshTokenGenerator(Of TUser), UserManager(Of TUser))
-  fullName: AuthEndpoints.Services.UserAuthenticator<TUser>.UserAuthenticator(AuthEndpoints.Services.IAccessTokenGenerator<TUser>, AuthEndpoints.Services.IRefreshTokenGenerator<TUser>, Microsoft.AspNetCore.Identity.UserManager<TUser>)
-  fullName.vb: AuthEndpoints.Services.UserAuthenticator(Of TUser).UserAuthenticator(AuthEndpoints.Services.IAccessTokenGenerator(Of TUser), AuthEndpoints.Services.IRefreshTokenGenerator(Of TUser), Microsoft.AspNetCore.Identity.UserManager(Of TUser))
-  nameWithType: UserAuthenticator<TUser>.UserAuthenticator(IAccessTokenGenerator<TUser>, IRefreshTokenGenerator<TUser>, UserManager<TUser>)
-  nameWithType.vb: UserAuthenticator(Of TUser).UserAuthenticator(IAccessTokenGenerator(Of TUser), IRefreshTokenGenerator(Of TUser), UserManager(Of TUser))
+- uid: AuthEndpoints.Services.UserAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessTokenClaimsProvider{`0},AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name: UserAuthenticator(UserManager<TUser>, IJwtFactory, IAccessTokenClaimsProvider<TUser>, IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Services.UserAuthenticator-1.html#AuthEndpoints_Services_UserAuthenticator_1__ctor_Microsoft_AspNetCore_Identity_UserManager__0__AuthEndpoints_Services_IJwtFactory_AuthEndpoints_Services_IAccessTokenClaimsProvider__0__AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Services.UserAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessTokenClaimsProvider{`0},AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: UserAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessTokenClaimsProvider(Of TUser), IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Services.UserAuthenticator<TUser>.UserAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessTokenClaimsProvider<TUser>, AuthEndpoints.Services.IRefreshTokenClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Services.UserAuthenticator(Of TUser).UserAuthenticator(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessTokenClaimsProvider(Of TUser), AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: UserAuthenticator<TUser>.UserAuthenticator(UserManager<TUser>, IJwtFactory, IAccessTokenClaimsProvider<TUser>, IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: UserAuthenticator(Of TUser).UserAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessTokenClaimsProvider(Of TUser), IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Services.UserAuthenticator`1.#ctor*
   name: UserAuthenticator
   href: api/AuthEndpoints.Services.UserAuthenticator-1.html#AuthEndpoints_Services_UserAuthenticator_1__ctor_
