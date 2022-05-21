@@ -58,12 +58,12 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddErrorDescriber(Of TDescriber)()
   nameWithType: AuthEndpointsBuilder.AddErrorDescriber<TDescriber>()
   nameWithType.vb: AuthEndpointsBuilder.AddErrorDescriber(Of TDescriber)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
-  name: AddJwtBearerAuthScheme(String, TokenValidationParameters)
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme_System_String_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(System.String,Microsoft.IdentityModel.Tokens.TokenValidationParameters)
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(System.String, Microsoft.IdentityModel.Tokens.TokenValidationParameters)
-  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthScheme(String, TokenValidationParameters)
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  name: AddJwtBearerAuthScheme(TokenValidationParameters)
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
+  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthScheme(TokenValidationParameters)
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme*
   name: AddJwtBearerAuthScheme
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme_
