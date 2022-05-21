@@ -5,9 +5,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Getting started | AuthEndpoints </title>
+    <title>Base Endpoints | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Getting started | AuthEndpoints ">
+    <meta name="title" content="Base Endpoints | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
@@ -77,43 +77,95 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h1 id="getting-started">Getting started</h1>
+<h1 id="base-endpoints">Base Endpoints</h1>
 
-<p>Follow steps below to install and use AuthEndpoints.</p>
-<h2 id="create-a-project">Create a project</h2>
-<p>Create an empty ASP.NET Core project</p>
-<pre><code>dotnet new web -n MyNewWebApp
-</code></pre>
-<h2 id="install-nuget-package">Install nuget package</h2>
-<p>Install the library using the following .net cli command:</p>
-<pre><code>dotnet add package AuthEndpoints
-</code></pre>
-<p>or with nuget package manager:</p>
-<pre><code>Install-Package AuthEndpoints
-</code></pre>
-<h2 id="quick-start">Quick Start</h2>
-<p>Edit <code>Program.cs</code>, then add auth endpoints services and jwt bearer authentication scheme:</p>
-<pre><code class="lang-cs">services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
-{
-  options.AccessTokenSecret = &quot;...&quot;,
-  options.RefreshTokenSecret = &quot;...&quot;,
-  options.Issuer = &quot;...&quot;,
-  options.Audience = &quot;...&quot;,
-  ...
-}).AddJwtBearerAuthScheme(accessTokenValidationParameters);
-</code></pre>
-<h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
-<p>Create a new directory called <code>Controllers</code> then create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyBaseAuthController: BaseEndpointsController&lt;string, MyCustomIdentityUser&gt;
-{}
-</code></pre>
-<p>See what endpoints included in <a href="base-endpoints.html">BaseEndpointsController</a></p>
-<h2 id="add-jwt-endpoints">Add Jwt Endpoints</h2>
-<p>Create a new controller called <code>MyJwtController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyJwtController : JwtController&lt;string, IdentityUser&gt;
-{}
-</code></pre>
-<p>See what endpoints included in <a href="jwt-endpoints.html">JwtController</a></p>
+<p><a href="/api/AuthEndpoints.Controllers.html#baseendpointscontroller-tuserkey-tuser"><code>BaseEndpointsController&lt;TUserKey, TUser&gt;</code></a></p>
+<h2 id="user-create">User Create</h2>
+<p>Use this endpoint to register new user.</p>
+<p><strong>Default URL</strong>: <code>/users</code></p>
+<p><strong>Authorizations</strong> : (Jwt or None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        Body:
+        <ul>
+          <li>email</li>
+          <li>username</li>
+          <li>password</li>
+          <li>confirmPassword</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_200_OK</li>
+          <li>HTTP_400_BAD_REQUEST</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="user-retrieve">User Retrieve</h2>
+<p>Use this endpoints to retrieve the authenticated user data.</p>
+<p><strong>Default URL</strong>: <code>/users/me</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>
+        -
+      </td>
+      <td>
+        HTTP_200_OK
+        <ul>
+          <li>User data</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="set-password">Set Password</h2>
+<p>Use this endpoints to change user password.</p>
+<p><strong>Default URL</strong>: <code>/users/set_password</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        Body:
+        <ul>
+          <li>currentPassword</li>
+          <li>newPassword</li>
+          <li>confirmNewPassword</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_204_NO_CONTENT</li>
+          <li>HTTP_400_BAD_REQUEST</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 </article>
           </div>
           
@@ -122,7 +174,7 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/base-endpoints.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

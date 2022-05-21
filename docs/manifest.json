@@ -54,7 +54,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.JwtController-2.html",
-          "hash": "iHzIn2xvjmNxYlBa+y7A8O6X7pB5JliPrtXG/pX9eQc="
+          "hash": "pka5kyv3ToT80nEGYl89UCvgKAtbCclkHLlYyTjfAi0="
         }
       },
       "is_incremental": false,
@@ -402,7 +402,67 @@
       "output": {
         ".html": {
           "relative_path": "toc.html",
-          "hash": "f2hYWeBwqd3m5ogGDIPVISXC2D8/1ovN+phnM0fs+dA="
+          "hash": "uanktAkHdBYHeolsMUhPpMAB9TpwoACFwX6fVWW/EQk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/asym-jwt.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/asym-jwt.html",
+          "hash": "0bl+8HY6u/jIX6rZO5qxExWEbI9Ty8M9zX3WN8U0DQw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/base-endpoints.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/base-endpoints.html",
+          "hash": "lzXP4JXOaJGGTrCmY5gqH//p4y18ajcideev3e+Delg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/custom-authenticator.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/custom-authenticator.html",
+          "hash": "GGNM/gblx6R+Hu9YLgcUx3fTDOQJ5O8l0TGqvtE/uSs="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/custom-claims.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/custom-claims.html",
+          "hash": "5hTpxpjG4jy0K62GW5gF9YTlg0Eo3zIlJayPTSSg9h0="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/custom-identity-user.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/custom-identity-user.html",
+          "hash": "NpKcJYF8QIBEZNQb34cx58H0bML6CSDPe967k5VCskI="
         }
       },
       "is_incremental": false,
@@ -414,7 +474,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/get-started.html",
-          "hash": "2fERqW1wnK3QFdv3nEyu+Ao7DrzWNk236u7ClywyD54="
+          "hash": "Y2JKR8TfB2Czp41LB17QVKazm1nmwFwXCS3KB+Lnxhs="
         }
       },
       "is_incremental": false,
@@ -422,11 +482,35 @@
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "wiki/intro.md",
+      "source_relative_path": "wiki/jwt-endpoints.md",
       "output": {
         ".html": {
-          "relative_path": "wiki/intro.html",
-          "hash": "ou5comkItYc0kxHTUxgWNBFPrfXygxVV76143vp6aXg="
+          "relative_path": "wiki/jwt-endpoints.html",
+          "hash": "gU0tBOnm42o25SKPJJqVMOmJJx+EmZnl4IeHwhGgjXo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/override-controller.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/override-controller.html",
+          "hash": "rk0ZS66jjmhBwheXepUgZp4kmqnptsx0xFkPBun0+p8="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
+      "source_relative_path": "wiki/swagger.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/swagger.html",
+          "hash": "XjbLKoXngcYndd0HJGI2+T42Q469dq+VB9mxfub8VL4="
         }
       },
       "is_incremental": false,
@@ -438,7 +522,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/toc.html",
-          "hash": "rjjMnX0McEdYX+uO0wZ6e2RMMbILnuGAGq//J5yO20Y="
+          "hash": "HLTjqTAtMkX/gq68UjIDCa7iMfivRyuNYpxG6819grg="
         }
       },
       "is_incremental": false,
@@ -469,14 +553,14 @@
         "ConceptualDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 5,
-          "skipped_file_count": 5
+          "total_file_count": 12,
+          "skipped_file_count": 10
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 29,
-          "skipped_file_count": 28
+          "skipped_file_count": 29
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
