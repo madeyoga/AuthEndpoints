@@ -88,29 +88,19 @@
     <h3 id="classes">Classes
   </h3>
       <h4><a class="xref" href="AuthEndpoints.Services.AccessTokenClaimsProvider-2.html">AccessTokenClaimsProvider&lt;TUserKey, TUser&gt;</a></h4>
-      <section><p>A default service that provides claims for refresh token</p>
+      <section><p>A default service that provide claims for access token</p>
 </section>
-      <h4><a class="xref" href="AuthEndpoints.Services.AccessTokenGenerator-1.html">AccessTokenGenerator&lt;TUser&gt;</a></h4>
-      <section><p>Use this class to generate an access jwt for the given user</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.AccessTokenValidator.html">AccessTokenValidator</a></h4>
-      <section><p>Use this class to validate an access jwt</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html">AsymRefreshTokenGenerator&lt;TUser&gt;</a></h4>
-      <section></section>
       <h4><a class="xref" href="AuthEndpoints.Services.DefaultJwtFactory.html">DefaultJwtFactory</a></h4>
-      <section><p>Symmetric jwt factory</p>
+      <section><p>Use <a class="xref" href="AuthEndpoints.Services.DefaultJwtFactory.html">DefaultJwtFactory</a> to create a jwt with HS256 based signature</p>
 </section>
       <h4><a class="xref" href="AuthEndpoints.Services.DefaultJwtValidator.html">DefaultJwtValidator</a></h4>
-      <section></section>
+      <section><p>Default implementation of jwt validator</p>
+</section>
       <h4><a class="xref" href="AuthEndpoints.Services.RefreshTokenClaimsProvider-2.html">RefreshTokenClaimsProvider&lt;TUserKey, TUser&gt;</a></h4>
       <section><p>A default service that provides claims for Refresh Token</p>
 </section>
-      <h4><a class="xref" href="AuthEndpoints.Services.RefreshTokenGenerator-1.html">RefreshTokenGenerator&lt;TUser&gt;</a></h4>
-      <section><p>Use this class to generate refresh jwt for the given user</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.RefreshTokenValidator.html">RefreshTokenValidator</a></h4>
-      <section><p>Use this class to validate a refresh token</p>
+      <h4><a class="xref" href="AuthEndpoints.Services.RsaSignedJwtFactory.html">RsaSignedJwtFactory</a></h4>
+      <section><p>Use <a class="xref" href="AuthEndpoints.Services.RsaSignedJwtFactory.html">RsaSignedJwtFactory</a> to create a jwt with RS256 signature.</p>
 </section>
       <h4><a class="xref" href="AuthEndpoints.Services.UserAuthenticator-1.html">UserAuthenticator&lt;TUser&gt;</a></h4>
       <section><p>Default user authenticator. Use this class to authenticate a user</p>
@@ -119,12 +109,6 @@
   </h3>
       <h4><a class="xref" href="AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html">IAccessTokenClaimsProvider&lt;TUser&gt;</a></h4>
       <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html">IAccessTokenClaimsProvider&lt;TUser&gt;</a> to define your refresh token claims provider</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IAccessTokenGenerator-1.html">IAccessTokenGenerator&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IAccessTokenGenerator-1.html">IAccessTokenGenerator&lt;TUser&gt;</a> to define your access token generator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IAccessTokenValidator.html">IAccessTokenValidator</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IAccessTokenValidator.html">IAccessTokenValidator</a> to define your access token validator</p>
 </section>
       <h4><a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator&lt;TUser&gt;</a></h4>
       <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator&lt;TUser&gt;</a> to define your authenticator</p>
@@ -136,21 +120,10 @@
       <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IJwtFactory.html">IJwtFactory</a> to define your jwt generator</p>
 </section>
       <h4><a class="xref" href="AuthEndpoints.Services.IJwtValidator.html">IJwtValidator</a></h4>
-      <section></section>
+      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IJwtValidator.html">IJwtValidator</a> to define your jwt validator</p>
+</section>
       <h4><a class="xref" href="AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html">IRefreshTokenClaimsProvider&lt;TUser&gt;</a></h4>
       <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html">IRefreshTokenClaimsProvider&lt;TUser&gt;</a> to define your refresh token claims provider</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IRefreshTokenGenerator-1.html">IRefreshTokenGenerator&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IRefreshTokenGenerator-1.html">IRefreshTokenGenerator&lt;TUser&gt;</a> to define your refresh token generator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IRefreshTokenValidator.html">IRefreshTokenValidator</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IRefreshTokenValidator.html">IRefreshTokenValidator</a> to define your refresh token validator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.ITokenGenerator-1.html">ITokenGenerator&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.ITokenGenerator-1.html">ITokenGenerator&lt;TUser&gt;</a> to define your token generator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.ITokenValidator.html">ITokenValidator</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.ITokenValidator.html">ITokenValidator</a> to define your token validator</p>
 </section>
 </article>
           </div>

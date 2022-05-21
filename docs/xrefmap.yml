@@ -290,44 +290,6 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
   nameWithType: AuthEndpointsOptions.RefreshTokenValidationParameters
-- uid: AuthEndpoints.AuthEndpointsOptionsConfigurator
-  name: AuthEndpointsOptionsConfigurator
-  href: api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html
-  commentId: T:AuthEndpoints.AuthEndpointsOptionsConfigurator
-  fullName: AuthEndpoints.AuthEndpointsOptionsConfigurator
-  nameWithType: AuthEndpointsOptionsConfigurator
-- uid: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure(System.String,AuthEndpoints.AuthEndpointsOptions)
-  name: PostConfigure(String, AuthEndpointsOptions)
-  href: api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html#AuthEndpoints_AuthEndpointsOptionsConfigurator_PostConfigure_System_String_AuthEndpoints_AuthEndpointsOptions_
-  commentId: M:AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure(System.String,AuthEndpoints.AuthEndpointsOptions)
-  fullName: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure(System.String, AuthEndpoints.AuthEndpointsOptions)
-  nameWithType: AuthEndpointsOptionsConfigurator.PostConfigure(String, AuthEndpointsOptions)
-- uid: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure*
-  name: PostConfigure
-  href: api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html#AuthEndpoints_AuthEndpointsOptionsConfigurator_PostConfigure_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptionsConfigurator.PostConfigure
-  nameWithType: AuthEndpointsOptionsConfigurator.PostConfigure
-- uid: AuthEndpoints.AuthEndpointsOptionsValidator
-  name: AuthEndpointsOptionsValidator
-  href: api/AuthEndpoints.AuthEndpointsOptionsValidator.html
-  commentId: T:AuthEndpoints.AuthEndpointsOptionsValidator
-  fullName: AuthEndpoints.AuthEndpointsOptionsValidator
-  nameWithType: AuthEndpointsOptionsValidator
-- uid: AuthEndpoints.AuthEndpointsOptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
-  name: Validate(String, AuthEndpointsOptions)
-  href: api/AuthEndpoints.AuthEndpointsOptionsValidator.html#AuthEndpoints_AuthEndpointsOptionsValidator_Validate_System_String_AuthEndpoints_AuthEndpointsOptions_
-  commentId: M:AuthEndpoints.AuthEndpointsOptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
-  fullName: AuthEndpoints.AuthEndpointsOptionsValidator.Validate(System.String, AuthEndpoints.AuthEndpointsOptions)
-  nameWithType: AuthEndpointsOptionsValidator.Validate(String, AuthEndpointsOptions)
-- uid: AuthEndpoints.AuthEndpointsOptionsValidator.Validate*
-  name: Validate
-  href: api/AuthEndpoints.AuthEndpointsOptionsValidator.html#AuthEndpoints_AuthEndpointsOptionsValidator_Validate_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptionsValidator.Validate
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptionsValidator.Validate
-  nameWithType: AuthEndpointsOptionsValidator.Validate
 - uid: AuthEndpoints.Controllers
   name: AuthEndpoints.Controllers
   href: api/AuthEndpoints.Controllers.html
@@ -950,155 +912,6 @@ references:
   fullName.vb: AuthEndpoints.Services.AccessTokenClaimsProvider(Of TUserKey, TUser).provideClaims
   nameWithType: AccessTokenClaimsProvider<TUserKey, TUser>.provideClaims
   nameWithType.vb: AccessTokenClaimsProvider(Of TUserKey, TUser).provideClaims
-- uid: AuthEndpoints.Services.AccessTokenGenerator`1
-  name: AccessTokenGenerator<TUser>
-  href: api/AuthEndpoints.Services.AccessTokenGenerator-1.html
-  commentId: T:AuthEndpoints.Services.AccessTokenGenerator`1
-  name.vb: AccessTokenGenerator(Of TUser)
-  fullName: AuthEndpoints.Services.AccessTokenGenerator<TUser>
-  fullName.vb: AuthEndpoints.Services.AccessTokenGenerator(Of TUser)
-  nameWithType: AccessTokenGenerator<TUser>
-  nameWithType.vb: AccessTokenGenerator(Of TUser)
-- uid: AuthEndpoints.Services.AccessTokenGenerator`1.#ctor(AuthEndpoints.Services.IAccessTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name: AccessTokenGenerator(IAccessTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  href: api/AuthEndpoints.Services.AccessTokenGenerator-1.html#AuthEndpoints_Services_AccessTokenGenerator_1__ctor_AuthEndpoints_Services_IAccessTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
-  commentId: M:AuthEndpoints.Services.AccessTokenGenerator`1.#ctor(AuthEndpoints.Services.IAccessTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name.vb: AccessTokenGenerator(IAccessTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-  fullName: AuthEndpoints.Services.AccessTokenGenerator<TUser>.AccessTokenGenerator(AuthEndpoints.Services.IAccessTokenClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  fullName.vb: AuthEndpoints.Services.AccessTokenGenerator(Of TUser).AccessTokenGenerator(AuthEndpoints.Services.IAccessTokenClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  nameWithType: AccessTokenGenerator<TUser>.AccessTokenGenerator(IAccessTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  nameWithType.vb: AccessTokenGenerator(Of TUser).AccessTokenGenerator(IAccessTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-- uid: AuthEndpoints.Services.AccessTokenGenerator`1.#ctor*
-  name: AccessTokenGenerator
-  href: api/AuthEndpoints.Services.AccessTokenGenerator-1.html#AuthEndpoints_Services_AccessTokenGenerator_1__ctor_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenGenerator`1.#ctor
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenGenerator<TUser>.AccessTokenGenerator
-  fullName.vb: AuthEndpoints.Services.AccessTokenGenerator(Of TUser).AccessTokenGenerator
-  nameWithType: AccessTokenGenerator<TUser>.AccessTokenGenerator
-  nameWithType.vb: AccessTokenGenerator(Of TUser).AccessTokenGenerator
-- uid: AuthEndpoints.Services.AccessTokenGenerator`1.Generate(`0)
-  name: Generate(TUser)
-  href: api/AuthEndpoints.Services.AccessTokenGenerator-1.html#AuthEndpoints_Services_AccessTokenGenerator_1_Generate__0_
-  commentId: M:AuthEndpoints.Services.AccessTokenGenerator`1.Generate(`0)
-  fullName: AuthEndpoints.Services.AccessTokenGenerator<TUser>.Generate(TUser)
-  fullName.vb: AuthEndpoints.Services.AccessTokenGenerator(Of TUser).Generate(TUser)
-  nameWithType: AccessTokenGenerator<TUser>.Generate(TUser)
-  nameWithType.vb: AccessTokenGenerator(Of TUser).Generate(TUser)
-- uid: AuthEndpoints.Services.AccessTokenGenerator`1.Generate*
-  name: Generate
-  href: api/AuthEndpoints.Services.AccessTokenGenerator-1.html#AuthEndpoints_Services_AccessTokenGenerator_1_Generate_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenGenerator`1.Generate
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenGenerator<TUser>.Generate
-  fullName.vb: AuthEndpoints.Services.AccessTokenGenerator(Of TUser).Generate
-  nameWithType: AccessTokenGenerator<TUser>.Generate
-  nameWithType.vb: AccessTokenGenerator(Of TUser).Generate
-- uid: AuthEndpoints.Services.AccessTokenValidator
-  name: AccessTokenValidator
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html
-  commentId: T:AuthEndpoints.Services.AccessTokenValidator
-  fullName: AuthEndpoints.Services.AccessTokenValidator
-  nameWithType: AccessTokenValidator
-- uid: AuthEndpoints.Services.AccessTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name: AccessTokenValidator(IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
-  commentId: M:AuthEndpoints.Services.AccessTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name.vb: AccessTokenValidator(IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-  fullName: AuthEndpoints.Services.AccessTokenValidator.AccessTokenValidator(Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  fullName.vb: AuthEndpoints.Services.AccessTokenValidator.AccessTokenValidator(Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  nameWithType: AccessTokenValidator.AccessTokenValidator(IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  nameWithType.vb: AccessTokenValidator.AccessTokenValidator(IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-- uid: AuthEndpoints.Services.AccessTokenValidator.#ctor*
-  name: AccessTokenValidator
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator__ctor_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.#ctor
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenValidator.AccessTokenValidator
-  nameWithType: AccessTokenValidator.AccessTokenValidator
-- uid: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken(System.String)
-  name: ReadJwtToken(String)
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ReadJwtToken_System_String_
-  commentId: M:AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken(System.String)
-  fullName: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken(System.String)
-  nameWithType: AccessTokenValidator.ReadJwtToken(String)
-- uid: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken*
-  name: ReadJwtToken
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ReadJwtToken_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenValidator.ReadJwtToken
-  nameWithType: AccessTokenValidator.ReadJwtToken
-- uid: AuthEndpoints.Services.AccessTokenValidator.Validate(System.String)
-  name: Validate(String)
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_Validate_System_String_
-  commentId: M:AuthEndpoints.Services.AccessTokenValidator.Validate(System.String)
-  fullName: AuthEndpoints.Services.AccessTokenValidator.Validate(System.String)
-  nameWithType: AccessTokenValidator.Validate(String)
-- uid: AuthEndpoints.Services.AccessTokenValidator.Validate*
-  name: Validate
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_Validate_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.Validate
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenValidator.Validate
-  nameWithType: AccessTokenValidator.Validate
-- uid: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync(System.String)
-  name: ValidateAsync(String)
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ValidateAsync_System_String_
-  commentId: M:AuthEndpoints.Services.AccessTokenValidator.ValidateAsync(System.String)
-  fullName: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync(System.String)
-  nameWithType: AccessTokenValidator.ValidateAsync(String)
-- uid: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync*
-  name: ValidateAsync
-  href: api/AuthEndpoints.Services.AccessTokenValidator.html#AuthEndpoints_Services_AccessTokenValidator_ValidateAsync_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenValidator.ValidateAsync
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenValidator.ValidateAsync
-  nameWithType: AccessTokenValidator.ValidateAsync
-- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1
-  name: AsymRefreshTokenGenerator<TUser>
-  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html
-  commentId: T:AuthEndpoints.Services.AsymRefreshTokenGenerator`1
-  name.vb: AsymRefreshTokenGenerator(Of TUser)
-  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>
-  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser)
-  nameWithType: AsymRefreshTokenGenerator<TUser>
-  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser)
-- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name: AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1__ctor_AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
-  commentId: M:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name.vb: AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator(AuthEndpoints.Services.IRefreshTokenClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator(AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  nameWithType: AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator(IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor*
-  name: AsymRefreshTokenGenerator
-  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1__ctor_
-  commentId: Overload:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.#ctor
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator
-  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator
-  nameWithType: AsymRefreshTokenGenerator<TUser>.AsymRefreshTokenGenerator
-  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).AsymRefreshTokenGenerator
-- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate(`0)
-  name: Generate(TUser)
-  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1_Generate__0_
-  commentId: M:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate(`0)
-  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.Generate(TUser)
-  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).Generate(TUser)
-  nameWithType: AsymRefreshTokenGenerator<TUser>.Generate(TUser)
-  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).Generate(TUser)
-- uid: AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate*
-  name: Generate
-  href: api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html#AuthEndpoints_Services_AsymRefreshTokenGenerator_1_Generate_
-  commentId: Overload:AuthEndpoints.Services.AsymRefreshTokenGenerator`1.Generate
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AsymRefreshTokenGenerator<TUser>.Generate
-  fullName.vb: AuthEndpoints.Services.AsymRefreshTokenGenerator(Of TUser).Generate
-  nameWithType: AsymRefreshTokenGenerator<TUser>.Generate
-  nameWithType.vb: AsymRefreshTokenGenerator(Of TUser).Generate
 - uid: AuthEndpoints.Services.DefaultJwtFactory
   name: DefaultJwtFactory
   href: api/AuthEndpoints.Services.DefaultJwtFactory.html
@@ -1201,21 +1014,6 @@ references:
   fullName.vb: AuthEndpoints.Services.IAccessTokenClaimsProvider(Of TUser)
   nameWithType: IAccessTokenClaimsProvider<TUser>
   nameWithType.vb: IAccessTokenClaimsProvider(Of TUser)
-- uid: AuthEndpoints.Services.IAccessTokenGenerator`1
-  name: IAccessTokenGenerator<TUser>
-  href: api/AuthEndpoints.Services.IAccessTokenGenerator-1.html
-  commentId: T:AuthEndpoints.Services.IAccessTokenGenerator`1
-  name.vb: IAccessTokenGenerator(Of TUser)
-  fullName: AuthEndpoints.Services.IAccessTokenGenerator<TUser>
-  fullName.vb: AuthEndpoints.Services.IAccessTokenGenerator(Of TUser)
-  nameWithType: IAccessTokenGenerator<TUser>
-  nameWithType.vb: IAccessTokenGenerator(Of TUser)
-- uid: AuthEndpoints.Services.IAccessTokenValidator
-  name: IAccessTokenValidator
-  href: api/AuthEndpoints.Services.IAccessTokenValidator.html
-  commentId: T:AuthEndpoints.Services.IAccessTokenValidator
-  fullName: AuthEndpoints.Services.IAccessTokenValidator
-  nameWithType: IAccessTokenValidator
 - uid: AuthEndpoints.Services.IAuthenticator`1
   name: IAuthenticator<TUser>
   href: api/AuthEndpoints.Services.IAuthenticator-1.html
@@ -1361,92 +1159,6 @@ references:
   fullName.vb: AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser)
   nameWithType: IRefreshTokenClaimsProvider<TUser>
   nameWithType.vb: IRefreshTokenClaimsProvider(Of TUser)
-- uid: AuthEndpoints.Services.IRefreshTokenGenerator`1
-  name: IRefreshTokenGenerator<TUser>
-  href: api/AuthEndpoints.Services.IRefreshTokenGenerator-1.html
-  commentId: T:AuthEndpoints.Services.IRefreshTokenGenerator`1
-  name.vb: IRefreshTokenGenerator(Of TUser)
-  fullName: AuthEndpoints.Services.IRefreshTokenGenerator<TUser>
-  fullName.vb: AuthEndpoints.Services.IRefreshTokenGenerator(Of TUser)
-  nameWithType: IRefreshTokenGenerator<TUser>
-  nameWithType.vb: IRefreshTokenGenerator(Of TUser)
-- uid: AuthEndpoints.Services.IRefreshTokenValidator
-  name: IRefreshTokenValidator
-  href: api/AuthEndpoints.Services.IRefreshTokenValidator.html
-  commentId: T:AuthEndpoints.Services.IRefreshTokenValidator
-  fullName: AuthEndpoints.Services.IRefreshTokenValidator
-  nameWithType: IRefreshTokenValidator
-- uid: AuthEndpoints.Services.ITokenGenerator`1
-  name: ITokenGenerator<TUser>
-  href: api/AuthEndpoints.Services.ITokenGenerator-1.html
-  commentId: T:AuthEndpoints.Services.ITokenGenerator`1
-  name.vb: ITokenGenerator(Of TUser)
-  fullName: AuthEndpoints.Services.ITokenGenerator<TUser>
-  fullName.vb: AuthEndpoints.Services.ITokenGenerator(Of TUser)
-  nameWithType: ITokenGenerator<TUser>
-  nameWithType.vb: ITokenGenerator(Of TUser)
-- uid: AuthEndpoints.Services.ITokenGenerator`1.Generate(`0)
-  name: Generate(TUser)
-  href: api/AuthEndpoints.Services.ITokenGenerator-1.html#AuthEndpoints_Services_ITokenGenerator_1_Generate__0_
-  commentId: M:AuthEndpoints.Services.ITokenGenerator`1.Generate(`0)
-  fullName: AuthEndpoints.Services.ITokenGenerator<TUser>.Generate(TUser)
-  fullName.vb: AuthEndpoints.Services.ITokenGenerator(Of TUser).Generate(TUser)
-  nameWithType: ITokenGenerator<TUser>.Generate(TUser)
-  nameWithType.vb: ITokenGenerator(Of TUser).Generate(TUser)
-- uid: AuthEndpoints.Services.ITokenGenerator`1.Generate*
-  name: Generate
-  href: api/AuthEndpoints.Services.ITokenGenerator-1.html#AuthEndpoints_Services_ITokenGenerator_1_Generate_
-  commentId: Overload:AuthEndpoints.Services.ITokenGenerator`1.Generate
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.ITokenGenerator<TUser>.Generate
-  fullName.vb: AuthEndpoints.Services.ITokenGenerator(Of TUser).Generate
-  nameWithType: ITokenGenerator<TUser>.Generate
-  nameWithType.vb: ITokenGenerator(Of TUser).Generate
-- uid: AuthEndpoints.Services.ITokenValidator
-  name: ITokenValidator
-  href: api/AuthEndpoints.Services.ITokenValidator.html
-  commentId: T:AuthEndpoints.Services.ITokenValidator
-  fullName: AuthEndpoints.Services.ITokenValidator
-  nameWithType: ITokenValidator
-- uid: AuthEndpoints.Services.ITokenValidator.ReadJwtToken(System.String)
-  name: ReadJwtToken(String)
-  href: api/AuthEndpoints.Services.ITokenValidator.html#AuthEndpoints_Services_ITokenValidator_ReadJwtToken_System_String_
-  commentId: M:AuthEndpoints.Services.ITokenValidator.ReadJwtToken(System.String)
-  fullName: AuthEndpoints.Services.ITokenValidator.ReadJwtToken(System.String)
-  nameWithType: ITokenValidator.ReadJwtToken(String)
-- uid: AuthEndpoints.Services.ITokenValidator.ReadJwtToken*
-  name: ReadJwtToken
-  href: api/AuthEndpoints.Services.ITokenValidator.html#AuthEndpoints_Services_ITokenValidator_ReadJwtToken_
-  commentId: Overload:AuthEndpoints.Services.ITokenValidator.ReadJwtToken
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.ITokenValidator.ReadJwtToken
-  nameWithType: ITokenValidator.ReadJwtToken
-- uid: AuthEndpoints.Services.ITokenValidator.Validate(System.String)
-  name: Validate(String)
-  href: api/AuthEndpoints.Services.ITokenValidator.html#AuthEndpoints_Services_ITokenValidator_Validate_System_String_
-  commentId: M:AuthEndpoints.Services.ITokenValidator.Validate(System.String)
-  fullName: AuthEndpoints.Services.ITokenValidator.Validate(System.String)
-  nameWithType: ITokenValidator.Validate(String)
-- uid: AuthEndpoints.Services.ITokenValidator.Validate*
-  name: Validate
-  href: api/AuthEndpoints.Services.ITokenValidator.html#AuthEndpoints_Services_ITokenValidator_Validate_
-  commentId: Overload:AuthEndpoints.Services.ITokenValidator.Validate
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.ITokenValidator.Validate
-  nameWithType: ITokenValidator.Validate
-- uid: AuthEndpoints.Services.ITokenValidator.ValidateAsync(System.String)
-  name: ValidateAsync(String)
-  href: api/AuthEndpoints.Services.ITokenValidator.html#AuthEndpoints_Services_ITokenValidator_ValidateAsync_System_String_
-  commentId: M:AuthEndpoints.Services.ITokenValidator.ValidateAsync(System.String)
-  fullName: AuthEndpoints.Services.ITokenValidator.ValidateAsync(System.String)
-  nameWithType: ITokenValidator.ValidateAsync(String)
-- uid: AuthEndpoints.Services.ITokenValidator.ValidateAsync*
-  name: ValidateAsync
-  href: api/AuthEndpoints.Services.ITokenValidator.html#AuthEndpoints_Services_ITokenValidator_ValidateAsync_
-  commentId: Overload:AuthEndpoints.Services.ITokenValidator.ValidateAsync
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.ITokenValidator.ValidateAsync
-  nameWithType: ITokenValidator.ValidateAsync
 - uid: AuthEndpoints.Services.RefreshTokenClaimsProvider`2
   name: RefreshTokenClaimsProvider<TUserKey, TUser>
   href: api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.html
@@ -1473,111 +1185,41 @@ references:
   fullName.vb: AuthEndpoints.Services.RefreshTokenClaimsProvider(Of TUserKey, TUser).provideClaims
   nameWithType: RefreshTokenClaimsProvider<TUserKey, TUser>.provideClaims
   nameWithType.vb: RefreshTokenClaimsProvider(Of TUserKey, TUser).provideClaims
-- uid: AuthEndpoints.Services.RefreshTokenGenerator`1
-  name: RefreshTokenGenerator<TUser>
-  href: api/AuthEndpoints.Services.RefreshTokenGenerator-1.html
-  commentId: T:AuthEndpoints.Services.RefreshTokenGenerator`1
-  name.vb: RefreshTokenGenerator(Of TUser)
-  fullName: AuthEndpoints.Services.RefreshTokenGenerator<TUser>
-  fullName.vb: AuthEndpoints.Services.RefreshTokenGenerator(Of TUser)
-  nameWithType: RefreshTokenGenerator<TUser>
-  nameWithType.vb: RefreshTokenGenerator(Of TUser)
-- uid: AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name: RefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  href: api/AuthEndpoints.Services.RefreshTokenGenerator-1.html#AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
-  commentId: M:AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name.vb: RefreshTokenGenerator(IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-  fullName: AuthEndpoints.Services.RefreshTokenGenerator<TUser>.RefreshTokenGenerator(AuthEndpoints.Services.IRefreshTokenClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  fullName.vb: AuthEndpoints.Services.RefreshTokenGenerator(Of TUser).RefreshTokenGenerator(AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  nameWithType: RefreshTokenGenerator<TUser>.RefreshTokenGenerator(IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  nameWithType.vb: RefreshTokenGenerator(Of TUser).RefreshTokenGenerator(IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-- uid: AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor*
-  name: RefreshTokenGenerator
-  href: api/AuthEndpoints.Services.RefreshTokenGenerator-1.html#AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory
+  name: RsaSignedJwtFactory
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html
+  commentId: T:AuthEndpoints.Services.RsaSignedJwtFactory
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory
+  nameWithType: RsaSignedJwtFactory
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  name: RsaSignedJwtFactory(JwtSecurityTokenHandler)
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
+  commentId: M:AuthEndpoints.Services.RsaSignedJwtFactory.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.RsaSignedJwtFactory(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
+  nameWithType: RsaSignedJwtFactory.RsaSignedJwtFactory(JwtSecurityTokenHandler)
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory.#ctor*
+  name: RsaSignedJwtFactory
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory__ctor_
+  commentId: Overload:AuthEndpoints.Services.RsaSignedJwtFactory.#ctor
   isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenGenerator<TUser>.RefreshTokenGenerator
-  fullName.vb: AuthEndpoints.Services.RefreshTokenGenerator(Of TUser).RefreshTokenGenerator
-  nameWithType: RefreshTokenGenerator<TUser>.RefreshTokenGenerator
-  nameWithType.vb: RefreshTokenGenerator(Of TUser).RefreshTokenGenerator
-- uid: AuthEndpoints.Services.RefreshTokenGenerator`1.Generate(`0)
-  name: Generate(TUser)
-  href: api/AuthEndpoints.Services.RefreshTokenGenerator-1.html#AuthEndpoints_Services_RefreshTokenGenerator_1_Generate__0_
-  commentId: M:AuthEndpoints.Services.RefreshTokenGenerator`1.Generate(`0)
-  fullName: AuthEndpoints.Services.RefreshTokenGenerator<TUser>.Generate(TUser)
-  fullName.vb: AuthEndpoints.Services.RefreshTokenGenerator(Of TUser).Generate(TUser)
-  nameWithType: RefreshTokenGenerator<TUser>.Generate(TUser)
-  nameWithType.vb: RefreshTokenGenerator(Of TUser).Generate(TUser)
-- uid: AuthEndpoints.Services.RefreshTokenGenerator`1.Generate*
-  name: Generate
-  href: api/AuthEndpoints.Services.RefreshTokenGenerator-1.html#AuthEndpoints_Services_RefreshTokenGenerator_1_Generate_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenGenerator`1.Generate
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.RsaSignedJwtFactory
+  nameWithType: RsaSignedJwtFactory.RsaSignedJwtFactory
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
+  name: Create(String, String, String, IList<Claim>, Int32)
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
+  commentId: M:AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
+  name.vb: Create(String, String, String, IList(Of Claim), Int32)
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String, System.String, System.String, IList<System.Security.Claims.Claim>, System.Int32)
+  fullName.vb: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String, System.String, System.String, IList(Of System.Security.Claims.Claim), System.Int32)
+  nameWithType: RsaSignedJwtFactory.Create(String, String, String, IList<Claim>, Int32)
+  nameWithType.vb: RsaSignedJwtFactory.Create(String, String, String, IList(Of Claim), Int32)
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create*
+  name: Create
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_
+  commentId: Overload:AuthEndpoints.Services.RsaSignedJwtFactory.Create
   isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenGenerator<TUser>.Generate
-  fullName.vb: AuthEndpoints.Services.RefreshTokenGenerator(Of TUser).Generate
-  nameWithType: RefreshTokenGenerator<TUser>.Generate
-  nameWithType.vb: RefreshTokenGenerator(Of TUser).Generate
-- uid: AuthEndpoints.Services.RefreshTokenValidator
-  name: RefreshTokenValidator
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html
-  commentId: T:AuthEndpoints.Services.RefreshTokenValidator
-  fullName: AuthEndpoints.Services.RefreshTokenValidator
-  nameWithType: RefreshTokenValidator
-- uid: AuthEndpoints.Services.RefreshTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name: RefreshTokenValidator(IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_
-  commentId: M:AuthEndpoints.Services.RefreshTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  name.vb: RefreshTokenValidator(IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.RefreshTokenValidator(Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  fullName.vb: AuthEndpoints.Services.RefreshTokenValidator.RefreshTokenValidator(Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)
-  nameWithType: RefreshTokenValidator.RefreshTokenValidator(IOptions<AuthEndpointsOptions>, JwtSecurityTokenHandler)
-  nameWithType.vb: RefreshTokenValidator.RefreshTokenValidator(IOptions(Of AuthEndpointsOptions), JwtSecurityTokenHandler)
-- uid: AuthEndpoints.Services.RefreshTokenValidator.#ctor*
-  name: RefreshTokenValidator
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator__ctor_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenValidator.#ctor
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.RefreshTokenValidator
-  nameWithType: RefreshTokenValidator.RefreshTokenValidator
-- uid: AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken(System.String)
-  name: ReadJwtToken(String)
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator_ReadJwtToken_System_String_
-  commentId: M:AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken(System.String)
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken(System.String)
-  nameWithType: RefreshTokenValidator.ReadJwtToken(String)
-- uid: AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken*
-  name: ReadJwtToken
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator_ReadJwtToken_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken
-  nameWithType: RefreshTokenValidator.ReadJwtToken
-- uid: AuthEndpoints.Services.RefreshTokenValidator.Validate(System.String)
-  name: Validate(String)
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator_Validate_System_String_
-  commentId: M:AuthEndpoints.Services.RefreshTokenValidator.Validate(System.String)
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.Validate(System.String)
-  nameWithType: RefreshTokenValidator.Validate(String)
-- uid: AuthEndpoints.Services.RefreshTokenValidator.Validate*
-  name: Validate
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator_Validate_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenValidator.Validate
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.Validate
-  nameWithType: RefreshTokenValidator.Validate
-- uid: AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync(System.String)
-  name: ValidateAsync(String)
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator_ValidateAsync_System_String_
-  commentId: M:AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync(System.String)
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync(System.String)
-  nameWithType: RefreshTokenValidator.ValidateAsync(String)
-- uid: AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync*
-  name: ValidateAsync
-  href: api/AuthEndpoints.Services.RefreshTokenValidator.html#AuthEndpoints_Services_RefreshTokenValidator_ValidateAsync_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync
-  nameWithType: RefreshTokenValidator.ValidateAsync
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.Create
+  nameWithType: RsaSignedJwtFactory.Create
 - uid: AuthEndpoints.Services.UserAuthenticator`1
   name: UserAuthenticator<TUser>
   href: api/AuthEndpoints.Services.UserAuthenticator-1.html

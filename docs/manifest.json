@@ -30,31 +30,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.AuthEndpointsOptions.html",
-          "hash": "Sy5J4b8mKocqaByB0uWNhkZFvO5884jGEX0VB6YJZmc="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.AuthEndpointsOptionsConfigurator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.AuthEndpointsOptionsConfigurator.html",
-          "hash": "hfoEMIhxYoLZqlK0QLisCyiX/1WrQDmIPqn4iiPdG1E="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.AuthEndpointsOptionsValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.AuthEndpointsOptionsValidator.html",
-          "hash": "Aj7qAHk/jZx24iVRKH8sXrEHiAxc4NC/MhC1C2anb0I="
+          "hash": "iM8C0FT5+zOy2R7+8aQ8BV3SWqikrdJs3NlBDq2gK7E="
         }
       },
       "is_incremental": false,
@@ -66,7 +42,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.BaseEndpointsController-2.html",
-          "hash": "g9tz6PIlztpkR6ZSUbSvOItLUlp76V+o0q+o3HXDNrQ="
+          "hash": "BouxMHeSRdIqpoghs2oWQXUQhBQqtQVysD42YOhCbkM="
         }
       },
       "is_incremental": false,
@@ -78,7 +54,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.JwtController-2.html",
-          "hash": "vxc42M3XH7npTLcWDVLlw9Tq5h570RziNJd0qZRL2dk="
+          "hash": "sV/+Xo8My19+bZd5YeNSLHRbaBQWOVFChYbnMvvtS3A="
         }
       },
       "is_incremental": false,
@@ -90,7 +66,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.html",
-          "hash": "eIaKEnannMZvj7wlH+gwyB4i1e6lzNQxyzL4kbZc4Dg="
+          "hash": "FsJxg6QaHG4SLX8u9PBCqEfLxkmMEbK2KSmwuGZUHX4="
         }
       },
       "is_incremental": false,
@@ -138,7 +114,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Models.RefreshRequest.html",
-          "hash": "ldVnQuP0smHuCCFL7rFWpAk5IZX1atOc6kpI4iBpIwQ="
+          "hash": "TTyKncZn2nCbuHPCs1wT0spXEJEajpU7hFbCeXdUlHU="
         }
       },
       "is_incremental": false,
@@ -150,7 +126,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Models.RegisterRequest.html",
-          "hash": "/K35z1FMhN7YBxyzC9Gc3IlN+caxI1Cr0cLm+VjnH18="
+          "hash": "h74rzBYHnjfm+ikigh7pl70z1sIiJxaaQDdJrSjuc/4="
         }
       },
       "is_incremental": false,
@@ -186,7 +162,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Models.VerifyRequest.html",
-          "hash": "zUKnppFHK1TwV68U3h44CE4qd56FUDMS6Ujifkc7Ul0="
+          "hash": "0uQS6nc0/FyEWqv3ylpJU2uQFHaV0XAaJyd5iplKZkc="
         }
       },
       "is_incremental": false,
@@ -198,7 +174,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Models.html",
-          "hash": "xaPTH3nOOA1wAIYDxcpOiqerTKnVMfbeOFuN1mS4x3U="
+          "hash": "Yfg563hdcqU0sGtPSHEqHUTcpn3Gz6yJzI1GlpmvI28="
         }
       },
       "is_incremental": false,
@@ -210,7 +186,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.html",
-          "hash": "rDyscmfYC6pd79c50KPUpfwe9R8Av+FSAw+/MfMCm/s="
+          "hash": "laA1jrI6KaW8N+bWIQvaSr+JKql3snMa3rfTI7inxiM="
         }
       },
       "is_incremental": false,
@@ -222,43 +198,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.AccessTokenClaimsProvider-2.html",
-          "hash": "OY+OZArqBdQo+qzWcPAOWDcadxsh7WO5k8CFDKLVo9w="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.AccessTokenGenerator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.AccessTokenGenerator-1.html",
-          "hash": "rCu5dRBD6Te74cpe1pT0iNENI3eAuF9xf1qo+tc8flQ="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.AccessTokenValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.AccessTokenValidator.html",
-          "hash": "53W5nFwMFitKPUajmCBUWXLT0KuUz8EtTi6bNVO+VLM="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.AsymRefreshTokenGenerator-1.html",
-          "hash": "V0uHdXzjscNog0z/EDTOz1829nqubdiqPKdECKHe8gY="
+          "hash": "zxAWwVPuhgHrZ9lZzb3f31lHHFThjelF02Ed1VmRjIA="
         }
       },
       "is_incremental": false,
@@ -270,7 +210,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.DefaultJwtFactory.html",
-          "hash": "AeSFQYB81jNv37Lc90jmHOZoxwypmidc8iehL91+PPY="
+          "hash": "Md28cD9MFEiF213IdhLP1i9dvpaUafP0DpBQRWKYr8E="
         }
       },
       "is_incremental": false,
@@ -282,7 +222,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.DefaultJwtValidator.html",
-          "hash": "EdBLH1YZsr+f9/s1Okd/qEznfBWYPLObkIEW6ScY2oU="
+          "hash": "gbDrS1mpBLsjYp47Y+kr4yAsRsWmYx4xtzgow9He9DY="
         }
       },
       "is_incremental": false,
@@ -295,30 +235,6 @@
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html",
           "hash": "+XpRmNejLDnT5Eui7I1NDQrb+HXotj67OZvQE9+J+Vs="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IAccessTokenGenerator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IAccessTokenGenerator-1.html",
-          "hash": "jBjCs9gyAhFRmBwo0Rd3wdLsZ/+WhFZatKOUJmDJEaA="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IAccessTokenValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IAccessTokenValidator.html",
-          "hash": "nLhF0c+p9MIA7l4mhpk5TQ0AONGdpPSRV8+FYDcvzSU="
         }
       },
       "is_incremental": false,
@@ -366,7 +282,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.IJwtValidator.html",
-          "hash": "XdY8x0zHmSwCrVtoLQ3zcYhR8sstNto03u7DnU70cOY="
+          "hash": "x/OCGd8mUrd8uMT9etBMc81FnFCGphoRzNPvMZJ7aWA="
         }
       },
       "is_incremental": false,
@@ -386,54 +302,6 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IRefreshTokenGenerator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IRefreshTokenGenerator-1.html",
-          "hash": "NOkeiKvPP2wEa66JINObW6bd3xRrW8cPNPh3H+is2RI="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IRefreshTokenValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IRefreshTokenValidator.html",
-          "hash": "t2hYfMpCEYEV7iTEsYITlRS/lvhMZcveyDcuHBc64ZM="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.ITokenGenerator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.ITokenGenerator-1.html",
-          "hash": "c8ytGvvV3D30jUnazVRRhGmlbUbOdnsot7mzMSQmk3k="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.ITokenValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.ITokenValidator.html",
-          "hash": "3jf4Ccq7RLnUgvBnuaZC+UxdT9tpjQtiXrW7qqv+Uus="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.yml",
       "output": {
         ".html": {
@@ -446,23 +314,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.RefreshTokenGenerator-1.yml",
+      "source_relative_path": "api/AuthEndpoints.Services.RsaSignedJwtFactory.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.Services.RefreshTokenGenerator-1.html",
-          "hash": "uc+6YDQ1zsnA7Bo/3nm0OeLEsNJAtKy+QPNobRC8830="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.RefreshTokenValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.RefreshTokenValidator.html",
-          "hash": "cTDSa7MfmUvSRKP8JEtdwrbYWu2Hf+RnU2rQt5lXTNE="
+          "relative_path": "api/AuthEndpoints.Services.RsaSignedJwtFactory.html",
+          "hash": "ZLpwvtFWdavPt4T/ifkE2ZwC6N51IbhR6BU3lYtcRjU="
         }
       },
       "is_incremental": false,
@@ -486,7 +342,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.html",
-          "hash": "nwm7pkKSmeUxUR4HwTbb4uPBgkgRAqfrs9dHCCHpNXI="
+          "hash": "USOUUNk72Tkck+fWKtM0mJd/btVNkciLDD7Xg13vKPM="
         }
       },
       "is_incremental": false,
@@ -498,7 +354,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.html",
-          "hash": "a3751rdZy4aOWlbaO8BsstWRaZYr2X9npzRZW3pmhhI="
+          "hash": "H5YUrNVrbF6eEjPgVk7cR06bD6p1TS7AXIiB24Svymk="
         }
       },
       "is_incremental": false,
@@ -522,7 +378,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "Ai/g9Lr6AXtpgh03FQ2SMerH6LF6DOlhks0Dk7Pv+N4="
+          "hash": "CDoj8AHAGJWg4O54ToLSpqMZtYdfpMzoEBOv2iHIx8k="
         }
       },
       "is_incremental": false,
@@ -619,8 +475,8 @@
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 41,
-          "skipped_file_count": 40
+          "total_file_count": 29,
+          "skipped_file_count": 27
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
