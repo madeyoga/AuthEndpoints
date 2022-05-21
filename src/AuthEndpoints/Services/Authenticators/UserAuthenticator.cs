@@ -2,6 +2,7 @@
 
 using AuthEndpoints.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
 /// <summary>
 /// Default user authenticator. Use this class to authenticate a user
@@ -10,17 +11,23 @@ using Microsoft.AspNetCore.Identity;
 public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
-    private readonly ITokenGenerator<TUser> accessTokenGenerator;
-    private readonly ITokenGenerator<TUser> refreshTokenGenerator;
+    private readonly IJwtFactory jwtFactory;
+    private readonly IClaimsProvider<TUser> accessClaimsProvider;
+    private readonly IClaimsProvider<TUser> refreshClaimsProvider;
+    private readonly IOptions<AuthEndpointsOptions> options;
     private readonly UserManager<TUser> userManager;
 
-    public UserAuthenticator(IAccessTokenGenerator<TUser> accessTokenGenerator,
-        IRefreshTokenGenerator<TUser> refreshTokenGenerator,
-        UserManager<TUser> userManager)
+    public UserAuthenticator(UserManager<TUser> userManager, 
+        IJwtFactory jwtFactory, 
+        IAccessTokenClaimsProvider<TUser> accessClaimsProvider, 
+        IRefreshTokenClaimsProvider<TUser> refreshClaimsProvider,
+        IOptions<AuthEndpointsOptions> options)
     {
-        this.accessTokenGenerator = accessTokenGenerator;
-        this.refreshTokenGenerator = refreshTokenGenerator;
+        this.jwtFactory = jwtFactory;
         this.userManager = userManager;
+        this.accessClaimsProvider = accessClaimsProvider;
+        this.refreshClaimsProvider = refreshClaimsProvider;
+        this.options = options;
     }
 
     /// <summary>
@@ -55,8 +62,19 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access token and a refresh token</returns>
     public Task<AuthenticatedUserResponse> Login(TUser user)
     {
-        string accessToken = accessTokenGenerator.Generate(user);
-        string refreshToken = refreshTokenGenerator.Generate(user);
+        var authEndpointsOptions = options.Value;
+
+        string accessToken = jwtFactory.Create(authEndpointsOptions.AccessTokenSecret!,
+            authEndpointsOptions.Issuer!, 
+            authEndpointsOptions.Audience!, 
+            accessClaimsProvider.provideClaims(user), 
+            authEndpointsOptions.AccessTokenExpirationMinutes);
+
+        string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshTokenSecret!,
+            authEndpointsOptions.Issuer!,
+            authEndpointsOptions.Audience!,
+            refreshClaimsProvider.provideClaims(user),
+            authEndpointsOptions.RefreshTokenExpirationMinutes);
 
         return Task.FromResult(new AuthenticatedUserResponse()
         {

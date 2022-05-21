@@ -4,6 +4,7 @@ using AuthEndpoints.Models;
 using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Demo.Controllers;
 
@@ -11,10 +12,7 @@ namespace AuthEndpoints.Demo.Controllers;
 [Tags("JSON Web Token")]
 public class AuthenticationController : JwtController<string, MyCustomIdentityUser>
 {
-    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, 
-        IAuthenticator<MyCustomIdentityUser> authenticator, 
-        IAccessTokenValidator accessTokenValidator, 
-        IRefreshTokenValidator refreshTokenValidator) : base(userManager, authenticator, accessTokenValidator, refreshTokenValidator)
+    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, IAuthenticator<MyCustomIdentityUser> authenticator, IJwtValidator jwtValidator, IOptions<AuthEndpointsOptions> options) : base(userManager, authenticator, jwtValidator, options)
     {
     }
 

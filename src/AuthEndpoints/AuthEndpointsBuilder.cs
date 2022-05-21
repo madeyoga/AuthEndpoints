@@ -52,7 +52,8 @@ public class AuthEndpointsBuilder
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider<TProvider>() where TProvider : class
     {
-        return AddScoped(typeof(IAccessTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        Services.AddSingleton(typeof(IAccessTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        return this;
     }
 
     /// <summary>
@@ -62,53 +63,34 @@ public class AuthEndpointsBuilder
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider<TProvider>() where TProvider : class
     {
-        return AddScoped(typeof(IRefreshTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        Services.AddSingleton(typeof(IRefreshTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        return this;
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IJwtFactory"/>.
     /// </summary>
-    /// <typeparam name="TGenerator">The type of the token generator.</typeparam>
+    /// <typeparam name="TGenerator">The type of the jwt factory.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenGenerator<TGenerator>() where TGenerator : class
+    public virtual AuthEndpointsBuilder AddJwtFactory<TGenerator>() where TGenerator : IJwtFactory
     {
-        return AddScoped(typeof(IAccessTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
+        return AddScoped(typeof(IJwtFactory), typeof(TGenerator));
     }
 
     /// <summary>
-    /// Adds an <see cref="IRefreshTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IJwtValidator"/>
     /// </summary>
-    /// <typeparam name="TGenerator">The type of the token generator.</typeparam>
+    /// <typeparam name="TValidator">The type of the jwt validator</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenGenerator<TGenerator>() where TGenerator : class
+    public virtual AuthEndpointsBuilder AddJwtValidator<TValidator>() where TValidator : IJwtValidator
     {
-        return AddScoped(typeof(IRefreshTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IAccessTokenValidator"/>
-    /// </summary>
-    /// <typeparam name="TValidator"></typeparam>
-    /// <returns></returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenValidator<TValidator>() where TValidator : IAccessTokenValidator
-    {
-        return AddScoped(typeof(IAccessTokenValidator), typeof(TValidator));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IRefreshTokenValidator"/>.
-    /// </summary>
-    /// <typeparam name="TValidator">The type of the token validator.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenValidator<TValidator>() where TValidator : IRefreshTokenValidator
-    {
-        return AddScoped(typeof(IRefreshTokenValidator), typeof(TValidator));
+        return AddScoped(typeof(IJwtValidator), typeof(TValidator));
     }
 
     /// <summary>
     /// Adds an <see cref="IAuthenticator{TUser}"/>.
     /// </summary>
-    /// <typeparam name="TAuthenticator">The type of the token validator.</typeparam>
+    /// <typeparam name="TAuthenticator">The type of the authenticator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddUserAuthenticator<TAuthenticator>() where TAuthenticator : class
     {
@@ -131,7 +113,7 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtBearerAuthenticationScheme(TokenValidationParameters parameters)
+    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(TokenValidationParameters parameters)
     {
         Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
         {

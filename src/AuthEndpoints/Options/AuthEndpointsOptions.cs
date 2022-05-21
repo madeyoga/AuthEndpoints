@@ -12,8 +12,8 @@ public class AuthEndpointsOptions
     public string? RefreshTokenSecret { get; set; }
     public string? Issuer { get; set; }
     public string? Audience { get; set; }
-    public int AccessTokenExpirationMinutes { get; set; }
-    public int RefreshTokenExpirationMinutes { get; set; }
+    public int AccessTokenExpirationMinutes { get; set; } = 120;
+    public int RefreshTokenExpirationMinutes { get; set; } = 2880;
 
     public TokenValidationParameters? AccessTokenValidationParameters { get; set; }
     public TokenValidationParameters? RefreshTokenValidationParameters { get; set; }

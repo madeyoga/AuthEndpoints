@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace AuthEndpoints.Controllers;
 
 /// <summary>
-/// Use this base class for defining endpoints that contain base authentication actions such as registration, set password, etc.
+/// Inherit this base class to define endpoints that contain base authentication actions such as registration, set password, etc.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>

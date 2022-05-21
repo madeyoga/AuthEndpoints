@@ -88,7 +88,7 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
     AccessTokenValidationParameters = accessValidationParameters,
     RefreshTokenValidationParameters = refreshValidationParameters
 })
-	.AddJwtBearerAuthenticationScheme(accessValidationParameters);
+	.AddJwtBearerAuthScheme(accessValidationParameters);
 
 var app = builder.Build();
 
