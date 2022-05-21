@@ -26,7 +26,7 @@ public class DefaultJwtFactory : IJwtFactory
     /// <param name="audience"></param>
     /// <param name="expirationMinutes"></param>
     /// <returns>a jwt in string</returns>
-    public string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes)
+    public string Create(string secret, string issuer, string audience, IList<Claim>? claims, int expirationMinutes)
     {
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
