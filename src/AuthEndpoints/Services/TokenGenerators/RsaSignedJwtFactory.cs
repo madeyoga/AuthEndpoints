@@ -1,36 +1,37 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
+using System.Security.Cryptography;
 
 namespace AuthEndpoints.Services;
 
 /// <summary>
-/// Use <see cref="DefaultJwtFactory"/> to create a jwt with HS256 based signature
+/// Use <see cref="RsaSignedJwtFactory"/> to create a jwt with RS256 signature.
 /// </summary>
-public class DefaultJwtFactory : IJwtFactory
+public class RsaSignedJwtFactory : IJwtFactory
 {
     private readonly JwtSecurityTokenHandler tokenHandler;
 
-    public DefaultJwtFactory(JwtSecurityTokenHandler tokenHandler)
+    public RsaSignedJwtFactory(JwtSecurityTokenHandler tokenHandler)
     {
         this.tokenHandler = tokenHandler;
     }
 
     /// <summary>
-    /// Use this method to create a symmetric signed (HmacSha256) jwt
+    /// Use this method to create a jwt
     /// </summary>
-    /// <param name="user"></param>
     /// <param name="secret"></param>
     /// <param name="issuer"></param>
     /// <param name="audience"></param>
+    /// <param name="claims"></param>
     /// <param name="expirationMinutes"></param>
     /// <returns>a jwt in string</returns>
     public string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes)
     {
-        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(secret);
 
+        var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
         var header = new JwtHeader(credentials);
         var payload = new JwtPayload(
             issuer,

@@ -3,6 +3,9 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthEndpoints.Services;
 
+/// <summary>
+/// Implements <see cref="IJwtValidator"/> to define your jwt validator
+/// </summary>
 public interface IJwtValidator
 {
     JwtSecurityToken ReadJwtToken(string token);

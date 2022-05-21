@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
-/// the dto used for refresh jwt request
+/// the dto used for refresh request
 /// </summary>
 public class RefreshRequest
 {

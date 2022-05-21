@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>
-/// the dto used for register request
+/// the dto used for registration request
 /// </summary>
 public class RegisterRequest
 {

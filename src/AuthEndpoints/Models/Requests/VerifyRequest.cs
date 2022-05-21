@@ -1,7 +1,7 @@
 ﻿namespace AuthEndpoints.Models;
 
 /// <summary>
-/// the dto used for verify jwt request
+/// the dto used for verify request
 /// </summary>
 public class VerifyRequest
 {

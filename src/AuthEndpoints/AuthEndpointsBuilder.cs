@@ -113,9 +113,9 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(string name, TokenValidationParameters parameters)
+    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(TokenValidationParameters parameters)
     {
-        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(name, option =>
+        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
         {
             option.TokenValidationParameters = parameters;
         });

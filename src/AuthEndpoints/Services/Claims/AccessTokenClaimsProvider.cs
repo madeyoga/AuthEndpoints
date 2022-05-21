@@ -4,7 +4,7 @@ using System.Security.Claims;
 namespace AuthEndpoints.Services;
 
 /// <summary>
-/// A default service that provides claims for refresh token
+/// A default service that provide claims for access token
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>

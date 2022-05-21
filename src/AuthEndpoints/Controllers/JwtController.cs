@@ -8,7 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 namespace AuthEndpoints.Controllers;
 
 /// <summary>
-/// Use this base class for defnining endpoints that contain simple jwt auth actions such as create and refresh.
+/// Inherit this base class for defnining endpoints that contain simple jwt auth actions such as create and refresh.
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
