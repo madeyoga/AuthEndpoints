@@ -88,7 +88,7 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
     AccessTokenValidationParameters = accessValidationParameters,
     RefreshTokenValidationParameters = refreshValidationParameters
 })
-	.AddJwtBearerAuthScheme("SymmetricJwt", accessValidationParameters);
+	.AddJwtBearerAuthScheme(accessValidationParameters);
 
 var app = builder.Build();
 
