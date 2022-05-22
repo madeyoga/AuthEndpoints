@@ -79,14 +79,14 @@ var refreshValidationParameters = new TokenValidationParameters()
 
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
-	AccessTokenSecret = "9GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
-	RefreshTokenSecret = "8GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
-	AccessTokenExpirationMinutes = 15,
-	RefreshTokenExpirationMinutes = 6000,
+	AccessSecret = "9GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
+	RefreshSecret = "8GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
+	AccessExpirationMinutes = 15,
+	RefreshExpirationMinutes = 6000,
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
-    AccessTokenValidationParameters = accessValidationParameters,
-    RefreshTokenValidationParameters = refreshValidationParameters
+    AccessValidationParameters = accessValidationParameters,
+    RefreshValidationParameters = refreshValidationParameters
 })
 	.AddJwtBearerAuthScheme(accessValidationParameters);
 

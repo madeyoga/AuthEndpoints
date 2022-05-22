@@ -41,7 +41,6 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     /// <response code="200">Valid username and password, return: access and refresh token</response>
     /// <response code="400">Invalid model state</response>
     /// <response code="401">Invalid username or password</response>
-    /// <inheritdoc/>
     [HttpPost("create")]
     public virtual async Task<IActionResult> Create([FromBody] LoginRequest request)
     {
@@ -74,7 +73,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
         }
 
         bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken, 
-            options.Value.RefreshTokenValidationParameters!);
+            options.Value.RefreshValidationParameters!);
 
         if (!isValidRefreshToken)
         {
@@ -107,12 +106,12 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.AccessTokenValidationParameters!))
+        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.AccessValidationParameters!))
         {
             return Ok();
         }
 
-        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.RefreshTokenValidationParameters!))
+        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.RefreshValidationParameters!))
         {
             return Ok();
         }

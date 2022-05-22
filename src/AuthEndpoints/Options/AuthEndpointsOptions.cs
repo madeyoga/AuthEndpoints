@@ -8,13 +8,13 @@ namespace AuthEndpoints;
 public class AuthEndpointsOptions
 {
     public const string Key = "AuthEndpoints";
-    public string? AccessTokenSecret { get; set; }
-    public string? RefreshTokenSecret { get; set; }
+    public string? AccessSecret { get; set; }
+    public string? RefreshSecret { get; set; }
     public string? Issuer { get; set; }
     public string? Audience { get; set; }
-    public int AccessTokenExpirationMinutes { get; set; } = 120;
-    public int RefreshTokenExpirationMinutes { get; set; } = 2880;
+    public int AccessExpirationMinutes { get; set; } = 120;
+    public int RefreshExpirationMinutes { get; set; } = 2880;
 
-    public TokenValidationParameters? AccessTokenValidationParameters { get; set; }
-    public TokenValidationParameters? RefreshTokenValidationParameters { get; set; }
+    public TokenValidationParameters? AccessValidationParameters { get; set; }
+    public TokenValidationParameters? RefreshValidationParameters { get; set; }
 }

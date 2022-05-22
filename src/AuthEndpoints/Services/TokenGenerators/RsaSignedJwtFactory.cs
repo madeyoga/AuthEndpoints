@@ -18,7 +18,7 @@ public class RsaSignedJwtFactory : IJwtFactory
     }
 
     /// <summary>
-    /// Use this method to create a jwt
+    /// Use this method to create a RS256-based jwt
     /// </summary>
     /// <param name="secret"></param>
     /// <param name="issuer"></param>
@@ -40,6 +40,24 @@ public class RsaSignedJwtFactory : IJwtFactory
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(expirationMinutes)
         );
+
+        return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
+    }
+
+    /// <summary>
+    /// Use this method to create a RS256-based jwt
+    /// </summary>
+    /// <param name="secret"></param>
+    /// <param name="payload"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public string Create(string secret, JwtPayload payload)
+    {
+        using var rsa = RSA.Create();
+        rsa.ImportFromPem(secret);
+
+        var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
+        var header = new JwtHeader(credentials);
 
         return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
     }

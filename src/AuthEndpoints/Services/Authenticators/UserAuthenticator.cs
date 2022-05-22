@@ -19,8 +19,8 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
 
     public UserAuthenticator(UserManager<TUser> userManager, 
         IJwtFactory jwtFactory, 
-        IAccessTokenClaimsProvider<TUser> accessClaimsProvider, 
-        IRefreshTokenClaimsProvider<TUser> refreshClaimsProvider,
+        IAccessClaimsProvider<TUser> accessClaimsProvider, 
+        IRefreshClaimsProvider<TUser> refreshClaimsProvider,
         IOptions<AuthEndpointsOptions> options)
     {
         this.jwtFactory = jwtFactory;
@@ -64,17 +64,17 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     {
         var authEndpointsOptions = options.Value;
 
-        string accessToken = jwtFactory.Create(authEndpointsOptions.AccessTokenSecret!,
+        string accessToken = jwtFactory.Create(authEndpointsOptions.AccessSecret!,
             authEndpointsOptions.Issuer!, 
             authEndpointsOptions.Audience!, 
             accessClaimsProvider.provideClaims(user), 
-            authEndpointsOptions.AccessTokenExpirationMinutes);
+            authEndpointsOptions.AccessExpirationMinutes);
 
-        string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshTokenSecret!,
+        string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshSecret!,
             authEndpointsOptions.Issuer!,
             authEndpointsOptions.Audience!,
             refreshClaimsProvider.provideClaims(user),
-            authEndpointsOptions.RefreshTokenExpirationMinutes);
+            authEndpointsOptions.RefreshExpirationMinutes);
 
         return Task.FromResult(new AuthenticatedUserResponse()
         {
