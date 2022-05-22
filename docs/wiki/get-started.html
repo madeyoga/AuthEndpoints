@@ -95,12 +95,12 @@
 <p>Edit <code>Program.cs</code>, then add auth endpoints services and jwt bearer authentication scheme:</p>
 <pre><code class="lang-cs">services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
 {
-  options.AccessTokenSecret = &quot;...&quot;,
-  options.RefreshTokenSecret = &quot;...&quot;,
+  options.AccessSecret = &quot;...&quot;,
+  options.RefreshSecret = &quot;...&quot;,
   options.Issuer = &quot;...&quot;,
   options.Audience = &quot;...&quot;,
   ...
-}).AddJwtBearerAuthScheme(accessTokenValidationParameters);
+}).AddJwtBearerAuthScheme(TokenValidationParameters);
 </code></pre>
 <h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
 <p>Create a new directory called <code>Controllers</code> then create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>

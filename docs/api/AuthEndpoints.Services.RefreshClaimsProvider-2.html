@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Interface IJwtFactory
+    <title>Class RefreshClaimsProvider&lt;TUserKey, TUser&gt;
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Interface IJwtFactory
+    <meta name="title" content="Class RefreshClaimsProvider&lt;TUserKey, TUser&gt;
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,89 +78,90 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services.IJwtFactory">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services.RefreshClaimsProvider`2">
   
   
-  <h1 id="AuthEndpoints_Services_IJwtFactory" data-uid="AuthEndpoints.Services.IJwtFactory" class="text-break">Interface IJwtFactory
+  <h1 id="AuthEndpoints_Services_RefreshClaimsProvider_2" data-uid="AuthEndpoints.Services.RefreshClaimsProvider`2" class="text-break">Class RefreshClaimsProvider&lt;TUserKey, TUser&gt;
   </h1>
-  <div class="markdown level0 summary"><p>Implements <a class="xref" href="AuthEndpoints.Services.IJwtFactory.html">IJwtFactory</a> to define your jwt generator</p>
+  <div class="markdown level0 summary"><p>A default service that provides claims for Refresh Token</p>
 </div>
   <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">RefreshClaimsProvider&lt;TUserKey, TUser&gt;</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="AuthEndpoints.Services.IRefreshClaimsProvider-1.html">IRefreshClaimsProvider</a>&lt;TUser&gt;</div>
+    <div><a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider</a>&lt;TUser&gt;</div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Services.html">AuthEndpoints.Services</a></h6>
   <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
-  <h5 id="AuthEndpoints_Services_IJwtFactory_syntax">Syntax</h5>
+  <h5 id="AuthEndpoints_Services_RefreshClaimsProvider_2_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IJwtFactory</code></pre>
+    <pre><code class="lang-csharp hljs">public class RefreshClaimsProvider&lt;TUserKey, TUser&gt; : IRefreshClaimsProvider&lt;TUser&gt;, IClaimsProvider&lt;TUser&gt; where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
   </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TUserKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TUser</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IJwtFactory.Create(System.String%2CSystem.IdentityModel.Tokens.Jwt.JwtPayload)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims__1_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshClaimsProvider%602.provideClaims(%601)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenGenerators/IJwtFactory.cs/#L22">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Claims/RefreshClaimsProvider.cs/#L20">View Source</a>
   </span>
-  <a id="AuthEndpoints_Services_IJwtFactory_Create_" data-uid="AuthEndpoints.Services.IJwtFactory.Create*"></a>
-  <h4 id="AuthEndpoints_Services_IJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_" data-uid="AuthEndpoints.Services.IJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)">Create(String, JwtPayload)</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string Create(string secret, JwtPayload payload)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">secret</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">System.IdentityModel.Tokens.Jwt.JwtPayload</span></td>
-        <td><span class="parametername">payload</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IJwtFactory.Create(System.String%2CSystem.String%2CSystem.String%2CIList%7BSystem.Security.Claims.Claim%7D%2CSystem.Int32)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenGenerators/IJwtFactory.cs/#L20">View Source</a>
-  </span>
-  <a id="AuthEndpoints_Services_IJwtFactory_Create_" data-uid="AuthEndpoints.Services.IJwtFactory.Create*"></a>
-  <h4 id="AuthEndpoints_Services_IJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_" data-uid="AuthEndpoints.Services.IJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)">Create(String, String, String, IList&lt;Claim&gt;, Int32)</h4>
-  <div class="markdown level1 summary"><p>Implements this methtod to create a jwt</p>
+  <a id="AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims_" data-uid="AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims*"></a>
+  <h4 id="AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims__1_" data-uid="AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims(`1)">provideClaims(TUser)</h4>
+  <div class="markdown level1 summary"><p>Use this method to get a list of claims for a refresh token</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">string Create(string secret, string issuer, string audience, IList&lt;Claim&gt; claims, int expirationMinutes)</code></pre>
+    <pre><code class="lang-csharp hljs">public IList&lt;Claim&gt; provideClaims(TUser user)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -173,28 +174,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">secret</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">issuer</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">audience</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">IList</span>&lt;<span class="xref">System.Security.Claims.Claim</span>&gt;</td>
-        <td><span class="parametername">claims</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">System.Int32</span></td>
-        <td><span class="parametername">expirationMinutes</span></td>
+        <td><span class="xref">TUser</span></td>
+        <td><span class="parametername">user</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -209,12 +190,19 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><p>a jwt in string</p>
+        <td><span class="xref">IList</span>&lt;<span class="xref">System.Security.Claims.Claim</span>&gt;</td>
+        <td><p>A list of Claims</p>
 </td>
       </tr>
     </tbody>
   </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="AuthEndpoints.Services.IRefreshClaimsProvider-1.html">IRefreshClaimsProvider&lt;TUser&gt;</a>
+  </div>
+  <div>
+      <a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider&lt;TUser&gt;</a>
+  </div>
 </article>
           </div>
           
@@ -223,10 +211,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IJwtFactory.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IJwtFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshClaimsProvider_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshClaimsProvider%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenGenerators/IJwtFactory.cs/#L9" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Claims/RefreshClaimsProvider.cs/#L11" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

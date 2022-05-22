@@ -240,12 +240,13 @@
   </span>
   <a id="AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenClaimsProvider_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenClaimsProvider*"></a>
   <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenClaimsProvider__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenClaimsProvider``1">AddAccessTokenClaimsProvider&lt;TProvider&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html">IAccessTokenClaimsProvider&lt;TUser&gt;</a>.</p>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IAccessClaimsProvider-1.html">IAccessClaimsProvider&lt;TUser&gt;</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider&lt;TProvider&gt;()
+
     where TProvider : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -295,6 +296,7 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddErrorDescriber&lt;TDescriber&gt;()
+
     where TDescriber : IdentityErrorDescriber</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -394,6 +396,7 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddJwtFactory&lt;TGenerator&gt;()
+
     where TGenerator : IJwtFactory</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -443,6 +446,7 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddJwtValidator&lt;TValidator&gt;()
+
     where TValidator : IJwtValidator</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -486,12 +490,13 @@
   </span>
   <a id="AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider*"></a>
   <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider``1">AddRefreshTokenClaimsProvider&lt;TProvider&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html">IRefreshTokenClaimsProvider&lt;TUser&gt;</a>.</p>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IRefreshClaimsProvider-1.html">IRefreshClaimsProvider&lt;TUser&gt;</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider&lt;TProvider&gt;()
+
     where TProvider : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -593,6 +598,7 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddUserAuthenticator&lt;TAuthenticator&gt;()
+
     where TAuthenticator : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>

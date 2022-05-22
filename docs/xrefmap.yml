@@ -180,45 +180,45 @@ references:
   commentId: T:AuthEndpoints.AuthEndpointsOptions
   fullName: AuthEndpoints.AuthEndpointsOptions
   nameWithType: AuthEndpointsOptions
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessTokenExpirationMinutes
-  name: AccessTokenExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessTokenExpirationMinutes
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessTokenExpirationMinutes
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessTokenExpirationMinutes
-  nameWithType: AuthEndpointsOptions.AccessTokenExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessTokenExpirationMinutes*
-  name: AccessTokenExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessTokenExpirationMinutes_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessTokenExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
+  name: AccessExpirationMinutes
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessExpirationMinutes
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
+  nameWithType: AuthEndpointsOptions.AccessExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes*
+  name: AccessExpirationMinutes
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessExpirationMinutes_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessTokenExpirationMinutes
-  nameWithType: AuthEndpointsOptions.AccessTokenExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessTokenSecret
-  name: AccessTokenSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessTokenSecret
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessTokenSecret
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessTokenSecret
-  nameWithType: AuthEndpointsOptions.AccessTokenSecret
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessTokenSecret*
-  name: AccessTokenSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessTokenSecret_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessTokenSecret
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
+  nameWithType: AuthEndpointsOptions.AccessExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessSecret
+  name: AccessSecret
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessSecret
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessSecret
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessSecret
+  nameWithType: AuthEndpointsOptions.AccessSecret
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessSecret*
+  name: AccessSecret
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessSecret_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessSecret
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessTokenSecret
-  nameWithType: AuthEndpointsOptions.AccessTokenSecret
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessTokenValidationParameters
-  name: AccessTokenValidationParameters
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessTokenValidationParameters
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessTokenValidationParameters
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessTokenValidationParameters
-  nameWithType: AuthEndpointsOptions.AccessTokenValidationParameters
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessTokenValidationParameters*
-  name: AccessTokenValidationParameters
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessTokenValidationParameters_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessTokenValidationParameters
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessSecret
+  nameWithType: AuthEndpointsOptions.AccessSecret
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters
+  name: AccessValidationParameters
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessValidationParameters
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters
+  nameWithType: AuthEndpointsOptions.AccessValidationParameters
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters*
+  name: AccessValidationParameters
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessValidationParameters_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessTokenValidationParameters
-  nameWithType: AuthEndpointsOptions.AccessTokenValidationParameters
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters
+  nameWithType: AuthEndpointsOptions.AccessValidationParameters
 - uid: AuthEndpoints.AuthEndpointsOptions.Audience
   name: Audience
   href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_Audience
@@ -251,45 +251,45 @@ references:
   commentId: F:AuthEndpoints.AuthEndpointsOptions.Key
   fullName: AuthEndpoints.AuthEndpointsOptions.Key
   nameWithType: AuthEndpointsOptions.Key
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshTokenExpirationMinutes
-  name: RefreshTokenExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshTokenExpirationMinutes
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshTokenExpirationMinutes
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenExpirationMinutes
-  nameWithType: AuthEndpointsOptions.RefreshTokenExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshTokenExpirationMinutes*
-  name: RefreshTokenExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshTokenExpirationMinutes_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshTokenExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
+  name: RefreshExpirationMinutes
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshExpirationMinutes
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
+  nameWithType: AuthEndpointsOptions.RefreshExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes*
+  name: RefreshExpirationMinutes
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshExpirationMinutes_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenExpirationMinutes
-  nameWithType: AuthEndpointsOptions.RefreshTokenExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshTokenSecret
-  name: RefreshTokenSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshTokenSecret
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshTokenSecret
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenSecret
-  nameWithType: AuthEndpointsOptions.RefreshTokenSecret
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshTokenSecret*
-  name: RefreshTokenSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshTokenSecret_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshTokenSecret
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
+  nameWithType: AuthEndpointsOptions.RefreshExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshSecret
+  name: RefreshSecret
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSecret
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshSecret
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshSecret
+  nameWithType: AuthEndpointsOptions.RefreshSecret
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshSecret*
+  name: RefreshSecret
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSecret_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshSecret
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenSecret
-  nameWithType: AuthEndpointsOptions.RefreshTokenSecret
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
-  name: RefreshTokenValidationParameters
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshTokenValidationParameters
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
-  nameWithType: AuthEndpointsOptions.RefreshTokenValidationParameters
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters*
-  name: RefreshTokenValidationParameters
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshTokenValidationParameters_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshSecret
+  nameWithType: AuthEndpointsOptions.RefreshSecret
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters
+  name: RefreshValidationParameters
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshValidationParameters
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters
+  nameWithType: AuthEndpointsOptions.RefreshValidationParameters
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters*
+  name: RefreshValidationParameters
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshValidationParameters_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshTokenValidationParameters
-  nameWithType: AuthEndpointsOptions.RefreshTokenValidationParameters
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters
+  nameWithType: AuthEndpointsOptions.RefreshValidationParameters
 - uid: AuthEndpoints.Controllers
   name: AuthEndpoints.Controllers
   href: api/AuthEndpoints.Controllers.html
@@ -886,32 +886,32 @@ references:
   commentId: N:AuthEndpoints.Services
   fullName: AuthEndpoints.Services
   nameWithType: AuthEndpoints.Services
-- uid: AuthEndpoints.Services.AccessTokenClaimsProvider`2
-  name: AccessTokenClaimsProvider<TUserKey, TUser>
-  href: api/AuthEndpoints.Services.AccessTokenClaimsProvider-2.html
-  commentId: T:AuthEndpoints.Services.AccessTokenClaimsProvider`2
-  name.vb: AccessTokenClaimsProvider(Of TUserKey, TUser)
-  fullName: AuthEndpoints.Services.AccessTokenClaimsProvider<TUserKey, TUser>
-  fullName.vb: AuthEndpoints.Services.AccessTokenClaimsProvider(Of TUserKey, TUser)
-  nameWithType: AccessTokenClaimsProvider<TUserKey, TUser>
-  nameWithType.vb: AccessTokenClaimsProvider(Of TUserKey, TUser)
-- uid: AuthEndpoints.Services.AccessTokenClaimsProvider`2.provideClaims(`1)
+- uid: AuthEndpoints.Services.AccessClaimsProvider`2
+  name: AccessClaimsProvider<TUserKey, TUser>
+  href: api/AuthEndpoints.Services.AccessClaimsProvider-2.html
+  commentId: T:AuthEndpoints.Services.AccessClaimsProvider`2
+  name.vb: AccessClaimsProvider(Of TUserKey, TUser)
+  fullName: AuthEndpoints.Services.AccessClaimsProvider<TUserKey, TUser>
+  fullName.vb: AuthEndpoints.Services.AccessClaimsProvider(Of TUserKey, TUser)
+  nameWithType: AccessClaimsProvider<TUserKey, TUser>
+  nameWithType.vb: AccessClaimsProvider(Of TUserKey, TUser)
+- uid: AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims(`1)
   name: provideClaims(TUser)
-  href: api/AuthEndpoints.Services.AccessTokenClaimsProvider-2.html#AuthEndpoints_Services_AccessTokenClaimsProvider_2_provideClaims__1_
-  commentId: M:AuthEndpoints.Services.AccessTokenClaimsProvider`2.provideClaims(`1)
-  fullName: AuthEndpoints.Services.AccessTokenClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  fullName.vb: AuthEndpoints.Services.AccessTokenClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-  nameWithType: AccessTokenClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  nameWithType.vb: AccessTokenClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-- uid: AuthEndpoints.Services.AccessTokenClaimsProvider`2.provideClaims*
+  href: api/AuthEndpoints.Services.AccessClaimsProvider-2.html#AuthEndpoints_Services_AccessClaimsProvider_2_provideClaims__1_
+  commentId: M:AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims(`1)
+  fullName: AuthEndpoints.Services.AccessClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
+  fullName.vb: AuthEndpoints.Services.AccessClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
+  nameWithType: AccessClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
+  nameWithType.vb: AccessClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
+- uid: AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims*
   name: provideClaims
-  href: api/AuthEndpoints.Services.AccessTokenClaimsProvider-2.html#AuthEndpoints_Services_AccessTokenClaimsProvider_2_provideClaims_
-  commentId: Overload:AuthEndpoints.Services.AccessTokenClaimsProvider`2.provideClaims
+  href: api/AuthEndpoints.Services.AccessClaimsProvider-2.html#AuthEndpoints_Services_AccessClaimsProvider_2_provideClaims_
+  commentId: Overload:AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims
   isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessTokenClaimsProvider<TUserKey, TUser>.provideClaims
-  fullName.vb: AuthEndpoints.Services.AccessTokenClaimsProvider(Of TUserKey, TUser).provideClaims
-  nameWithType: AccessTokenClaimsProvider<TUserKey, TUser>.provideClaims
-  nameWithType.vb: AccessTokenClaimsProvider(Of TUserKey, TUser).provideClaims
+  fullName: AuthEndpoints.Services.AccessClaimsProvider<TUserKey, TUser>.provideClaims
+  fullName.vb: AuthEndpoints.Services.AccessClaimsProvider(Of TUserKey, TUser).provideClaims
+  nameWithType: AccessClaimsProvider<TUserKey, TUser>.provideClaims
+  nameWithType.vb: AccessClaimsProvider(Of TUserKey, TUser).provideClaims
 - uid: AuthEndpoints.Services.DefaultJwtFactory
   name: DefaultJwtFactory
   href: api/AuthEndpoints.Services.DefaultJwtFactory.html
@@ -931,6 +931,12 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultJwtFactory.DefaultJwtFactory
   nameWithType: DefaultJwtFactory.DefaultJwtFactory
+- uid: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  name: Create(String, JwtPayload)
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
+  commentId: M:AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  fullName: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
+  nameWithType: DefaultJwtFactory.Create(String, JwtPayload)
 - uid: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.String,System.String,System.Nullable{IList{System.Security.Claims.Claim}},System.Int32)
   name: Create(String, String, String, Nullable<IList<Claim>>, Int32)
   href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_System_String_System_String_System_String_System_Nullable_IList_System_Security_Claims_Claim___System_Int32_
@@ -1005,15 +1011,15 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync
   nameWithType: DefaultJwtValidator.ValidateAsync
-- uid: AuthEndpoints.Services.IAccessTokenClaimsProvider`1
-  name: IAccessTokenClaimsProvider<TUser>
-  href: api/AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html
-  commentId: T:AuthEndpoints.Services.IAccessTokenClaimsProvider`1
-  name.vb: IAccessTokenClaimsProvider(Of TUser)
-  fullName: AuthEndpoints.Services.IAccessTokenClaimsProvider<TUser>
-  fullName.vb: AuthEndpoints.Services.IAccessTokenClaimsProvider(Of TUser)
-  nameWithType: IAccessTokenClaimsProvider<TUser>
-  nameWithType.vb: IAccessTokenClaimsProvider(Of TUser)
+- uid: AuthEndpoints.Services.IAccessClaimsProvider`1
+  name: IAccessClaimsProvider<TUser>
+  href: api/AuthEndpoints.Services.IAccessClaimsProvider-1.html
+  commentId: T:AuthEndpoints.Services.IAccessClaimsProvider`1
+  name.vb: IAccessClaimsProvider(Of TUser)
+  fullName: AuthEndpoints.Services.IAccessClaimsProvider<TUser>
+  fullName.vb: AuthEndpoints.Services.IAccessClaimsProvider(Of TUser)
+  nameWithType: IAccessClaimsProvider<TUser>
+  nameWithType.vb: IAccessClaimsProvider(Of TUser)
 - uid: AuthEndpoints.Services.IAuthenticator`1
   name: IAuthenticator<TUser>
   href: api/AuthEndpoints.Services.IAuthenticator-1.html
@@ -1089,6 +1095,12 @@ references:
   commentId: T:AuthEndpoints.Services.IJwtFactory
   fullName: AuthEndpoints.Services.IJwtFactory
   nameWithType: IJwtFactory
+- uid: AuthEndpoints.Services.IJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  name: Create(String, JwtPayload)
+  href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
+  commentId: M:AuthEndpoints.Services.IJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  fullName: AuthEndpoints.Services.IJwtFactory.Create(System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
+  nameWithType: IJwtFactory.Create(String, JwtPayload)
 - uid: AuthEndpoints.Services.IJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
   name: Create(String, String, String, IList<Claim>, Int32)
   href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
@@ -1150,41 +1162,41 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.IJwtValidator.ValidateAsync
   nameWithType: IJwtValidator.ValidateAsync
-- uid: AuthEndpoints.Services.IRefreshTokenClaimsProvider`1
-  name: IRefreshTokenClaimsProvider<TUser>
-  href: api/AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html
-  commentId: T:AuthEndpoints.Services.IRefreshTokenClaimsProvider`1
-  name.vb: IRefreshTokenClaimsProvider(Of TUser)
-  fullName: AuthEndpoints.Services.IRefreshTokenClaimsProvider<TUser>
-  fullName.vb: AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser)
-  nameWithType: IRefreshTokenClaimsProvider<TUser>
-  nameWithType.vb: IRefreshTokenClaimsProvider(Of TUser)
-- uid: AuthEndpoints.Services.RefreshTokenClaimsProvider`2
-  name: RefreshTokenClaimsProvider<TUserKey, TUser>
-  href: api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.html
-  commentId: T:AuthEndpoints.Services.RefreshTokenClaimsProvider`2
-  name.vb: RefreshTokenClaimsProvider(Of TUserKey, TUser)
-  fullName: AuthEndpoints.Services.RefreshTokenClaimsProvider<TUserKey, TUser>
-  fullName.vb: AuthEndpoints.Services.RefreshTokenClaimsProvider(Of TUserKey, TUser)
-  nameWithType: RefreshTokenClaimsProvider<TUserKey, TUser>
-  nameWithType.vb: RefreshTokenClaimsProvider(Of TUserKey, TUser)
-- uid: AuthEndpoints.Services.RefreshTokenClaimsProvider`2.provideClaims(`1)
+- uid: AuthEndpoints.Services.IRefreshClaimsProvider`1
+  name: IRefreshClaimsProvider<TUser>
+  href: api/AuthEndpoints.Services.IRefreshClaimsProvider-1.html
+  commentId: T:AuthEndpoints.Services.IRefreshClaimsProvider`1
+  name.vb: IRefreshClaimsProvider(Of TUser)
+  fullName: AuthEndpoints.Services.IRefreshClaimsProvider<TUser>
+  fullName.vb: AuthEndpoints.Services.IRefreshClaimsProvider(Of TUser)
+  nameWithType: IRefreshClaimsProvider<TUser>
+  nameWithType.vb: IRefreshClaimsProvider(Of TUser)
+- uid: AuthEndpoints.Services.RefreshClaimsProvider`2
+  name: RefreshClaimsProvider<TUserKey, TUser>
+  href: api/AuthEndpoints.Services.RefreshClaimsProvider-2.html
+  commentId: T:AuthEndpoints.Services.RefreshClaimsProvider`2
+  name.vb: RefreshClaimsProvider(Of TUserKey, TUser)
+  fullName: AuthEndpoints.Services.RefreshClaimsProvider<TUserKey, TUser>
+  fullName.vb: AuthEndpoints.Services.RefreshClaimsProvider(Of TUserKey, TUser)
+  nameWithType: RefreshClaimsProvider<TUserKey, TUser>
+  nameWithType.vb: RefreshClaimsProvider(Of TUserKey, TUser)
+- uid: AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims(`1)
   name: provideClaims(TUser)
-  href: api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.html#AuthEndpoints_Services_RefreshTokenClaimsProvider_2_provideClaims__1_
-  commentId: M:AuthEndpoints.Services.RefreshTokenClaimsProvider`2.provideClaims(`1)
-  fullName: AuthEndpoints.Services.RefreshTokenClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  fullName.vb: AuthEndpoints.Services.RefreshTokenClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-  nameWithType: RefreshTokenClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  nameWithType.vb: RefreshTokenClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-- uid: AuthEndpoints.Services.RefreshTokenClaimsProvider`2.provideClaims*
+  href: api/AuthEndpoints.Services.RefreshClaimsProvider-2.html#AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims__1_
+  commentId: M:AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims(`1)
+  fullName: AuthEndpoints.Services.RefreshClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
+  fullName.vb: AuthEndpoints.Services.RefreshClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
+  nameWithType: RefreshClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
+  nameWithType.vb: RefreshClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
+- uid: AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims*
   name: provideClaims
-  href: api/AuthEndpoints.Services.RefreshTokenClaimsProvider-2.html#AuthEndpoints_Services_RefreshTokenClaimsProvider_2_provideClaims_
-  commentId: Overload:AuthEndpoints.Services.RefreshTokenClaimsProvider`2.provideClaims
+  href: api/AuthEndpoints.Services.RefreshClaimsProvider-2.html#AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims_
+  commentId: Overload:AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims
   isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshTokenClaimsProvider<TUserKey, TUser>.provideClaims
-  fullName.vb: AuthEndpoints.Services.RefreshTokenClaimsProvider(Of TUserKey, TUser).provideClaims
-  nameWithType: RefreshTokenClaimsProvider<TUserKey, TUser>.provideClaims
-  nameWithType.vb: RefreshTokenClaimsProvider(Of TUserKey, TUser).provideClaims
+  fullName: AuthEndpoints.Services.RefreshClaimsProvider<TUserKey, TUser>.provideClaims
+  fullName.vb: AuthEndpoints.Services.RefreshClaimsProvider(Of TUserKey, TUser).provideClaims
+  nameWithType: RefreshClaimsProvider<TUserKey, TUser>.provideClaims
+  nameWithType.vb: RefreshClaimsProvider(Of TUserKey, TUser).provideClaims
 - uid: AuthEndpoints.Services.RsaSignedJwtFactory
   name: RsaSignedJwtFactory
   href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html
@@ -1204,6 +1216,12 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.RsaSignedJwtFactory.RsaSignedJwtFactory
   nameWithType: RsaSignedJwtFactory.RsaSignedJwtFactory
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  name: Create(String, JwtPayload)
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
+  commentId: M:AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
+  nameWithType: RsaSignedJwtFactory.Create(String, JwtPayload)
 - uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
   name: Create(String, String, String, IList<Claim>, Int32)
   href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
@@ -1229,15 +1247,15 @@ references:
   fullName.vb: AuthEndpoints.Services.UserAuthenticator(Of TUser)
   nameWithType: UserAuthenticator<TUser>
   nameWithType.vb: UserAuthenticator(Of TUser)
-- uid: AuthEndpoints.Services.UserAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessTokenClaimsProvider{`0},AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
-  name: UserAuthenticator(UserManager<TUser>, IJwtFactory, IAccessTokenClaimsProvider<TUser>, IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
-  href: api/AuthEndpoints.Services.UserAuthenticator-1.html#AuthEndpoints_Services_UserAuthenticator_1__ctor_Microsoft_AspNetCore_Identity_UserManager__0__AuthEndpoints_Services_IJwtFactory_AuthEndpoints_Services_IAccessTokenClaimsProvider__0__AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
-  commentId: M:AuthEndpoints.Services.UserAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessTokenClaimsProvider{`0},AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
-  name.vb: UserAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessTokenClaimsProvider(Of TUser), IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
-  fullName: AuthEndpoints.Services.UserAuthenticator<TUser>.UserAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessTokenClaimsProvider<TUser>, AuthEndpoints.Services.IRefreshTokenClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
-  fullName.vb: AuthEndpoints.Services.UserAuthenticator(Of TUser).UserAuthenticator(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessTokenClaimsProvider(Of TUser), AuthEndpoints.Services.IRefreshTokenClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
-  nameWithType: UserAuthenticator<TUser>.UserAuthenticator(UserManager<TUser>, IJwtFactory, IAccessTokenClaimsProvider<TUser>, IRefreshTokenClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
-  nameWithType.vb: UserAuthenticator(Of TUser).UserAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessTokenClaimsProvider(Of TUser), IRefreshTokenClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Services.UserAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessClaimsProvider{`0},AuthEndpoints.Services.IRefreshClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name: UserAuthenticator(UserManager<TUser>, IJwtFactory, IAccessClaimsProvider<TUser>, IRefreshClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Services.UserAuthenticator-1.html#AuthEndpoints_Services_UserAuthenticator_1__ctor_Microsoft_AspNetCore_Identity_UserManager__0__AuthEndpoints_Services_IJwtFactory_AuthEndpoints_Services_IAccessClaimsProvider__0__AuthEndpoints_Services_IRefreshClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Services.UserAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessClaimsProvider{`0},AuthEndpoints.Services.IRefreshClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: UserAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessClaimsProvider(Of TUser), IRefreshClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Services.UserAuthenticator<TUser>.UserAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessClaimsProvider<TUser>, AuthEndpoints.Services.IRefreshClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Services.UserAuthenticator(Of TUser).UserAuthenticator(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessClaimsProvider(Of TUser), AuthEndpoints.Services.IRefreshClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: UserAuthenticator<TUser>.UserAuthenticator(UserManager<TUser>, IJwtFactory, IAccessClaimsProvider<TUser>, IRefreshClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: UserAuthenticator(Of TUser).UserAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessClaimsProvider(Of TUser), IRefreshClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Services.UserAuthenticator`1.#ctor*
   name: UserAuthenticator
   href: api/AuthEndpoints.Services.UserAuthenticator-1.html#AuthEndpoints_Services_UserAuthenticator_1__ctor_

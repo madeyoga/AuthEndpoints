@@ -771,7 +771,7 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Authorize]
+    <pre><code class="lang-csharp hljs">[Authorize(&quot;jwt&quot;)]
 [HttpGet(&quot;me&quot;)]
 public virtual async Task&lt;IActionResult&gt; GetMe()</code></pre>
   </div>
@@ -903,7 +903,7 @@ public virtual async Task&lt;IActionResult&gt; SetPassword([FromBody] SetPasswor
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Authorize]
+    <pre><code class="lang-csharp hljs">[Authorize(&quot;jwt&quot;)]
 [HttpPost(&quot;set_username&quot;)]
 public virtual async Task&lt;IActionResult&gt; SetUsername([FromBody] SetUsernameRequest request)</code></pre>
   </div>

@@ -33,12 +33,12 @@ Edit `Program.cs`, then add auth endpoints services and jwt bearer authenticatio
 ```cs
 services.AddAuthEndpoints<string, IdentityUser>(options => 
 {
-  options.AccessTokenSecret = "...",
-  options.RefreshTokenSecret = "...",
+  options.AccessSecret = "...",
+  options.RefreshSecret = "...",
   options.Issuer = "...",
   options.Audience = "...",
   ...
-}).AddJwtBearerAuthScheme(accessTokenValidationParameters);
+}).AddJwtBearerAuthScheme(TokenValidationParameters);
 ```
 
 ## Add Base Authentication Endpoints

@@ -3,7 +3,7 @@
 # [Jwt Endpoints](jwt-endpoints.md)
 # [Custom Identity User](custom-identity-user.md)
 # [Custom Claims](custom-claims.md)
-# [Custom Authenticator](custom-authenticator.md)
+# [Authentication Backend](custom-authenticator.md)
 # [Override Controller](override-controller.md)
 # [Asymmetric Jwt](asym-jwt.md)
 # [Swagger](swagger.md)
