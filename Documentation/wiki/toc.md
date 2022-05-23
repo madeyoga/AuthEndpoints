@@ -4,6 +4,4 @@
 # [Custom Identity User](custom-identity-user.md)
 # [Custom Claims](custom-claims.md)
 # [Authentication Backend](custom-authenticator.md)
-# [Override Controller](override-controller.md)
 # [Asymmetric Jwt](asym-jwt.md)
-# [Swagger](swagger.md)
