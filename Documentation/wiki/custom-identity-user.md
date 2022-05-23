@@ -1,6 +1,6 @@
 # Working with Custom Identity User
 
-AuthEndpoints works only with IdentityUser. For AuthEndpoints to work with custom identity user,
+For AuthEndpoints to work with custom identity user,
 you need to specify the key type for `TUserKey` and the custom user class for `TUser` on `AddAuthEndpoints<TUserKey, TUser>()`.
 For example, my custom identity user:
 

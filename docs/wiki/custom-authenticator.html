@@ -79,14 +79,14 @@
             <article class="content wrap" id="_content" data-uid="">
 <h1 id="writing-an-authenticator">Writing an Authenticator</h1>
 
-<p>By default, AuthEndpoints uses username and password to authenticate a user.
-If you want to change this behavior, for example, you want to authenticate a user based on email and password,
-then you need to implement <code>IAuthenticator</code>:</p>
+<p>By default, AuthEndpoints authenticate users via username.
+If you want to change this behavior, for example, you want to authenticate a user via email,
+then you need to write a custom authenticator. Something like this will work:</p>
 <pre><code class="lang-cs">public class MyAuthenticator : IAuthenticator&lt;IdentityUser&gt;
 {
-  public async Task&lt;IdentityUser?&gt; Authenticate(string username, string password) 
+  public async Task&lt;IdentityUser?&gt; Authenticate(string email, string password) 
   {
-    TUser user = await userManager.FindByEmailAsync(username);
+    var user = await userManager.FindByEmailAsync(email);
     if (user == null)
     {
       return null;
@@ -105,7 +105,7 @@ then you need to implement <code>IAuthenticator</code>:</p>
   }
 }
 </code></pre>
-<p>finally, register it via <code>AuthEndpointsBuilder</code>:</p>
+<p>finally, register it via <code>AuthEndpointsBuilder.AddAuthenticator&lt;&gt;()</code>:</p>
 <pre><code class="lang-cs">var builder = services.AddAuthEndpoints&lt;string, IdentityUser&gt;();
 builder.AddAuthenticator&lt;MyAuthenticator&gt;();
 </code></pre>

@@ -1,15 +1,15 @@
 # Writing an Authenticator
 
-By default, AuthEndpoints uses username field and password field to authenticate a user.
-If you want to change this behavior, for example, you want to authenticate a user based on email and password,
-then you need to implement `IAuthenticator`:
+By default, AuthEndpoints authenticate users via username.
+If you want to change this behavior, for example, you want to authenticate a user via email,
+then you need to write a custom authenticator. Something like this will work:
 
 ```cs
 public class MyAuthenticator : IAuthenticator<IdentityUser>
 {
-  public async Task<IdentityUser?> Authenticate(string username, string password) 
+  public async Task<IdentityUser?> Authenticate(string email, string password) 
   {
-    TUser user = await userManager.FindByEmailAsync(username);
+    var user = await userManager.FindByEmailAsync(email);
     if (user == null)
     {
       return null;
@@ -29,7 +29,7 @@ public class MyAuthenticator : IAuthenticator<IdentityUser>
 }
 ```
 
-finally, register it via `AuthEndpointsBuilder`:
+finally, register it via `AuthEndpointsBuilder.AddAuthenticator<>()`:
 
 ```cs
 var builder = services.AddAuthEndpoints<string, IdentityUser>();

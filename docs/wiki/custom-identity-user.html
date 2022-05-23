@@ -79,7 +79,7 @@
             <article class="content wrap" id="_content" data-uid="">
 <h1 id="working-with-custom-identity-user">Working with Custom Identity User</h1>
 
-<p>AuthEndpoints works only with IdentityUser. For AuthEndpoints to work with custom identity user,
+<p>For AuthEndpoints to work with custom identity user,
 you need to specify the key type for <code>TUserKey</code> and the custom user class for <code>TUser</code> on <code>AddAuthEndpoints&lt;TUserKey, TUser&gt;()</code>.
 For example, my custom identity user:</p>
 <pre><code class="lang-cs">public class MyApplicationUser : IdentityUser&lt;Guid&gt;

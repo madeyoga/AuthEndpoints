@@ -18,7 +18,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.AuthEndpointsBuilder.html",
-          "hash": "6QKF+rVKZFly4DEAonnc9IQt5SEBJgsAc91JLDiYUBA="
+          "hash": "tjMqb05fswJ6doygOocUYkW1zzpL9RI+m/gWCT1eu9U="
         }
       },
       "is_incremental": false,
@@ -186,7 +186,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.html",
-          "hash": "T4FzzPBmL2VbzhChr/g2IAMDpbn72HGaIlH9jjYtxDs="
+          "hash": "laA1jrI6KaW8N+bWIQvaSr+JKql3snMa3rfTI7inxiM="
         }
       },
       "is_incremental": false,
@@ -199,6 +199,18 @@
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.AccessClaimsProvider-2.html",
           "hash": "986B0Cgqid4JX/Z/sHahVI1ZihwVBTc4tFI6kJF8MVM="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Services.DefaultAuthenticator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Services.DefaultAuthenticator-1.html",
+          "hash": "EfudypmGJimTTwjFnJSkEOwbN7yffRbRxEjJKX4TO2w="
         }
       },
       "is_incremental": false,
@@ -246,7 +258,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.IAuthenticator-1.html",
-          "hash": "OpkvWvQEY0ckCZXQ22DAtYt9qTRRs91ycaMEZIpcnOg="
+          "hash": "3kGLQioKtU5pR/q+I6MtL1khEVqW+J/qLCjbilWv/I8="
         }
       },
       "is_incremental": false,
@@ -258,7 +270,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.IClaimsProvider-1.html",
-          "hash": "1y50dWNi/1SHJcblMLM5FTSRYNzREmc2J7n9U0fot+o="
+          "hash": "YwGsDmYo79lznGEivYUnVT2XiRQpfs7JXAtymQAEjwY="
         }
       },
       "is_incremental": false,
@@ -326,23 +338,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.UserAuthenticator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.UserAuthenticator-1.html",
-          "hash": "BgC8A806jRTeE6xLHuaNeaLJ0QakINvcgG4viHeQnes="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/AuthEndpoints.Services.yml",
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Services.html",
-          "hash": "Hw7WZtU+zXBSCZIdmHTvHEdf2csNQjJHAgU5J7CsaJE="
+          "hash": "RFLcJkGofO+dRLSzeclHJPcqg+ZdnJxVlb2XcGo1gX0="
         }
       },
       "is_incremental": false,
@@ -378,7 +378,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "GZwgDN+jTrJy+sgdKr5s8KPx1Kj+58QZDQuSd9VJlWs="
+          "hash": "j9CloEcgOPLeKWtEA8mQBe23U/YMjgdYjkIMa4loFLI="
         }
       },
       "is_incremental": false,
@@ -414,7 +414,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/asym-jwt.html",
-          "hash": "0bl+8HY6u/jIX6rZO5qxExWEbI9Ty8M9zX3WN8U0DQw="
+          "hash": "qopCoi8o0cDNPo/gFSaJpio348CNYztYw11vnv+Lj5Q="
         }
       },
       "is_incremental": false,
@@ -438,7 +438,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-authenticator.html",
-          "hash": "F0/cXGZAlZ0T98T6L5SCmIP9AhzvAxxTnCGac9vkxek="
+          "hash": "zrrrjA49q5qwbSwJGJ8Hk2KmH7VJR6PsejvajXfP7uU="
         }
       },
       "is_incremental": false,
@@ -450,7 +450,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-claims.html",
-          "hash": "5hTpxpjG4jy0K62GW5gF9YTlg0Eo3zIlJayPTSSg9h0="
+          "hash": "nANUyDrLbebr+R8jNj7Y6ITePmbvou+MGxSTfnxcFyo="
         }
       },
       "is_incremental": false,
@@ -462,7 +462,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-identity-user.html",
-          "hash": "NpKcJYF8QIBEZNQb34cx58H0bML6CSDPe967k5VCskI="
+          "hash": "vEfxR53skIvYBO7lBTDlkizeBzadXH/+zEiO2guah2U="
         }
       },
       "is_incremental": false,
@@ -554,13 +554,13 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 12,
-          "skipped_file_count": 9
+          "skipped_file_count": 11
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 29,
-          "skipped_file_count": 15
+          "skipped_file_count": 29
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
