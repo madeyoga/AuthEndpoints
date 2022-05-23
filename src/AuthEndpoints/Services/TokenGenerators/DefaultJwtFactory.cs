@@ -18,7 +18,7 @@ public class DefaultJwtFactory : IJwtFactory
     }
 
     /// <summary>
-    /// Use this method to create a symmetric signed (HmacSha256) jwt
+    /// Use this method to create a HS256-based jwt
     /// </summary>
     /// <param name="user"></param>
     /// <param name="secret"></param>
@@ -39,6 +39,22 @@ public class DefaultJwtFactory : IJwtFactory
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(expirationMinutes)
         );
+
+        return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
+    }
+
+    /// <summary>
+    /// Use this method to create a HS256-based jwt
+    /// </summary>
+    /// <param name="secret"></param>
+    /// <param name="payload"></param>
+    /// <returns></returns>
+    public string Create(string secret, JwtPayload payload)
+    {
+        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var header = new JwtHeader(credentials);
 
         return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
     }

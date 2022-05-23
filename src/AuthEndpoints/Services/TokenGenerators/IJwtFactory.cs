@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace AuthEndpoints.Services;
 
@@ -17,4 +18,6 @@ public interface IJwtFactory
     /// <param name="expirationMinutes"></param>
     /// <returns>a jwt in string</returns>
     string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes);
+
+    string Create(string secret, JwtPayload payload);
 }

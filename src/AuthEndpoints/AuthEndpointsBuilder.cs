@@ -46,24 +46,24 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IAccessClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider<TProvider>() where TProvider : class
+    public virtual AuthEndpointsBuilder AddAccessClaimsProvider<TProvider>() where TProvider : class
     {
-        Services.AddSingleton(typeof(IAccessTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        Services.AddSingleton(typeof(IAccessClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
         return this;
     }
 
     /// <summary>
-    /// Adds an <see cref="IRefreshTokenClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IRefreshClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider<TProvider>() where TProvider : class
+    public virtual AuthEndpointsBuilder AddRefreshClaimsProvider<TProvider>() where TProvider : class
     {
-        Services.AddSingleton(typeof(IRefreshTokenClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        Services.AddSingleton(typeof(IRefreshClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
         return this;
     }
 
@@ -92,7 +92,7 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <typeparam name="TAuthenticator">The type of the authenticator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddUserAuthenticator<TAuthenticator>() where TAuthenticator : class
+    public virtual AuthEndpointsBuilder AddAuthenticator<TAuthenticator>() where TAuthenticator : class
     {
         return AddScoped(typeof(IAuthenticator<>).MakeGenericType(UserType), typeof(TAuthenticator));
     }
@@ -115,7 +115,7 @@ public class AuthEndpointsBuilder
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(TokenValidationParameters parameters)
     {
-        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(option =>
+        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer("jwt", option =>
         {
             option.TokenValidationParameters = parameters;
         });

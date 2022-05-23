@@ -8,7 +8,7 @@ namespace AuthEndpoints.Services;
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
-public class RefreshTokenClaimsProvider<TUserKey, TUser> : IRefreshTokenClaimsProvider<TUser>
+public class RefreshClaimsProvider<TUserKey, TUser> : IRefreshClaimsProvider<TUser>
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
 {

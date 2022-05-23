@@ -8,7 +8,7 @@ namespace AuthEndpoints.Services;
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
-public class AccessTokenClaimsProvider<TUserKey, TUser> : IAccessTokenClaimsProvider<TUser>
+public class AccessClaimsProvider<TUserKey, TUser> : IAccessClaimsProvider<TUser>
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>
 {
@@ -22,7 +22,6 @@ public class AccessTokenClaimsProvider<TUserKey, TUser> : IAccessTokenClaimsProv
         return new List<Claim>()
         {
             new Claim("id", user.Id.ToString()!),
-            new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.UserName),
         };
     }

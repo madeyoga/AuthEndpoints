@@ -233,19 +233,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenClaimsProvider__1.md&amp;value=---%0Auid%3A%20AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenClaimsProvider%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_AuthEndpointsBuilder_AddAccessClaimsProvider__1.md&amp;value=---%0Auid%3A%20AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/AuthEndpointsBuilder.cs/#L53">View Source</a>
   </span>
-  <a id="AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenClaimsProvider_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenClaimsProvider*"></a>
-  <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddAccessTokenClaimsProvider__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAccessTokenClaimsProvider``1">AddAccessTokenClaimsProvider&lt;TProvider&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IAccessTokenClaimsProvider-1.html">IAccessTokenClaimsProvider&lt;TUser&gt;</a>.</p>
+  <a id="AuthEndpoints_AuthEndpointsBuilder_AddAccessClaimsProvider_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider*"></a>
+  <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddAccessClaimsProvider__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider``1">AddAccessClaimsProvider&lt;TProvider&gt;()</h4>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IAccessClaimsProvider-1.html">IAccessClaimsProvider&lt;TUser&gt;</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider&lt;TProvider&gt;()
+    <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddAccessClaimsProvider&lt;TProvider&gt;()
     where TProvider : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -276,6 +276,55 @@
       <tr>
         <td><span class="parametername">TProvider</span></td>
         <td><p>The type of the claims provider.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_AuthEndpointsBuilder_AddAuthenticator__1.md&amp;value=---%0Auid%3A%20AuthEndpoints.AuthEndpointsBuilder.AddAuthenticator%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/AuthEndpointsBuilder.cs/#L95">View Source</a>
+  </span>
+  <a id="AuthEndpoints_AuthEndpointsBuilder_AddAuthenticator_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAuthenticator*"></a>
+  <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddAuthenticator__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddAuthenticator``1">AddAuthenticator&lt;TAuthenticator&gt;()</h4>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator&lt;TUser&gt;</a>.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddAuthenticator&lt;TAuthenticator&gt;()
+    where TAuthenticator : class</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
+        <td><p>The current <a class="xref" href="AuthEndpoints.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a> instance.</p>
+</td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TAuthenticator</span></td>
+        <td><p>The type of the authenticator.</p>
 </td>
       </tr>
     </tbody>
@@ -479,19 +528,19 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider__1.md&amp;value=---%0Auid%3A%20AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_AuthEndpointsBuilder_AddRefreshClaimsProvider__1.md&amp;value=---%0Auid%3A%20AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
     <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/AuthEndpointsBuilder.cs/#L64">View Source</a>
   </span>
-  <a id="AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider*"></a>
-  <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddRefreshTokenClaimsProvider__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddRefreshTokenClaimsProvider``1">AddRefreshTokenClaimsProvider&lt;TProvider&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html">IRefreshTokenClaimsProvider&lt;TUser&gt;</a>.</p>
+  <a id="AuthEndpoints_AuthEndpointsBuilder_AddRefreshClaimsProvider_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider*"></a>
+  <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddRefreshClaimsProvider__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider``1">AddRefreshClaimsProvider&lt;TProvider&gt;()</h4>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IRefreshClaimsProvider-1.html">IRefreshClaimsProvider&lt;TUser&gt;</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider&lt;TProvider&gt;()
+    <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddRefreshClaimsProvider&lt;TProvider&gt;()
     where TProvider : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -575,55 +624,6 @@
       <tr>
         <td><a class="xref" href="AuthEndpoints.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
         <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_AuthEndpointsBuilder_AddUserAuthenticator__1.md&amp;value=---%0Auid%3A%20AuthEndpoints.AuthEndpointsBuilder.AddUserAuthenticator%60%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/AuthEndpointsBuilder.cs/#L95">View Source</a>
-  </span>
-  <a id="AuthEndpoints_AuthEndpointsBuilder_AddUserAuthenticator_" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddUserAuthenticator*"></a>
-  <h4 id="AuthEndpoints_AuthEndpointsBuilder_AddUserAuthenticator__1" data-uid="AuthEndpoints.AuthEndpointsBuilder.AddUserAuthenticator``1">AddUserAuthenticator&lt;TAuthenticator&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator&lt;TUser&gt;</a>.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public virtual AuthEndpointsBuilder AddUserAuthenticator&lt;TAuthenticator&gt;()
-    where TAuthenticator : class</code></pre>
-  </div>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="AuthEndpoints.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
-        <td><p>The current <a class="xref" href="AuthEndpoints.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a> instance.</p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="typeParameters">Type Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="parametername">TAuthenticator</span></td>
-        <td><p>The type of the authenticator.</p>
-</td>
       </tr>
     </tbody>
   </table>

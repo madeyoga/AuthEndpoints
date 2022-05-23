@@ -75,7 +75,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to retrieve the authenticated user
     /// </summary>
-    [Authorize]
+    [Authorize("jwt")]
     [HttpGet("me")]
     public virtual async Task<IActionResult> GetMe()
     {
@@ -95,7 +95,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [Authorize]
+    [Authorize("jwt")]
     [HttpPost("set_username")]
     public virtual async Task<IActionResult> SetUsername([FromBody] SetUsernameRequest request)
     {

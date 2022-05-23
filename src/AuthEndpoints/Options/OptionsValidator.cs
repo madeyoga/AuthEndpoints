@@ -6,11 +6,11 @@ internal class OptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {
     public ValidateOptionsResult Validate(string name, AuthEndpointsOptions options)
     {
-        if (options.AccessTokenSecret == null)
+        if (options.AccessSecret == null)
         {
             return ValidateOptionsResult.Fail("AuthEndpointsOptions.AccessTokenSecret cannot be null");
         }
-        if (options.RefreshTokenSecret == null)
+        if (options.RefreshSecret == null)
         {
             return ValidateOptionsResult.Fail("AuthEndpointsOptions.RefreshTokenSecret cannot be null");
         }

@@ -5,11 +5,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Namespace AuthEndpoints.Services
-   | AuthEndpoints </title>
+    <title>Working with Custom Identity User | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Namespace AuthEndpoints.Services
-   | AuthEndpoints ">
+    <meta name="title" content="Working with Custom Identity User | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
@@ -78,53 +76,20 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services">
-  
-  <h1 id="AuthEndpoints_Services" data-uid="AuthEndpoints.Services" class="text-break">Namespace AuthEndpoints.Services
-  </h1>
-  <div class="markdown level0 summary"></div>
-  <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
-    <h3 id="classes">Classes
-  </h3>
-      <h4><a class="xref" href="AuthEndpoints.Services.AccessClaimsProvider-2.html">AccessClaimsProvider&lt;TUserKey, TUser&gt;</a></h4>
-      <section><p>A default service that provide claims for access token</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.DefaultAuthenticator-1.html">DefaultAuthenticator&lt;TUser&gt;</a></h4>
-      <section><p>Default user authenticator. Use this class to authenticate a user</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.DefaultJwtFactory.html">DefaultJwtFactory</a></h4>
-      <section><p>Use <a class="xref" href="AuthEndpoints.Services.DefaultJwtFactory.html">DefaultJwtFactory</a> to create a jwt with HS256 based signature</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.DefaultJwtValidator.html">DefaultJwtValidator</a></h4>
-      <section><p>Use <a class="xref" href="AuthEndpoints.Services.DefaultJwtValidator.html">DefaultJwtValidator</a> to validate a jwt</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.RefreshClaimsProvider-2.html">RefreshClaimsProvider&lt;TUserKey, TUser&gt;</a></h4>
-      <section><p>A default service that provides claims for Refresh Token</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.RsaSignedJwtFactory.html">RsaSignedJwtFactory</a></h4>
-      <section><p>Use <a class="xref" href="AuthEndpoints.Services.RsaSignedJwtFactory.html">RsaSignedJwtFactory</a> to create a jwt with RS256 signature.</p>
-</section>
-    <h3 id="interfaces">Interfaces
-  </h3>
-      <h4><a class="xref" href="AuthEndpoints.Services.IAccessClaimsProvider-1.html">IAccessClaimsProvider&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IAccessClaimsProvider-1.html">IAccessClaimsProvider&lt;TUser&gt;</a> to define your refresh token claims provider</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator&lt;TUser&gt;</a> to define your authenticator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider&lt;TUser&gt;</a> to define your claims provider</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IJwtFactory.html">IJwtFactory</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IJwtFactory.html">IJwtFactory</a> to define your jwt generator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IJwtValidator.html">IJwtValidator</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IJwtValidator.html">IJwtValidator</a> to define your jwt validator</p>
-</section>
-      <h4><a class="xref" href="AuthEndpoints.Services.IRefreshClaimsProvider-1.html">IRefreshClaimsProvider&lt;TUser&gt;</a></h4>
-      <section><p>Implements <a class="xref" href="AuthEndpoints.Services.IRefreshClaimsProvider-1.html">IRefreshClaimsProvider&lt;TUser&gt;</a> to define your refresh token claims provider</p>
-</section>
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="working-with-custom-identity-user">Working with Custom Identity User</h1>
+
+<p>For AuthEndpoints to work with custom identity user,
+you need to specify the key type for <code>TUserKey</code> and the custom user class for <code>TUser</code> on <code>AddAuthEndpoints&lt;TUserKey, TUser&gt;()</code>.
+For example, my custom identity user:</p>
+<pre><code class="lang-cs">public class MyApplicationUser : IdentityUser&lt;Guid&gt;
+{
+  public string Nickname { get; set; }
+}
+</code></pre>
+<p>Then, you can simply specify the key type for <code>TUserKey</code> and the custom class for <code>TUser</code>:</p>
+<pre><code class="lang-cs">services.AddAuthEndpoints&lt;Guid, MyApplicationUser&gt;();
+</code></pre>
 </article>
           </div>
           
@@ -132,6 +97,9 @@
             <div class="sideaffix">
               <div class="contribution">
                 <ul class="nav">
+                  <li>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/custom-identity-user.md/#L1" class="contribution-link">Improve this Doc</a>
+                  </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">

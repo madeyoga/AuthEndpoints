@@ -18,11 +18,11 @@ public static class ServiceCollectionExtensions
     {
         services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
 
-        services.TryAddSingleton<IAccessTokenClaimsProvider<TUser>, AccessTokenClaimsProvider<TUserKey, TUser>>();
-        services.TryAddSingleton<IRefreshTokenClaimsProvider<TUser>, RefreshTokenClaimsProvider<TUserKey, TUser>>();
+        services.TryAddSingleton<IAccessClaimsProvider<TUser>, AccessClaimsProvider<TUserKey, TUser>>();
+        services.TryAddSingleton<IRefreshClaimsProvider<TUser>, RefreshClaimsProvider<TUserKey, TUser>>();
         services.TryAddScoped<IJwtFactory, DefaultJwtFactory>();
         services.TryAddScoped<IJwtValidator, DefaultJwtValidator>();
-        services.TryAddScoped<IAuthenticator<TUser>, UserAuthenticator<TUser>>();
+        services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
 
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
@@ -81,14 +81,14 @@ public static class ServiceCollectionExtensions
     {
         services.AddOptions<AuthEndpointsOptions>().Configure(options =>
         {
-            options.AccessTokenSecret = customOptions.AccessTokenSecret;
-            options.RefreshTokenSecret = customOptions.RefreshTokenSecret;
-            options.AccessTokenExpirationMinutes = customOptions.AccessTokenExpirationMinutes;
-            options.RefreshTokenExpirationMinutes = customOptions.RefreshTokenExpirationMinutes;
+            options.AccessSecret = customOptions.AccessSecret;
+            options.RefreshSecret = customOptions.RefreshSecret;
+            options.AccessExpirationMinutes = customOptions.AccessExpirationMinutes;
+            options.RefreshExpirationMinutes = customOptions.RefreshExpirationMinutes;
             options.Audience = customOptions.Audience;
             options.Issuer = customOptions.Issuer;
-            options.AccessTokenValidationParameters = customOptions.AccessTokenValidationParameters;
-            options.RefreshTokenValidationParameters = customOptions.RefreshTokenValidationParameters;
+            options.AccessValidationParameters = customOptions.AccessValidationParameters;
+            options.RefreshValidationParameters = customOptions.RefreshValidationParameters;
         }).ValidateOnStart();
         return ConfigureServices<TUserKey, TUser>(services);
     }

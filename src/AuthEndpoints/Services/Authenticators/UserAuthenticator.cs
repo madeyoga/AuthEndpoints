@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 /// Default user authenticator. Use this class to authenticate a user
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
-public class UserAuthenticator<TUser> : IAuthenticator<TUser>
+public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
     private readonly IJwtFactory jwtFactory;
@@ -17,10 +17,10 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     private readonly IOptions<AuthEndpointsOptions> options;
     private readonly UserManager<TUser> userManager;
 
-    public UserAuthenticator(UserManager<TUser> userManager, 
+    public DefaultAuthenticator(UserManager<TUser> userManager, 
         IJwtFactory jwtFactory, 
-        IAccessTokenClaimsProvider<TUser> accessClaimsProvider, 
-        IRefreshTokenClaimsProvider<TUser> refreshClaimsProvider,
+        IAccessClaimsProvider<TUser> accessClaimsProvider, 
+        IRefreshClaimsProvider<TUser> refreshClaimsProvider,
         IOptions<AuthEndpointsOptions> options)
     {
         this.jwtFactory = jwtFactory;
@@ -64,17 +64,17 @@ public class UserAuthenticator<TUser> : IAuthenticator<TUser>
     {
         var authEndpointsOptions = options.Value;
 
-        string accessToken = jwtFactory.Create(authEndpointsOptions.AccessTokenSecret!,
+        string accessToken = jwtFactory.Create(authEndpointsOptions.AccessSecret!,
             authEndpointsOptions.Issuer!, 
             authEndpointsOptions.Audience!, 
             accessClaimsProvider.provideClaims(user), 
-            authEndpointsOptions.AccessTokenExpirationMinutes);
+            authEndpointsOptions.AccessExpirationMinutes);
 
-        string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshTokenSecret!,
+        string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshSecret!,
             authEndpointsOptions.Issuer!,
             authEndpointsOptions.Audience!,
             refreshClaimsProvider.provideClaims(user),
-            authEndpointsOptions.RefreshTokenExpirationMinutes);
+            authEndpointsOptions.RefreshExpirationMinutes);
 
         return Task.FromResult(new AuthenticatedUserResponse()
         {
