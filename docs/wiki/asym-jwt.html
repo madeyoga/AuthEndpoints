@@ -84,7 +84,7 @@ Distributing the key in a secure way is one of the primary challenges of this en
 Symmetric enryption allows anyone that has access to the key that the token was encrypted with, can also decrypt it.</p>
 <p>On the other hand, Asymmetric Encryption is based on two keys, a public key, and a private key.
 The public key is used to validate jwt. And the private key is used to sign the jwt.</p>
-<p>For AuthEndpoints to create a jwt with Asymmetric encryption based signatures, you can use the <code>RsaSignedJwtFactory</code> class.
+<p>For AuthEndpoints to create a jwt with Asymmetric algorithm based signatures, you can use the <code>RsaSignedJwtFactory</code> class.
 Register it with <code>AuthEndpointsBuilder.AddJwtFactory&lt;&gt;()</code>:</p>
 <pre><code class="lang-cs">builder.AddJwtFactory&lt;RsaSignedJwtFactory&gt;();
 </code></pre>
