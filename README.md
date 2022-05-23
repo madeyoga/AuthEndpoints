@@ -29,23 +29,22 @@ builder.Services.AddAuthEndpoints<string, IdentityUser>(new AuthEndpointsOptions
 	Issuer = "https://localhost:8000",
 	AccessTokenValidationParameters = accessParameters,
 	RefreshTokenValidationParameters = refreshParameters
-}).AddJwtBearerAuthenticationScheme(accessParameters);
+}).AddJwtBearerAuthScheme(accessParameters);
 
 
-// Now create a controller, then simply inherit
+// Create a controller, then simply inherit
+
 public class AuthenticationController : JwtController<string, IdentityUser>
 {}
 
-public class UserController : BasicEndpointsController<string, IdentityUser>
+public class UserController : BaseEndpointsController<string, IdentityUser>
 {}
 ```
 
 ## Documentations
-Documentation is available at tbd and in tbd directory.
+Documentation is available at tbd and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
 
 ## Contributing
-To start developing on AuthEndpoints, simply clone the repo:
-```
-$ git clone https://github.com/nano-devs/AuthEndpoints.git
-```
-& start hacking :)
+Simply open send a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start.
+
+The documentation is far from perfect so every bit of help is more than welcome.
