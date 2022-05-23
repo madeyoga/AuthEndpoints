@@ -2,7 +2,6 @@
 
 Follow steps below to install and use AuthEndpoints.
 
-
 ## Create a project
 
 Create an empty ASP.NET Core project
@@ -33,12 +32,20 @@ Edit `Program.cs`, then add auth endpoints services and jwt bearer authenticatio
 ```cs
 services.AddAuthEndpoints<string, IdentityUser>(options => 
 {
+  // These secrets will be used for signing jwts
   options.AccessSecret = "...",
   options.RefreshSecret = "...",
   options.Issuer = "...",
   options.Audience = "...",
-  ...
-}).AddJwtBearerAuthScheme(TokenValidationParameters);
+  options.AccessExpirationMinutes = 120; // Access token expires in 2 hours
+  options.AccessExpirationMinutes = 2880; // Refresh token expires in 2 days
+
+  // These validation parameters will be used for verifying/validating jwts
+  options.AccessValidationParameters = new TokenValidationParameters()
+  { ... }
+  options.RefreshValidationParameters = new TokenValidationParameters()
+  { ... }
+}).AddJwtBearerAuthScheme(AccessValidationParameters);
 ```
 
 ## Add Base Authentication Endpoints
@@ -46,7 +53,7 @@ services.AddAuthEndpoints<string, IdentityUser>(options =>
 Create a new directory called `Controllers` then create a new controller called `MyBaseAuthController.cs` then add the following:
 
 ```cs
-public class MyBaseAuthController: BaseEndpointsController<string, MyCustomIdentityUser>
+public class MyBaseAuthController: BaseEndpointsController<string, IdentityUser>
 {}
 ```
 

@@ -2,6 +2,6 @@
 # [Base Endpoints](base-endpoints.md)
 # [Jwt Endpoints](jwt-endpoints.md)
 # [Custom Identity User](custom-identity-user.md)
-# [Custom Claims](custom-claims.md)
+# [Jwt Claims](custom-claims.md)
 # [Authentication Backend](custom-authenticator.md)
 # [Asymmetric Jwt](asym-jwt.md)

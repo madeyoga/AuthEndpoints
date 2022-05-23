@@ -853,7 +853,7 @@ public virtual async Task&lt;IActionResult&gt; Register([FromBody] RegisterReque
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Authorize]
+    <pre><code class="lang-csharp hljs">[Authorize(&quot;jwt&quot;)]
 [HttpPost(&quot;set_password&quot;)]
 public virtual async Task&lt;IActionResult&gt; SetPassword([FromBody] SetPasswordRequest request)</code></pre>
   </div>

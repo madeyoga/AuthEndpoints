@@ -79,13 +79,29 @@
             <article class="content wrap" id="_content" data-uid="">
 <h1 id="jwt-with-asymmetric-key-signatures">JWT with Asymmetric Key Signatures</h1>
 
-<p>The default implementation for signing and validating a jwt uses a single security key, this is being called a symmetric encryption.
+<p>AuthEndpoints default implementation for signing and validating a jwt uses a single security key, this is being called a symmetric encryption.
 Distributing the key in a secure way is one of the primary challenges of this encryption type, this also known as key distribution problem.
 Symmetric enryption allows anyone that has access to the key that the token was encrypted with, can also decrypt it.</p>
 <p>On the other hand, Asymmetric Encryption is based on two keys, a public key, and a private key.
 The public key is used to validate jwt. And the private key is used to sign the jwt.</p>
+<p>To achive this, you need to add your private key and public key to the <code>AuthEndpointsOptions</code>:</p>
+<pre><code class="lang-cs">services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt;
+{
+  // These secrets will be used for signing jwts
+  options.AccessSecret = &quot;&lt;your_private_key&gt;&quot;;
+  options.RefreshSecret = &quot;&lt;your_private_key&gt;&quot;;
+  ...
+
+  // Use public key for validation parameters.
+  // These validation parameters will be used for verifying/validating jwts.
+  options.AccessValidationParameters = new TokenValidationParameters()
+  { ... }
+  options.RefreshValidationParameters = new TokenValidationParameters()
+  { ... }
+});
+</code></pre>
 <p>For AuthEndpoints to create a jwt with Asymmetric algorithm based signatures, you can use the <code>RsaSignedJwtFactory</code> class.
-Register it with <code>AuthEndpointsBuilder.AddJwtFactory&lt;&gt;()</code>:</p>
+This class use HS256 algorithm for signing a jwt. Register it with <code>AuthEndpointsBuilder.AddJwtFactory&lt;&gt;()</code>:</p>
 <pre><code class="lang-cs">builder.AddJwtFactory&lt;RsaSignedJwtFactory&gt;();
 </code></pre>
 <p>Or you can also define your own jwt factory:</p>

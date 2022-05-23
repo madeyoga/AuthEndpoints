@@ -20,7 +20,6 @@ __Default URL__: `/jwt/create`
     <tr>
       <td>POST</td>
       <td>
-        Body:
         <ul>
           <li>username</li>
           <li>password</li>
@@ -56,7 +55,6 @@ __Default URL__: `/jwt/refresh`
     <tr>
       <td>GET</td>
       <td>
-        Body:
         <ul>
           <li>refreshToken</li>
         </ul>
@@ -89,7 +87,6 @@ __Default URL__: `/users/set_password`
     <tr>
       <td>POST</td>
       <td>
-        Body:
         <ul>
           <li>token</li>
         </ul>
