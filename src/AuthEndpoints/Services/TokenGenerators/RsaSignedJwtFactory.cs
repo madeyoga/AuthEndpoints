@@ -50,7 +50,6 @@ public class RsaSignedJwtFactory : IJwtFactory
     /// <param name="secret"></param>
     /// <param name="payload"></param>
     /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
     public string Create(string secret, JwtPayload payload)
     {
         using var rsa = RSA.Create();

@@ -121,7 +121,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to change user password
     /// </summary>
-    [Authorize]
+    [Authorize("jwt")]
     [HttpPost("set_password")]
     public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
