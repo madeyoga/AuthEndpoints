@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IRefreshClaimsProvider<TUser>, RefreshClaimsProvider<TUserKey, TUser>>();
         services.TryAddScoped<IJwtFactory, DefaultJwtFactory>();
         services.TryAddScoped<IJwtValidator, DefaultJwtValidator>();
-        services.TryAddScoped<IAuthenticator<TUser>, UserAuthenticator<TUser>>();
+        services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
 
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();

@@ -22,7 +22,6 @@ public class AccessClaimsProvider<TUserKey, TUser> : IAccessClaimsProvider<TUser
         return new List<Claim>()
         {
             new Claim("id", user.Id.ToString()!),
-            new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.UserName),
         };
     }

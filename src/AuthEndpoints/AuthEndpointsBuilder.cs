@@ -50,7 +50,7 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenClaimsProvider<TProvider>() where TProvider : class
+    public virtual AuthEndpointsBuilder AddAccessClaimsProvider<TProvider>() where TProvider : class
     {
         Services.AddSingleton(typeof(IAccessClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
         return this;
@@ -61,7 +61,7 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenClaimsProvider<TProvider>() where TProvider : class
+    public virtual AuthEndpointsBuilder AddRefreshClaimsProvider<TProvider>() where TProvider : class
     {
         Services.AddSingleton(typeof(IRefreshClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
         return this;
@@ -92,7 +92,7 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <typeparam name="TAuthenticator">The type of the authenticator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddUserAuthenticator<TAuthenticator>() where TAuthenticator : class
+    public virtual AuthEndpointsBuilder AddAuthenticator<TAuthenticator>() where TAuthenticator : class
     {
         return AddScoped(typeof(IAuthenticator<>).MakeGenericType(UserType), typeof(TAuthenticator));
     }
