@@ -45,6 +45,6 @@ public class UserController : BaseEndpointsController<string, IdentityUser>
 Documentation is available at tbd and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
 
 ## Contributing
-Simply open a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start.
+Your contributions are always welcome! simply send a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start.
 
 The documentation is far from perfect so every bit of help is more than welcome.
