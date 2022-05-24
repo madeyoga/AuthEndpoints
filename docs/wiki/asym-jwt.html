@@ -100,8 +100,8 @@ The public key is used to validate jwt. And the private key is used to sign the 
   { ... }
 });
 </code></pre>
-<p>For AuthEndpoints to create a jwt with Asymmetric algorithm based signatures, you can use the <code>RsaSignedJwtFactory</code> class.
-This class use HS256 algorithm for signing a jwt. Register it with <code>AuthEndpointsBuilder.AddJwtFactory&lt;&gt;()</code>:</p>
+<p>For AuthEndpoints to be able to create jwts with Asymmetric algorithm based signatures, you can use the <code>RsaSignedJwtFactory</code> class.
+This class uses RS256 algorithm for signing jwts.</p>
 <pre><code class="lang-cs">builder.AddJwtFactory&lt;RsaSignedJwtFactory&gt;();
 </code></pre>
 <p>Or you can also define your own jwt factory:</p>
