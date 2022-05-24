@@ -21,14 +21,14 @@ var refreshParameters = new TokenValidationParameters()
 
 builder.Services.AddAuthEndpoints<string, IdentityUser>(new AuthEndpointsOptions()
 {
-	AccessTokenSecret = "<accesstoken_secret_key>",
-	RefreshTokenSecret = "<refreshtoken_secret_key>",
-	AccessTokenExpirationMinutes = 15,
-	RefreshTokenExpirationMinutes = 6000,
+	AccessSecret = "<accesstoken_secret_key>",
+	RefreshSecret = "<refreshtoken_secret_key>",
+	AccessExpirationMinutes = 15,
+	RefreshExpirationMinutes = 6000,
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
-	AccessTokenValidationParameters = accessParameters,
-	RefreshTokenValidationParameters = refreshParameters
+	AccessValidationParameters = accessParameters,
+	RefreshValidationParameters = refreshParameters
 }).AddJwtBearerAuthScheme(accessParameters);
 
 
