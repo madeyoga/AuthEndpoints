@@ -1,5 +1,4 @@
-﻿using AuthEndpoints.Models;
-using AuthEndpoints.Services;
+﻿using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;

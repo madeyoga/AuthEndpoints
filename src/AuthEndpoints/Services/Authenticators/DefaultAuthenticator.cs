@@ -1,8 +1,8 @@
-﻿namespace AuthEndpoints.Services;
-
-using AuthEndpoints.Models;
+﻿using AuthEndpoints.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+
+namespace AuthEndpoints.Services;
 
 /// <summary>
 /// Default authenticator. 
@@ -17,9 +17,9 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     private readonly IOptions<AuthEndpointsOptions> options;
     private readonly UserManager<TUser> userManager;
 
-    public DefaultAuthenticator(UserManager<TUser> userManager, 
-        IJwtFactory jwtFactory, 
-        IAccessClaimsProvider<TUser> accessClaimsProvider, 
+    public DefaultAuthenticator(UserManager<TUser> userManager,
+        IJwtFactory jwtFactory,
+        IAccessClaimsProvider<TUser> accessClaimsProvider,
         IRefreshClaimsProvider<TUser> refreshClaimsProvider,
         IOptions<AuthEndpointsOptions> options)
     {
@@ -65,9 +65,9 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
         var authEndpointsOptions = options.Value;
 
         string accessToken = jwtFactory.Create(authEndpointsOptions.AccessSecret!,
-            authEndpointsOptions.Issuer!, 
-            authEndpointsOptions.Audience!, 
-            accessClaimsProvider.provideClaims(user), 
+            authEndpointsOptions.Issuer!,
+            authEndpointsOptions.Audience!,
+            accessClaimsProvider.provideClaims(user),
             authEndpointsOptions.AccessExpirationMinutes);
 
         string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshSecret!,

@@ -20,9 +20,9 @@ public class AccessClaimsProvider<TUserKey, TUser> : IAccessClaimsProvider<TUser
     public IList<Claim> provideClaims(TUser user)
     {
         return new List<Claim>()
-        {
-            new Claim("id", user.Id.ToString()!),
-            new Claim(ClaimTypes.Name, user.UserName),
-        };
+    {
+        new Claim("id", user.Id.ToString()!),
+        new Claim(ClaimTypes.Name, user.UserName),
+    };
     }
 }

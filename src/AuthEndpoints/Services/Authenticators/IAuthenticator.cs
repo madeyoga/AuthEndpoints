@@ -6,7 +6,7 @@ namespace AuthEndpoints.Services;
 /// Implements <see cref="IAuthenticator{TUser}"/> to define your authenticator
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
-public interface IAuthenticator<TUser> 
+public interface IAuthenticator<TUser>
     where TUser : class
 {
     /// <summary>
