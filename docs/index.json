@@ -193,20 +193,5 @@
     "href": "wiki/jwt-endpoints.html",
     "title": "JWT Endpoints | AuthEndpoints",
     "keywords": "JWT Endpoints JwtController<TUserKey, TUser> JWT Create Use this endpoint to obtain jwt. Default URL : /jwt/create Authorizations : (Jwt or None) Method Request Response POST username password HTTP_200_OK accessToken refreshToken HTTP_401_UNAUTHORIZED JWT Refresh Use this endpoint to refresh jwt. Default URL : /jwt/refresh Authorizations : (Jwt) Method Request Response GET refreshToken HTTP_200_OK User data JWT Verify Use this endpoints to verify jwt. Default URL : /users/set_password Authorizations : (Jwt) Method Request Response POST token HTTP_200_OK HTTP_401_UNAUTHORIZED"
-  },
-  "wiki/override-controller.html": {
-    "href": "wiki/override-controller.html",
-    "title": "| AuthEndpoints",
-    "keywords": ""
-  },
-  "wiki/swagger.html": {
-    "href": "wiki/swagger.html",
-    "title": "| AuthEndpoints",
-    "keywords": ""
-  },
-  "wiki/tutorial.html": {
-    "href": "wiki/tutorial.html",
-    "title": "| AuthEndpoints",
-    "keywords": ""
   }
 }

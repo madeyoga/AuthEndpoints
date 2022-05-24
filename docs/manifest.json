@@ -505,48 +505,12 @@
       "version": ""
     },
     {
-      "type": "Conceptual",
-      "source_relative_path": "wiki/override-controller.md",
-      "output": {
-        ".html": {
-          "relative_path": "wiki/override-controller.html",
-          "hash": "rk0ZS66jjmhBwheXepUgZp4kmqnptsx0xFkPBun0+p8="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "Conceptual",
-      "source_relative_path": "wiki/swagger.md",
-      "output": {
-        ".html": {
-          "relative_path": "wiki/swagger.html",
-          "hash": "XjbLKoXngcYndd0HJGI2+T42Q469dq+VB9mxfub8VL4="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
       "type": "Toc",
       "source_relative_path": "wiki/toc.md",
       "output": {
         ".html": {
           "relative_path": "wiki/toc.html",
           "hash": "t9f1RHw5h3EYj+glHBl+e2xQ4XFoFtdK9nmq0lWSRmw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "Conceptual",
-      "source_relative_path": "wiki/tutorial.md",
-      "output": {
-        ".html": {
-          "relative_path": "wiki/tutorial.html",
-          "hash": "l5qtUvkpTlin3H8HCZag1SC3POOxq6kstee1+y0Ciaw="
         }
       },
       "is_incremental": false,
@@ -565,8 +529,8 @@
         "ConceptualDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 13,
-          "skipped_file_count": 12
+          "total_file_count": 10,
+          "skipped_file_count": 10
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
