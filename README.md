@@ -1,5 +1,5 @@
 # AuthEndpoints
-[![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
+[![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 [![issues](https://img.shields.io/github/issues/madeyoga/AuthEndpoints?color=blue&logo=github&style=flat-square)](https://github.com/madeyoga/AuthEndpoints/issues)
 [![Nuget](https://img.shields.io/nuget/dt/AuthEndpoints?color=blue&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 
