@@ -20,7 +20,6 @@ __Default URL__: `/users`
     <tr>
       <td>POST</td>
       <td>
-        Body:
         <ul>
           <li>email</li>
           <li>username</li>
@@ -86,7 +85,6 @@ __Default URL__: `/users/set_password`
     <tr>
       <td>POST</td>
       <td>
-        Body:
         <ul>
           <li>currentPassword</li>
           <li>newPassword</li>

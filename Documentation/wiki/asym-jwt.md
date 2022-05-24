@@ -1,14 +1,33 @@
 # JWT with Asymmetric Key Signatures
 
-The default implementation for signing and validating a jwt uses a single security key, this is being called a symmetric encryption. 
+AuthEndpoints default implementation for signing and validating a jwt uses a single security key, this is being called a symmetric encryption. 
 Distributing the key in a secure way is one of the primary challenges of this encryption type, this also known as key distribution problem.
 Symmetric enryption allows anyone that has access to the key that the token was encrypted with, can also decrypt it. 
 
 On the other hand, Asymmetric Encryption is based on two keys, a public key, and a private key. 
 The public key is used to validate jwt. And the private key is used to sign the jwt.
 
+To achive this, you need to add your private key and public key to the `AuthEndpointsOptions`:
+
+```cs
+services.AddAuthEndpoints<string, IdentityUser>(options =>
+{
+  // These secrets will be used for signing jwts
+  options.AccessSecret = "<your_private_key>";
+  options.RefreshSecret = "<your_private_key>";
+  ...
+
+  // Use public key for validation parameters.
+  // These validation parameters will be used for verifying/validating jwts.
+  options.AccessValidationParameters = new TokenValidationParameters()
+  { ... }
+  options.RefreshValidationParameters = new TokenValidationParameters()
+  { ... }
+});
+```
+
 For AuthEndpoints to create a jwt with Asymmetric algorithm based signatures, you can use the `RsaSignedJwtFactory` class.
-Register it with `AuthEndpointsBuilder.AddJwtFactory<>()`:
+This class use HS256 algorithm for signing a jwt. Register it with `AuthEndpointsBuilder.AddJwtFactory<>()`:
 
 ```cs
 builder.AddJwtFactory<RsaSignedJwtFactory>();

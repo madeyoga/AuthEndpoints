@@ -95,16 +95,24 @@
 <p>Edit <code>Program.cs</code>, then add auth endpoints services and jwt bearer authentication scheme:</p>
 <pre><code class="lang-cs">services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
 {
+  // These secrets will be used for signing jwts
   options.AccessSecret = &quot;...&quot;,
   options.RefreshSecret = &quot;...&quot;,
   options.Issuer = &quot;...&quot;,
   options.Audience = &quot;...&quot;,
-  ...
-}).AddJwtBearerAuthScheme(TokenValidationParameters);
+  options.AccessExpirationMinutes = 120; // Access token expires in 2 hours
+  options.AccessExpirationMinutes = 2880; // Refresh token expires in 2 days
+
+  // These validation parameters will be used for verifying/validating jwts
+  options.AccessValidationParameters = new TokenValidationParameters()
+  { ... }
+  options.RefreshValidationParameters = new TokenValidationParameters()
+  { ... }
+}).AddJwtBearerAuthScheme(AccessValidationParameters);
 </code></pre>
 <h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
 <p>Create a new directory called <code>Controllers</code> then create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyBaseAuthController: BaseEndpointsController&lt;string, MyCustomIdentityUser&gt;
+<pre><code class="lang-cs">public class MyBaseAuthController: BaseEndpointsController&lt;string, IdentityUser&gt;
 {}
 </code></pre>
 <p>See what endpoints included in <a href="base-endpoints.html">BaseEndpointsController</a></p>

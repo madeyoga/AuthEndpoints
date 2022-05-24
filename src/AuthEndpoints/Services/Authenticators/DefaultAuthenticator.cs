@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
 /// <summary>
-/// Default user authenticator. Use this class to authenticate a user
+/// Default authenticator. 
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
 public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
