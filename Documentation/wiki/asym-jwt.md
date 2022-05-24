@@ -26,8 +26,8 @@ services.AddAuthEndpoints<string, IdentityUser>(options =>
 });
 ```
 
-For AuthEndpoints to create a jwt with Asymmetric algorithm based signatures, you can use the `RsaSignedJwtFactory` class.
-This class use HS256 algorithm for signing a jwt. Register it with `AuthEndpointsBuilder.AddJwtFactory<>()`:
+For AuthEndpoints to be able to create jwts with Asymmetric algorithm based signatures, you can use the `RsaSignedJwtFactory` class.
+This class uses RS256 algorithm for signing jwts.
 
 ```cs
 builder.AddJwtFactory<RsaSignedJwtFactory>();
