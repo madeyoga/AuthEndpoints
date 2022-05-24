@@ -32,7 +32,7 @@ builder.Services.AddAuthEndpoints<string, IdentityUser>(new AuthEndpointsOptions
 }).AddJwtBearerAuthScheme(accessParameters);
 
 
-// Create a controller, then simply inherit
+// Create a controller and inherit the base controller
 
 public class AuthenticationController : JwtController<string, IdentityUser>
 {}
