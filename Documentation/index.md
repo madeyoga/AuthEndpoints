@@ -1,4 +1,8 @@
-[![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&label=license&logo=Github&style=flat-square)](https://github.com/nano-devs/AuthEndpoints/blob/master/README.md)
+[![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
+[![issues](https://img.shields.io/github/issues/madeyoga/AuthEndpoints?color=blue&logo=github&style=flat-square)](https://github.com/madeyoga/AuthEndpoints/issues)
+[![downloads](https://img.shields.io/nuget/dt/AuthEndpoints?color=blue&style=flat-square&logo=nuget)](https://www.nuget.org/packages/AuthEndpoints/)
+![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
+[![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
 A simple jwt authentication library for ASP.Net 6.
 AuthEndpoints library provides a set of API controllers to handle basic web & JWT authentication actions such as registration, login, reset password, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). 
@@ -9,7 +13,7 @@ AuthEndpoints is built with the aim of increasing developer productivity.
 
 ### NuGet
 
-- tbd
+- [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/)
 
 
 ## Available Endpoints
