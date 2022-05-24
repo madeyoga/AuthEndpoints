@@ -1,6 +1,6 @@
-﻿namespace AuthEndpoints.Models;
+﻿using System.ComponentModel.DataAnnotations;
 
-using System.ComponentModel.DataAnnotations;
+namespace AuthEndpoints.Models;
 
 /// <summary>
 /// the dto used for refresh request
