@@ -1,5 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using AuthEndpoints.Models;
+﻿using AuthEndpoints.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
