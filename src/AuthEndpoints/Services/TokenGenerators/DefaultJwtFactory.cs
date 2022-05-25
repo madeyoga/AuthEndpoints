@@ -1,7 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Services;
 
@@ -18,38 +16,16 @@ public class DefaultJwtFactory : IJwtFactory
     }
 
     /// <summary>
-    /// Use this method to create a HS256-based jwt
+    /// 
     /// </summary>
-    /// <param name="secret"></param>
-    /// <param name="issuer"></param>
-    /// <param name="audience"></param>
-    /// <param name="claims"></param>
-    /// <param name="expirationMinutes"></param>
-    /// <returns>a jwt in string</returns>
-    public string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes)
-    {
-        return Create(secret, new JwtPayload(
-            issuer,
-            audience,
-            claims,
-            DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(expirationMinutes))
-        );
-    }
-
-    /// <summary>
-    /// Use this method to create a HS256-based jwt
-    /// </summary>
-    /// <param name="secret"></param>
+    /// <param name="key"></param>
+    /// <param name="algorithm"></param>
     /// <param name="payload"></param>
-    /// <returns>a jwt in string</returns>
-    public string Create(string secret, JwtPayload payload)
+    /// <returns></returns>
+    public string Create(SecurityKey key, string algorithm, JwtPayload payload)
     {
-        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
+        var credentials = new SigningCredentials(key, algorithm);
         var header = new JwtHeader(credentials);
-
         return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
     }
 }
