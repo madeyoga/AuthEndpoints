@@ -1,3 +1,3 @@
 # [Documentation](wiki/)
 # [Api Reference](api/)
-# [GitHub](https://github.com/nano-devs/AuthEndpoints)
+# [GitHub](https://github.com/madeyoga/AuthEndpoints)
