@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "src\A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints", "src\AuthEndpoints\AuthEndpoints.csproj", "{F44C64CF-147A-4722-AE05-0625A1CB77E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.UnitTests", "tests\AuthEndpoints.UnitTests\AuthEndpoints.UnitTests.csproj", "{02E19E16-EF1D-4B6A-A81F-F8EBC5A1B29B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.UnitTests", "tests\AuthEndpoints.UnitTests\AuthEndpoints.UnitTests.csproj", "{02E19E16-EF1D-4B6A-A81F-F8EBC5A1B29B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3E3CD5E3-BB7F-43A7-9B4A-4BBD33744C4D}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
