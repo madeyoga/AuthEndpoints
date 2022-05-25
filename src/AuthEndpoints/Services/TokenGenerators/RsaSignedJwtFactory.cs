@@ -28,20 +28,16 @@ public class RsaSignedJwtFactory : IJwtFactory
     /// <returns>a jwt in string</returns>
     public string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes)
     {
-        using var rsa = RSA.Create();
-        rsa.ImportFromPem(secret);
-
-        var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
-        var header = new JwtHeader(credentials);
-        var payload = new JwtPayload(
-            issuer,
-            audience,
-            claims,
-            DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(expirationMinutes)
+        return Create(
+            secret, 
+            new JwtPayload(
+                issuer,
+                audience,
+                claims,
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(expirationMinutes)
+            )
         );
-
-        return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
     }
 
     /// <summary>
@@ -49,7 +45,7 @@ public class RsaSignedJwtFactory : IJwtFactory
     /// </summary>
     /// <param name="secret"></param>
     /// <param name="payload"></param>
-    /// <returns></returns>
+    /// <returns>a jwt in string</returns>
     public string Create(string secret, JwtPayload payload)
     {
         using var rsa = RSA.Create();

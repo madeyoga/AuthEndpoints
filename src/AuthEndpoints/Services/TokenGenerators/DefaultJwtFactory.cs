@@ -20,27 +20,21 @@ public class DefaultJwtFactory : IJwtFactory
     /// <summary>
     /// Use this method to create a HS256-based jwt
     /// </summary>
-    /// <param name="user"></param>
     /// <param name="secret"></param>
     /// <param name="issuer"></param>
     /// <param name="audience"></param>
+    /// <param name="claims"></param>
     /// <param name="expirationMinutes"></param>
     /// <returns>a jwt in string</returns>
-    public string Create(string secret, string issuer, string audience, IList<Claim>? claims, int expirationMinutes)
+    public string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes)
     {
-        SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var header = new JwtHeader(credentials);
-        var payload = new JwtPayload(
+        return Create(secret, new JwtPayload(
             issuer,
             audience,
             claims,
             DateTime.UtcNow,
-            DateTime.UtcNow.AddMinutes(expirationMinutes)
+            DateTime.UtcNow.AddMinutes(expirationMinutes))
         );
-
-        return tokenHandler.WriteToken(new JwtSecurityToken(header, payload));
     }
 
     /// <summary>
@@ -48,7 +42,7 @@ public class DefaultJwtFactory : IJwtFactory
     /// </summary>
     /// <param name="secret"></param>
     /// <param name="payload"></param>
-    /// <returns></returns>
+    /// <returns>a jwt in string</returns>
     public string Create(string secret, JwtPayload payload)
     {
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));

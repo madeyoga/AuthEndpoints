@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.Models;
+﻿using System.IdentityModel.Tokens.Jwt;
+using AuthEndpoints.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -14,7 +15,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     private readonly IJwtFactory jwtFactory;
     private readonly IClaimsProvider<TUser> accessClaimsProvider;
     private readonly IClaimsProvider<TUser> refreshClaimsProvider;
-    private readonly IOptions<AuthEndpointsOptions> options;
+    private readonly AuthEndpointsOptions options;
     private readonly UserManager<TUser> userManager;
 
     public DefaultAuthenticator(UserManager<TUser> userManager,
@@ -27,7 +28,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
         this.userManager = userManager;
         this.accessClaimsProvider = accessClaimsProvider;
         this.refreshClaimsProvider = refreshClaimsProvider;
-        this.options = options;
+        this.options = options.Value;
     }
 
     /// <summary>
@@ -62,19 +63,17 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access token and a refresh token</returns>
     public Task<AuthenticatedUserResponse> Login(TUser user)
     {
-        var authEndpointsOptions = options.Value;
-
-        string accessToken = jwtFactory.Create(authEndpointsOptions.AccessSecret!,
-            authEndpointsOptions.Issuer!,
-            authEndpointsOptions.Audience!,
+        string accessToken = jwtFactory.Create(options.AccessSecret!,
+            options.Issuer!,
+            options.Audience!,
             accessClaimsProvider.provideClaims(user),
-            authEndpointsOptions.AccessExpirationMinutes);
+            options.AccessExpirationMinutes);
 
-        string refreshToken = jwtFactory.Create(authEndpointsOptions.RefreshSecret!,
-            authEndpointsOptions.Issuer!,
-            authEndpointsOptions.Audience!,
+        string refreshToken = jwtFactory.Create(options.RefreshSecret!,
+            options.Issuer!,
+            options.Audience!,
             refreshClaimsProvider.provideClaims(user),
-            authEndpointsOptions.RefreshExpirationMinutes);
+            options.RefreshExpirationMinutes);
 
         return Task.FromResult(new AuthenticatedUserResponse()
         {
