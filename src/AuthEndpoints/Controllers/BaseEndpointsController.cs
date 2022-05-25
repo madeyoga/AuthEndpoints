@@ -75,7 +75,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to retrieve the authenticated user
     /// </summary>
-    [Authorize("jwt")]
+    [Authorize(AuthenticationSchemes = "jwt")]
     [HttpGet("me")]
     public virtual async Task<IActionResult> GetMe()
     {
@@ -95,7 +95,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [Authorize("jwt")]
+    [Authorize(AuthenticationSchemes = "jwt")]
     [HttpPost("set_username")]
     public virtual async Task<IActionResult> SetUsername([FromBody] SetUsernameRequest request)
     {
@@ -121,7 +121,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// <summary>
     /// Use this endpoint to change user password
     /// </summary>
-    [Authorize("jwt")]
+    [Authorize(AuthenticationSchemes = "jwt")]
     [HttpPost("set_password")]
     public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
