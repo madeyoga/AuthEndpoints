@@ -1,36 +1,50 @@
 ﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints.Options;
+namespace AuthEndpoints;
 
-public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
+internal class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 {
     public void PostConfigure(string name, AuthEndpointsOptions options)
     {
         var accessOptions = options.AccessSigningOptions!;
-        if (accessOptions.Algorithm!.StartsWith("HS") && options.AccessValidationParameters == null)
+        if (accessOptions.Algorithm!.StartsWith("HS"))
         {
-            options.AccessValidationParameters = new TokenValidationParameters()
+            if (options.AccessValidationParameters == null)
             {
-                IssuerSigningKey = accessOptions.SigningKey,
-                ValidIssuer = options.Issuer,
-                ValidAudience = options.Audience,
-                ValidateIssuerSigningKey = true,
-                ClockSkew = TimeSpan.Zero,
-            };
+                options.AccessValidationParameters = new TokenValidationParameters()
+                {
+                    IssuerSigningKey = accessOptions.SigningKey,
+                    ValidIssuer = options.Issuer,
+                    ValidAudience = options.Audience,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero,
+                };
+            }
+            else
+            {
+                options.AccessValidationParameters.IssuerSigningKey = accessOptions.SigningKey;
+            }
         }
 
         var refreshOptions = options.RefreshSigningOptions!;
-        if (refreshOptions.Algorithm!.StartsWith("HS") && options.RefreshValidationParameters == null)
+        if (refreshOptions.Algorithm!.StartsWith("HS"))
         {
-            options.RefreshValidationParameters = new TokenValidationParameters()
+            if (options.RefreshValidationParameters == null)
             {
-                IssuerSigningKey = refreshOptions.SigningKey,
-                ValidIssuer = options.Issuer,
-                ValidAudience = options.Audience,
-                ValidateIssuerSigningKey = true,
-                ClockSkew = TimeSpan.Zero,
-            };
+                options.RefreshValidationParameters = new TokenValidationParameters()
+                {
+                    IssuerSigningKey = refreshOptions.SigningKey,
+                    ValidIssuer = options.Issuer,
+                    ValidAudience = options.Audience,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero,
+                };
+            }
+            else
+            {
+                options.RefreshValidationParameters.IssuerSigningKey = refreshOptions.SigningKey;
+            }
         }
     }
 }

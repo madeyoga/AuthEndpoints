@@ -16,12 +16,12 @@ public class DefaultJwtFactory : IJwtFactory
     }
 
     /// <summary>
-    /// 
+    /// Use this method to create a jwt
     /// </summary>
     /// <param name="key"></param>
     /// <param name="algorithm"></param>
     /// <param name="payload"></param>
-    /// <returns></returns>
+    /// <returns>a jwt in string</returns>
     public string Create(SecurityKey key, string algorithm, JwtPayload payload)
     {
         var credentials = new SigningCredentials(key, algorithm);
