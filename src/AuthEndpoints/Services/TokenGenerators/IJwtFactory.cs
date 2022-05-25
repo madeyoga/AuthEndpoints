@@ -9,7 +9,7 @@ namespace AuthEndpoints.Services;
 public interface IJwtFactory
 {
     /// <summary>
-    /// Implements this methtod to create a jwt
+    /// Create a jwt
     /// </summary>
     /// <param name="secret"></param>
     /// <param name="issuer"></param>
@@ -19,5 +19,11 @@ public interface IJwtFactory
     /// <returns>a jwt in string</returns>
     string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="secret"></param>
+    /// <param name="payload"></param>
+    /// <returns></returns>
     string Create(string secret, JwtPayload payload);
 }
