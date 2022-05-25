@@ -1,4 +1,4 @@
-using AuthEndpoints.Services;
+﻿using AuthEndpoints.Services;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -10,8 +10,7 @@ namespace AuthEndpoints.UnitTests;
 [TestClass]
 public class UnitTests_DefaultServices
 {
-    private string? createdJwt = null;
-    private string? secret = "1234567890qwerty";
+    private string secret = "1234567890qwerty";
     private JwtSecurityTokenHandler? tokenHandler;
 
     [TestInitialize]
@@ -25,7 +24,17 @@ public class UnitTests_DefaultServices
     {
         var jwtFactory = new DefaultJwtFactory(tokenHandler!);
 
-        createdJwt = jwtFactory.Create(secret!, "webapi", "webapi", null, 15);
+        var createdJwt = jwtFactory.Create(
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+            SecurityAlgorithms.HmacSha256,
+            new JwtPayload(
+                "webapi",
+                "webapi",
+                null,
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(15)
+            )
+        );
 
         Assert.IsNotNull(createdJwt);
     }
@@ -35,12 +44,24 @@ public class UnitTests_DefaultServices
     {
         var jwtFactory = new DefaultJwtFactory(tokenHandler!);
 
-        createdJwt = jwtFactory.Create(secret!, "webapi", "webapi", null, 15);
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
+        var createdJwt = jwtFactory.Create(
+            key,
+            SecurityAlgorithms.HmacSha256,
+            new JwtPayload(
+                "webapi",
+                "webapi",
+                null,
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(15)
+            )
+        );
 
         var jwtValidator = new DefaultJwtValidator(tokenHandler!);
         var validationParam = new TokenValidationParameters()
         {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret!)),
+            IssuerSigningKey = key,
             ValidIssuer = "webapi",
             ValidAudience = "webapi",
             ValidateIssuerSigningKey = true,
