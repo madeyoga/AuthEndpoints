@@ -14,7 +14,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
 [Get started](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
 
 ## Documentations
-Documentation is available at tbd and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
+Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https://madeyoga.github.io/AuthEndpoints/) and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
 
 ## Contributing
 Your contributions are always welcome! simply send a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start.
