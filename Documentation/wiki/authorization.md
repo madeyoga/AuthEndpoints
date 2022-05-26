@@ -5,7 +5,7 @@ The following code limits access to the MyController to jwt authenticated users:
 ```cs
 using Microsoft.AspNetCore.Authorization;
 
-[Authorize("jwt")]
+[Authorize(AuthenticationSchemes = "jwt")]
 public class MyController : ControllerBase
 {}
 ```
@@ -20,10 +20,10 @@ public class MyController : ControllerBase
   public ActionResult Get()
   {}  
 
-  [Authorize("jwt")]
+  [Authorize(AuthenticationSchemes = "jwt")]
   public ActionResult Post() 
   {}
 }
 ```
 
-Read more at [the documentation](https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple)
+Read more about simple authorization at [the documentation](https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple)

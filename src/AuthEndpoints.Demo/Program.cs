@@ -1,4 +1,4 @@
-using AuthEndpoints;
+﻿using AuthEndpoints;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
+using System.Xml.XPath;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,36 +60,31 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 	.AddEntityFrameworkStores<MyDbContext>()
 	.AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
-var accessValidationParameters = new TokenValidationParameters()
-{
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("9GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k")),
-	ValidIssuer = "https://localhost:8000",
-	ValidAudience = "https://localhost:8000",
-	ValidateIssuerSigningKey = true,
-	ClockSkew = TimeSpan.Zero,
-};
-
-var refreshValidationParameters = new TokenValidationParameters()
-{
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("8GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k")),
-	ValidIssuer = "https://localhost:8000",
-	ValidAudience = "https://localhost:8000",
-	ValidateIssuerSigningKey = true,
-	ClockSkew = TimeSpan.Zero,
-};
-
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
-	AccessSecret = "9GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
-	RefreshSecret = "8GHdZCAJ2XaXFuhOhIt21zxJCWk7obnzcHqDB4t7X0WcvrB8bzvkyEFlIMRXO4o-y3eQs8e4uDiFJcAhnFOiE6I45aJQi22DEy5epVLyQIVFYI-dbumj8ieK1sKMPySfN9S4eliQznJYL82XhtI_8U1EvEL2_C7PX4rTR0Xjf8k",
-	AccessExpirationMinutes = 15,
-	RefreshExpirationMinutes = 6000,
+	AccessSigningOptions = new JwtSigningOptions()
+    {
+        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
+        Algorithm = SecurityAlgorithms.HmacSha256,
+        ExpirationMinutes = 120,
+    },
+    RefreshSigningOptions = new JwtSigningOptions()
+    {
+        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
+        Algorithm = SecurityAlgorithms.HmacSha256,
+        ExpirationMinutes = 120,
+    },
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
-    AccessValidationParameters = accessValidationParameters,
-    RefreshValidationParameters = refreshValidationParameters
 })
-	.AddJwtBearerAuthScheme(accessValidationParameters);
+.AddJwtBearerAuthScheme(new TokenValidationParameters()
+{
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
+    ValidIssuer = "https://localhost:8000",
+    ValidAudience = "https://localhost:8000",
+    ValidateIssuerSigningKey = true,
+    ClockSkew = TimeSpan.Zero,
+});
 
 var app = builder.Build();
 

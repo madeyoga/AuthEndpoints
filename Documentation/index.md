@@ -15,6 +15,7 @@ AuthEndpoints is built with the aim of increasing developer productivity.
 
 - [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/)
 
+[Get started!](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
 
 ## Available Endpoints
 

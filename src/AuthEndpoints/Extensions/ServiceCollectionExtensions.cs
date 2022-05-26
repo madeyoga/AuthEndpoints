@@ -16,6 +16,7 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
+        services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
         services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
 
         services.TryAddSingleton<IAccessClaimsProvider<TUser>, AccessClaimsProvider<TUserKey, TUser>>();
@@ -81,10 +82,8 @@ public static class ServiceCollectionExtensions
     {
         services.AddOptions<AuthEndpointsOptions>().Configure(options =>
         {
-            options.AccessSecret = customOptions.AccessSecret;
-            options.RefreshSecret = customOptions.RefreshSecret;
-            options.AccessExpirationMinutes = customOptions.AccessExpirationMinutes;
-            options.RefreshExpirationMinutes = customOptions.RefreshExpirationMinutes;
+            options.AccessSigningOptions = customOptions.AccessSigningOptions;
+            options.RefreshSigningOptions = customOptions.RefreshSigningOptions;
             options.Audience = customOptions.Audience;
             options.Issuer = customOptions.Issuer;
             options.AccessValidationParameters = customOptions.AccessValidationParameters;

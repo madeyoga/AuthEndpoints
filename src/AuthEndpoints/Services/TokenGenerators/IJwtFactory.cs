@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Services;
 
@@ -9,21 +10,11 @@ namespace AuthEndpoints.Services;
 public interface IJwtFactory
 {
     /// <summary>
-    /// Create a jwt
+    /// Method for creating a jwt
     /// </summary>
-    /// <param name="secret"></param>
-    /// <param name="issuer"></param>
-    /// <param name="audience"></param>
-    /// <param name="claims"></param>
-    /// <param name="expirationMinutes"></param>
-    /// <returns>a jwt in string</returns>
-    string Create(string secret, string issuer, string audience, IList<Claim> claims, int expirationMinutes);
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="secret"></param>
+    /// <param name="key"></param>
+    /// <param name="algorithm"></param>
     /// <param name="payload"></param>
     /// <returns></returns>
-    string Create(string secret, JwtPayload payload);
+    public string Create(SecurityKey key, string algorithm, JwtPayload payload);
 }
