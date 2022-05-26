@@ -82,7 +82,7 @@
 <p>The following code limits access to the MyController to jwt authenticated users:</p>
 <pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
 
-[Authorize(&quot;jwt&quot;)]
+[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
 public class MyController : ControllerBase
 {}
 </code></pre>
@@ -94,12 +94,12 @@ public class MyController : ControllerBase
   public ActionResult Get()
   {}  
 
-  [Authorize(&quot;jwt&quot;)]
+  [Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
   public ActionResult Post() 
   {}
 }
 </code></pre>
-<p>Read more at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple">the documentation</a></p>
+<p>Read more about simple authorization at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple">the documentation</a></p>
 </article>
           </div>
           
@@ -108,7 +108,7 @@ public class MyController : ControllerBase
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/authorization.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/signing-options/Documentation/wiki/authorization.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

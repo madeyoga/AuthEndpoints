@@ -2,17 +2,17 @@
 
 namespace AuthEndpoints;
 
-internal class OptionsValidator : IValidateOptions<AuthEndpointsOptions>
+public class OptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {
     public ValidateOptionsResult Validate(string name, AuthEndpointsOptions options)
     {
-        if (options.AccessSecret == null)
+        if (options.AccessSigningOptions.SigningKey == null)
         {
-            return ValidateOptionsResult.Fail("AuthEndpointsOptions.AccessTokenSecret cannot be null");
+            return ValidateOptionsResult.Fail("AuthEndpointsOptions.AccessSigningKey cannot be null");
         }
-        if (options.RefreshSecret == null)
+        if (options.RefreshSigningOptions.SigningKey == null)
         {
-            return ValidateOptionsResult.Fail("AuthEndpointsOptions.RefreshTokenSecret cannot be null");
+            return ValidateOptionsResult.Fail("AuthEndpointsOptions.RefreshSigningKey cannot be null");
         }
         if (options.Issuer == null)
         {

@@ -180,32 +180,19 @@ references:
   commentId: T:AuthEndpoints.AuthEndpointsOptions
   fullName: AuthEndpoints.AuthEndpointsOptions
   nameWithType: AuthEndpointsOptions
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
-  name: AccessExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessExpirationMinutes
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
-  nameWithType: AuthEndpointsOptions.AccessExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes*
-  name: AccessExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessExpirationMinutes_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessSigningOptions
+  name: AccessSigningOptions
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessSigningOptions
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessSigningOptions
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessSigningOptions
+  nameWithType: AuthEndpointsOptions.AccessSigningOptions
+- uid: AuthEndpoints.AuthEndpointsOptions.AccessSigningOptions*
+  name: AccessSigningOptions
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessSigningOptions_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessSigningOptions
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessExpirationMinutes
-  nameWithType: AuthEndpointsOptions.AccessExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessSecret
-  name: AccessSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessSecret
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.AccessSecret
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessSecret
-  nameWithType: AuthEndpointsOptions.AccessSecret
-- uid: AuthEndpoints.AuthEndpointsOptions.AccessSecret*
-  name: AccessSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessSecret_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.AccessSecret
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.AccessSecret
-  nameWithType: AuthEndpointsOptions.AccessSecret
+  fullName: AuthEndpoints.AuthEndpointsOptions.AccessSigningOptions
+  nameWithType: AuthEndpointsOptions.AccessSigningOptions
 - uid: AuthEndpoints.AuthEndpointsOptions.AccessValidationParameters
   name: AccessValidationParameters
   href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_AccessValidationParameters
@@ -251,32 +238,19 @@ references:
   commentId: F:AuthEndpoints.AuthEndpointsOptions.Key
   fullName: AuthEndpoints.AuthEndpointsOptions.Key
   nameWithType: AuthEndpointsOptions.Key
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
-  name: RefreshExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshExpirationMinutes
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
-  nameWithType: AuthEndpointsOptions.RefreshExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes*
-  name: RefreshExpirationMinutes
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshExpirationMinutes_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions
+  name: RefreshSigningOptions
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSigningOptions
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions
+  nameWithType: AuthEndpointsOptions.RefreshSigningOptions
+- uid: AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions*
+  name: RefreshSigningOptions
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSigningOptions_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshExpirationMinutes
-  nameWithType: AuthEndpointsOptions.RefreshExpirationMinutes
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshSecret
-  name: RefreshSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSecret
-  commentId: P:AuthEndpoints.AuthEndpointsOptions.RefreshSecret
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshSecret
-  nameWithType: AuthEndpointsOptions.RefreshSecret
-- uid: AuthEndpoints.AuthEndpointsOptions.RefreshSecret*
-  name: RefreshSecret
-  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSecret_
-  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.RefreshSecret
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshSecret
-  nameWithType: AuthEndpointsOptions.RefreshSecret
+  fullName: AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions
+  nameWithType: AuthEndpointsOptions.RefreshSigningOptions
 - uid: AuthEndpoints.AuthEndpointsOptions.RefreshValidationParameters
   name: RefreshValidationParameters
   href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshValidationParameters
@@ -517,6 +491,51 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Verify
   nameWithType: JwtController<TUserKey, TUser>.Verify
   nameWithType.vb: JwtController(Of TUserKey, TUser).Verify
+- uid: AuthEndpoints.JwtSigningOptions
+  name: JwtSigningOptions
+  href: api/AuthEndpoints.JwtSigningOptions.html
+  commentId: T:AuthEndpoints.JwtSigningOptions
+  fullName: AuthEndpoints.JwtSigningOptions
+  nameWithType: JwtSigningOptions
+- uid: AuthEndpoints.JwtSigningOptions.Algorithm
+  name: Algorithm
+  href: api/AuthEndpoints.JwtSigningOptions.html#AuthEndpoints_JwtSigningOptions_Algorithm
+  commentId: P:AuthEndpoints.JwtSigningOptions.Algorithm
+  fullName: AuthEndpoints.JwtSigningOptions.Algorithm
+  nameWithType: JwtSigningOptions.Algorithm
+- uid: AuthEndpoints.JwtSigningOptions.Algorithm*
+  name: Algorithm
+  href: api/AuthEndpoints.JwtSigningOptions.html#AuthEndpoints_JwtSigningOptions_Algorithm_
+  commentId: Overload:AuthEndpoints.JwtSigningOptions.Algorithm
+  isSpec: "True"
+  fullName: AuthEndpoints.JwtSigningOptions.Algorithm
+  nameWithType: JwtSigningOptions.Algorithm
+- uid: AuthEndpoints.JwtSigningOptions.ExpirationMinutes
+  name: ExpirationMinutes
+  href: api/AuthEndpoints.JwtSigningOptions.html#AuthEndpoints_JwtSigningOptions_ExpirationMinutes
+  commentId: P:AuthEndpoints.JwtSigningOptions.ExpirationMinutes
+  fullName: AuthEndpoints.JwtSigningOptions.ExpirationMinutes
+  nameWithType: JwtSigningOptions.ExpirationMinutes
+- uid: AuthEndpoints.JwtSigningOptions.ExpirationMinutes*
+  name: ExpirationMinutes
+  href: api/AuthEndpoints.JwtSigningOptions.html#AuthEndpoints_JwtSigningOptions_ExpirationMinutes_
+  commentId: Overload:AuthEndpoints.JwtSigningOptions.ExpirationMinutes
+  isSpec: "True"
+  fullName: AuthEndpoints.JwtSigningOptions.ExpirationMinutes
+  nameWithType: JwtSigningOptions.ExpirationMinutes
+- uid: AuthEndpoints.JwtSigningOptions.SigningKey
+  name: SigningKey
+  href: api/AuthEndpoints.JwtSigningOptions.html#AuthEndpoints_JwtSigningOptions_SigningKey
+  commentId: P:AuthEndpoints.JwtSigningOptions.SigningKey
+  fullName: AuthEndpoints.JwtSigningOptions.SigningKey
+  nameWithType: JwtSigningOptions.SigningKey
+- uid: AuthEndpoints.JwtSigningOptions.SigningKey*
+  name: SigningKey
+  href: api/AuthEndpoints.JwtSigningOptions.html#AuthEndpoints_JwtSigningOptions_SigningKey_
+  commentId: Overload:AuthEndpoints.JwtSigningOptions.SigningKey
+  isSpec: "True"
+  fullName: AuthEndpoints.JwtSigningOptions.SigningKey
+  nameWithType: JwtSigningOptions.SigningKey
 - uid: AuthEndpoints.Models
   name: AuthEndpoints.Models
   href: api/AuthEndpoints.Models.html
@@ -992,21 +1011,12 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultJwtFactory.DefaultJwtFactory
   nameWithType: DefaultJwtFactory.DefaultJwtFactory
-- uid: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
-  name: Create(String, JwtPayload)
-  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
-  commentId: M:AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
-  fullName: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
-  nameWithType: DefaultJwtFactory.Create(String, JwtPayload)
-- uid: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.String,System.String,System.Nullable{IList{System.Security.Claims.Claim}},System.Int32)
-  name: Create(String, String, String, Nullable<IList<Claim>>, Int32)
-  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_System_String_System_String_System_String_System_Nullable_IList_System_Security_Claims_Claim___System_Int32_
-  commentId: M:AuthEndpoints.Services.DefaultJwtFactory.Create(System.String,System.String,System.String,System.Nullable{IList{System.Security.Claims.Claim}},System.Int32)
-  name.vb: Create(String, String, String, Nullable(Of IList(Of Claim)), Int32)
-  fullName: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String, System.String, System.String, System.Nullable<IList<System.Security.Claims.Claim>>, System.Int32)
-  fullName.vb: AuthEndpoints.Services.DefaultJwtFactory.Create(System.String, System.String, System.String, System.Nullable(Of IList(Of System.Security.Claims.Claim)), System.Int32)
-  nameWithType: DefaultJwtFactory.Create(String, String, String, Nullable<IList<Claim>>, Int32)
-  nameWithType.vb: DefaultJwtFactory.Create(String, String, String, Nullable(Of IList(Of Claim)), Int32)
+- uid: AuthEndpoints.Services.DefaultJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey,System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  name: Create(SecurityKey, String, JwtPayload)
+  href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_Microsoft_IdentityModel_Tokens_SecurityKey_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
+  commentId: M:AuthEndpoints.Services.DefaultJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey,System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  fullName: AuthEndpoints.Services.DefaultJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey, System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
+  nameWithType: DefaultJwtFactory.Create(SecurityKey, String, JwtPayload)
 - uid: AuthEndpoints.Services.DefaultJwtFactory.Create*
   name: Create
   href: api/AuthEndpoints.Services.DefaultJwtFactory.html#AuthEndpoints_Services_DefaultJwtFactory_Create_
@@ -1156,21 +1166,12 @@ references:
   commentId: T:AuthEndpoints.Services.IJwtFactory
   fullName: AuthEndpoints.Services.IJwtFactory
   nameWithType: IJwtFactory
-- uid: AuthEndpoints.Services.IJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
-  name: Create(String, JwtPayload)
-  href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
-  commentId: M:AuthEndpoints.Services.IJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
-  fullName: AuthEndpoints.Services.IJwtFactory.Create(System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
-  nameWithType: IJwtFactory.Create(String, JwtPayload)
-- uid: AuthEndpoints.Services.IJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
-  name: Create(String, String, String, IList<Claim>, Int32)
-  href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
-  commentId: M:AuthEndpoints.Services.IJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
-  name.vb: Create(String, String, String, IList(Of Claim), Int32)
-  fullName: AuthEndpoints.Services.IJwtFactory.Create(System.String, System.String, System.String, IList<System.Security.Claims.Claim>, System.Int32)
-  fullName.vb: AuthEndpoints.Services.IJwtFactory.Create(System.String, System.String, System.String, IList(Of System.Security.Claims.Claim), System.Int32)
-  nameWithType: IJwtFactory.Create(String, String, String, IList<Claim>, Int32)
-  nameWithType.vb: IJwtFactory.Create(String, String, String, IList(Of Claim), Int32)
+- uid: AuthEndpoints.Services.IJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey,System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  name: Create(SecurityKey, String, JwtPayload)
+  href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_Microsoft_IdentityModel_Tokens_SecurityKey_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
+  commentId: M:AuthEndpoints.Services.IJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey,System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  fullName: AuthEndpoints.Services.IJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey, System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
+  nameWithType: IJwtFactory.Create(SecurityKey, String, JwtPayload)
 - uid: AuthEndpoints.Services.IJwtFactory.Create*
   name: Create
   href: api/AuthEndpoints.Services.IJwtFactory.html#AuthEndpoints_Services_IJwtFactory_Create_
@@ -1277,21 +1278,12 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.RsaSignedJwtFactory.RsaSignedJwtFactory
   nameWithType: RsaSignedJwtFactory.RsaSignedJwtFactory
-- uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
-  name: Create(String, JwtPayload)
-  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
-  commentId: M:AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
-  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
-  nameWithType: RsaSignedJwtFactory.Create(String, JwtPayload)
-- uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
-  name: Create(String, String, String, IList<Claim>, Int32)
-  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_System_String_System_String_System_String_IList_System_Security_Claims_Claim__System_Int32_
-  commentId: M:AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String,System.String,System.String,IList{System.Security.Claims.Claim},System.Int32)
-  name.vb: Create(String, String, String, IList(Of Claim), Int32)
-  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String, System.String, System.String, IList<System.Security.Claims.Claim>, System.Int32)
-  fullName.vb: AuthEndpoints.Services.RsaSignedJwtFactory.Create(System.String, System.String, System.String, IList(Of System.Security.Claims.Claim), System.Int32)
-  nameWithType: RsaSignedJwtFactory.Create(String, String, String, IList<Claim>, Int32)
-  nameWithType.vb: RsaSignedJwtFactory.Create(String, String, String, IList(Of Claim), Int32)
+- uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey,System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  name: Create(SecurityKey, String, JwtPayload)
+  href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_Microsoft_IdentityModel_Tokens_SecurityKey_System_String_System_IdentityModel_Tokens_Jwt_JwtPayload_
+  commentId: M:AuthEndpoints.Services.RsaSignedJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey,System.String,System.IdentityModel.Tokens.Jwt.JwtPayload)
+  fullName: AuthEndpoints.Services.RsaSignedJwtFactory.Create(Microsoft.IdentityModel.Tokens.SecurityKey, System.String, System.IdentityModel.Tokens.Jwt.JwtPayload)
+  nameWithType: RsaSignedJwtFactory.Create(SecurityKey, String, JwtPayload)
 - uid: AuthEndpoints.Services.RsaSignedJwtFactory.Create*
   name: Create
   href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html#AuthEndpoints_Services_RsaSignedJwtFactory_Create_

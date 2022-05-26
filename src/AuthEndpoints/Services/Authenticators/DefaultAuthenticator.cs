@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.Models;
+﻿using System.IdentityModel.Tokens.Jwt;
+using AuthEndpoints.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -62,18 +63,28 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access token and a refresh token</returns>
     public Task<AuthenticatedUserResponse> Login(TUser user)
     {
-        string accessToken = jwtFactory.Create(options.AccessSecret!,
-            options.Issuer!,
-            options.Audience!,
-            accessClaimsProvider.provideClaims(user),
-            options.AccessExpirationMinutes);
-
-        string refreshToken = jwtFactory.Create(options.RefreshSecret!,
-            options.Issuer!,
-            options.Audience!,
-            refreshClaimsProvider.provideClaims(user),
-            options.RefreshExpirationMinutes);
-
+        string accessToken = jwtFactory.Create(
+            options.AccessSigningOptions.SigningKey!,
+            options.AccessSigningOptions.Algorithm,
+            new JwtPayload(
+                options.Issuer!,
+                options.Audience!,
+                accessClaimsProvider.provideClaims(user),
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(options.AccessSigningOptions.ExpirationMinutes)
+            )
+        );
+        string refreshToken = jwtFactory.Create(
+            options.RefreshSigningOptions.SigningKey!,
+            options.RefreshSigningOptions.Algorithm,
+            new JwtPayload(
+                options.Issuer!,
+                options.Audience!,
+                refreshClaimsProvider.provideClaims(user),
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(options.RefreshSigningOptions.ExpirationMinutes)
+            )
+        );
         return Task.FromResult(new AuthenticatedUserResponse()
         {
             AccessToken = accessToken,

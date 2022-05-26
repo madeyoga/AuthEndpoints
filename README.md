@@ -11,41 +11,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
 ### NuGet
 - [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/)
 
-## Basic Usage
-```cs
-// in your Program.cs
-
-var accessParameters = new TokenValidationParameters()
-{
-	...
-};
-
-var refreshParameters = new TokenValidationParameters()
-{
-	...
-};
-
-builder.Services.AddAuthEndpoints<string, IdentityUser>(new AuthEndpointsOptions()
-{
-	AccessSecret = "<accesstoken_secret_key>",
-	RefreshSecret = "<refreshtoken_secret_key>",
-	AccessExpirationMinutes = 15,
-	RefreshExpirationMinutes = 6000,
-	Audience = "https://localhost:8000",
-	Issuer = "https://localhost:8000",
-	AccessValidationParameters = accessParameters,
-	RefreshValidationParameters = refreshParameters
-}).AddJwtBearerAuthScheme(accessParameters);
-
-
-// Create a controller and inherit the base controller
-
-public class AuthenticationController : JwtController<string, IdentityUser>
-{}
-
-public class UserController : BaseEndpointsController<string, IdentityUser>
-{}
-```
+[Get started](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
 
 ## Documentations
 Documentation is available at tbd and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
