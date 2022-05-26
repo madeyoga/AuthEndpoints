@@ -30,22 +30,34 @@ Install-Package AuthEndpoints
 Edit `Program.cs`, then add auth endpoints services and jwt bearer authentication scheme:
 
 ```cs
+var accessValidationParam = new TokenValidationParameters()
+{
+  IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
+  ValidIssuer = "https://localhost:8000",
+  ValidAudience = "https://localhost:8000",
+  ValidateIssuerSigningKey = true,
+  ClockSkew = TimeSpan.Zero,
+};
+
 services.AddAuthEndpoints<string, IdentityUser>(options => 
 {
-  // These secrets will be used for signing jwts
-  options.AccessSecret = "...",
-  options.RefreshSecret = "...",
-  options.Issuer = "...",
-  options.Audience = "...",
-  options.AccessExpirationMinutes = 120; // Access token expires in 2 hours
-  options.AccessExpirationMinutes = 2880; // Refresh token expires in 2 days
-
-  // These validation parameters will be used for verifying/validating jwts
-  options.AccessValidationParameters = new TokenValidationParameters()
-  { ... }
-  options.RefreshValidationParameters = new TokenValidationParameters()
-  { ... }
-}).AddJwtBearerAuthScheme(AccessValidationParameters);
+  AccessSigningOptions = new JwtSigningOptions()
+  {
+    // SigningKey for verifying jwts will also be used for signing jwts
+    SigningKey = accessValidationParam.IssuerSigningKey,
+    Algorithm = SecurityAlgorithms.HmacSha256,
+    ExpirationMinutes = 120, // Expires in 2 hours
+  },
+  RefreshSigningOptions = new JwtSigningOptions()
+  {
+    SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
+    Algorithm = SecurityAlgorithms.HmacSha256,
+    ExpirationMinutes = 2880, // Expires in 2 days
+  },
+  Audience = "https://localhost:8000",
+  Issuer = "https://localhost:8000",
+})
+.AddJwtBearerAuthScheme();
 ```
 
 ## Add Base Authentication Endpoints

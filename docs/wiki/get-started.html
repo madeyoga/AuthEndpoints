@@ -93,22 +93,34 @@
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
 <p>Edit <code>Program.cs</code>, then add auth endpoints services and jwt bearer authentication scheme:</p>
-<pre><code class="lang-cs">services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
+<pre><code class="lang-cs">var accessValidationParam = new TokenValidationParameters()
 {
-  // These secrets will be used for signing jwts
-  options.AccessSecret = &quot;...&quot;,
-  options.RefreshSecret = &quot;...&quot;,
-  options.Issuer = &quot;...&quot;,
-  options.Audience = &quot;...&quot;,
-  options.AccessExpirationMinutes = 120; // Access token expires in 2 hours
-  options.AccessExpirationMinutes = 2880; // Refresh token expires in 2 days
+  IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;1234567890qwerty&quot;)),
+  ValidIssuer = &quot;https://localhost:8000&quot;,
+  ValidAudience = &quot;https://localhost:8000&quot;,
+  ValidateIssuerSigningKey = true,
+  ClockSkew = TimeSpan.Zero,
+};
 
-  // These validation parameters will be used for verifying/validating jwts
-  options.AccessValidationParameters = new TokenValidationParameters()
-  { ... }
-  options.RefreshValidationParameters = new TokenValidationParameters()
-  { ... }
-}).AddJwtBearerAuthScheme(AccessValidationParameters);
+services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
+{
+  AccessSigningOptions = new JwtSigningOptions()
+  {
+    // SigningKey for verifying jwts will also be used for signing jwts
+    SigningKey = accessValidationParam.IssuerSigningKey,
+    Algorithm = SecurityAlgorithms.HmacSha256,
+    ExpirationMinutes = 120, // Expires in 2 hours
+  },
+  RefreshSigningOptions = new JwtSigningOptions()
+  {
+    SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;qwerty0987654321&quot;)),
+    Algorithm = SecurityAlgorithms.HmacSha256,
+    ExpirationMinutes = 2880, // Expires in 2 days
+  },
+  Audience = &quot;https://localhost:8000&quot;,
+  Issuer = &quot;https://localhost:8000&quot;,
+})
+.AddJwtBearerAuthScheme();
 </code></pre>
 <h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
 <p>Create a new directory called <code>Controllers</code> then create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
@@ -130,7 +142,7 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/signing-options/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
