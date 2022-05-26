@@ -60,24 +60,6 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 	.AddEntityFrameworkStores<MyDbContext>()
 	.AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
-var accessValidationParameters = new TokenValidationParameters()
-{
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
-	ValidIssuer = "https://localhost:8000",
-	ValidAudience = "https://localhost:8000",
-	ValidateIssuerSigningKey = true,
-	ClockSkew = TimeSpan.Zero,
-};
-
-var refreshValidationParameters = new TokenValidationParameters()
-{
-	IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
-	ValidIssuer = "https://localhost:8000",
-	ValidAudience = "https://localhost:8000",
-	ValidateIssuerSigningKey = true,
-	ClockSkew = TimeSpan.Zero,
-};
-
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
 	AccessSigningOptions = new JwtSigningOptions()
@@ -94,10 +76,15 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
     },
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
-    AccessValidationParameters = accessValidationParameters,
-    RefreshValidationParameters = refreshValidationParameters
 })
-	.AddJwtBearerAuthScheme(accessValidationParameters);
+.AddJwtBearerAuthScheme(new TokenValidationParameters()
+{
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
+    ValidIssuer = "https://localhost:8000",
+    ValidAudience = "https://localhost:8000",
+    ValidateIssuerSigningKey = true,
+    ClockSkew = TimeSpan.Zero,
+});
 
 var app = builder.Build();
 
