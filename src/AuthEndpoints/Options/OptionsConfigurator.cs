@@ -3,7 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints;
 
-internal class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
+public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 {
     public void PostConfigure(string name, AuthEndpointsOptions options)
     {

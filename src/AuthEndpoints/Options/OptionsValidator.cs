@@ -2,7 +2,7 @@
 
 namespace AuthEndpoints;
 
-internal class OptionsValidator : IValidateOptions<AuthEndpointsOptions>
+public class OptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {
     public ValidateOptionsResult Validate(string name, AuthEndpointsOptions options)
     {
