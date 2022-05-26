@@ -8,7 +8,7 @@ using System.Text;
 namespace AuthEndpoints.UnitTests;
 
 [TestClass]
-public class UnitTests_DefaultServices
+public class UnitTest_DefaultServices
 {
     private string secret = "1234567890qwerty";
     private JwtSecurityTokenHandler? tokenHandler;
