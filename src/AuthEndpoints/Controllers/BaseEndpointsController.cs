@@ -74,15 +74,25 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Use this endpoints to send email confirmation
+    /// </summary>
+    /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
-    [HttpGet("send_confirm_email")]
+    [HttpGet("email_confirmation")]
     public virtual async Task<IActionResult> SendEmailConfirmation()
     {
         string identity = HttpContext.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
+        
+        if (user.EmailConfirmed)
+        {
+            return Forbid();
+        }
+
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        // var link = Url.Action("confirm_email", "users", new { identity = identity, token = token }, Request.Scheme);
+        // var link = Url.Action("confirm_email", "users", new { Identity = Identity, Token = Token }, Request.Scheme);
         var link = options.EmailConfirmationUrl
             .Replace("{uid}", identity)
             .Replace("{token}", token)
@@ -93,16 +103,20 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         return NoContent();
     }
 
-    [ApiExplorerSettings(IgnoreApi = true)]
-    [HttpGet("confirm_email")]
-    public virtual async Task<IActionResult> ConfirmEmail(string identity, string token)
+    /// <summary>
+    /// Use this endpoint to confirm user email. 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    [HttpGet("email_confirmation_confirm")]
+    public virtual async Task<IActionResult> EmailConfirmationConfirm([FromBody] ConfirmEmailRequest request)
     {
-        if (identity == null || token == null)
+        if (request.Identity == null || request.Token == null)
         {
             return BadRequest();
         }
 
-        var user = await userManager.FindByIdAsync(identity);
+        var user = await userManager.FindByIdAsync(request.Identity);
 
         if (user == null)
         {
@@ -114,7 +128,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
             return Forbid();
         }
 
-        var result = await userManager.ConfirmEmailAsync(user, token);
+        var result = await userManager.ConfirmEmailAsync(user, request.Token);
 
         if (result.Succeeded)
         {
@@ -143,8 +157,12 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok(currentUser);
     }
 
+    /// <summary>
+    /// Use this endpoint to delete authenticated user.
+    /// </summary>
+    /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
-    [HttpPost("delete")]
+    [HttpDelete("delete")]
     public virtual async Task<IActionResult> Delete()
     {
         var identity = HttpContext.User.FindFirstValue("id");
@@ -229,6 +247,11 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Use this endpoint to send email to user with password reset link.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("reset_password")]
     public virtual async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
@@ -251,8 +274,8 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-        // generate link to the frontend application that contains identity and token.
-        // e.g. "#password-reset/{uid}/{token}"
+        // generate link to the frontend application that contains Identity and Token.
+        // e.g. "#password-reset/{uid}/{Token}"
         var link = options.PasswordResetConfirmationUrl
             .Replace("{uid}", user.Id.ToString())
             .Replace("{token}", token)
@@ -263,6 +286,11 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Use this endpoint to finish reset password process.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("reset_password_confirm")]
     public virtual async Task<IActionResult> ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request)
     {
