@@ -8,6 +8,8 @@ namespace AuthEndpoints;
 public class AuthEndpointsOptions
 {
     public const string Key = "AuthEndpoints";
+    public string EmailConfirmationUrl { get; set; }
+    public string PasswordResetConfirmationUrl { get; set; }
     public string? Issuer { get; set; }
     public string? Audience { get; set; }
 

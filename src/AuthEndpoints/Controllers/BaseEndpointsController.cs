@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Security.Claims;
 
 namespace AuthEndpoints.Controllers;
@@ -19,11 +20,13 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 {
     protected readonly UserManager<TUser> userManager;
     protected readonly IdentityErrorDescriber errorDescriber;
+    protected readonly AuthEndpointsOptions options;
 
-    public BaseEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber)
+    public BaseEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options)
     {
         this.userManager = userManager;
         this.errorDescriber = errorDescriber;
+        this.options = options.Value;
     }
 
     /// <summary>
@@ -71,6 +74,56 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+    [Authorize(AuthenticationSchemes = "jwt")]
+    [HttpGet("send_confirm_email")]
+    public virtual async Task<IActionResult> SendEmailConfirmation()
+    {
+        string identity = HttpContext.User.FindFirstValue("id");
+        TUser user = await userManager.FindByIdAsync(identity);
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        // var link = Url.Action("confirm_email", "users", new { identity = identity, token = token }, Request.Scheme);
+        var link = options.EmailConfirmationUrl
+            .Replace("{uid}", identity)
+            .Replace("{token}", token)
+            .Trim();
+
+        // send email
+
+        return NoContent();
+    }
+
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [HttpGet("confirm_email")]
+    public virtual async Task<IActionResult> ConfirmEmail(string identity, string token)
+    {
+        if (identity == null || token == null)
+        {
+            return BadRequest();
+        }
+
+        var user = await userManager.FindByIdAsync(identity);
+
+        if (user == null)
+        {
+            return BadRequest();
+        }
+
+        if (user.EmailConfirmed)
+        {
+            return Forbid();
+        }
+
+        var result = await userManager.ConfirmEmailAsync(user, token);
+
+        if (result.Succeeded)
+        {
+            return NoContent();
+        }
+
+        IEnumerable<string> errors = result.Errors.Select(error => error.Description);
+        return Conflict(errors);
+    }
 
     /// <summary>
     /// Use this endpoint to retrieve the authenticated user
@@ -88,6 +141,23 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         TUser currentUser = await userManager.FindByIdAsync(identity);
 
         return Ok(currentUser);
+    }
+
+    [Authorize(AuthenticationSchemes = "jwt")]
+    [HttpPost("delete")]
+    public virtual async Task<IActionResult> Delete()
+    {
+        var identity = HttpContext.User.FindFirstValue("id");
+        TUser user = await userManager.FindByIdAsync(identity);
+        var result = await userManager.DeleteAsync(user);
+
+        if (result.Succeeded)
+        {
+            return NoContent();
+        }
+
+        IEnumerable<string> errors = result.Errors.Select(error => error.Description);
+        return Conflict(errors);
     }
 
     /// <summary>
@@ -157,6 +227,66 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         }
 
         return NoContent();
+    }
+
+    [HttpPost("reset_password")]
+    public virtual async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequestModelState();
+        }
+
+        TUser user = await userManager.FindByEmailAsync(request.Email);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        if (!user.EmailConfirmed)
+        {
+            return Forbid();
+        }
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+        // generate link to the frontend application that contains identity and token.
+        // e.g. "#password-reset/{uid}/{token}"
+        var link = options.PasswordResetConfirmationUrl
+            .Replace("{uid}", user.Id.ToString())
+            .Replace("{token}", token)
+            .Trim();
+
+        // send email
+
+        return NoContent();
+    }
+
+    [HttpPost("reset_password_confirm")]
+    public virtual async Task<IActionResult> ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequestModelState();
+        }
+
+        TUser user = await userManager.FindByIdAsync(request.Identity);
+
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+
+        if (result.Succeeded)
+        {
+            return NoContent();
+        }
+
+        IEnumerable<string> errors = result.Errors.Select(error => error.Description);
+        return Conflict(errors);
     }
 
     private IActionResult BadRequestModelState()

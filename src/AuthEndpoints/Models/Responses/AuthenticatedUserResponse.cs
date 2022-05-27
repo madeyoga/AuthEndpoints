@@ -1,7 +1,7 @@
 ﻿namespace AuthEndpoints.Models;
 
 /// <summary>
-/// the dto used to send an authenticated user response containing access token and refresh token
+/// the dto used to send an authenticated user response containing access Token and refresh Token
 /// </summary>
 public class AuthenticatedUserResponse
 {

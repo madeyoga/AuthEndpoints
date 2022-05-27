@@ -57,10 +57,10 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     }
 
     /// <summary>
-    /// Use this method to get an access token and a refresh token for the given TUser
+    /// Use this method to get an access Token and a refresh Token for the given TUser
     /// </summary>
     /// <param name="user"></param>
-    /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access token and a refresh token</returns>
+    /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access Token and a refresh Token</returns>
     public Task<AuthenticatedUserResponse> Login(TUser user)
     {
         string accessToken = jwtFactory.Create(
