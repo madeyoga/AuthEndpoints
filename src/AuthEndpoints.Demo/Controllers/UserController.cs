@@ -5,9 +5,10 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Demo.Controllers;
 
-public class UserController : BaseEndpointsController<string, MyCustomIdentityUser>
+[Tags("Authentication")]
+public class AuthenticationController : BaseEndpointsController<string, MyCustomIdentityUser>
 {
-    public UserController(UserManager<MyCustomIdentityUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options) : base(userManager, errorDescriber, options)
+    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options) : base(userManager, errorDescriber, options)
     {
     }
 }
