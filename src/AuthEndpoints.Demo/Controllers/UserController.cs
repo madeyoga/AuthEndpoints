@@ -8,7 +8,11 @@ namespace AuthEndpoints.Demo.Controllers;
 [Tags("Authentication")]
 public class AuthenticationController : BaseEndpointsController<string, MyCustomIdentityUser>
 {
-    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options) : base(userManager, errorDescriber, options)
+    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, 
+        IdentityErrorDescriber errorDescriber, 
+        IOptions<AuthEndpointsOptions> options, 
+        IEmailSender emailSender,
+        IEmailFactory emailFactory) : base(userManager, errorDescriber, options, emailSender, emailFactory)
     {
     }
 }

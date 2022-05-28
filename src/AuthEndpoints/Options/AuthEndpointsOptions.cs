@@ -8,11 +8,9 @@ namespace AuthEndpoints;
 public class AuthEndpointsOptions
 {
     public const string Key = "AuthEndpoints";
-    public string EmailConfirmationUrl { get; set; }
-    public string PasswordResetConfirmationUrl { get; set; }
+
     public string? Issuer { get; set; }
     public string? Audience { get; set; }
-
     public JwtSigningOptions AccessSigningOptions { get; set; } = new JwtSigningOptions()
     {
         Algorithm = SecurityAlgorithms.HmacSha256,
@@ -25,4 +23,8 @@ public class AuthEndpointsOptions
     };
     public TokenValidationParameters? AccessValidationParameters { get; set; }
     public TokenValidationParameters? RefreshValidationParameters { get; set; }
+
+    public string? EmailConfirmationUrl { get; set; }
+    public string? PasswordResetConfirmationUrl { get; set; }
+    public EmailOptions? EmailOptions { get; set; } = new EmailOptions();
 }

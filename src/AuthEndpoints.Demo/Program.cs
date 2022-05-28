@@ -50,15 +50,16 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 {
-	option.User.RequireUniqueEmail = true;
-	// For testing only, remove this for production
-	option.Password.RequireDigit = false;
-	option.Password.RequireNonAlphanumeric = false;
-	option.Password.RequireUppercase = false;
-	option.Password.RequiredLength = 0;
+    option.User.RequireUniqueEmail = true;
+    // For testing only, remove this for production
+    option.Password.RequireDigit = false;
+    option.Password.RequireNonAlphanumeric = false;
+    option.Password.RequireUppercase = false;
+    option.Password.RequiredLength = 0;
 })
-	.AddEntityFrameworkStores<MyDbContext>()
-	.AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+    .AddEntityFrameworkStores<MyDbContext>()
+    .AddDefaultTokenProviders();
+	// .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {

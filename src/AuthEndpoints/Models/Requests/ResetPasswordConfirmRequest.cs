@@ -4,11 +4,11 @@ namespace AuthEndpoints.Models;
 public class ResetPasswordConfirmRequest
 {
     [Required]
-    public string Identity { get; set; }
+    public string? Identity { get; set; }
     [Required]
-    public string Token { get; set; }
+    public string? Token { get; set; }
     [Required]
-    public string NewPassword { get; set; }
+    public string? NewPassword { get; set; }
     [Required]
-    public string ConfirmNewPassword { get; set; }
+    public string? ConfirmNewPassword { get; set; }
 }

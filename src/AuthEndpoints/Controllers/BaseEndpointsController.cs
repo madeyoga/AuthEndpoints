@@ -21,12 +21,16 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     protected readonly UserManager<TUser> userManager;
     protected readonly IdentityErrorDescriber errorDescriber;
     protected readonly AuthEndpointsOptions options;
+    protected readonly IEmailSender emailSender;
+    protected readonly IEmailFactory emailFactory;
 
-    public BaseEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options)
+    public BaseEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options, IEmailSender emailSender, IEmailFactory emailFactory)
     {
         this.userManager = userManager;
         this.errorDescriber = errorDescriber;
         this.options = options.Value;
+        this.emailSender = emailSender;
+        this.emailFactory = emailFactory;
     }
 
     /// <summary>
@@ -92,13 +96,14 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        // var link = Url.Action("confirm_email", "users", new { Identity = Identity, Token = Token }, Request.Scheme);
-        var link = options.EmailConfirmationUrl
+        var link = options.EmailConfirmationUrl!
             .Replace("{uid}", identity)
             .Replace("{token}", token)
             .Trim();
 
         // send email
+        var email = emailFactory.CreateConfirmationEmail(new Message(new string[] { user.Email }, "Email Confirmation", link));
+        await emailSender.SendEmailAsync(email);
 
         return NoContent();
     }
@@ -276,12 +281,14 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         // generate link to the frontend application that contains Identity and Token.
         // e.g. "#password-reset/{uid}/{Token}"
-        var link = options.PasswordResetConfirmationUrl
+        var link = options.PasswordResetConfirmationUrl!
             .Replace("{uid}", user.Id.ToString())
             .Replace("{token}", token)
             .Trim();
 
         // send email
+        var email = emailFactory.CreateResetPasswordEmail(new Message(new string[] { user.Email }, "Email Confirmation", link));
+        await emailSender.SendEmailAsync(email);
 
         return NoContent();
     }
