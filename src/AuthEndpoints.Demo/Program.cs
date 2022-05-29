@@ -58,8 +58,8 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     option.Password.RequiredLength = 0;
 })
     .AddEntityFrameworkStores<MyDbContext>()
-    .AddDefaultTokenProviders();
-	// .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+     //.AddDefaultTokenProviders();
+     .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
@@ -77,6 +77,16 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
     },
 	Audience = "https://localhost:8000",
 	Issuer = "https://localhost:8000",
+    EmailConfirmationUrl = "https://articlearn.id/account/email/confirm/{uid}/{token}",
+    PasswordResetConfirmationUrl = "https://articlearn.id/account/password/reset/{uid}/{token}",
+    EmailOptions = new EmailOptions()
+    {
+        Host = "smtp.gmail.com",
+        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+        Port = 465,
+        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
+    },
 })
 .AddJwtBearerAuthScheme(new TokenValidationParameters()
 {

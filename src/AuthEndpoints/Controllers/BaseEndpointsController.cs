@@ -1,9 +1,11 @@
 ﻿using AuthEndpoints.Models;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
+using System.Web;
 
 namespace AuthEndpoints.Controllers;
 
@@ -98,12 +100,13 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         var link = options.EmailConfirmationUrl!
             .Replace("{uid}", identity)
-            .Replace("{token}", token)
-            .Trim();
+            .Replace("{token}", HttpUtility.UrlEncode(token));
 
         // send email
-        var email = emailFactory.CreateConfirmationEmail(new Message(new string[] { user.Email }, "Email Confirmation", link));
-        await emailSender.SendEmailAsync(email);
+        var email = emailFactory.CreateConfirmationEmail(
+            new Message(new string[] { user.Email }, "Email Confirmation", link)
+        );
+        await emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
         return NoContent();
     }
@@ -283,7 +286,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         // e.g. "#password-reset/{uid}/{Token}"
         var link = options.PasswordResetConfirmationUrl!
             .Replace("{uid}", user.Id.ToString())
-            .Replace("{token}", token)
+            .Replace("{token}", HttpUtility.UrlEncode(token))
             .Trim();
 
         // send email

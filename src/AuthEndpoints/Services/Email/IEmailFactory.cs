@@ -1,7 +1,7 @@
 ﻿using AuthEndpoints.Models;
 using MimeKit;
 
-namespace AuthEndpoints;
+namespace AuthEndpoints.Services;
 
 public interface IEmailFactory
 {

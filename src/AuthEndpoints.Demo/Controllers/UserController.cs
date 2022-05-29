@@ -1,5 +1,6 @@
 ﻿using AuthEndpoints.Controllers;
 using AuthEndpoints.Demo.Models;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 

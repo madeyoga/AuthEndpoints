@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace AuthEndpoints;
+namespace AuthEndpoints.Services;
 
 public class EmailFactory : IEmailFactory
 {
@@ -21,7 +21,7 @@ public class EmailFactory : IEmailFactory
         mimeMessage.Subject = message.Subject;
         mimeMessage.Body = new TextPart(MimeKit.Text.TextFormat.Text)
         {
-            Text = message.Body
+            Text = $"Please click the link below\n{message.Body}"
         };
 
         return mimeMessage;
