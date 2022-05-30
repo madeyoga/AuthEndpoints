@@ -58,35 +58,34 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     option.Password.RequiredLength = 0;
 })
     .AddEntityFrameworkStores<MyDbContext>()
-     //.AddDefaultTokenProviders();
-     .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+    .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
 {
-	AccessSigningOptions = new JwtSigningOptions()
+    options.AccessSigningOptions = new JwtSigningOptions()
     {
         SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
         Algorithm = SecurityAlgorithms.HmacSha256,
         ExpirationMinutes = 120,
-    },
-    RefreshSigningOptions = new JwtSigningOptions()
+    };
+    options.RefreshSigningOptions = new JwtSigningOptions()
     {
         SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
         Algorithm = SecurityAlgorithms.HmacSha256,
         ExpirationMinutes = 120,
-    },
-	Audience = "https://localhost:8000",
-	Issuer = "https://localhost:8000",
-    EmailConfirmationUrl = "https://articlearn.id/account/email/confirm/{uid}/{token}",
-    PasswordResetConfirmationUrl = "https://articlearn.id/account/password/reset/{uid}/{token}",
-    EmailOptions = new EmailOptions()
+    };
+    options.Audience = "https://localhost:8000";
+    options.Issuer = "https://localhost:8000";
+    options.EmailConfirmationUrl = "https://myfrontendapp.com/account/email/confirm/{uid}/{token}";
+    options.PasswordResetUrl = "https://myfrontendapp.com/account/password/reset/{uid}/{token}";
+    options.EmailOptions = new EmailOptions()
     {
         Host = "smtp.gmail.com",
         From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
         Port = 465,
         User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
-    },
+    };
 })
 .AddJwtBearerAuthScheme(new TokenValidationParameters()
 {
