@@ -7,9 +7,20 @@
 
 A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of Web API controllers to handle basic web & JWT authentication actions such as registration, login, refresh, and verify. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
 
-## Installation
-### NuGet
-- [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/)
+## Installing via NuGet
+The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints/)
+
+Install the library using the following .net cli command:
+
+```
+dotnet add package AuthEndpoints
+```
+
+or in Visual Studio's Package Manager Console, enter the following command:
+
+```
+Install-Package AuthEndpoints
+```
 
 [Get started](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
 
