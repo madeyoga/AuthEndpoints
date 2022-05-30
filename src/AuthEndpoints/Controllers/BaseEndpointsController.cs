@@ -82,11 +82,13 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
     /// <summary>
     /// Use this endpoints to send email verification link via email
+    /// You should provide site in your frontend application (configured by <see cref="AuthEndpointsOptions.EmailConfirmationUrl"/>) 
+    /// which will send POST request to verify email confirmation endpoint.
     /// </summary>
     /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpGet("verify_email")]
-    public virtual async Task<IActionResult> SendEmailVerification()
+    public virtual async Task<IActionResult> EmailVerification()
     {
         string identity = HttpContext.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
@@ -106,7 +108,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         var email = emailFactory.CreateConfirmationEmail(
             new EmailData(new string[] { user.Email }, "Email Confirmation", link)
         );
-        emailSender.SendEmailAsync(email).ConfigureAwait(false);
+        await emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
         return NoContent();
     }
@@ -116,7 +118,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("verify_email_confirm")]
+    [HttpPost("verify_email_confirm")]
     public virtual async Task<IActionResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request)
     {
         if (request.Identity == null || request.Token == null)
@@ -133,7 +135,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         if (user.EmailConfirmed)
         {
-            return Forbid();
+            return Unauthorized();
         }
 
         var result = await userManager.ConfirmEmailAsync(user, request.Token);
@@ -257,6 +259,8 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
     /// <summary>
     /// Use this endpoint to send email to user with password reset link.
+    /// You should provide site in your frontend application (configured by <see cref="AuthEndpointsOptions.PasswordResetUrl"/>) 
+    /// which will send POST request to reset password confirmation endpoint.
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
@@ -293,7 +297,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         var email = emailFactory.CreateResetPasswordEmail(
             new EmailData(new string[] { user.Email }, "Email Confirmation", link)
         );
-        emailSender.SendEmailAsync(email).ConfigureAwait(false);
+        await emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
         return NoContent();
     }

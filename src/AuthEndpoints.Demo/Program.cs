@@ -82,7 +82,7 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
     {
         Host = "smtp.gmail.com",
         From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
-        Port = 465,
+        Port = 587,
         User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
     };

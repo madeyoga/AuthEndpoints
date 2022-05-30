@@ -1,4 +1,5 @@
 ﻿using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
@@ -17,7 +18,7 @@ public class DefaultEmailSender : IEmailSender
     {
         using var client = new SmtpClient();
 
-        client.Connect(options.Host, options.Port, true);
+        client.Connect(options.Host, options.Port, SecureSocketOptions.StartTls);
         client.Authenticate(options.User, options.Password);
 
         client.Send(message);
@@ -30,7 +31,7 @@ public class DefaultEmailSender : IEmailSender
     {
         using var client = new SmtpClient();
 
-        await client.ConnectAsync(options.Host, options.Port, true).ConfigureAwait(false);
+        await client.ConnectAsync(options.Host, options.Port, SecureSocketOptions.StartTls).ConfigureAwait(false);
         await client.AuthenticateAsync(options.User, options.Password).ConfigureAwait(false);
 
         await client.SendAsync(message).ConfigureAwait(false);
