@@ -27,7 +27,15 @@ Install-Package AuthEndpoints
 
 ## Quick Start
 
-Edit `Program.cs`, then add auth endpoints services and jwt bearer authentication scheme:
+Edit `Program.cs`, Add identity core services:
+
+```cs
+builder.Services.AddIdentityCore<MyCustomIdentityUser>()
+  .AddEntityFrameworkStores<...>()
+  .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+```
+
+Then add auth endpoints services and jwt bearer authentication scheme:
 
 ```cs
 var accessValidationParam = new TokenValidationParameters()
@@ -39,25 +47,36 @@ var accessValidationParam = new TokenValidationParameters()
   ClockSkew = TimeSpan.Zero,
 };
 
-services.AddAuthEndpoints<string, IdentityUser>(options => 
+// AddAuthEndpoints<TUserKey, TUser>
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options => 
 {
-  AccessSigningOptions = new JwtSigningOptions()
+  options.AccessSigningOptions = new JwtSigningOptions()
   {
-    // SigningKey for verifying jwts will also be used for signing jwts
+    // Key for verifying jwts will also be used for signing jwts
     SigningKey = accessValidationParam.IssuerSigningKey,
     Algorithm = SecurityAlgorithms.HmacSha256,
     ExpirationMinutes = 120, // Expires in 2 hours
-  },
-  RefreshSigningOptions = new JwtSigningOptions()
+  };
+  options.RefreshSigningOptions = new JwtSigningOptions()
   {
     SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
     Algorithm = SecurityAlgorithms.HmacSha256,
     ExpirationMinutes = 2880, // Expires in 2 days
-  },
-  Audience = "https://localhost:8000",
-  Issuer = "https://localhost:8000",
+  };
+  options.Audience = "https://localhost:8000";
+  options.Issuer = "https://localhost:8000";
+  options.EmailConfirmationUrl = "http://localhost:3000/account/email-verify/{uid}/{token}";
+  options.PasswordResetUrl = "http://localhost:3000/account/password-reset/{uid}/{token}";
+  options.EmailOptions = new EmailOptions() 
+  {
+    Host = "smtp.gmail.com",
+    From = "your@gmail.com",
+    Port = 587,
+    User = "<your mail app user>",
+    Password = "<your mail app password>"
+  };
 })
-.AddJwtBearerAuthScheme();
+.AddJwtBearerAuthScheme(accessValidationParam);
 ```
 
 ## Add Base Authentication Endpoints

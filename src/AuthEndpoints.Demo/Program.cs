@@ -50,32 +50,42 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 {
-	option.User.RequireUniqueEmail = true;
-	// For testing only, remove this for production
-	option.Password.RequireDigit = false;
-	option.Password.RequireNonAlphanumeric = false;
-	option.Password.RequireUppercase = false;
-	option.Password.RequiredLength = 0;
+    option.User.RequireUniqueEmail = true;
+    // For testing only, remove this for production
+    option.Password.RequireDigit = false;
+    option.Password.RequireNonAlphanumeric = false;
+    option.Password.RequireUppercase = false;
+    option.Password.RequiredLength = 0;
 })
-	.AddEntityFrameworkStores<MyDbContext>()
-	.AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+    .AddEntityFrameworkStores<MyDbContext>()
+    .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
 
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
 {
-	AccessSigningOptions = new JwtSigningOptions()
+    options.AccessSigningOptions = new JwtSigningOptions()
     {
         SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
         Algorithm = SecurityAlgorithms.HmacSha256,
         ExpirationMinutes = 120,
-    },
-    RefreshSigningOptions = new JwtSigningOptions()
+    };
+    options.RefreshSigningOptions = new JwtSigningOptions()
     {
         SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
         Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 120,
-    },
-	Audience = "https://localhost:8000",
-	Issuer = "https://localhost:8000",
+        ExpirationMinutes = 1200,
+    };
+    options.Audience = "https://localhost:8000";
+    options.Issuer = "https://localhost:8000";
+    options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
+    options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
+    options.EmailOptions = new EmailOptions()
+    {
+        Host = "smtp.gmail.com",
+        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+        Port = 587,
+        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
+    };
 })
 .AddJwtBearerAuthScheme(new TokenValidationParameters()
 {

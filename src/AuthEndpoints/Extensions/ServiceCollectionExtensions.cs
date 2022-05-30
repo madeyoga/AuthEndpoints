@@ -28,6 +28,9 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
+        services.TryAddSingleton<IEmailFactory, DefaultMessageFactory>();
+        services.TryAddSingleton<IEmailSender, DefaultEmailSender>();
+
         return new AuthEndpointsBuilder(typeof(TUser), services);
     }
 
@@ -88,6 +91,10 @@ public static class ServiceCollectionExtensions
             options.Issuer = customOptions.Issuer;
             options.AccessValidationParameters = customOptions.AccessValidationParameters;
             options.RefreshValidationParameters = customOptions.RefreshValidationParameters;
+
+            options.EmailConfirmationUrl = customOptions.EmailConfirmationUrl;
+            options.PasswordResetUrl = customOptions.PasswordResetUrl;
+            options.EmailOptions = customOptions.EmailOptions;
         }).ValidateOnStart();
         return ConfigureServices<TUserKey, TUser>(services);
     }

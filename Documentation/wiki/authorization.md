@@ -1,5 +1,7 @@
 # Simple Authorization
 
+`AuthEndpointsBuilder.AddJwtBearerAuthScheme` enables JWT-bearer authentication using `"jwt"` scheme.
+
 The following code limits access to the MyController to jwt authenticated users:
 
 ```cs

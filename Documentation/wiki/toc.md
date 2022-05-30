@@ -6,3 +6,4 @@
 # [Jwt Claims](custom-claims.md)
 # [Authentication Backend](custom-authenticator.md)
 # [Asymmetric Jwt](asym-jwt.md)
+# [Email Configuration](email-config.md)

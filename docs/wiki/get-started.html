@@ -92,7 +92,12 @@
 <pre><code>Install-Package AuthEndpoints
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>Edit <code>Program.cs</code>, then add auth endpoints services and jwt bearer authentication scheme:</p>
+<p>Edit <code>Program.cs</code>, Add identity core services:</p>
+<pre><code class="lang-cs">builder.Services.AddIdentityCore&lt;MyCustomIdentityUser&gt;()
+  .AddEntityFrameworkStores&lt;...&gt;()
+  .AddTokenProvider&lt;DataProtectorTokenProvider&lt;MyCustomIdentityUser&gt;&gt;(TokenOptions.DefaultProvider);
+</code></pre>
+<p>Then add auth endpoints services and jwt bearer authentication scheme:</p>
 <pre><code class="lang-cs">var accessValidationParam = new TokenValidationParameters()
 {
   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;1234567890qwerty&quot;)),
@@ -102,25 +107,36 @@
   ClockSkew = TimeSpan.Zero,
 };
 
-services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
+// AddAuthEndpoints&lt;TUserKey, TUser&gt;
+builder.Services.AddAuthEndpoints&lt;string, MyCustomIdentityUser&gt;(options =&gt; 
 {
-  AccessSigningOptions = new JwtSigningOptions()
+  options.AccessSigningOptions = new JwtSigningOptions()
   {
-    // SigningKey for verifying jwts will also be used for signing jwts
+    // Key for verifying jwts will also be used for signing jwts
     SigningKey = accessValidationParam.IssuerSigningKey,
     Algorithm = SecurityAlgorithms.HmacSha256,
     ExpirationMinutes = 120, // Expires in 2 hours
-  },
-  RefreshSigningOptions = new JwtSigningOptions()
+  };
+  options.RefreshSigningOptions = new JwtSigningOptions()
   {
     SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;qwerty0987654321&quot;)),
     Algorithm = SecurityAlgorithms.HmacSha256,
     ExpirationMinutes = 2880, // Expires in 2 days
-  },
-  Audience = &quot;https://localhost:8000&quot;,
-  Issuer = &quot;https://localhost:8000&quot;,
+  };
+  options.Audience = &quot;https://localhost:8000&quot;;
+  options.Issuer = &quot;https://localhost:8000&quot;;
+  options.EmailConfirmationUrl = &quot;http://localhost:3000/account/email-verify/{uid}/{token}&quot;;
+  options.PasswordResetUrl = &quot;http://localhost:3000/account/password-reset/{uid}/{token}&quot;;
+  options.EmailOptions = new EmailOptions() 
+  {
+    Host = &quot;smtp.gmail.com&quot;,
+    From = &quot;your@gmail.com&quot;,
+    Port = 587,
+    User = &quot;&lt;your mail app user&gt;&quot;,
+    Password = &quot;&lt;your mail app password&gt;&quot;
+  };
 })
-.AddJwtBearerAuthScheme();
+.AddJwtBearerAuthScheme(accessValidationParam);
 </code></pre>
 <h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
 <p>Create a new directory called <code>Controllers</code> then create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
@@ -142,7 +158,7 @@ services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt;
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/signing-options/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

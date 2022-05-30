@@ -58,6 +58,38 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddAuthenticator(Of TAuthenticator)()
   nameWithType: AuthEndpointsBuilder.AddAuthenticator<TAuthenticator>()
   nameWithType.vb: AuthEndpointsBuilder.AddAuthenticator(Of TAuthenticator)()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory*
+  name: AddEmailFactory
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddEmailFactory_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory
+  nameWithType: AuthEndpointsBuilder.AddEmailFactory
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory``1
+  name: AddEmailFactory<TEmailFactory>()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddEmailFactory__1
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory``1
+  name.vb: AddEmailFactory(Of TEmailFactory)()
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory<TEmailFactory>()
+  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory(Of TEmailFactory)()
+  nameWithType: AuthEndpointsBuilder.AddEmailFactory<TEmailFactory>()
+  nameWithType.vb: AuthEndpointsBuilder.AddEmailFactory(Of TEmailFactory)()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddEmailSender*
+  name: AddEmailSender
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddEmailSender_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddEmailSender
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddEmailSender
+  nameWithType: AuthEndpointsBuilder.AddEmailSender
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddEmailSender``1
+  name: AddEmailSender<TSender>()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddEmailSender__1
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddEmailSender``1
+  name.vb: AddEmailSender(Of TSender)()
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddEmailSender<TSender>()
+  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddEmailSender(Of TSender)()
+  nameWithType: AuthEndpointsBuilder.AddEmailSender<TSender>()
+  nameWithType.vb: AuthEndpointsBuilder.AddEmailSender(Of TSender)()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddErrorDescriber*
   name: AddErrorDescriber
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddErrorDescriber_
@@ -219,6 +251,32 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsOptions.Audience
   nameWithType: AuthEndpointsOptions.Audience
+- uid: AuthEndpoints.AuthEndpointsOptions.EmailConfirmationUrl
+  name: EmailConfirmationUrl
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_EmailConfirmationUrl
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.EmailConfirmationUrl
+  fullName: AuthEndpoints.AuthEndpointsOptions.EmailConfirmationUrl
+  nameWithType: AuthEndpointsOptions.EmailConfirmationUrl
+- uid: AuthEndpoints.AuthEndpointsOptions.EmailConfirmationUrl*
+  name: EmailConfirmationUrl
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_EmailConfirmationUrl_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.EmailConfirmationUrl
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsOptions.EmailConfirmationUrl
+  nameWithType: AuthEndpointsOptions.EmailConfirmationUrl
+- uid: AuthEndpoints.AuthEndpointsOptions.EmailOptions
+  name: EmailOptions
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_EmailOptions
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.EmailOptions
+  fullName: AuthEndpoints.AuthEndpointsOptions.EmailOptions
+  nameWithType: AuthEndpointsOptions.EmailOptions
+- uid: AuthEndpoints.AuthEndpointsOptions.EmailOptions*
+  name: EmailOptions
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_EmailOptions_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.EmailOptions
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsOptions.EmailOptions
+  nameWithType: AuthEndpointsOptions.EmailOptions
 - uid: AuthEndpoints.AuthEndpointsOptions.Issuer
   name: Issuer
   href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_Issuer
@@ -238,6 +296,19 @@ references:
   commentId: F:AuthEndpoints.AuthEndpointsOptions.Key
   fullName: AuthEndpoints.AuthEndpointsOptions.Key
   nameWithType: AuthEndpointsOptions.Key
+- uid: AuthEndpoints.AuthEndpointsOptions.PasswordResetUrl
+  name: PasswordResetUrl
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_PasswordResetUrl
+  commentId: P:AuthEndpoints.AuthEndpointsOptions.PasswordResetUrl
+  fullName: AuthEndpoints.AuthEndpointsOptions.PasswordResetUrl
+  nameWithType: AuthEndpointsOptions.PasswordResetUrl
+- uid: AuthEndpoints.AuthEndpointsOptions.PasswordResetUrl*
+  name: PasswordResetUrl
+  href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_PasswordResetUrl_
+  commentId: Overload:AuthEndpoints.AuthEndpointsOptions.PasswordResetUrl
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsOptions.PasswordResetUrl
+  nameWithType: AuthEndpointsOptions.PasswordResetUrl
 - uid: AuthEndpoints.AuthEndpointsOptions.RefreshSigningOptions
   name: RefreshSigningOptions
   href: api/AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_RefreshSigningOptions
@@ -279,15 +350,15 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser)
   nameWithType: BaseEndpointsController<TUserKey, TUser>
   nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser)
-- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
-  name: BaseEndpointsController(UserManager<TUser>, IdentityErrorDescriber)
-  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_
-  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
-  name.vb: BaseEndpointsController(UserManager(Of TUser), IdentityErrorDescriber)
-  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.BaseEndpointsController(Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
-  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).BaseEndpointsController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
-  nameWithType: BaseEndpointsController<TUserKey, TUser>.BaseEndpointsController(UserManager<TUser>, IdentityErrorDescriber)
-  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).BaseEndpointsController(UserManager(Of TUser), IdentityErrorDescriber)
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+  name: BaseEndpointsController(UserManager<TUser>, IdentityErrorDescriber, IOptions<AuthEndpointsOptions>, IEmailSender, IEmailFactory)
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_
+  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+  name.vb: BaseEndpointsController(UserManager(Of TUser), IdentityErrorDescriber, IOptions(Of AuthEndpointsOptions), IEmailSender, IEmailFactory)
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.BaseEndpointsController(Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.AspNetCore.Identity.IdentityErrorDescriber, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).BaseEndpointsController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.AspNetCore.Identity.IdentityErrorDescriber, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.BaseEndpointsController(UserManager<TUser>, IdentityErrorDescriber, IOptions<AuthEndpointsOptions>, IEmailSender, IEmailFactory)
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).BaseEndpointsController(UserManager(Of TUser), IdentityErrorDescriber, IOptions(Of AuthEndpointsOptions), IEmailSender, IEmailFactory)
 - uid: AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor*
   name: BaseEndpointsController
   href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2__ctor_
@@ -297,6 +368,73 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).BaseEndpointsController
   nameWithType: BaseEndpointsController<TUserKey, TUser>.BaseEndpointsController
   nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).BaseEndpointsController
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.Delete
+  name: Delete()
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_Delete
+  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.Delete
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.Delete()
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).Delete()
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.Delete()
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).Delete()
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.Delete*
+  name: Delete
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_Delete_
+  commentId: Overload:AuthEndpoints.Controllers.BaseEndpointsController`2.Delete
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.Delete
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).Delete
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.Delete
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).Delete
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.emailFactory
+  name: emailFactory
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_emailFactory
+  commentId: F:AuthEndpoints.Controllers.BaseEndpointsController`2.emailFactory
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.emailFactory
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).emailFactory
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.emailFactory
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).emailFactory
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.emailSender
+  name: emailSender
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_emailSender
+  commentId: F:AuthEndpoints.Controllers.BaseEndpointsController`2.emailSender
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.emailSender
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).emailSender
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.emailSender
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).emailSender
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerification
+  name: EmailVerification()
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerification
+  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerification
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.EmailVerification()
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).EmailVerification()
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.EmailVerification()
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).EmailVerification()
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerification*
+  name: EmailVerification
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerification_
+  commentId: Overload:AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerification
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.EmailVerification
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).EmailVerification
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.EmailVerification
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).EmailVerification
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
+  name: EmailVerificationConfirm(ConfirmEmailRequest)
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_
+  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.EmailVerificationConfirm(ConfirmEmailRequest)
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).EmailVerificationConfirm(ConfirmEmailRequest)
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerificationConfirm*
+  name: EmailVerificationConfirm
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerificationConfirm_
+  commentId: Overload:AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.EmailVerificationConfirm
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).EmailVerificationConfirm
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.EmailVerificationConfirm
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).EmailVerificationConfirm
 - uid: AuthEndpoints.Controllers.BaseEndpointsController`2.errorDescriber
   name: errorDescriber
   href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_errorDescriber
@@ -322,6 +460,14 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).GetMe
   nameWithType: BaseEndpointsController<TUserKey, TUser>.GetMe
   nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).GetMe
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.options
+  name: options
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_options
+  commentId: F:AuthEndpoints.Controllers.BaseEndpointsController`2.options
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.options
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).options
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.options
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).options
 - uid: AuthEndpoints.Controllers.BaseEndpointsController`2.Register(AuthEndpoints.Models.RegisterRequest)
   name: Register(RegisterRequest)
   href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_Register_AuthEndpoints_Models_RegisterRequest_
@@ -339,6 +485,40 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).Register
   nameWithType: BaseEndpointsController<TUserKey, TUser>.Register
   nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).Register
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
+  name: ResetPassword(ResetPasswordRequest)
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_
+  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.ResetPassword(ResetPasswordRequest)
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).ResetPassword(ResetPasswordRequest)
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPassword*
+  name: ResetPassword
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPassword_
+  commentId: Overload:AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.ResetPassword
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).ResetPassword
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.ResetPassword
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).ResetPassword
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
+  name: ResetPasswordConfirm(ResetPasswordConfirmRequest)
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_
+  commentId: M:AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.ResetPasswordConfirm(ResetPasswordConfirmRequest)
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).ResetPasswordConfirm(ResetPasswordConfirmRequest)
+- uid: AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPasswordConfirm*
+  name: ResetPasswordConfirm
+  href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPasswordConfirm_
+  commentId: Overload:AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPasswordConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.BaseEndpointsController<TUserKey, TUser>.ResetPasswordConfirm
+  fullName.vb: AuthEndpoints.Controllers.BaseEndpointsController(Of TUserKey, TUser).ResetPasswordConfirm
+  nameWithType: BaseEndpointsController<TUserKey, TUser>.ResetPasswordConfirm
+  nameWithType.vb: BaseEndpointsController(Of TUserKey, TUser).ResetPasswordConfirm
 - uid: AuthEndpoints.Controllers.BaseEndpointsController`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest)
   name: SetPassword(SetPasswordRequest)
   href: api/AuthEndpoints.Controllers.BaseEndpointsController-2.html#AuthEndpoints_Controllers_BaseEndpointsController_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_
@@ -491,6 +671,77 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Verify
   nameWithType: JwtController<TUserKey, TUser>.Verify
   nameWithType.vb: JwtController(Of TUserKey, TUser).Verify
+- uid: AuthEndpoints.EmailOptions
+  name: EmailOptions
+  href: api/AuthEndpoints.EmailOptions.html
+  commentId: T:AuthEndpoints.EmailOptions
+  fullName: AuthEndpoints.EmailOptions
+  nameWithType: EmailOptions
+- uid: AuthEndpoints.EmailOptions.From
+  name: From
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_From
+  commentId: P:AuthEndpoints.EmailOptions.From
+  fullName: AuthEndpoints.EmailOptions.From
+  nameWithType: EmailOptions.From
+- uid: AuthEndpoints.EmailOptions.From*
+  name: From
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_From_
+  commentId: Overload:AuthEndpoints.EmailOptions.From
+  isSpec: "True"
+  fullName: AuthEndpoints.EmailOptions.From
+  nameWithType: EmailOptions.From
+- uid: AuthEndpoints.EmailOptions.Host
+  name: Host
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_Host
+  commentId: P:AuthEndpoints.EmailOptions.Host
+  fullName: AuthEndpoints.EmailOptions.Host
+  nameWithType: EmailOptions.Host
+- uid: AuthEndpoints.EmailOptions.Host*
+  name: Host
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_Host_
+  commentId: Overload:AuthEndpoints.EmailOptions.Host
+  isSpec: "True"
+  fullName: AuthEndpoints.EmailOptions.Host
+  nameWithType: EmailOptions.Host
+- uid: AuthEndpoints.EmailOptions.Password
+  name: Password
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_Password
+  commentId: P:AuthEndpoints.EmailOptions.Password
+  fullName: AuthEndpoints.EmailOptions.Password
+  nameWithType: EmailOptions.Password
+- uid: AuthEndpoints.EmailOptions.Password*
+  name: Password
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_Password_
+  commentId: Overload:AuthEndpoints.EmailOptions.Password
+  isSpec: "True"
+  fullName: AuthEndpoints.EmailOptions.Password
+  nameWithType: EmailOptions.Password
+- uid: AuthEndpoints.EmailOptions.Port
+  name: Port
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_Port
+  commentId: P:AuthEndpoints.EmailOptions.Port
+  fullName: AuthEndpoints.EmailOptions.Port
+  nameWithType: EmailOptions.Port
+- uid: AuthEndpoints.EmailOptions.Port*
+  name: Port
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_Port_
+  commentId: Overload:AuthEndpoints.EmailOptions.Port
+  isSpec: "True"
+  fullName: AuthEndpoints.EmailOptions.Port
+  nameWithType: EmailOptions.Port
+- uid: AuthEndpoints.EmailOptions.User
+  name: User
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_User
+  commentId: P:AuthEndpoints.EmailOptions.User
+  fullName: AuthEndpoints.EmailOptions.User
+  nameWithType: EmailOptions.User
+- uid: AuthEndpoints.EmailOptions.User*
+  name: User
+  href: api/AuthEndpoints.EmailOptions.html#AuthEndpoints_EmailOptions_User_
+  commentId: Overload:AuthEndpoints.EmailOptions.User
+  isSpec: "True"
+  fullName: AuthEndpoints.EmailOptions.User
+  nameWithType: EmailOptions.User
 - uid: AuthEndpoints.JwtSigningOptions
   name: JwtSigningOptions
   href: api/AuthEndpoints.JwtSigningOptions.html
@@ -574,6 +825,99 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Models.AuthenticatedUserResponse.RefreshToken
   nameWithType: AuthenticatedUserResponse.RefreshToken
+- uid: AuthEndpoints.Models.ConfirmEmailRequest
+  name: ConfirmEmailRequest
+  href: api/AuthEndpoints.Models.ConfirmEmailRequest.html
+  commentId: T:AuthEndpoints.Models.ConfirmEmailRequest
+  fullName: AuthEndpoints.Models.ConfirmEmailRequest
+  nameWithType: ConfirmEmailRequest
+- uid: AuthEndpoints.Models.ConfirmEmailRequest.Identity
+  name: Identity
+  href: api/AuthEndpoints.Models.ConfirmEmailRequest.html#AuthEndpoints_Models_ConfirmEmailRequest_Identity
+  commentId: P:AuthEndpoints.Models.ConfirmEmailRequest.Identity
+  fullName: AuthEndpoints.Models.ConfirmEmailRequest.Identity
+  nameWithType: ConfirmEmailRequest.Identity
+- uid: AuthEndpoints.Models.ConfirmEmailRequest.Identity*
+  name: Identity
+  href: api/AuthEndpoints.Models.ConfirmEmailRequest.html#AuthEndpoints_Models_ConfirmEmailRequest_Identity_
+  commentId: Overload:AuthEndpoints.Models.ConfirmEmailRequest.Identity
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ConfirmEmailRequest.Identity
+  nameWithType: ConfirmEmailRequest.Identity
+- uid: AuthEndpoints.Models.ConfirmEmailRequest.Token
+  name: Token
+  href: api/AuthEndpoints.Models.ConfirmEmailRequest.html#AuthEndpoints_Models_ConfirmEmailRequest_Token
+  commentId: P:AuthEndpoints.Models.ConfirmEmailRequest.Token
+  fullName: AuthEndpoints.Models.ConfirmEmailRequest.Token
+  nameWithType: ConfirmEmailRequest.Token
+- uid: AuthEndpoints.Models.ConfirmEmailRequest.Token*
+  name: Token
+  href: api/AuthEndpoints.Models.ConfirmEmailRequest.html#AuthEndpoints_Models_ConfirmEmailRequest_Token_
+  commentId: Overload:AuthEndpoints.Models.ConfirmEmailRequest.Token
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ConfirmEmailRequest.Token
+  nameWithType: ConfirmEmailRequest.Token
+- uid: AuthEndpoints.Models.EmailData
+  name: EmailData
+  href: api/AuthEndpoints.Models.EmailData.html
+  commentId: T:AuthEndpoints.Models.EmailData
+  fullName: AuthEndpoints.Models.EmailData
+  nameWithType: EmailData
+- uid: AuthEndpoints.Models.EmailData.#ctor(IEnumerable{System.String},System.String,System.String)
+  name: EmailData(IEnumerable<String>, String, String)
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData__ctor_IEnumerable_System_String__System_String_System_String_
+  commentId: M:AuthEndpoints.Models.EmailData.#ctor(IEnumerable{System.String},System.String,System.String)
+  name.vb: EmailData(IEnumerable(Of String), String, String)
+  fullName: AuthEndpoints.Models.EmailData.EmailData(IEnumerable<System.String>, System.String, System.String)
+  fullName.vb: AuthEndpoints.Models.EmailData.EmailData(IEnumerable(Of System.String), System.String, System.String)
+  nameWithType: EmailData.EmailData(IEnumerable<String>, String, String)
+  nameWithType.vb: EmailData.EmailData(IEnumerable(Of String), String, String)
+- uid: AuthEndpoints.Models.EmailData.#ctor*
+  name: EmailData
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData__ctor_
+  commentId: Overload:AuthEndpoints.Models.EmailData.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.EmailData.EmailData
+  nameWithType: EmailData.EmailData
+- uid: AuthEndpoints.Models.EmailData.Link
+  name: Link
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData_Link
+  commentId: P:AuthEndpoints.Models.EmailData.Link
+  fullName: AuthEndpoints.Models.EmailData.Link
+  nameWithType: EmailData.Link
+- uid: AuthEndpoints.Models.EmailData.Link*
+  name: Link
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData_Link_
+  commentId: Overload:AuthEndpoints.Models.EmailData.Link
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.EmailData.Link
+  nameWithType: EmailData.Link
+- uid: AuthEndpoints.Models.EmailData.Subject
+  name: Subject
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData_Subject
+  commentId: P:AuthEndpoints.Models.EmailData.Subject
+  fullName: AuthEndpoints.Models.EmailData.Subject
+  nameWithType: EmailData.Subject
+- uid: AuthEndpoints.Models.EmailData.Subject*
+  name: Subject
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData_Subject_
+  commentId: Overload:AuthEndpoints.Models.EmailData.Subject
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.EmailData.Subject
+  nameWithType: EmailData.Subject
+- uid: AuthEndpoints.Models.EmailData.To
+  name: To
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData_To
+  commentId: P:AuthEndpoints.Models.EmailData.To
+  fullName: AuthEndpoints.Models.EmailData.To
+  nameWithType: EmailData.To
+- uid: AuthEndpoints.Models.EmailData.To*
+  name: To
+  href: api/AuthEndpoints.Models.EmailData.html#AuthEndpoints_Models_EmailData_To_
+  commentId: Overload:AuthEndpoints.Models.EmailData.To
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.EmailData.To
+  nameWithType: EmailData.To
 - uid: AuthEndpoints.Models.ErrorResponse
   name: ErrorResponse
   href: api/AuthEndpoints.Models.ErrorResponse.html
@@ -763,6 +1107,83 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Models.RegisterRequest.Username
   nameWithType: RegisterRequest.Username
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest
+  name: ResetPasswordConfirmRequest
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html
+  commentId: T:AuthEndpoints.Models.ResetPasswordConfirmRequest
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest
+  nameWithType: ResetPasswordConfirmRequest
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.ConfirmNewPassword
+  name: ConfirmNewPassword
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_ConfirmNewPassword
+  commentId: P:AuthEndpoints.Models.ResetPasswordConfirmRequest.ConfirmNewPassword
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.ConfirmNewPassword
+  nameWithType: ResetPasswordConfirmRequest.ConfirmNewPassword
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.ConfirmNewPassword*
+  name: ConfirmNewPassword
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_ConfirmNewPassword_
+  commentId: Overload:AuthEndpoints.Models.ResetPasswordConfirmRequest.ConfirmNewPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.ConfirmNewPassword
+  nameWithType: ResetPasswordConfirmRequest.ConfirmNewPassword
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.Identity
+  name: Identity
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_Identity
+  commentId: P:AuthEndpoints.Models.ResetPasswordConfirmRequest.Identity
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.Identity
+  nameWithType: ResetPasswordConfirmRequest.Identity
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.Identity*
+  name: Identity
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_Identity_
+  commentId: Overload:AuthEndpoints.Models.ResetPasswordConfirmRequest.Identity
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.Identity
+  nameWithType: ResetPasswordConfirmRequest.Identity
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.NewPassword
+  name: NewPassword
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_NewPassword
+  commentId: P:AuthEndpoints.Models.ResetPasswordConfirmRequest.NewPassword
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.NewPassword
+  nameWithType: ResetPasswordConfirmRequest.NewPassword
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.NewPassword*
+  name: NewPassword
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_NewPassword_
+  commentId: Overload:AuthEndpoints.Models.ResetPasswordConfirmRequest.NewPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.NewPassword
+  nameWithType: ResetPasswordConfirmRequest.NewPassword
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.Token
+  name: Token
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_Token
+  commentId: P:AuthEndpoints.Models.ResetPasswordConfirmRequest.Token
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.Token
+  nameWithType: ResetPasswordConfirmRequest.Token
+- uid: AuthEndpoints.Models.ResetPasswordConfirmRequest.Token*
+  name: Token
+  href: api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html#AuthEndpoints_Models_ResetPasswordConfirmRequest_Token_
+  commentId: Overload:AuthEndpoints.Models.ResetPasswordConfirmRequest.Token
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ResetPasswordConfirmRequest.Token
+  nameWithType: ResetPasswordConfirmRequest.Token
+- uid: AuthEndpoints.Models.ResetPasswordRequest
+  name: ResetPasswordRequest
+  href: api/AuthEndpoints.Models.ResetPasswordRequest.html
+  commentId: T:AuthEndpoints.Models.ResetPasswordRequest
+  fullName: AuthEndpoints.Models.ResetPasswordRequest
+  nameWithType: ResetPasswordRequest
+- uid: AuthEndpoints.Models.ResetPasswordRequest.Email
+  name: Email
+  href: api/AuthEndpoints.Models.ResetPasswordRequest.html#AuthEndpoints_Models_ResetPasswordRequest_Email
+  commentId: P:AuthEndpoints.Models.ResetPasswordRequest.Email
+  fullName: AuthEndpoints.Models.ResetPasswordRequest.Email
+  nameWithType: ResetPasswordRequest.Email
+- uid: AuthEndpoints.Models.ResetPasswordRequest.Email*
+  name: Email
+  href: api/AuthEndpoints.Models.ResetPasswordRequest.html#AuthEndpoints_Models_ResetPasswordRequest_Email_
+  commentId: Overload:AuthEndpoints.Models.ResetPasswordRequest.Email
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.ResetPasswordRequest.Email
+  nameWithType: ResetPasswordRequest.Email
 - uid: AuthEndpoints.Models.SetPasswordRequest
   name: SetPasswordRequest
   href: api/AuthEndpoints.Models.SetPasswordRequest.html
@@ -859,6 +1280,44 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Models.VerifyRequest.Token
   nameWithType: VerifyRequest.Token
+- uid: AuthEndpoints.OptionsConfigurator
+  name: OptionsConfigurator
+  href: api/AuthEndpoints.OptionsConfigurator.html
+  commentId: T:AuthEndpoints.OptionsConfigurator
+  fullName: AuthEndpoints.OptionsConfigurator
+  nameWithType: OptionsConfigurator
+- uid: AuthEndpoints.OptionsConfigurator.PostConfigure(System.String,AuthEndpoints.AuthEndpointsOptions)
+  name: PostConfigure(String, AuthEndpointsOptions)
+  href: api/AuthEndpoints.OptionsConfigurator.html#AuthEndpoints_OptionsConfigurator_PostConfigure_System_String_AuthEndpoints_AuthEndpointsOptions_
+  commentId: M:AuthEndpoints.OptionsConfigurator.PostConfigure(System.String,AuthEndpoints.AuthEndpointsOptions)
+  fullName: AuthEndpoints.OptionsConfigurator.PostConfigure(System.String, AuthEndpoints.AuthEndpointsOptions)
+  nameWithType: OptionsConfigurator.PostConfigure(String, AuthEndpointsOptions)
+- uid: AuthEndpoints.OptionsConfigurator.PostConfigure*
+  name: PostConfigure
+  href: api/AuthEndpoints.OptionsConfigurator.html#AuthEndpoints_OptionsConfigurator_PostConfigure_
+  commentId: Overload:AuthEndpoints.OptionsConfigurator.PostConfigure
+  isSpec: "True"
+  fullName: AuthEndpoints.OptionsConfigurator.PostConfigure
+  nameWithType: OptionsConfigurator.PostConfigure
+- uid: AuthEndpoints.OptionsValidator
+  name: OptionsValidator
+  href: api/AuthEndpoints.OptionsValidator.html
+  commentId: T:AuthEndpoints.OptionsValidator
+  fullName: AuthEndpoints.OptionsValidator
+  nameWithType: OptionsValidator
+- uid: AuthEndpoints.OptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
+  name: Validate(String, AuthEndpointsOptions)
+  href: api/AuthEndpoints.OptionsValidator.html#AuthEndpoints_OptionsValidator_Validate_System_String_AuthEndpoints_AuthEndpointsOptions_
+  commentId: M:AuthEndpoints.OptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
+  fullName: AuthEndpoints.OptionsValidator.Validate(System.String, AuthEndpoints.AuthEndpointsOptions)
+  nameWithType: OptionsValidator.Validate(String, AuthEndpointsOptions)
+- uid: AuthEndpoints.OptionsValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.OptionsValidator.html#AuthEndpoints_OptionsValidator_Validate_
+  commentId: Overload:AuthEndpoints.OptionsValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.OptionsValidator.Validate
+  nameWithType: OptionsValidator.Validate
 - uid: AuthEndpoints.ServiceCollectionExtensions
   name: ServiceCollectionExtensions
   href: api/AuthEndpoints.ServiceCollectionExtensions.html
@@ -992,6 +1451,54 @@ references:
   fullName.vb: AuthEndpoints.Services.DefaultAuthenticator(Of TUser).Login
   nameWithType: DefaultAuthenticator<TUser>.Login
   nameWithType.vb: DefaultAuthenticator(Of TUser).Login
+- uid: AuthEndpoints.Services.DefaultEmailSender
+  name: DefaultEmailSender
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html
+  commentId: T:AuthEndpoints.Services.DefaultEmailSender
+  fullName: AuthEndpoints.Services.DefaultEmailSender
+  nameWithType: DefaultEmailSender
+- uid: AuthEndpoints.Services.DefaultEmailSender.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name: DefaultEmailSender(IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html#AuthEndpoints_Services_DefaultEmailSender__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Services.DefaultEmailSender.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: DefaultEmailSender(IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Services.DefaultEmailSender.DefaultEmailSender(Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Services.DefaultEmailSender.DefaultEmailSender(Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: DefaultEmailSender.DefaultEmailSender(IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: DefaultEmailSender.DefaultEmailSender(IOptions(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Services.DefaultEmailSender.#ctor*
+  name: DefaultEmailSender
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html#AuthEndpoints_Services_DefaultEmailSender__ctor_
+  commentId: Overload:AuthEndpoints.Services.DefaultEmailSender.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultEmailSender.DefaultEmailSender
+  nameWithType: DefaultEmailSender.DefaultEmailSender
+- uid: AuthEndpoints.Services.DefaultEmailSender.SendEmail(MimeKit.MimeMessage)
+  name: SendEmail(MimeMessage)
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html#AuthEndpoints_Services_DefaultEmailSender_SendEmail_MimeKit_MimeMessage_
+  commentId: M:AuthEndpoints.Services.DefaultEmailSender.SendEmail(MimeKit.MimeMessage)
+  fullName: AuthEndpoints.Services.DefaultEmailSender.SendEmail(MimeKit.MimeMessage)
+  nameWithType: DefaultEmailSender.SendEmail(MimeMessage)
+- uid: AuthEndpoints.Services.DefaultEmailSender.SendEmail*
+  name: SendEmail
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html#AuthEndpoints_Services_DefaultEmailSender_SendEmail_
+  commentId: Overload:AuthEndpoints.Services.DefaultEmailSender.SendEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultEmailSender.SendEmail
+  nameWithType: DefaultEmailSender.SendEmail
+- uid: AuthEndpoints.Services.DefaultEmailSender.SendEmailAsync(MimeKit.MimeMessage)
+  name: SendEmailAsync(MimeMessage)
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html#AuthEndpoints_Services_DefaultEmailSender_SendEmailAsync_MimeKit_MimeMessage_
+  commentId: M:AuthEndpoints.Services.DefaultEmailSender.SendEmailAsync(MimeKit.MimeMessage)
+  fullName: AuthEndpoints.Services.DefaultEmailSender.SendEmailAsync(MimeKit.MimeMessage)
+  nameWithType: DefaultEmailSender.SendEmailAsync(MimeMessage)
+- uid: AuthEndpoints.Services.DefaultEmailSender.SendEmailAsync*
+  name: SendEmailAsync
+  href: api/AuthEndpoints.Services.DefaultEmailSender.html#AuthEndpoints_Services_DefaultEmailSender_SendEmailAsync_
+  commentId: Overload:AuthEndpoints.Services.DefaultEmailSender.SendEmailAsync
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultEmailSender.SendEmailAsync
+  nameWithType: DefaultEmailSender.SendEmailAsync
 - uid: AuthEndpoints.Services.DefaultJwtFactory
   name: DefaultJwtFactory
   href: api/AuthEndpoints.Services.DefaultJwtFactory.html
@@ -1082,6 +1589,54 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultJwtValidator.ValidateAsync
   nameWithType: DefaultJwtValidator.ValidateAsync
+- uid: AuthEndpoints.Services.DefaultMessageFactory
+  name: DefaultMessageFactory
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html
+  commentId: T:AuthEndpoints.Services.DefaultMessageFactory
+  fullName: AuthEndpoints.Services.DefaultMessageFactory
+  nameWithType: DefaultMessageFactory
+- uid: AuthEndpoints.Services.DefaultMessageFactory.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name: DefaultMessageFactory(IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Services.DefaultMessageFactory.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: DefaultMessageFactory(IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.DefaultMessageFactory(Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Services.DefaultMessageFactory.DefaultMessageFactory(Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: DefaultMessageFactory.DefaultMessageFactory(IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: DefaultMessageFactory.DefaultMessageFactory(IOptions(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Services.DefaultMessageFactory.#ctor*
+  name: DefaultMessageFactory
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory__ctor_
+  commentId: Overload:AuthEndpoints.Services.DefaultMessageFactory.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.DefaultMessageFactory
+  nameWithType: DefaultMessageFactory.DefaultMessageFactory
+- uid: AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
+  name: CreateConfirmationEmail(EmailData)
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: DefaultMessageFactory.CreateConfirmationEmail(EmailData)
+- uid: AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail*
+  name: CreateConfirmationEmail
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateConfirmationEmail_
+  commentId: Overload:AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail
+  nameWithType: DefaultMessageFactory.CreateConfirmationEmail
+- uid: AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
+  name: CreateResetPasswordEmail(EmailData)
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: DefaultMessageFactory.CreateResetPasswordEmail(EmailData)
+- uid: AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail*
+  name: CreateResetPasswordEmail
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateResetPasswordEmail_
+  commentId: Overload:AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail
+  nameWithType: DefaultMessageFactory.CreateResetPasswordEmail
 - uid: AuthEndpoints.Services.IAccessClaimsProvider`1
   name: IAccessClaimsProvider<TUser>
   href: api/AuthEndpoints.Services.IAccessClaimsProvider-1.html
@@ -1160,6 +1715,70 @@ references:
   fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideClaims
   nameWithType: IClaimsProvider<TUser>.provideClaims
   nameWithType.vb: IClaimsProvider(Of TUser).provideClaims
+- uid: AuthEndpoints.Services.IEmailFactory
+  name: IEmailFactory
+  href: api/AuthEndpoints.Services.IEmailFactory.html
+  commentId: T:AuthEndpoints.Services.IEmailFactory
+  fullName: AuthEndpoints.Services.IEmailFactory
+  nameWithType: IEmailFactory
+- uid: AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
+  name: CreateConfirmationEmail(EmailData)
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: IEmailFactory.CreateConfirmationEmail(EmailData)
+- uid: AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail*
+  name: CreateConfirmationEmail
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_
+  commentId: Overload:AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail
+  nameWithType: IEmailFactory.CreateConfirmationEmail
+- uid: AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
+  name: CreateResetPasswordEmail(EmailData)
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: IEmailFactory.CreateResetPasswordEmail(EmailData)
+- uid: AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail*
+  name: CreateResetPasswordEmail
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_
+  commentId: Overload:AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail
+  nameWithType: IEmailFactory.CreateResetPasswordEmail
+- uid: AuthEndpoints.Services.IEmailSender
+  name: IEmailSender
+  href: api/AuthEndpoints.Services.IEmailSender.html
+  commentId: T:AuthEndpoints.Services.IEmailSender
+  fullName: AuthEndpoints.Services.IEmailSender
+  nameWithType: IEmailSender
+- uid: AuthEndpoints.Services.IEmailSender.SendEmail(MimeKit.MimeMessage)
+  name: SendEmail(MimeMessage)
+  href: api/AuthEndpoints.Services.IEmailSender.html#AuthEndpoints_Services_IEmailSender_SendEmail_MimeKit_MimeMessage_
+  commentId: M:AuthEndpoints.Services.IEmailSender.SendEmail(MimeKit.MimeMessage)
+  fullName: AuthEndpoints.Services.IEmailSender.SendEmail(MimeKit.MimeMessage)
+  nameWithType: IEmailSender.SendEmail(MimeMessage)
+- uid: AuthEndpoints.Services.IEmailSender.SendEmail*
+  name: SendEmail
+  href: api/AuthEndpoints.Services.IEmailSender.html#AuthEndpoints_Services_IEmailSender_SendEmail_
+  commentId: Overload:AuthEndpoints.Services.IEmailSender.SendEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IEmailSender.SendEmail
+  nameWithType: IEmailSender.SendEmail
+- uid: AuthEndpoints.Services.IEmailSender.SendEmailAsync(MimeKit.MimeMessage)
+  name: SendEmailAsync(MimeMessage)
+  href: api/AuthEndpoints.Services.IEmailSender.html#AuthEndpoints_Services_IEmailSender_SendEmailAsync_MimeKit_MimeMessage_
+  commentId: M:AuthEndpoints.Services.IEmailSender.SendEmailAsync(MimeKit.MimeMessage)
+  fullName: AuthEndpoints.Services.IEmailSender.SendEmailAsync(MimeKit.MimeMessage)
+  nameWithType: IEmailSender.SendEmailAsync(MimeMessage)
+- uid: AuthEndpoints.Services.IEmailSender.SendEmailAsync*
+  name: SendEmailAsync
+  href: api/AuthEndpoints.Services.IEmailSender.html#AuthEndpoints_Services_IEmailSender_SendEmailAsync_
+  commentId: Overload:AuthEndpoints.Services.IEmailSender.SendEmailAsync
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IEmailSender.SendEmailAsync
+  nameWithType: IEmailSender.SendEmailAsync
 - uid: AuthEndpoints.Services.IJwtFactory
   name: IJwtFactory
   href: api/AuthEndpoints.Services.IJwtFactory.html
