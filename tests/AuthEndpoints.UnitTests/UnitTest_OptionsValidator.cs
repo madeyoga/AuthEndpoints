@@ -30,12 +30,38 @@ public class UnitTest_OptionsValidator
     }
 
     [TestMethod]
-    public void SigningKeys_CannotBeNull()
+    public void AccessSigningKey_CannotBeNull()
     {
         OptionsValidator validator = new();
 
         var result = validator.Validate("test", new AuthEndpointsOptions()
         {
+            RefreshSigningOptions = new JwtSigningOptions()
+            {
+                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                Algorithm = SecurityAlgorithms.HmacSha256,
+                ExpirationMinutes = 120
+            },
+            Issuer = "webapi",
+            Audience = "webapi"
+        });
+
+        Assert.IsFalse(result.Succeeded);
+    }
+
+    [TestMethod]
+    public void RefreshSigningKey_CannotBeNull()
+    {
+        OptionsValidator validator = new();
+
+        var result = validator.Validate("test", new AuthEndpointsOptions()
+        {
+            AccessSigningOptions = new JwtSigningOptions()
+            {
+                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                Algorithm = SecurityAlgorithms.HmacSha256,
+                ExpirationMinutes = 120
+            },
             Issuer = "webapi",
             Audience = "webapi"
         });
