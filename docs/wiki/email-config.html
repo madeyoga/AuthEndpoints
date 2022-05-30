@@ -5,11 +5,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Interface IClaimsProvider&lt;TUser&gt;
-   | AuthEndpoints </title>
+    <title>Email Backend | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Interface IClaimsProvider&lt;TUser&gt;
-   | AuthEndpoints ">
+    <meta name="title" content="Email Backend | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
@@ -78,86 +76,62 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services.IClaimsProvider`1">
-  
-  
-  <h1 id="AuthEndpoints_Services_IClaimsProvider_1" data-uid="AuthEndpoints.Services.IClaimsProvider`1" class="text-break">Interface IClaimsProvider&lt;TUser&gt;
-  </h1>
-  <div class="markdown level0 summary"><p>Implements <a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider&lt;TUser&gt;</a> to define your claims provider</p>
-</div>
-  <div class="markdown level0 conceptual"></div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Services.html">AuthEndpoints.Services</a></h6>
-  <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
-  <h5 id="AuthEndpoints_Services_IClaimsProvider_1_syntax">Syntax</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IClaimsProvider&lt;TUser&gt;
-    where TUser : class</code></pre>
-  </div>
-  <h5 class="typeParameters">Type Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="parametername">TUser</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="methods">Methods
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IClaimsProvider_1_provideClaims__0_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IClaimsProvider%601.provideClaims(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Claims/IClaimsProvider.cs/#L16">View Source</a>
-  </span>
-  <a id="AuthEndpoints_Services_IClaimsProvider_1_provideClaims_" data-uid="AuthEndpoints.Services.IClaimsProvider`1.provideClaims*"></a>
-  <h4 id="AuthEndpoints_Services_IClaimsProvider_1_provideClaims__0_" data-uid="AuthEndpoints.Services.IClaimsProvider`1.provideClaims(`0)">provideClaims(TUser)</h4>
-  <div class="markdown level1 summary"><p>Use this method to get a list of claims for the given user</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IList&lt;Claim&gt; provideClaims(TUser user)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">TUser</span></td>
-        <td><span class="parametername">user</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">IList</span>&lt;<span class="xref">System.Security.Claims.Claim</span>&gt;</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
+            <article class="content wrap" id="_content" data-uid="">
+<h1 id="email-backend">Email Backend</h1>
+
+<p>AuthEndpoints library uses <a href="https://github.com/jstedfast/MimeKit">MailKit</a> library for the creation and parsing of messages, and sending an email.</p>
+<p>Learn more about MailKit <a href="https://github.com/jstedfast/MailKit">here</a></p>
+<h2 id="configuring-email-settings">Configuring Email Settings</h2>
+<p>You can configure email backend settings via <code>AuthEndpointsOptions</code>, for example:</p>
+<pre><code class="lang-cs">builder.Services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
+{
+  ...
+
+  // URL to your frontend email verification page. It should contain {uid} and {token}
+  options.EmailConfirmationUrl = &quot;https://myfrontend.com/account/verify-email/{uid}/{token}&quot;;
+
+  // URL to your frontend password reset page. It should contain {uid} and {token}
+  options.PasswordResetUrl = &quot;https://myfrontend.com/account/password-reset/{uid}/{token}&quot;;
+
+  options.EmailOptions = new EmailOptions() 
+  {
+    From = &quot;your@gmail.com&quot;,
+    Host = &quot;smtp.gmail.com&quot;,
+    Port = 587,
+    User = &quot;&lt;gmail_app_user&gt;&quot;,
+    Password = &quot;&lt;gmail_app_password&gt;&quot;,
+  }
+})
+.AddJwtBearerAuthScheme(...);
+</code></pre>
+<h2 id="custom-email-factory">Custom Email Factory</h2>
+<p>You can customize the content of the email by implementing IEmailFactory, for example:</p>
+<pre><code class="lang-cs">public class MyEmailFactory : IEmailFactory
+{
+  // returns a MimeMessage that will be sended by the IEmailSender.
+  public MimeMessage CreateConfirmationEmail(EmailData data);
+
+  // returns a MimeMessage that will be sended by the IEmailSender.
+  public MimeMessage CreateResetPasswordEmail(EmailData data);
+}
+</code></pre>
+<p>then register it via <code>AuthEndpointsBuilder.AddEmailFactory</code>:</p>
+<pre><code class="lang-cs">builder.AddEmailFactory&lt;MyEmailFactory&gt;();
+</code></pre>
+<p>Learn more about creating a MIME messages using MimeKit <a href="https://github.com/jstedfast/MimeKit#creating-a-simple-message">here</a></p>
+<h2 id="custom-email-sender">Custom Email Sender</h2>
+<p>The default implementation of <code>IEmailSender</code>, <code>DefaultEmailSender</code> uses SmtpClient to send an email.
+You can write your own email sender by implementing <code>IEmailSender</code>, for example:</p>
+<pre><code class="lang-cs">public class MyEmailSender : IEmailSender
+{
+  public void SendEmail(MimeMessage message);
+  public void SendEmailAsync(MimeMessage message);
+}
+</code></pre>
+<p>then register it via <code>AuthEndpointsBuilder.AddEmailSender</code>:</p>
+<pre><code class="lang-cs">builder.AddEmailSender&lt;MyEmailSender&gt;();
+</code></pre>
+<p>Learn more about using MailKit <a href="https://github.com/jstedfast/MailKit#using-mailkit">here</a></p>
 </article>
           </div>
           
@@ -166,10 +140,7 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IClaimsProvider_1.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IClaimsProvider%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
-                  </li>
-                  <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Claims/IClaimsProvider.cs/#L9" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/email-config.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

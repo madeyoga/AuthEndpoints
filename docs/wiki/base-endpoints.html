@@ -83,7 +83,7 @@
 <h2 id="user-create">User Create</h2>
 <p>Use this endpoint to register new user.</p>
 <p><strong>Default URL</strong>: <code>/users</code></p>
-<p><strong>Authorizations</strong> : (Jwt or None)</p>
+<p><strong>Authorizations</strong> : (None)</p>
 <table>
   <tbody>
     <tr>
@@ -106,6 +106,55 @@
           <li>HTTP_200_OK</li>
           <li>HTTP_400_BAD_REQUEST</li>
         </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="user-verify-email">User Verify Email</h2>
+<p>Use this endpoints to send email verification link via email.
+You should provide site in your frontend application (configured by AuthEndpointsOptions.EmailConfirmationUrl)
+which will send POST request to verify email confirmation endpoint.</p>
+<p><strong>Default URL</strong>: <code>/users/verify_email</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>
+        -
+      </td>
+      <td>
+        HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="user-verify-email-confirmation">User Verify Email Confirmation</h2>
+<p>Use this endpoint to finish email verification process.</p>
+<p><strong>Default URL</strong>: <code>/users/verify_email_confirm</code></p>
+<p><strong>Authorizations</strong> : (Jwt or None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>identity</li>
+          <li>token</li>
+        </ul>
+      </td>
+      <td>
+        HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_409_CONFLICT
       </td>
     </tr>
   </tbody>
@@ -159,6 +208,69 @@
         <ul>
           <li>HTTP_204_NO_CONTENT</li>
           <li>HTTP_400_BAD_REQUEST</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="reset-password">Reset Password</h2>
+<p>Use this endpoint to send email to user with password reset link.
+You should provide site in your frontend application (configured by AuthEndpointsOptions.PasswordResetUrl)
+which will send POST request to reset password confirmation endpoint.</p>
+<p><strong>Default URL</strong>: <code>/users/reset_password</code></p>
+<p><strong>Authorizations</strong> : (None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>Email</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_204_NO_CONTENT</li>
+          <li>HTTP_400_BAD_REQUEST</li>
+          <li>HTTP_401_UNAUTHORIZED</li>
+          <li>HTTP_404_NOT_FOUND</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="reset-password-confirmation">Reset Password Confirmation</h2>
+<p>Use this endpoint to finish reset password process.</p>
+<p><strong>Default URL</strong>: <code>/users/reset_password_confirm</code></p>
+<p><strong>Authorizations</strong> : (None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>identity</li>
+          <li>token</li>
+          <li>newPassword</li>
+          <li>confirmNewPassword</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_204_NO_CONTENT</li>
+          <li>HTTP_400_BAD_REQUEST</li>
+          <li>HTTP_404_NOT_FOUND</li>
+          <li>HTTP_409_CONFLICT</li>
         </ul>
       </td>
     </tr>

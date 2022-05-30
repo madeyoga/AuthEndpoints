@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Class LoginRequest
+    <title>Interface IEmailFactory
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Class LoginRequest
+    <meta name="title" content="Interface IEmailFactory
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,65 +78,35 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Models.LoginRequest">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services.IEmailFactory">
   
   
-  <h1 id="AuthEndpoints_Models_LoginRequest" data-uid="AuthEndpoints.Models.LoginRequest" class="text-break">Class LoginRequest
+  <h1 id="AuthEndpoints_Services_IEmailFactory" data-uid="AuthEndpoints.Services.IEmailFactory" class="text-break">Interface IEmailFactory
   </h1>
-  <div class="markdown level0 summary"><p>The dto used for login request</p>
-</div>
+  <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
-  <div class="inheritance">
-    <h5>Inheritance</h5>
-    <div class="level0"><span class="xref">System.Object</span></div>
-    <div class="level1"><span class="xref">LoginRequest</span></div>
-  </div>
-  <div class="inheritedMembers">
-    <h5>Inherited Members</h5>
-    <div>
-      <span class="xref">System.Object.Equals(System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.GetHashCode()</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.GetType()</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.MemberwiseClone()</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
-    </div>
-    <div>
-      <span class="xref">System.Object.ToString()</span>
-    </div>
-  </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Models.html">AuthEndpoints.Models</a></h6>
+  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Services.html">AuthEndpoints.Services</a></h6>
   <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
-  <h5 id="AuthEndpoints_Models_LoginRequest_syntax">Syntax</h5>
+  <h5 id="AuthEndpoints_Services_IEmailFactory_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class LoginRequest</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IEmailFactory</code></pre>
   </div>
-  <h3 id="constructors">Constructors
+  <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Models_LoginRequest__ctor_System_String_System_String_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Models.LoginRequest.%23ctor(System.String%2CSystem.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Models/Requests/LoginRequest.cs/#L16">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Email/IEmailFactory.cs/#L9">View Source</a>
   </span>
-  <a id="AuthEndpoints_Models_LoginRequest__ctor_" data-uid="AuthEndpoints.Models.LoginRequest.#ctor*"></a>
-  <h4 id="AuthEndpoints_Models_LoginRequest__ctor_System_String_System_String_" data-uid="AuthEndpoints.Models.LoginRequest.#ctor(System.String,System.String)">LoginRequest(String, String)</h4>
+  <a id="AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_" data-uid="AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail*"></a>
+  <h4 id="AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_" data-uid="AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)">CreateConfirmationEmail(EmailData)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public LoginRequest(string username, string password)</code></pre>
+    <pre><code class="lang-csharp hljs">MimeMessage CreateConfirmationEmail(EmailData message)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -149,36 +119,13 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">username</span></td>
-        <td></td>
-      </tr>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">password</span></td>
+        <td><a class="xref" href="AuthEndpoints.Models.EmailData.html">EmailData</a></td>
+        <td><span class="parametername">message</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <h3 id="properties">Properties
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Models_LoginRequest_Password.md&amp;value=---%0Auid%3A%20AuthEndpoints.Models.LoginRequest.Password%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Models/Requests/LoginRequest.cs/#L13">View Source</a>
-  </span>
-  <a id="AuthEndpoints_Models_LoginRequest_Password_" data-uid="AuthEndpoints.Models.LoginRequest.Password*"></a>
-  <h4 id="AuthEndpoints_Models_LoginRequest_Password" data-uid="AuthEndpoints.Models.LoginRequest.Password">Password</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Required]
-public string Password { get; set; }</code></pre>
-  </div>
-  <h5 class="propertyValue">Property Value</h5>
+  <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -188,28 +135,44 @@ public string Password { get; set; }</code></pre>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
+        <td><span class="xref">MimeKit.MimeMessage</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Models_LoginRequest_Username.md&amp;value=---%0Auid%3A%20AuthEndpoints.Models.LoginRequest.Username%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Models/Requests/LoginRequest.cs/#L10">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Email/IEmailFactory.cs/#L8">View Source</a>
   </span>
-  <a id="AuthEndpoints_Models_LoginRequest_Username_" data-uid="AuthEndpoints.Models.LoginRequest.Username*"></a>
-  <h4 id="AuthEndpoints_Models_LoginRequest_Username" data-uid="AuthEndpoints.Models.LoginRequest.Username">Username</h4>
+  <a id="AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_" data-uid="AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail*"></a>
+  <h4 id="AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_" data-uid="AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)">CreateResetPasswordEmail(EmailData)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Required]
-public string Username { get; set; }</code></pre>
+    <pre><code class="lang-csharp hljs">MimeMessage CreateResetPasswordEmail(EmailData message)</code></pre>
   </div>
-  <h5 class="propertyValue">Property Value</h5>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.EmailData.html">EmailData</a></td>
+        <td><span class="parametername">message</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
       <tr>
@@ -219,7 +182,7 @@ public string Username { get; set; }</code></pre>
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.String</span></td>
+        <td><span class="xref">MimeKit.MimeMessage</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -232,10 +195,10 @@ public string Username { get; set; }</code></pre>
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Models_LoginRequest.md&amp;value=---%0Auid%3A%20AuthEndpoints.Models.LoginRequest%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IEmailFactory.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IEmailFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Models/Requests/LoginRequest.cs/#L8" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Email/IEmailFactory.cs/#L6" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

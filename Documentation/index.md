@@ -1,3 +1,4 @@
+# AuthEndpoints
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![issues](https://img.shields.io/github/issues/madeyoga/AuthEndpoints?color=blue&logo=github&style=flat-square)](https://github.com/madeyoga/AuthEndpoints/issues)
 [![downloads](https://img.shields.io/nuget/dt/AuthEndpoints?color=blue&style=flat-square&logo=nuget)](https://www.nuget.org/packages/AuthEndpoints/)
@@ -9,13 +10,22 @@ AuthEndpoints library provides a set of API controllers to handle basic web & JW
 AuthEndpoints is built with the aim of increasing developer productivity.
 
 
-## Installation
+## Installing via NuGet
+The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints/)
 
-### NuGet
+Install the library using the following .net cli command:
 
-- [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/)
+```
+dotnet add package AuthEndpoints
+```
 
-[Get started!](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
+or in Visual Studio's Package Manager Console, enter the following command:
+
+```
+Install-Package AuthEndpoints
+```
+
+[Get started](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
 
 ## Available Endpoints
 
@@ -23,7 +33,17 @@ AuthEndpoints is built with the aim of increasing developer productivity.
 
 - `/users/me`
 
+- `/users/delete`
+
+- `/users/verify_email`
+
+- `/users/verify_email_confirm`
+
 - `/users/set_password`
+
+- `/users/reset_password`
+
+- `/users/reset_password_confirm`
 
 - `/jwt/create`
 

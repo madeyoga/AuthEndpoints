@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Interface IClaimsProvider&lt;TUser&gt;
+    <title>Interface IConfirmationEmailFactory
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Interface IClaimsProvider&lt;TUser&gt;
+    <meta name="title" content="Interface IConfirmationEmailFactory
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,86 +78,28 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services.IClaimsProvider`1">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Services.IConfirmationEmailFactory">
   
   
-  <h1 id="AuthEndpoints_Services_IClaimsProvider_1" data-uid="AuthEndpoints.Services.IClaimsProvider`1" class="text-break">Interface IClaimsProvider&lt;TUser&gt;
+  <h1 id="AuthEndpoints_Services_IConfirmationEmailFactory" data-uid="AuthEndpoints.Services.IConfirmationEmailFactory" class="text-break">Interface IConfirmationEmailFactory
   </h1>
-  <div class="markdown level0 summary"><p>Implements <a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider&lt;TUser&gt;</a> to define your claims provider</p>
-</div>
+  <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <a class="xref" href="AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_">IEmailFactory.CreateResetPasswordEmail(EmailData)</a>
+    </div>
+    <div>
+      <a class="xref" href="AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_">IEmailFactory.CreateConfirmationEmail(EmailData)</a>
+    </div>
+  </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Services.html">AuthEndpoints.Services</a></h6>
   <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
-  <h5 id="AuthEndpoints_Services_IClaimsProvider_1_syntax">Syntax</h5>
+  <h5 id="AuthEndpoints_Services_IConfirmationEmailFactory_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public interface IClaimsProvider&lt;TUser&gt;
-    where TUser : class</code></pre>
+    <pre><code class="lang-csharp hljs">public interface IConfirmationEmailFactory : IEmailFactory</code></pre>
   </div>
-  <h5 class="typeParameters">Type Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="parametername">TUser</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h3 id="methods">Methods
-  </h3>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IClaimsProvider_1_provideClaims__0_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IClaimsProvider%601.provideClaims(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Claims/IClaimsProvider.cs/#L16">View Source</a>
-  </span>
-  <a id="AuthEndpoints_Services_IClaimsProvider_1_provideClaims_" data-uid="AuthEndpoints.Services.IClaimsProvider`1.provideClaims*"></a>
-  <h4 id="AuthEndpoints_Services_IClaimsProvider_1_provideClaims__0_" data-uid="AuthEndpoints.Services.IClaimsProvider`1.provideClaims(`0)">provideClaims(TUser)</h4>
-  <div class="markdown level1 summary"><p>Use this method to get a list of claims for the given user</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">IList&lt;Claim&gt; provideClaims(TUser user)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">TUser</span></td>
-        <td><span class="parametername">user</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">IList</span>&lt;<span class="xref">System.Security.Claims.Claim</span>&gt;</td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
 </article>
           </div>
           
@@ -166,10 +108,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IClaimsProvider_1.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IClaimsProvider%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_IConfirmationEmailFactory.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.IConfirmationEmailFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Claims/IClaimsProvider.cs/#L9" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/Email/IConfirmationEmailFactory.cs/#L2" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
