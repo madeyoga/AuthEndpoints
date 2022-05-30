@@ -25,6 +25,6 @@ public class AuthEndpointsOptions
     public TokenValidationParameters? RefreshValidationParameters { get; set; }
 
     public string? EmailConfirmationUrl { get; set; }
-    public string? PasswordResetConfirmationUrl { get; set; }
+    public string? PasswordResetUrl { get; set; }
     public EmailOptions? EmailOptions { get; set; } = new EmailOptions();
 }

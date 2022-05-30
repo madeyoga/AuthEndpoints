@@ -108,6 +108,28 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
+    /// Adds an <see cref="IEmailFactory"/>
+    /// </summary>
+    /// <typeparam name="TEmailFactory"></typeparam>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddEmailFactory<TEmailFactory>() where TEmailFactory : IEmailFactory
+    {
+        Services.AddSingleton(typeof(IEmailFactory), typeof(TEmailFactory));
+        return this;
+    }
+
+    /// <summary>
+    /// Adds an <see cref="IEmailSender"/>
+    /// </summary>
+    /// <typeparam name="TEmailFactory"></typeparam>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddEmailSender<TSender>() where TSender : IEmailSender
+    {
+        Services.AddSingleton(typeof(IEmailFactory), typeof(TSender));
+        return this;
+    }
+
+    /// <summary>
     /// Adds a jwt bearer defaults authentication scheme.
     /// </summary>
     /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>

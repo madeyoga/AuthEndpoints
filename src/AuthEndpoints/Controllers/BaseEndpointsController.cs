@@ -93,7 +93,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
         
         if (user.EmailConfirmed)
         {
-            return Forbid();
+            return Unauthorized();
         }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -104,9 +104,9 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         // send email
         var email = emailFactory.CreateConfirmationEmail(
-            new Message(new string[] { user.Email }, "Email Confirmation", link)
+            new EmailData(new string[] { user.Email }, "Email Confirmation", link)
         );
-        await emailSender.SendEmailAsync(email).ConfigureAwait(false);
+        emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
         return NoContent();
     }
@@ -277,21 +277,23 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         if (!user.EmailConfirmed)
         {
-            return Forbid();
+            return Unauthorized();
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
         // generate link to the frontend application that contains Identity and Token.
         // e.g. "#password-reset/{uid}/{Token}"
-        var link = options.PasswordResetConfirmationUrl!
+        var link = options.PasswordResetUrl!
             .Replace("{uid}", user.Id.ToString())
             .Replace("{token}", HttpUtility.UrlEncode(token))
             .Trim();
 
         // send email
-        var email = emailFactory.CreateResetPasswordEmail(new Message(new string[] { user.Email }, "Email Confirmation", link));
-        await emailSender.SendEmailAsync(email);
+        var email = emailFactory.CreateResetPasswordEmail(
+            new EmailData(new string[] { user.Email }, "Email Confirmation", link)
+        );
+        emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
         return NoContent();
     }

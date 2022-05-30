@@ -4,11 +4,11 @@ using MimeKit;
 
 namespace AuthEndpoints.Services;
 
-public class EmailSender : IEmailSender
+public class DefaultEmailSender : IEmailSender
 {
     private readonly EmailOptions options;
 
-    public EmailSender(IOptions<AuthEndpointsOptions> options)
+    public DefaultEmailSender(IOptions<AuthEndpointsOptions> options)
     {
         this.options = options.Value.EmailOptions!;
     }
