@@ -1,5 +1,8 @@
 ﻿namespace AuthEndpoints;
 
+/// <summary>
+/// Represents all the options you can use to configure the Email backend
+/// </summary>
 public class EmailOptions
 {
     public string? From { get; set; }

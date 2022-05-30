@@ -2,6 +2,9 @@
 
 namespace AuthEndpoints.Models;
 
+/// <summary>
+/// The dto used for reset password request
+/// </summary>
 public class ResetPasswordRequest
 {
     [Required]

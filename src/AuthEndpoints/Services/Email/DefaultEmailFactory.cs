@@ -4,6 +4,9 @@ using MimeKit;
 
 namespace AuthEndpoints.Services;
 
+/// <summary>
+/// Use this class to create MimeMessage for email verification request and for reset password request.
+/// </summary>
 public class DefaultEmailFactory : IEmailFactory
 {
     private readonly EmailOptions options;
@@ -23,6 +26,11 @@ public class DefaultEmailFactory : IEmailFactory
         return mimeMessage;
     }
 
+    /// <summary>
+    /// Use this method to create MimeMessage for email verification request
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns>a instance of MimeMessage</returns>
     public MimeMessage CreateConfirmationEmail(EmailData data)
     {
         var message = Create(data); 
@@ -39,6 +47,11 @@ Thanks for using our site!";
         return message;
     }
 
+    /// <summary>
+    /// Use this method to create MimeMessage for reset password request
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns>a instance of MimeMessage</returns>
     public MimeMessage CreateResetPasswordEmail(EmailData data)
     {
         var message = Create(data);

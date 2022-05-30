@@ -2,6 +2,9 @@
 
 namespace AuthEndpoints.Models;
 
+/// <summary>
+/// The dto used for creating an MimeMessage object by IEmailFactory
+/// </summary>
 public class EmailData
 {
     public List<MailboxAddress> To { get; set; }

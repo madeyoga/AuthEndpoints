@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace AuthEndpoints.Models;
+
+/// <summary>
+/// The dto used for reset password confirmation request
+/// </summary>
 public class ResetPasswordConfirmRequest
 {
     [Required]
