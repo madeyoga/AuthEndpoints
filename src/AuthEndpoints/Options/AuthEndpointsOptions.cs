@@ -43,7 +43,7 @@ public class AuthEndpointsOptions
     /// <summary>
     /// URL to your frontend email verification page.
     /// </summary>
-    public string? EmailConfirmationUrl { get; set; } = "/password-reset/{uid}/{token}";
+    public string? EmailConfirmationUrl { get; set; }
 
     /// <summary>
     /// URL to your frontend password reset page.
