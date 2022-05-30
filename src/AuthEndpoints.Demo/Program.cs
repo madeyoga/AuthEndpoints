@@ -72,12 +72,12 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
     {
         SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
         Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 120,
+        ExpirationMinutes = 1200,
     };
     options.Audience = "https://localhost:8000";
     options.Issuer = "https://localhost:8000";
-    options.EmailConfirmationUrl = "https://myfrontendapp.com/account/email/confirm/{uid}/{token}";
-    options.PasswordResetUrl = "https://myfrontendapp.com/account/password/reset/{uid}/{token}";
+    options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
+    options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
     options.EmailOptions = new EmailOptions()
     {
         Host = "smtp.gmail.com",
