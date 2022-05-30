@@ -38,10 +38,10 @@ You can customize the content of the email by implementing IEmailFactory, for ex
 ```cs
 public class MyEmailFactory : IEmailFactory
 {
-  // returns a MimeMessage that will be sended by the IEmailSender.
+  // returns a MimeMessage that will be sendt by the IEmailSender.
   public MimeMessage CreateConfirmationEmail(EmailData data);
 
-  // returns a MimeMessage that will be sended by the IEmailSender.
+  // returns a MimeMessage that will be sent by the IEmailSender.
   public MimeMessage CreateResetPasswordEmail(EmailData data);
 }
 ```
