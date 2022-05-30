@@ -28,7 +28,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
-        services.TryAddSingleton<IEmailFactory, DefaultEmailFactory>();
+        services.TryAddSingleton<IEmailFactory, DefaultMessageFactory>();
         services.TryAddSingleton<IEmailSender, DefaultEmailSender>();
 
         return new AuthEndpointsBuilder(typeof(TUser), services);

@@ -7,21 +7,21 @@ namespace AuthEndpoints.Services;
 /// <summary>
 /// Use this class to create MimeMessage for email verification request and for reset password request.
 /// </summary>
-public class DefaultEmailFactory : IEmailFactory
+public class DefaultMessageFactory : IEmailFactory
 {
     private readonly EmailOptions options;
 
-    public DefaultEmailFactory(IOptions<AuthEndpointsOptions> options)
+    public DefaultMessageFactory(IOptions<AuthEndpointsOptions> options)
     {
         this.options = options.Value.EmailOptions!;
     }
 
-    private MimeMessage Create(EmailData message)
+    private MimeMessage Create(EmailData data)
     {
         var mimeMessage = new MimeMessage();
         mimeMessage.From.Add(new MailboxAddress(options.From, options.From));
-        mimeMessage.To.AddRange(message.To);
-        mimeMessage.Subject = message.Subject;
+        mimeMessage.To.AddRange(data.To);
+        mimeMessage.Subject = data.Subject;
 
         return mimeMessage;
     }

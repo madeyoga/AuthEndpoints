@@ -81,12 +81,12 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     }
 
     /// <summary>
-    /// Use this endpoints to send email confirmation
+    /// Use this endpoints to send email verification link via email
     /// </summary>
     /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
-    [HttpGet("email_confirmation")]
-    public virtual async Task<IActionResult> SendEmailConfirmation()
+    [HttpGet("verify_email")]
+    public virtual async Task<IActionResult> SendEmailVerification()
     {
         string identity = HttpContext.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
@@ -116,8 +116,8 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpGet("email_confirmation_confirm")]
-    public virtual async Task<IActionResult> EmailConfirmationConfirm([FromBody] ConfirmEmailRequest request)
+    [HttpGet("verify_email_confirm")]
+    public virtual async Task<IActionResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request)
     {
         if (request.Identity == null || request.Token == null)
         {
