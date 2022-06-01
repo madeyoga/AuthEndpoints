@@ -28,14 +28,20 @@ public class AuthEndpointsBuilder
     public IServiceCollection Services { get; }
 
     /// <summary>
+    /// Gets the IdentityBuilder
+    /// </summary>
+    public IdentityBuilder IdentityBuilder { get; }
+
+    /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
     /// </summary>
     /// <param name="userType">The type to use for the users.</param>
     /// <param name="services">The <see cref="IServiceCollection"/> to attach to.</param>
-    public AuthEndpointsBuilder(Type userType, IServiceCollection services)
+    public AuthEndpointsBuilder(Type userType, IServiceCollection services, IdentityBuilder identityBuilder)
     {
         UserType = userType;
         Services = services;
+        IdentityBuilder = identityBuilder;
     }
 
     protected AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
@@ -45,25 +51,13 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAccessClaimsProvider<TProvider>() where TProvider : class
+    public virtual AuthEndpointsBuilder AddClaimsProvider<TProvider>() where TProvider : class
     {
-        Services.AddSingleton(typeof(IAccessClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IRefreshClaimsProvider{TUser}"/>.
-    /// </summary>
-    /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshClaimsProvider<TProvider>() where TProvider : class
-    {
-        Services.AddSingleton(typeof(IRefreshClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
-        return this;
+        return AddScoped(typeof(IClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
     }
 
     /// <summary>
