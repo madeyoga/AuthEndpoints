@@ -1,9 +1,10 @@
 ﻿using AuthEndpoints.Demo.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Demo.Data;
 
-public class MyDbContext : DbContext
+public class MyDbContext : IdentityDbContext<MyCustomIdentityUser>
 {
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {
@@ -14,6 +15,4 @@ public class MyDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
     }
-
-    public DbSet<MyCustomIdentityUser>? Users { get; set; }
 }

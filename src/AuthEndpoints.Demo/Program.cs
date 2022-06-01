@@ -58,7 +58,7 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     option.Password.RequiredLength = 0;
 })
     .AddEntityFrameworkStores<MyDbContext>()
-    .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
 {
