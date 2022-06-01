@@ -58,15 +58,12 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 
         if (await userManager.GetTwoFactorEnabledAsync(user))
         {
-            var providers = await userManager.GetValidTwoFactorProvidersAsync(user);
-
             return Ok(new
             {
                 AccessToken = "",
                 RefreshToken = "",
                 AuthSuccess = false,
                 TwoStepVerificationRequired = true,
-                Providers = providers,
             });
         }
 

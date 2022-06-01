@@ -67,4 +67,35 @@ Thanks for using our site!";
         };
         return message;
     }
+
+    public MimeMessage CreateEnable2faEmail(EmailData data)
+    {
+        var message = Create(data);
+        var body = @$"You're receiving this email because you requested a 2 factor authentication for your user account
+Please enter this code to finish enabling 2fa:
+
+{data.Link}
+
+Thanks for using our site!";
+        message.Body = new TextPart(MimeKit.Text.TextFormat.Text)
+        {
+            Text = body
+        };
+        return message;
+    }
+
+    public MimeMessage Create2faEmail(EmailData data)
+    {
+        var message = Create(data);
+        var body = @$"We noticed you’re trying to log in. Please enter this code to finish logging in:
+
+{data.Link}
+
+Thanks for using our site!";
+        message.Body = new TextPart(MimeKit.Text.TextFormat.Text)
+        {
+            Text = body
+        };
+        return message;
+    }
 }
