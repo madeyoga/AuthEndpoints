@@ -56,6 +56,20 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return Unauthorized();
         }
 
+        if (await userManager.GetTwoFactorEnabledAsync(user))
+        {
+            var providers = await userManager.GetValidTwoFactorProvidersAsync(user);
+
+            return Ok(new
+            {
+                AccessToken = "",
+                RefreshToken = "",
+                AuthSuccess = false,
+                TwoStepVerificationRequired = true,
+                Providers = providers,
+            });
+        }
+
         AuthenticatedUserResponse response = await authenticator.Login(user);
 
         return Ok(response);
