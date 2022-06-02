@@ -13,21 +13,18 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
     private readonly IJwtFactory jwtFactory;
-    private readonly IClaimsProvider<TUser> accessClaimsProvider;
-    private readonly IClaimsProvider<TUser> refreshClaimsProvider;
+    private readonly IClaimsProvider<TUser> claimsProvider;
     private readonly AuthEndpointsOptions options;
     private readonly UserManager<TUser> userManager;
 
     public DefaultAuthenticator(UserManager<TUser> userManager,
         IJwtFactory jwtFactory,
-        IAccessClaimsProvider<TUser> accessClaimsProvider,
-        IRefreshClaimsProvider<TUser> refreshClaimsProvider,
+        IClaimsProvider<TUser> claimsProvider,
         IOptions<AuthEndpointsOptions> options)
     {
         this.jwtFactory = jwtFactory;
+        this.claimsProvider = claimsProvider;
         this.userManager = userManager;
-        this.accessClaimsProvider = accessClaimsProvider;
-        this.refreshClaimsProvider = refreshClaimsProvider;
         this.options = options.Value;
     }
 
@@ -69,7 +66,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
             new JwtPayload(
                 options.Issuer!,
                 options.Audience!,
-                accessClaimsProvider.provideClaims(user),
+                claimsProvider.provideAccessClaims(user),
                 DateTime.UtcNow,
                 DateTime.UtcNow.AddMinutes(options.AccessSigningOptions.ExpirationMinutes)
             )
@@ -80,7 +77,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
             new JwtPayload(
                 options.Issuer!,
                 options.Audience!,
-                refreshClaimsProvider.provideClaims(user),
+                claimsProvider.provideRefreshClaims(user),
                 DateTime.UtcNow,
                 DateTime.UtcNow.AddMinutes(options.RefreshSigningOptions.ExpirationMinutes)
             )

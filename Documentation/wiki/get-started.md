@@ -31,8 +31,8 @@ Edit `Program.cs`, Add identity core services:
 
 ```cs
 builder.Services.AddIdentityCore<MyCustomIdentityUser>()
-  .AddEntityFrameworkStores<...>()
-  .AddTokenProvider<DataProtectorTokenProvider<MyCustomIdentityUser>>(TokenOptions.DefaultProvider);
+  .AddEntityFrameworkStores<MyDbContext>()
+  .AddDefaultTokenProviders();
 ```
 
 Then add auth endpoints services and jwt bearer authentication scheme:

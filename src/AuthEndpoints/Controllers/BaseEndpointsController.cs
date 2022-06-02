@@ -295,7 +295,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
 
         // send email
         var email = emailFactory.CreateResetPasswordEmail(
-            new EmailData(new string[] { user.Email }, "Email Confirmation", link)
+            new EmailData(new string[] { user.Email }, "Password Reset", link)
         );
         await emailSender.SendEmailAsync(email).ConfigureAwait(false);
 

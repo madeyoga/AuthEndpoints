@@ -5,6 +5,8 @@ namespace AuthEndpoints.Services;
 
 public interface IEmailFactory
 {
-    MimeMessage CreateResetPasswordEmail(EmailData message);
-    MimeMessage CreateConfirmationEmail(EmailData message);
+    MimeMessage CreateResetPasswordEmail(EmailData data);
+    MimeMessage CreateConfirmationEmail(EmailData data);
+    MimeMessage CreateEnable2faEmail(EmailData data);
+    MimeMessage Create2faEmail(EmailData data);
 }

@@ -19,19 +19,21 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
         services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
 
-        services.TryAddSingleton<IAccessClaimsProvider<TUser>, AccessClaimsProvider<TUserKey, TUser>>();
-        services.TryAddSingleton<IRefreshClaimsProvider<TUser>, RefreshClaimsProvider<TUserKey, TUser>>();
+        // Add authendpoints core services
+        services.TryAddScoped<IClaimsProvider<TUser>, DefaultClaimsProvider<TUserKey, TUser>>();
         services.TryAddScoped<IJwtFactory, DefaultJwtFactory>();
         services.TryAddScoped<IJwtValidator, DefaultJwtValidator>();
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
 
-        services.TryAddScoped<IdentityErrorDescriber>();
-        services.TryAddScoped<JwtSecurityTokenHandler>();
-
         services.TryAddSingleton<IEmailFactory, DefaultMessageFactory>();
         services.TryAddSingleton<IEmailSender, DefaultEmailSender>();
 
-        return new AuthEndpointsBuilder(typeof(TUser), services);
+        services.TryAddScoped<IdentityErrorDescriber>();
+        services.TryAddScoped<JwtSecurityTokenHandler>();
+
+        var identityBuilder = services.AddIdentityCore<TUser>();
+
+        return new AuthEndpointsBuilder(typeof(TUser), services, identityBuilder);
     }
 
     /// <summary>

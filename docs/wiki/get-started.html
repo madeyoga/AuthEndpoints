@@ -94,8 +94,8 @@
 <h2 id="quick-start">Quick Start</h2>
 <p>Edit <code>Program.cs</code>, Add identity core services:</p>
 <pre><code class="lang-cs">builder.Services.AddIdentityCore&lt;MyCustomIdentityUser&gt;()
-  .AddEntityFrameworkStores&lt;...&gt;()
-  .AddTokenProvider&lt;DataProtectorTokenProvider&lt;MyCustomIdentityUser&gt;&gt;(TokenOptions.DefaultProvider);
+  .AddEntityFrameworkStores&lt;MyDbContext&gt;()
+  .AddDefaultTokenProviders();
 </code></pre>
 <p>Then add auth endpoints services and jwt bearer authentication scheme:</p>
 <pre><code class="lang-cs">var accessValidationParam = new TokenValidationParameters()

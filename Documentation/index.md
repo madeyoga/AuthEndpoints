@@ -45,6 +45,14 @@ Install-Package AuthEndpoints
 
 - `/users/reset_password_confirm`
 
+- `/users/enable_2fa`
+
+- `/users/enable_2fa_confirm`
+
+- `/users/two_step_verification_login`
+
+- `/users/two_step_verification_confirm`
+
 - `/jwt/create`
 
 - `/jwt/refresh`
@@ -55,5 +63,7 @@ Install-Package AuthEndpoints
 ## Contributing
 
 Your contributions are always welcome! simply send a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start.
+
+If you find a flaw, please open an issue or a PR and let's sort things out.
 
 The documentation is far from perfect so every bit of help is more than welcome.
