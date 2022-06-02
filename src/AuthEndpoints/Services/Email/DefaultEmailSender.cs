@@ -6,7 +6,7 @@ using MimeKit;
 namespace AuthEndpoints.Services;
 
 /// <summary>
-/// Use this class to send an email using smtp client.
+/// Use this class to send an email using smtp client configured by <see cref="EmailOptions"/>.
 /// </summary>
 public class DefaultEmailSender : IEmailSender
 {

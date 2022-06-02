@@ -4,7 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace AuthEndpoints.Services;
 
 /// <summary>
-/// Use <see cref="DefaultJwtFactory"/> to create a jwt with HS256 based signature
+/// Use <see cref="DefaultJwtFactory"/> to create a jwt.
 /// </summary>
 public class DefaultJwtFactory : IJwtFactory
 {

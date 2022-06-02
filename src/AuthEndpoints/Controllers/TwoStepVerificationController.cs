@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using AuthEndpoints.Models;
 using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -8,6 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Controllers;
 
+/// <summary>
+/// Inherit this base class to define endpoints that contain 2fa process actions such as enable 2fa and login.
+/// </summary>
+/// <typeparam name="TUserKey"></typeparam>
+/// <typeparam name="TUser"></typeparam>
 [ApiController]
 [Route("users/")]
 public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
