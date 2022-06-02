@@ -13,12 +13,12 @@ references:
   commentId: T:AuthEndpoints.AuthEndpointsBuilder
   fullName: AuthEndpoints.AuthEndpointsBuilder
   nameWithType: AuthEndpointsBuilder
-- uid: AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  name: AuthEndpointsBuilder(Type, IServiceCollection)
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_Type_Microsoft_Extensions_DependencyInjection_IServiceCollection_
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder(Type, IServiceCollection)
+- uid: AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.AspNetCore.Identity.IdentityBuilder)
+  name: AuthEndpointsBuilder(Type, IServiceCollection, IdentityBuilder)
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_Type_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_AspNetCore_Identity_IdentityBuilder_
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.AspNetCore.Identity.IdentityBuilder)
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Microsoft.Extensions.DependencyInjection.IServiceCollection, Microsoft.AspNetCore.Identity.IdentityBuilder)
+  nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder(Type, IServiceCollection, IdentityBuilder)
 - uid: AuthEndpoints.AuthEndpointsBuilder.#ctor*
   name: AuthEndpointsBuilder
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_
@@ -26,22 +26,6 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder
   nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider*
-  name: AddAccessClaimsProvider
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAccessClaimsProvider_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider
-  nameWithType: AuthEndpointsBuilder.AddAccessClaimsProvider
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider``1
-  name: AddAccessClaimsProvider<TProvider>()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAccessClaimsProvider__1
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider``1
-  name.vb: AddAccessClaimsProvider(Of TProvider)()
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider<TProvider>()
-  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddAccessClaimsProvider(Of TProvider)()
-  nameWithType: AuthEndpointsBuilder.AddAccessClaimsProvider<TProvider>()
-  nameWithType.vb: AuthEndpointsBuilder.AddAccessClaimsProvider(Of TProvider)()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddAuthenticator*
   name: AddAuthenticator
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddAuthenticator_
@@ -58,6 +42,35 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddAuthenticator(Of TAuthenticator)()
   nameWithType: AuthEndpointsBuilder.AddAuthenticator<TAuthenticator>()
   nameWithType.vb: AuthEndpointsBuilder.AddAuthenticator(Of TAuthenticator)()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider*
+  name: AddClaimsProvider
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddClaimsProvider_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider
+  nameWithType: AuthEndpointsBuilder.AddClaimsProvider
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider``1
+  name: AddClaimsProvider<TProvider>()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddClaimsProvider__1
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider``1
+  name.vb: AddClaimsProvider(Of TProvider)()
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider<TProvider>()
+  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider(Of TProvider)()
+  nameWithType: AuthEndpointsBuilder.AddClaimsProvider<TProvider>()
+  nameWithType.vb: AuthEndpointsBuilder.AddClaimsProvider(Of TProvider)()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
+  name: AddDefaultTokenProviders()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddDefaultTokenProviders
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders()
+  nameWithType: AuthEndpointsBuilder.AddDefaultTokenProviders()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders*
+  name: AddDefaultTokenProviders
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddDefaultTokenProviders_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
+  nameWithType: AuthEndpointsBuilder.AddDefaultTokenProviders
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory*
   name: AddEmailFactory
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddEmailFactory_
@@ -151,22 +164,6 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddJwtValidator(Of TValidator)()
   nameWithType: AuthEndpointsBuilder.AddJwtValidator<TValidator>()
   nameWithType.vb: AuthEndpointsBuilder.AddJwtValidator(Of TValidator)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider*
-  name: AddRefreshClaimsProvider
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshClaimsProvider_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider
-  nameWithType: AuthEndpointsBuilder.AddRefreshClaimsProvider
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider``1
-  name: AddRefreshClaimsProvider<TProvider>()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddRefreshClaimsProvider__1
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider``1
-  name.vb: AddRefreshClaimsProvider(Of TProvider)()
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider<TProvider>()
-  fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddRefreshClaimsProvider(Of TProvider)()
-  nameWithType: AuthEndpointsBuilder.AddRefreshClaimsProvider<TProvider>()
-  nameWithType.vb: AuthEndpointsBuilder.AddRefreshClaimsProvider(Of TProvider)()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddScoped(Type,Type)
   name: AddScoped(Type, Type)
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddScoped_Type_Type_
@@ -180,6 +177,19 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsBuilder.AddScoped
   nameWithType: AuthEndpointsBuilder.AddScoped
+- uid: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
+  name: GetIdentityBuilder
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_GetIdentityBuilder
+  commentId: P:AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
+  fullName: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
+  nameWithType: AuthEndpointsBuilder.GetIdentityBuilder
+- uid: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder*
+  name: GetIdentityBuilder
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_GetIdentityBuilder_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
+  nameWithType: AuthEndpointsBuilder.GetIdentityBuilder
 - uid: AuthEndpoints.AuthEndpointsBuilder.Services
   name: Services
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_Services
@@ -671,6 +681,133 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Verify
   nameWithType: JwtController<TUserKey, TUser>.Verify
   nameWithType.vb: JwtController(Of TUserKey, TUser).Verify
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2
+  name: TwoStepVerificationController<TUserKey, TUser>
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html
+  commentId: T:AuthEndpoints.Controllers.TwoStepVerificationController`2
+  name.vb: TwoStepVerificationController(Of TUserKey, TUser)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser)
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+  name: TwoStepVerificationController(UserManager<TUser>, IAuthenticator<TUser>, IEmailSender, IEmailFactory)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+  name.vb: TwoStepVerificationController(UserManager(Of TUser), IAuthenticator(Of TUser), IEmailSender, IEmailFactory)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>, AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser), AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController(UserManager<TUser>, IAuthenticator<TUser>, IEmailSender, IEmailFactory)
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController(UserManager(Of TUser), IAuthenticator(Of TUser), IEmailSender, IEmailFactory)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor*
+  name: TwoStepVerificationController
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_
+  commentId: Overload:AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.authenticator
+  name: authenticator
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_authenticator
+  commentId: F:AuthEndpoints.Controllers.TwoStepVerificationController`2.authenticator
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.authenticator
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).authenticator
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.authenticator
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).authenticator
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.emailFactory
+  name: emailFactory
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_emailFactory
+  commentId: F:AuthEndpoints.Controllers.TwoStepVerificationController`2.emailFactory
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.emailFactory
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).emailFactory
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.emailFactory
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).emailFactory
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.emailSender
+  name: emailSender
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_emailSender
+  commentId: F:AuthEndpoints.Controllers.TwoStepVerificationController`2.emailSender
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.emailSender
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).emailSender
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.emailSender
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).emailSender
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerification
+  name: EnableTwoStepVerification()
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerification
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerification
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerification()
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerification()
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerification()
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerification()
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerification*
+  name: EnableTwoStepVerification
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerification_
+  commentId: Overload:AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerification
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerification
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerification
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerification
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerification
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  name: EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm*
+  name: EnableTwoStepVerificationConfirm
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_
+  commentId: Overload:AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  name: TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm*
+  name: TwoStepVerificationConfirm
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_
+  commentId: Overload:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
+  name: TwoStepVerificationLogin(TwoStepVerificationLoginRequest)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin(TwoStepVerificationLoginRequest)
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin(TwoStepVerificationLoginRequest)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin*
+  name: TwoStepVerificationLogin
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_
+  commentId: Overload:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin
+  isSpec: "True"
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.userManager
+  name: userManager
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_userManager
+  commentId: F:AuthEndpoints.Controllers.TwoStepVerificationController`2.userManager
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.userManager
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).userManager
+  nameWithType: TwoStepVerificationController<TUserKey, TUser>.userManager
+  nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).userManager
 - uid: AuthEndpoints.EmailOptions
   name: EmailOptions
   href: api/AuthEndpoints.EmailOptions.html
@@ -1261,6 +1398,83 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Models.SetUsernameRequest.NewUsername
   nameWithType: SetUsernameRequest.NewUsername
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest
+  name: TwoStepVerificationConfirmRequest
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html
+  commentId: T:AuthEndpoints.Models.TwoStepVerificationConfirmRequest
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest
+  nameWithType: TwoStepVerificationConfirmRequest
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Email
+  name: Email
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html#AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Email
+  commentId: P:AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Email
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Email
+  nameWithType: TwoStepVerificationConfirmRequest.Email
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Email*
+  name: Email
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html#AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Email_
+  commentId: Overload:AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Email
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Email
+  nameWithType: TwoStepVerificationConfirmRequest.Email
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Provider
+  name: Provider
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html#AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Provider
+  commentId: P:AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Provider
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Provider
+  nameWithType: TwoStepVerificationConfirmRequest.Provider
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Provider*
+  name: Provider
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html#AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Provider_
+  commentId: Overload:AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Provider
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Provider
+  nameWithType: TwoStepVerificationConfirmRequest.Provider
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Token
+  name: Token
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html#AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Token
+  commentId: P:AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Token
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Token
+  nameWithType: TwoStepVerificationConfirmRequest.Token
+- uid: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Token*
+  name: Token
+  href: api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html#AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Token_
+  commentId: Overload:AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Token
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.TwoStepVerificationConfirmRequest.Token
+  nameWithType: TwoStepVerificationConfirmRequest.Token
+- uid: AuthEndpoints.Models.TwoStepVerificationLoginRequest
+  name: TwoStepVerificationLoginRequest
+  href: api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.html
+  commentId: T:AuthEndpoints.Models.TwoStepVerificationLoginRequest
+  fullName: AuthEndpoints.Models.TwoStepVerificationLoginRequest
+  nameWithType: TwoStepVerificationLoginRequest
+- uid: AuthEndpoints.Models.TwoStepVerificationLoginRequest.#ctor(System.String,System.String)
+  name: TwoStepVerificationLoginRequest(String, String)
+  href: api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.html#AuthEndpoints_Models_TwoStepVerificationLoginRequest__ctor_System_String_System_String_
+  commentId: M:AuthEndpoints.Models.TwoStepVerificationLoginRequest.#ctor(System.String,System.String)
+  fullName: AuthEndpoints.Models.TwoStepVerificationLoginRequest.TwoStepVerificationLoginRequest(System.String, System.String)
+  nameWithType: TwoStepVerificationLoginRequest.TwoStepVerificationLoginRequest(String, String)
+- uid: AuthEndpoints.Models.TwoStepVerificationLoginRequest.#ctor*
+  name: TwoStepVerificationLoginRequest
+  href: api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.html#AuthEndpoints_Models_TwoStepVerificationLoginRequest__ctor_
+  commentId: Overload:AuthEndpoints.Models.TwoStepVerificationLoginRequest.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.TwoStepVerificationLoginRequest.TwoStepVerificationLoginRequest
+  nameWithType: TwoStepVerificationLoginRequest.TwoStepVerificationLoginRequest
+- uid: AuthEndpoints.Models.TwoStepVerificationLoginRequest.Provider
+  name: Provider
+  href: api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.html#AuthEndpoints_Models_TwoStepVerificationLoginRequest_Provider
+  commentId: P:AuthEndpoints.Models.TwoStepVerificationLoginRequest.Provider
+  fullName: AuthEndpoints.Models.TwoStepVerificationLoginRequest.Provider
+  nameWithType: TwoStepVerificationLoginRequest.Provider
+- uid: AuthEndpoints.Models.TwoStepVerificationLoginRequest.Provider*
+  name: Provider
+  href: api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.html#AuthEndpoints_Models_TwoStepVerificationLoginRequest_Provider_
+  commentId: Overload:AuthEndpoints.Models.TwoStepVerificationLoginRequest.Provider
+  isSpec: "True"
+  fullName: AuthEndpoints.Models.TwoStepVerificationLoginRequest.Provider
+  nameWithType: TwoStepVerificationLoginRequest.Provider
 - uid: AuthEndpoints.Models.VerifyRequest
   name: VerifyRequest
   href: api/AuthEndpoints.Models.VerifyRequest.html
@@ -1364,32 +1578,6 @@ references:
   commentId: N:AuthEndpoints.Services
   fullName: AuthEndpoints.Services
   nameWithType: AuthEndpoints.Services
-- uid: AuthEndpoints.Services.AccessClaimsProvider`2
-  name: AccessClaimsProvider<TUserKey, TUser>
-  href: api/AuthEndpoints.Services.AccessClaimsProvider-2.html
-  commentId: T:AuthEndpoints.Services.AccessClaimsProvider`2
-  name.vb: AccessClaimsProvider(Of TUserKey, TUser)
-  fullName: AuthEndpoints.Services.AccessClaimsProvider<TUserKey, TUser>
-  fullName.vb: AuthEndpoints.Services.AccessClaimsProvider(Of TUserKey, TUser)
-  nameWithType: AccessClaimsProvider<TUserKey, TUser>
-  nameWithType.vb: AccessClaimsProvider(Of TUserKey, TUser)
-- uid: AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims(`1)
-  name: provideClaims(TUser)
-  href: api/AuthEndpoints.Services.AccessClaimsProvider-2.html#AuthEndpoints_Services_AccessClaimsProvider_2_provideClaims__1_
-  commentId: M:AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims(`1)
-  fullName: AuthEndpoints.Services.AccessClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  fullName.vb: AuthEndpoints.Services.AccessClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-  nameWithType: AccessClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  nameWithType.vb: AccessClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-- uid: AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims*
-  name: provideClaims
-  href: api/AuthEndpoints.Services.AccessClaimsProvider-2.html#AuthEndpoints_Services_AccessClaimsProvider_2_provideClaims_
-  commentId: Overload:AuthEndpoints.Services.AccessClaimsProvider`2.provideClaims
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.AccessClaimsProvider<TUserKey, TUser>.provideClaims
-  fullName.vb: AuthEndpoints.Services.AccessClaimsProvider(Of TUserKey, TUser).provideClaims
-  nameWithType: AccessClaimsProvider<TUserKey, TUser>.provideClaims
-  nameWithType.vb: AccessClaimsProvider(Of TUserKey, TUser).provideClaims
 - uid: AuthEndpoints.Services.DefaultAuthenticator`1
   name: DefaultAuthenticator<TUser>
   href: api/AuthEndpoints.Services.DefaultAuthenticator-1.html
@@ -1399,15 +1587,15 @@ references:
   fullName.vb: AuthEndpoints.Services.DefaultAuthenticator(Of TUser)
   nameWithType: DefaultAuthenticator<TUser>
   nameWithType.vb: DefaultAuthenticator(Of TUser)
-- uid: AuthEndpoints.Services.DefaultAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessClaimsProvider{`0},AuthEndpoints.Services.IRefreshClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
-  name: DefaultAuthenticator(UserManager<TUser>, IJwtFactory, IAccessClaimsProvider<TUser>, IRefreshClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
-  href: api/AuthEndpoints.Services.DefaultAuthenticator-1.html#AuthEndpoints_Services_DefaultAuthenticator_1__ctor_Microsoft_AspNetCore_Identity_UserManager__0__AuthEndpoints_Services_IJwtFactory_AuthEndpoints_Services_IAccessClaimsProvider__0__AuthEndpoints_Services_IRefreshClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
-  commentId: M:AuthEndpoints.Services.DefaultAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IAccessClaimsProvider{`0},AuthEndpoints.Services.IRefreshClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
-  name.vb: DefaultAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessClaimsProvider(Of TUser), IRefreshClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
-  fullName: AuthEndpoints.Services.DefaultAuthenticator<TUser>.DefaultAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessClaimsProvider<TUser>, AuthEndpoints.Services.IRefreshClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
-  fullName.vb: AuthEndpoints.Services.DefaultAuthenticator(Of TUser).DefaultAuthenticator(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IAccessClaimsProvider(Of TUser), AuthEndpoints.Services.IRefreshClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
-  nameWithType: DefaultAuthenticator<TUser>.DefaultAuthenticator(UserManager<TUser>, IJwtFactory, IAccessClaimsProvider<TUser>, IRefreshClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
-  nameWithType.vb: DefaultAuthenticator(Of TUser).DefaultAuthenticator(UserManager(Of TUser), IJwtFactory, IAccessClaimsProvider(Of TUser), IRefreshClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Services.DefaultAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name: DefaultAuthenticator(UserManager<TUser>, IJwtFactory, IClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Services.DefaultAuthenticator-1.html#AuthEndpoints_Services_DefaultAuthenticator_1__ctor_Microsoft_AspNetCore_Identity_UserManager__0__AuthEndpoints_Services_IJwtFactory_AuthEndpoints_Services_IClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Services.DefaultAuthenticator`1.#ctor(Microsoft.AspNetCore.Identity.UserManager{`0},AuthEndpoints.Services.IJwtFactory,AuthEndpoints.Services.IClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: DefaultAuthenticator(UserManager(Of TUser), IJwtFactory, IClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Services.DefaultAuthenticator<TUser>.DefaultAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IClaimsProvider<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Services.DefaultAuthenticator(Of TUser).DefaultAuthenticator(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IJwtFactory, AuthEndpoints.Services.IClaimsProvider(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: DefaultAuthenticator<TUser>.DefaultAuthenticator(UserManager<TUser>, IJwtFactory, IClaimsProvider<TUser>, IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: DefaultAuthenticator(Of TUser).DefaultAuthenticator(UserManager(Of TUser), IJwtFactory, IClaimsProvider(Of TUser), IOptions(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Services.DefaultAuthenticator`1.#ctor*
   name: DefaultAuthenticator
   href: api/AuthEndpoints.Services.DefaultAuthenticator-1.html#AuthEndpoints_Services_DefaultAuthenticator_1__ctor_
@@ -1451,6 +1639,49 @@ references:
   fullName.vb: AuthEndpoints.Services.DefaultAuthenticator(Of TUser).Login
   nameWithType: DefaultAuthenticator<TUser>.Login
   nameWithType.vb: DefaultAuthenticator(Of TUser).Login
+- uid: AuthEndpoints.Services.DefaultClaimsProvider`2
+  name: DefaultClaimsProvider<TUserKey, TUser>
+  href: api/AuthEndpoints.Services.DefaultClaimsProvider-2.html
+  commentId: T:AuthEndpoints.Services.DefaultClaimsProvider`2
+  name.vb: DefaultClaimsProvider(Of TUserKey, TUser)
+  fullName: AuthEndpoints.Services.DefaultClaimsProvider<TUserKey, TUser>
+  fullName.vb: AuthEndpoints.Services.DefaultClaimsProvider(Of TUserKey, TUser)
+  nameWithType: DefaultClaimsProvider<TUserKey, TUser>
+  nameWithType.vb: DefaultClaimsProvider(Of TUserKey, TUser)
+- uid: AuthEndpoints.Services.DefaultClaimsProvider`2.provideAccessClaims(`1)
+  name: provideAccessClaims(TUser)
+  href: api/AuthEndpoints.Services.DefaultClaimsProvider-2.html#AuthEndpoints_Services_DefaultClaimsProvider_2_provideAccessClaims__1_
+  commentId: M:AuthEndpoints.Services.DefaultClaimsProvider`2.provideAccessClaims(`1)
+  fullName: AuthEndpoints.Services.DefaultClaimsProvider<TUserKey, TUser>.provideAccessClaims(TUser)
+  fullName.vb: AuthEndpoints.Services.DefaultClaimsProvider(Of TUserKey, TUser).provideAccessClaims(TUser)
+  nameWithType: DefaultClaimsProvider<TUserKey, TUser>.provideAccessClaims(TUser)
+  nameWithType.vb: DefaultClaimsProvider(Of TUserKey, TUser).provideAccessClaims(TUser)
+- uid: AuthEndpoints.Services.DefaultClaimsProvider`2.provideAccessClaims*
+  name: provideAccessClaims
+  href: api/AuthEndpoints.Services.DefaultClaimsProvider-2.html#AuthEndpoints_Services_DefaultClaimsProvider_2_provideAccessClaims_
+  commentId: Overload:AuthEndpoints.Services.DefaultClaimsProvider`2.provideAccessClaims
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultClaimsProvider<TUserKey, TUser>.provideAccessClaims
+  fullName.vb: AuthEndpoints.Services.DefaultClaimsProvider(Of TUserKey, TUser).provideAccessClaims
+  nameWithType: DefaultClaimsProvider<TUserKey, TUser>.provideAccessClaims
+  nameWithType.vb: DefaultClaimsProvider(Of TUserKey, TUser).provideAccessClaims
+- uid: AuthEndpoints.Services.DefaultClaimsProvider`2.provideRefreshClaims(`1)
+  name: provideRefreshClaims(TUser)
+  href: api/AuthEndpoints.Services.DefaultClaimsProvider-2.html#AuthEndpoints_Services_DefaultClaimsProvider_2_provideRefreshClaims__1_
+  commentId: M:AuthEndpoints.Services.DefaultClaimsProvider`2.provideRefreshClaims(`1)
+  fullName: AuthEndpoints.Services.DefaultClaimsProvider<TUserKey, TUser>.provideRefreshClaims(TUser)
+  fullName.vb: AuthEndpoints.Services.DefaultClaimsProvider(Of TUserKey, TUser).provideRefreshClaims(TUser)
+  nameWithType: DefaultClaimsProvider<TUserKey, TUser>.provideRefreshClaims(TUser)
+  nameWithType.vb: DefaultClaimsProvider(Of TUserKey, TUser).provideRefreshClaims(TUser)
+- uid: AuthEndpoints.Services.DefaultClaimsProvider`2.provideRefreshClaims*
+  name: provideRefreshClaims
+  href: api/AuthEndpoints.Services.DefaultClaimsProvider-2.html#AuthEndpoints_Services_DefaultClaimsProvider_2_provideRefreshClaims_
+  commentId: Overload:AuthEndpoints.Services.DefaultClaimsProvider`2.provideRefreshClaims
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultClaimsProvider<TUserKey, TUser>.provideRefreshClaims
+  fullName.vb: AuthEndpoints.Services.DefaultClaimsProvider(Of TUserKey, TUser).provideRefreshClaims
+  nameWithType: DefaultClaimsProvider<TUserKey, TUser>.provideRefreshClaims
+  nameWithType.vb: DefaultClaimsProvider(Of TUserKey, TUser).provideRefreshClaims
 - uid: AuthEndpoints.Services.DefaultEmailSender
   name: DefaultEmailSender
   href: api/AuthEndpoints.Services.DefaultEmailSender.html
@@ -1611,6 +1842,19 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultMessageFactory.DefaultMessageFactory
   nameWithType: DefaultMessageFactory.DefaultMessageFactory
+- uid: AuthEndpoints.Services.DefaultMessageFactory.Create2faEmail(AuthEndpoints.Models.EmailData)
+  name: Create2faEmail(EmailData)
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_Create2faEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.DefaultMessageFactory.Create2faEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.Create2faEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: DefaultMessageFactory.Create2faEmail(EmailData)
+- uid: AuthEndpoints.Services.DefaultMessageFactory.Create2faEmail*
+  name: Create2faEmail
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_Create2faEmail_
+  commentId: Overload:AuthEndpoints.Services.DefaultMessageFactory.Create2faEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.Create2faEmail
+  nameWithType: DefaultMessageFactory.Create2faEmail
 - uid: AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
   name: CreateConfirmationEmail(EmailData)
   href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_
@@ -1624,6 +1868,19 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateConfirmationEmail
   nameWithType: DefaultMessageFactory.CreateConfirmationEmail
+- uid: AuthEndpoints.Services.DefaultMessageFactory.CreateEnable2faEmail(AuthEndpoints.Models.EmailData)
+  name: CreateEnable2faEmail(EmailData)
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateEnable2faEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.DefaultMessageFactory.CreateEnable2faEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateEnable2faEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: DefaultMessageFactory.CreateEnable2faEmail(EmailData)
+- uid: AuthEndpoints.Services.DefaultMessageFactory.CreateEnable2faEmail*
+  name: CreateEnable2faEmail
+  href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateEnable2faEmail_
+  commentId: Overload:AuthEndpoints.Services.DefaultMessageFactory.CreateEnable2faEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateEnable2faEmail
+  nameWithType: DefaultMessageFactory.CreateEnable2faEmail
 - uid: AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
   name: CreateResetPasswordEmail(EmailData)
   href: api/AuthEndpoints.Services.DefaultMessageFactory.html#AuthEndpoints_Services_DefaultMessageFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_
@@ -1637,15 +1894,6 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.DefaultMessageFactory.CreateResetPasswordEmail
   nameWithType: DefaultMessageFactory.CreateResetPasswordEmail
-- uid: AuthEndpoints.Services.IAccessClaimsProvider`1
-  name: IAccessClaimsProvider<TUser>
-  href: api/AuthEndpoints.Services.IAccessClaimsProvider-1.html
-  commentId: T:AuthEndpoints.Services.IAccessClaimsProvider`1
-  name.vb: IAccessClaimsProvider(Of TUser)
-  fullName: AuthEndpoints.Services.IAccessClaimsProvider<TUser>
-  fullName.vb: AuthEndpoints.Services.IAccessClaimsProvider(Of TUser)
-  nameWithType: IAccessClaimsProvider<TUser>
-  nameWithType.vb: IAccessClaimsProvider(Of TUser)
 - uid: AuthEndpoints.Services.IAuthenticator`1
   name: IAuthenticator<TUser>
   href: api/AuthEndpoints.Services.IAuthenticator-1.html
@@ -1698,29 +1946,59 @@ references:
   fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser)
   nameWithType: IClaimsProvider<TUser>
   nameWithType.vb: IClaimsProvider(Of TUser)
-- uid: AuthEndpoints.Services.IClaimsProvider`1.provideClaims(`0)
-  name: provideClaims(TUser)
-  href: api/AuthEndpoints.Services.IClaimsProvider-1.html#AuthEndpoints_Services_IClaimsProvider_1_provideClaims__0_
-  commentId: M:AuthEndpoints.Services.IClaimsProvider`1.provideClaims(`0)
-  fullName: AuthEndpoints.Services.IClaimsProvider<TUser>.provideClaims(TUser)
-  fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideClaims(TUser)
-  nameWithType: IClaimsProvider<TUser>.provideClaims(TUser)
-  nameWithType.vb: IClaimsProvider(Of TUser).provideClaims(TUser)
-- uid: AuthEndpoints.Services.IClaimsProvider`1.provideClaims*
-  name: provideClaims
-  href: api/AuthEndpoints.Services.IClaimsProvider-1.html#AuthEndpoints_Services_IClaimsProvider_1_provideClaims_
-  commentId: Overload:AuthEndpoints.Services.IClaimsProvider`1.provideClaims
+- uid: AuthEndpoints.Services.IClaimsProvider`1.provideAccessClaims(`0)
+  name: provideAccessClaims(TUser)
+  href: api/AuthEndpoints.Services.IClaimsProvider-1.html#AuthEndpoints_Services_IClaimsProvider_1_provideAccessClaims__0_
+  commentId: M:AuthEndpoints.Services.IClaimsProvider`1.provideAccessClaims(`0)
+  fullName: AuthEndpoints.Services.IClaimsProvider<TUser>.provideAccessClaims(TUser)
+  fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideAccessClaims(TUser)
+  nameWithType: IClaimsProvider<TUser>.provideAccessClaims(TUser)
+  nameWithType.vb: IClaimsProvider(Of TUser).provideAccessClaims(TUser)
+- uid: AuthEndpoints.Services.IClaimsProvider`1.provideAccessClaims*
+  name: provideAccessClaims
+  href: api/AuthEndpoints.Services.IClaimsProvider-1.html#AuthEndpoints_Services_IClaimsProvider_1_provideAccessClaims_
+  commentId: Overload:AuthEndpoints.Services.IClaimsProvider`1.provideAccessClaims
   isSpec: "True"
-  fullName: AuthEndpoints.Services.IClaimsProvider<TUser>.provideClaims
-  fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideClaims
-  nameWithType: IClaimsProvider<TUser>.provideClaims
-  nameWithType.vb: IClaimsProvider(Of TUser).provideClaims
+  fullName: AuthEndpoints.Services.IClaimsProvider<TUser>.provideAccessClaims
+  fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideAccessClaims
+  nameWithType: IClaimsProvider<TUser>.provideAccessClaims
+  nameWithType.vb: IClaimsProvider(Of TUser).provideAccessClaims
+- uid: AuthEndpoints.Services.IClaimsProvider`1.provideRefreshClaims(`0)
+  name: provideRefreshClaims(TUser)
+  href: api/AuthEndpoints.Services.IClaimsProvider-1.html#AuthEndpoints_Services_IClaimsProvider_1_provideRefreshClaims__0_
+  commentId: M:AuthEndpoints.Services.IClaimsProvider`1.provideRefreshClaims(`0)
+  fullName: AuthEndpoints.Services.IClaimsProvider<TUser>.provideRefreshClaims(TUser)
+  fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideRefreshClaims(TUser)
+  nameWithType: IClaimsProvider<TUser>.provideRefreshClaims(TUser)
+  nameWithType.vb: IClaimsProvider(Of TUser).provideRefreshClaims(TUser)
+- uid: AuthEndpoints.Services.IClaimsProvider`1.provideRefreshClaims*
+  name: provideRefreshClaims
+  href: api/AuthEndpoints.Services.IClaimsProvider-1.html#AuthEndpoints_Services_IClaimsProvider_1_provideRefreshClaims_
+  commentId: Overload:AuthEndpoints.Services.IClaimsProvider`1.provideRefreshClaims
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IClaimsProvider<TUser>.provideRefreshClaims
+  fullName.vb: AuthEndpoints.Services.IClaimsProvider(Of TUser).provideRefreshClaims
+  nameWithType: IClaimsProvider<TUser>.provideRefreshClaims
+  nameWithType.vb: IClaimsProvider(Of TUser).provideRefreshClaims
 - uid: AuthEndpoints.Services.IEmailFactory
   name: IEmailFactory
   href: api/AuthEndpoints.Services.IEmailFactory.html
   commentId: T:AuthEndpoints.Services.IEmailFactory
   fullName: AuthEndpoints.Services.IEmailFactory
   nameWithType: IEmailFactory
+- uid: AuthEndpoints.Services.IEmailFactory.Create2faEmail(AuthEndpoints.Models.EmailData)
+  name: Create2faEmail(EmailData)
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_Create2faEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.IEmailFactory.Create2faEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.IEmailFactory.Create2faEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: IEmailFactory.Create2faEmail(EmailData)
+- uid: AuthEndpoints.Services.IEmailFactory.Create2faEmail*
+  name: Create2faEmail
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_Create2faEmail_
+  commentId: Overload:AuthEndpoints.Services.IEmailFactory.Create2faEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IEmailFactory.Create2faEmail
+  nameWithType: IEmailFactory.Create2faEmail
 - uid: AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail(AuthEndpoints.Models.EmailData)
   name: CreateConfirmationEmail(EmailData)
   href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateConfirmationEmail_AuthEndpoints_Models_EmailData_
@@ -1734,6 +2012,19 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.IEmailFactory.CreateConfirmationEmail
   nameWithType: IEmailFactory.CreateConfirmationEmail
+- uid: AuthEndpoints.Services.IEmailFactory.CreateEnable2faEmail(AuthEndpoints.Models.EmailData)
+  name: CreateEnable2faEmail(EmailData)
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateEnable2faEmail_AuthEndpoints_Models_EmailData_
+  commentId: M:AuthEndpoints.Services.IEmailFactory.CreateEnable2faEmail(AuthEndpoints.Models.EmailData)
+  fullName: AuthEndpoints.Services.IEmailFactory.CreateEnable2faEmail(AuthEndpoints.Models.EmailData)
+  nameWithType: IEmailFactory.CreateEnable2faEmail(EmailData)
+- uid: AuthEndpoints.Services.IEmailFactory.CreateEnable2faEmail*
+  name: CreateEnable2faEmail
+  href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateEnable2faEmail_
+  commentId: Overload:AuthEndpoints.Services.IEmailFactory.CreateEnable2faEmail
+  isSpec: "True"
+  fullName: AuthEndpoints.Services.IEmailFactory.CreateEnable2faEmail
+  nameWithType: IEmailFactory.CreateEnable2faEmail
 - uid: AuthEndpoints.Services.IEmailFactory.CreateResetPasswordEmail(AuthEndpoints.Models.EmailData)
   name: CreateResetPasswordEmail(EmailData)
   href: api/AuthEndpoints.Services.IEmailFactory.html#AuthEndpoints_Services_IEmailFactory_CreateResetPasswordEmail_AuthEndpoints_Models_EmailData_
@@ -1843,41 +2134,6 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Services.IJwtValidator.ValidateAsync
   nameWithType: IJwtValidator.ValidateAsync
-- uid: AuthEndpoints.Services.IRefreshClaimsProvider`1
-  name: IRefreshClaimsProvider<TUser>
-  href: api/AuthEndpoints.Services.IRefreshClaimsProvider-1.html
-  commentId: T:AuthEndpoints.Services.IRefreshClaimsProvider`1
-  name.vb: IRefreshClaimsProvider(Of TUser)
-  fullName: AuthEndpoints.Services.IRefreshClaimsProvider<TUser>
-  fullName.vb: AuthEndpoints.Services.IRefreshClaimsProvider(Of TUser)
-  nameWithType: IRefreshClaimsProvider<TUser>
-  nameWithType.vb: IRefreshClaimsProvider(Of TUser)
-- uid: AuthEndpoints.Services.RefreshClaimsProvider`2
-  name: RefreshClaimsProvider<TUserKey, TUser>
-  href: api/AuthEndpoints.Services.RefreshClaimsProvider-2.html
-  commentId: T:AuthEndpoints.Services.RefreshClaimsProvider`2
-  name.vb: RefreshClaimsProvider(Of TUserKey, TUser)
-  fullName: AuthEndpoints.Services.RefreshClaimsProvider<TUserKey, TUser>
-  fullName.vb: AuthEndpoints.Services.RefreshClaimsProvider(Of TUserKey, TUser)
-  nameWithType: RefreshClaimsProvider<TUserKey, TUser>
-  nameWithType.vb: RefreshClaimsProvider(Of TUserKey, TUser)
-- uid: AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims(`1)
-  name: provideClaims(TUser)
-  href: api/AuthEndpoints.Services.RefreshClaimsProvider-2.html#AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims__1_
-  commentId: M:AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims(`1)
-  fullName: AuthEndpoints.Services.RefreshClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  fullName.vb: AuthEndpoints.Services.RefreshClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-  nameWithType: RefreshClaimsProvider<TUserKey, TUser>.provideClaims(TUser)
-  nameWithType.vb: RefreshClaimsProvider(Of TUserKey, TUser).provideClaims(TUser)
-- uid: AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims*
-  name: provideClaims
-  href: api/AuthEndpoints.Services.RefreshClaimsProvider-2.html#AuthEndpoints_Services_RefreshClaimsProvider_2_provideClaims_
-  commentId: Overload:AuthEndpoints.Services.RefreshClaimsProvider`2.provideClaims
-  isSpec: "True"
-  fullName: AuthEndpoints.Services.RefreshClaimsProvider<TUserKey, TUser>.provideClaims
-  fullName.vb: AuthEndpoints.Services.RefreshClaimsProvider(Of TUserKey, TUser).provideClaims
-  nameWithType: RefreshClaimsProvider<TUserKey, TUser>.provideClaims
-  nameWithType.vb: RefreshClaimsProvider(Of TUserKey, TUser).provideClaims
 - uid: AuthEndpoints.Services.RsaSignedJwtFactory
   name: RsaSignedJwtFactory
   href: api/AuthEndpoints.Services.RsaSignedJwtFactory.html

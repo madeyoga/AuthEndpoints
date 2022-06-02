@@ -8,35 +8,30 @@ And add 1 custom claim to a refresh token, user id.
 To change this, you can write a custom claims provider. Something like this will work:
 
 ```cs
-public class MyAccessClaimsProvider : IAccessTokenClaimsProvider<MyApplicationUser>
+public class MyClaimsProvider : IClaimsProvider<MyApplicationUser>
 {
-  public IList<Claim> provideClaims(TUser user)
+  public IList<Claim> provideAccessClaims(TUser user)
   {
     return new List<Claim>()
     {
       new Claim("id", user.Id.ToString()!),
-      new Claim(ClaimTypes.Email, user.Email),
       new Claim(ClaimTypes.Name, user.UserName),
-      new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
-    }
+    };
   }
-}
 
-public class MyRefreshClaimsProvider : IRefreshTokenClaimsProvider<MyApplicationUser>
-{
-  public IList<Claim> provideClaims(TUser user)
+  public IList<Claim> provideRefreshClaims(TUser user)
   {
     return new List<Claim>()
     {
       new Claim("id", user.Id.ToString()!),
-    }
+      new Claim(ClaimTypes.Name, user.UserName),
+    };
   }
 }
 ```
 
-Then, register them:
+then, add it using `AuthEndpointsBuilder.AddClaimsProvider<>();`
 
 ```cs
-builder.AddAccessClaimsProvider<MyAccessClaimsProvider>();
-builder.AddRefreshClaimsProvider<MyRefreshClaimsProvider>();
+builder.AddClaimsProvider<MyClaimsProvider>();
 ```

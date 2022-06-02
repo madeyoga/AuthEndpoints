@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Class JwtController&lt;TUserKey, TUser&gt;
+    <title>Class TwoStepVerificationController&lt;TUserKey, TUser&gt;
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Class JwtController&lt;TUserKey, TUser&gt;
+    <meta name="title" content="Class TwoStepVerificationController&lt;TUserKey, TUser&gt;
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,19 +78,19 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Controllers.JwtController`2">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2">
   
   
-  <h1 id="AuthEndpoints_Controllers_JwtController_2" data-uid="AuthEndpoints.Controllers.JwtController`2" class="text-break">Class JwtController&lt;TUserKey, TUser&gt;
+  <h1 id="AuthEndpoints_Controllers_TwoStepVerificationController_2" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2" class="text-break">Class TwoStepVerificationController&lt;TUserKey, TUser&gt;
   </h1>
-  <div class="markdown level0 summary"><p>Inherit this base class to define endpoints that contain simple jwt auth actions such as create and refresh.</p>
+  <div class="markdown level0 summary"><p>Inherit this base class to define endpoints that contain 2fa process actions such as enable 2fa and login.</p>
 </div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">Microsoft.AspNetCore.Mvc.ControllerBase</span></div>
-    <div class="level2"><span class="xref">JwtController&lt;TUserKey, TUser&gt;</span></div>
+    <div class="level2"><span class="xref">TwoStepVerificationController&lt;TUserKey, TUser&gt;</span></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -631,11 +631,11 @@
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Controllers.html">AuthEndpoints.Controllers</a></h6>
   <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
-  <h5 id="AuthEndpoints_Controllers_JwtController_2_syntax">Syntax</h5>
+  <h5 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Route(&quot;jwt/&quot;)]
-[ApiController]
-public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">[ApiController]
+[Route(&quot;users/&quot;)]
+public class TwoStepVerificationController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
   </div>
   <h5 class="typeParameters">Type Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -660,18 +660,18 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IJwtValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.%23ctor(Microsoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Services.IAuthenticator%7B%601%7D%2CAuthEndpoints.Services.IJwtValidator%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.%23ctor(Microsoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Services.IAuthenticator%7B%601%7D%2CAuthEndpoints.Services.IEmailSender%2CAuthEndpoints.Services.IEmailFactory)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L26">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L26">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_JwtController_2__ctor_" data-uid="AuthEndpoints.Controllers.JwtController`2.#ctor*"></a>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IJwtValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__" data-uid="AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})">JwtController(UserManager&lt;TUser&gt;, IAuthenticator&lt;TUser&gt;, IJwtValidator, IOptions&lt;AuthEndpointsOptions&gt;)</h4>
+  <a id="AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor*"></a>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)">TwoStepVerificationController(UserManager&lt;TUser&gt;, IAuthenticator&lt;TUser&gt;, IEmailSender, IEmailFactory)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public JwtController(UserManager&lt;TUser&gt; userManager, IAuthenticator&lt;TUser&gt; authenticator, IJwtValidator jwtValidator, IOptions&lt;AuthEndpointsOptions&gt; options)</code></pre>
+    <pre><code class="lang-csharp hljs">public TwoStepVerificationController(UserManager&lt;TUser&gt; userManager, IAuthenticator&lt;TUser&gt; authenticator, IEmailSender emailSender, IEmailFactory emailFactory)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -694,13 +694,13 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IJwtValidator.html">IJwtValidator</a></td>
-        <td><span class="parametername">jwtValidator</span></td>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailSender.html">IEmailSender</a></td>
+        <td><span class="parametername">emailSender</span></td>
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">Microsoft.Extensions.Options.IOptions</span>&lt;<a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html">AuthEndpointsOptions</a>&gt;</td>
-        <td><span class="parametername">options</span></td>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailFactory.html">IEmailFactory</a></td>
+        <td><span class="parametername">emailFactory</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -709,12 +709,12 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_authenticator.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.authenticator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_authenticator.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.authenticator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L23">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L22">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_authenticator" data-uid="AuthEndpoints.Controllers.JwtController`2.authenticator">authenticator</h4>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_authenticator" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.authenticator">authenticator</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -738,17 +738,17 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_jwtValidator.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.jwtValidator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_emailFactory.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.emailFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L22">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L24">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_jwtValidator" data-uid="AuthEndpoints.Controllers.JwtController`2.jwtValidator">jwtValidator</h4>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_emailFactory" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.emailFactory">emailFactory</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected readonly IJwtValidator jwtValidator</code></pre>
+    <pre><code class="lang-csharp hljs">protected readonly IEmailFactory emailFactory</code></pre>
   </div>
   <h5 class="fieldValue">Field Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -760,24 +760,24 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IJwtValidator.html">IJwtValidator</a></td>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailFactory.html">IEmailFactory</a></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_options.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.options%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_emailSender.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.emailSender%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L24">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L23">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_options" data-uid="AuthEndpoints.Controllers.JwtController`2.options">options</h4>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_emailSender" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.emailSender">emailSender</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">protected readonly IOptions&lt;AuthEndpointsOptions&gt; options</code></pre>
+    <pre><code class="lang-csharp hljs">protected readonly IEmailSender emailSender</code></pre>
   </div>
   <h5 class="fieldValue">Field Value</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -789,19 +789,19 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">Microsoft.Extensions.Options.IOptions</span>&lt;<a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html">AuthEndpointsOptions</a>&gt;</td>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailSender.html">IEmailSender</a></td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_userManager.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.userManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_userManager.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.userManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L21">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L21">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_userManager" data-uid="AuthEndpoints.Controllers.JwtController`2.userManager">userManager</h4>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_userManager" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.userManager">userManager</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -827,38 +827,22 @@ public class JwtController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKe
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_Create_AuthEndpoints_Models_LoginRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.Create(AuthEndpoints.Models.LoginRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerification.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.EnableTwoStepVerification%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L44">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L38">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_JwtController_2_Create_" data-uid="AuthEndpoints.Controllers.JwtController`2.Create*"></a>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_Create_AuthEndpoints_Models_LoginRequest_" data-uid="AuthEndpoints.Controllers.JwtController`2.Create(AuthEndpoints.Models.LoginRequest)">Create(LoginRequest)</h4>
-  <div class="markdown level1 summary"><p>Use this endpoint to obtain jwt</p>
+  <a id="AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerification_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerification*"></a>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerification" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerification">EnableTwoStepVerification()</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to send email to user with 2fa token</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[HttpPost(&quot;create&quot;)]
-public virtual async Task&lt;IActionResult&gt; Create([FromBody] LoginRequest request)</code></pre>
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpGet(&quot;enable_2fa&quot;)]
+public virtual async Task&lt;IActionResult&gt; EnableTwoStepVerification()</code></pre>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="AuthEndpoints.Models.LoginRequest.html">LoginRequest</a></td>
-        <td><span class="parametername">request</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
   <h5 class="returns">Returns</h5>
   <table class="table table-bordered table-striped table-condensed">
     <thead>
@@ -874,25 +858,23 @@ public virtual async Task&lt;IActionResult&gt; Create([FromBody] LoginRequest re
       </tr>
     </tbody>
   </table>
-  <h5 id="AuthEndpoints_Controllers_JwtController_2_Create_AuthEndpoints_Models_LoginRequest__remarks">Remarks</h5>
-  <div class="markdown level1 remarks"><p>Use this endpoint to obtain jwt</p>
-</div>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_Refresh_AuthEndpoints_Models_RefreshRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.Refresh(AuthEndpoints.Models.RefreshRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L78">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L72">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_JwtController_2_Refresh_" data-uid="AuthEndpoints.Controllers.JwtController`2.Refresh*"></a>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_Refresh_AuthEndpoints_Models_RefreshRequest_" data-uid="AuthEndpoints.Controllers.JwtController`2.Refresh(AuthEndpoints.Models.RefreshRequest)">Refresh(RefreshRequest)</h4>
-  <div class="markdown level1 summary"><p>Use this endpoint to refresh jwt</p>
+  <a id="AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm*"></a>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)">EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to finish enable 2fa process.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[HttpPost(&quot;refresh&quot;)]
-public virtual async Task&lt;IActionResult&gt; Refresh([FromBody] RefreshRequest request)</code></pre>
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpPost(&quot;enable_2fa_confirm&quot;)]
+public virtual async Task&lt;IActionResult&gt; EnableTwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -905,7 +887,7 @@ public virtual async Task&lt;IActionResult&gt; Refresh([FromBody] RefreshRequest
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Models.RefreshRequest.html">RefreshRequest</a></td>
+        <td><a class="xref" href="AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html">TwoStepVerificationConfirmRequest</a></td>
         <td><span class="parametername">request</span></td>
         <td></td>
       </tr>
@@ -928,20 +910,20 @@ public virtual async Task&lt;IActionResult&gt; Refresh([FromBody] RefreshRequest
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2_Verify_AuthEndpoints_Models_VerifyRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602.Verify(AuthEndpoints.Models.VerifyRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L112">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L159">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_JwtController_2_Verify_" data-uid="AuthEndpoints.Controllers.JwtController`2.Verify*"></a>
-  <h4 id="AuthEndpoints_Controllers_JwtController_2_Verify_AuthEndpoints_Models_VerifyRequest_" data-uid="AuthEndpoints.Controllers.JwtController`2.Verify(AuthEndpoints.Models.VerifyRequest)">Verify(VerifyRequest)</h4>
-  <div class="markdown level1 summary"><p>Use this endpoint to verify jwt</p>
+  <a id="AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm*"></a>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)">TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to finish two step verification login process.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[HttpPost(&quot;verify&quot;)]
-public virtual async Task&lt;IActionResult&gt; Verify([FromBody] VerifyRequest request)</code></pre>
+    <pre><code class="lang-csharp hljs">[HttpPost(&quot;two_step_verification_confirm&quot;)]
+public virtual async Task&lt;IActionResult&gt; TwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -954,7 +936,56 @@ public virtual async Task&lt;IActionResult&gt; Verify([FromBody] VerifyRequest r
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Models.VerifyRequest.html">VerifyRequest</a></td>
+        <td><a class="xref" href="AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html">TwoStepVerificationConfirmRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Mvc.IActionResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L109">View Source</a>
+  </span>
+  <a id="AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin*"></a>
+  <h4 id="AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_" data-uid="AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)">TwoStepVerificationLogin(TwoStepVerificationLoginRequest)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to login with 2fa process</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[HttpPost(&quot;two_step_verification_login&quot;)]
+public virtual async Task&lt;IActionResult&gt; TwoStepVerificationLogin([FromBody] TwoStepVerificationLoginRequest request)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.TwoStepVerificationLoginRequest.html">TwoStepVerificationLoginRequest</a></td>
         <td><span class="parametername">request</span></td>
         <td></td>
       </tr>
@@ -983,10 +1014,10 @@ public virtual async Task&lt;IActionResult&gt; Verify([FromBody] VerifyRequest r
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_JwtController_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.JwtController%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_TwoStepVerificationController_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.TwoStepVerificationController%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/JwtController.cs/#L15" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/TwoStepVerificationController.cs/#L15" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

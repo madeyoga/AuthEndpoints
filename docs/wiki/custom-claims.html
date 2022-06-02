@@ -85,34 +85,29 @@ Generally, when we talk about a claim in the context of a JWT, we are referring 
 <p>By default AuthEndpoints add 2 custom claims to an access token, user id and username.
 And add 1 custom claim to a refresh token, user id.
 To change this, you can write a custom claims provider. Something like this will work:</p>
-<pre><code class="lang-cs">public class MyAccessClaimsProvider : IAccessTokenClaimsProvider&lt;MyApplicationUser&gt;
+<pre><code class="lang-cs">public class MyClaimsProvider : IClaimsProvider&lt;MyApplicationUser&gt;
 {
-  public IList&lt;Claim&gt; provideClaims(TUser user)
+  public IList&lt;Claim&gt; provideAccessClaims(TUser user)
   {
     return new List&lt;Claim&gt;()
     {
       new Claim(&quot;id&quot;, user.Id.ToString()!),
-      new Claim(ClaimTypes.Email, user.Email),
       new Claim(ClaimTypes.Name, user.UserName),
-      new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
-    }
+    };
   }
-}
 
-public class MyRefreshClaimsProvider : IRefreshTokenClaimsProvider&lt;MyApplicationUser&gt;
-{
-  public IList&lt;Claim&gt; provideClaims(TUser user)
+  public IList&lt;Claim&gt; provideRefreshClaims(TUser user)
   {
     return new List&lt;Claim&gt;()
     {
       new Claim(&quot;id&quot;, user.Id.ToString()!),
-    }
+      new Claim(ClaimTypes.Name, user.UserName),
+    };
   }
 }
 </code></pre>
-<p>Then, register them:</p>
-<pre><code class="lang-cs">builder.AddAccessClaimsProvider&lt;MyAccessClaimsProvider&gt;();
-builder.AddRefreshClaimsProvider&lt;MyRefreshClaimsProvider&gt;();
+<p>then, add it using <code>AuthEndpointsBuilder.AddClaimsProvider&lt;&gt;();</code></p>
+<pre><code class="lang-cs">builder.AddClaimsProvider&lt;MyClaimsProvider&gt;();
 </code></pre>
 </article>
           </div>
