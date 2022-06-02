@@ -27,6 +27,10 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
         this.emailFactory = emailFactory;
     }
 
+    /// <summary>
+    /// Use this endpoint to send email to user with 2fa token
+    /// </summary>
+    /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpGet("enable_2fa")]
     public virtual async Task<IActionResult> EnableTwoStepVerification()
@@ -56,6 +60,11 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Use this endpoint to finish enable 2fa process.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpPost("enable_2fa_confirm")]
     public virtual async Task<IActionResult> EnableTwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request)
@@ -88,6 +97,11 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Use this endpoint to login with 2fa process
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("two_step_verification_login")]
     public virtual async Task<IActionResult> TwoStepVerificationLogin([FromBody] TwoStepVerificationLoginRequest request)
     {
@@ -115,14 +129,8 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
 
         var providers = await userManager.GetValidTwoFactorProvidersAsync(user);
 
-        Console.WriteLine(user.Email);
         if (!providers.Contains(request.Provider))
         {
-            foreach(var val in providers)
-            {
-                Console.WriteLine(val);
-            }
-            Console.WriteLine(providers.Count());
             return BadRequest();
         }
 
@@ -139,6 +147,11 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Use this endpoint to finish two step verification login process.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("two_step_verification_confirm")]
     public virtual async Task<IActionResult> TwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request)
     {

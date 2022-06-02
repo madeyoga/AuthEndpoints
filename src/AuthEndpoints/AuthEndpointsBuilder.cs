@@ -30,7 +30,7 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Gets the IdentityBuilder
     /// </summary>
-    public IdentityBuilder IdentityBuilder { get; }
+    public IdentityBuilder GetIdentityBuilder { get; }
 
     /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
@@ -41,7 +41,7 @@ public class AuthEndpointsBuilder
     {
         UserType = userType;
         Services = services;
-        IdentityBuilder = identityBuilder;
+        GetIdentityBuilder = identityBuilder;
     }
 
     protected AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
@@ -120,6 +120,16 @@ public class AuthEndpointsBuilder
     public virtual AuthEndpointsBuilder AddEmailSender<TSender>() where TSender : IEmailSender
     {
         Services.AddSingleton(typeof(IEmailFactory), typeof(TSender));
+        return this;
+    }
+
+    /// <summary>
+    /// Calls IdentityBuilder.AddDefaultTokenProviders()
+    /// </summary>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddDefaultTokenProviders()
+    {
+        GetIdentityBuilder.AddDefaultTokenProviders();
         return this;
     }
 

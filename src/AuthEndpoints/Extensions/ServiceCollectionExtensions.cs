@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
         services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
 
-        // AuthEndpoints core services
+        // Add authendpoints core services
         services.TryAddScoped<IClaimsProvider<TUser>, DefaultClaimsProvider<TUserKey, TUser>>();
         services.TryAddScoped<IJwtFactory, DefaultJwtFactory>();
         services.TryAddScoped<IJwtValidator, DefaultJwtValidator>();
@@ -31,9 +31,9 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
-        var identityBuiler = services.AddIdentityCore<TUser>();
+        var identityBuilder = services.AddIdentityCore<TUser>();
 
-        return new AuthEndpointsBuilder(typeof(TUser), services, identityBuiler);
+        return new AuthEndpointsBuilder(typeof(TUser), services, identityBuilder);
     }
 
     /// <summary>
