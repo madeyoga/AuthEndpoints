@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +13,11 @@ public class UnitTest_OptionsConfigurator
     [TestMethod]
     public void SymmetricKey_AutoCreate_AccessValidationParameters()
     {
-        var configurator = new OptionsConfigurator();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        var configurator = new OptionsConfigurator(loggerFactory.CreateLogger<OptionsConfigurator>());
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var options = new AuthEndpointsOptions()
@@ -39,7 +44,11 @@ public class UnitTest_OptionsConfigurator
     [TestMethod]
     public void SymmetricKey_AutoCreate_RefreshValidationParameters()
     {
-        var configurator = new OptionsConfigurator();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        var configurator = new OptionsConfigurator(loggerFactory.CreateLogger<OptionsConfigurator>());
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var options = new AuthEndpointsOptions()
