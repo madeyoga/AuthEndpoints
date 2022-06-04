@@ -9,8 +9,8 @@ public class AuthEndpointsOptions
 {
     public const string Key = "AuthEndpoints";
 
-    public string? Issuer { get; set; }
-    public string? Audience { get; set; }
+    public string Issuer { get; set; } = "webapi";
+    public string Audience { get; set; } = "webapi";
 
     /// <summary>
     /// Signing options used for signing access jwts
