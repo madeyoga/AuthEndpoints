@@ -7,7 +7,7 @@ public class OptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {
     private readonly ILogger _logger;
 
-    public OptionsValidator(ILogger<OptionsConfigurator> logger)
+    public OptionsValidator(ILogger<OptionsValidator> logger)
     {
         _logger = logger;
     }
