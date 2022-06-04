@@ -47,7 +47,7 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
-        services.AddOptions<AuthEndpointsOptions>().ValidateOnStart();
+        services.AddOptions<AuthEndpointsOptions>();
         return services.AddAuthEndpoints<TUserKey, TUser>(o => { });
     }
 
@@ -66,38 +66,9 @@ public static class ServiceCollectionExtensions
         if (setup != null)
         {
             services.AddOptions<AuthEndpointsOptions>()
-                .Configure(setup)
-                .ValidateOnStart();
+                .Configure(setup);
         }
 
-        return ConfigureServices<TUserKey, TUser>(services);
-    }
-
-    /// <summary>
-    /// Adds and configures the AuthEndpoints system.
-    /// </summary>
-    /// <typeparam name="TUserKey"></typeparam>
-    /// <typeparam name="TUser"></typeparam>
-    /// <param name="services"></param>
-    /// <param name="customOptions"></param>
-    /// <returns>A <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
-    public static AuthEndpointsBuilder AddAuthEndpoints<TUserKey, TUser>(this IServiceCollection services, AuthEndpointsOptions customOptions)
-        where TUserKey : IEquatable<TUserKey>
-        where TUser : IdentityUser<TUserKey>
-    {
-        services.AddOptions<AuthEndpointsOptions>().Configure(options =>
-        {
-            options.AccessSigningOptions = customOptions.AccessSigningOptions;
-            options.RefreshSigningOptions = customOptions.RefreshSigningOptions;
-            options.Audience = customOptions.Audience;
-            options.Issuer = customOptions.Issuer;
-            options.AccessValidationParameters = customOptions.AccessValidationParameters;
-            options.RefreshValidationParameters = customOptions.RefreshValidationParameters;
-
-            options.EmailConfirmationUrl = customOptions.EmailConfirmationUrl;
-            options.PasswordResetUrl = customOptions.PasswordResetUrl;
-            options.EmailOptions = customOptions.EmailOptions;
-        }).ValidateOnStart();
         return ConfigureServices<TUserKey, TUser>(services);
     }
 }
