@@ -1,6 +1,5 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -8,27 +7,19 @@ namespace AuthEndpoints;
 
 public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 {
-    private readonly ILogger _logger;
-
-    public OptionsConfigurator(ILogger<OptionsConfigurator> logger)
-    {
-        _logger = logger;
-    }
-
     public void PostConfigure(string name, AuthEndpointsOptions options)
     {
         var accessSigning = options.AccessSigningOptions;
 
+        if (accessSigning.SigningKey == null)
+        {
+            string secret = LoadOrGenerateSecretKey("keys/authendpoints__access_secret.txt");
+            accessSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            accessSigning.Algorithm = SecurityAlgorithms.HmacSha256;
+        }
+
         if (accessSigning.Algorithm.StartsWith("HS"))
         {
-            if (accessSigning.SigningKey == null)
-            {
-                string secret = LoadOrGenerateSecretKey("keys/authendpoints__access_secret.txt");
-                accessSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-                accessSigning.Algorithm = SecurityAlgorithms.HmacSha256;
-                _logger.LogInformation("Access token signing algorithm defaults to using 256-bit HMAC signing", DateTime.UtcNow.ToLongTimeString());
-            }
-
             if (options.AccessValidationParameters == null)
             {
                 options.AccessValidationParameters = new TokenValidationParameters()
@@ -48,16 +39,15 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 
         var refreshSigning = options.RefreshSigningOptions;
 
+        if (refreshSigning.SigningKey == null)
+        {
+            string secret = LoadOrGenerateSecretKey("keys/authendpoints__refresh_secret.txt");
+            refreshSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+            refreshSigning.Algorithm = SecurityAlgorithms.HmacSha256;
+        }
+
         if (refreshSigning.Algorithm.StartsWith("HS"))
         {
-            if (refreshSigning.SigningKey == null)
-            {
-                string secret = LoadOrGenerateSecretKey("keys/authendpoints__refresh_secret.txt");
-                refreshSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-                refreshSigning.Algorithm = SecurityAlgorithms.HmacSha256;
-                _logger.LogInformation("Refresh token signing algorithm defaults to using 256-bit HMAC signing", DateTime.UtcNow.ToLongTimeString());
-            }
-
             if (options.RefreshValidationParameters == null)
             {
                 options.RefreshValidationParameters = new TokenValidationParameters()
