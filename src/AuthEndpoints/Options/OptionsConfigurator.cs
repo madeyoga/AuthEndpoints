@@ -17,21 +17,23 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 
     public void PostConfigure(string name, AuthEndpointsOptions options)
     {
-        var accessOptions = options.AccessSigningOptions;
-        if (accessOptions.SigningKey == null)
-        {
-            string secret = GetRandomSecretKey();
-            accessOptions.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-            _logger.LogInformation("Access token signing defaults to using 256-bit HMAC signing", DateTime.UtcNow.ToLongTimeString());
-        }
+        var accessSigning = options.AccessSigningOptions;
 
-        if (accessOptions.Algorithm!.StartsWith("HS"))
+        if (accessSigning.Algorithm.StartsWith("HS"))
         {
+            if (accessSigning.SigningKey == null)
+            {
+                string secret = LoadOrGenerateSecretKey("keys/authendpoints__access_secret.txt");
+                accessSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+                accessSigning.Algorithm = SecurityAlgorithms.HmacSha256;
+                _logger.LogInformation("Access token signing algorithm defaults to using 256-bit HMAC signing", DateTime.UtcNow.ToLongTimeString());
+            }
+
             if (options.AccessValidationParameters == null)
             {
                 options.AccessValidationParameters = new TokenValidationParameters()
                 {
-                    IssuerSigningKey = accessOptions.SigningKey,
+                    IssuerSigningKey = accessSigning.SigningKey,
                     ValidIssuer = options.Issuer,
                     ValidAudience = options.Audience,
                     ValidateIssuerSigningKey = true,
@@ -40,28 +42,27 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
             }
             else
             {
-                options.AccessValidationParameters.IssuerSigningKey = accessOptions.SigningKey;
-
-                _logger.LogInformation("AccessValidationParameters.IssuerSigningKey uses JwtSigningOptions.SigningKey", DateTime.UtcNow.ToLongTimeString());
+                options.AccessValidationParameters.IssuerSigningKey = accessSigning.SigningKey;
             }
         }
 
-        var refreshOptions = options.RefreshSigningOptions;
+        var refreshSigning = options.RefreshSigningOptions;
 
-        if (refreshOptions.SigningKey == null)
+        if (refreshSigning.Algorithm.StartsWith("HS"))
         {
-            string secret = GetRandomSecretKey();
-            refreshOptions.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-            _logger.LogInformation("Refresh token signing defaults to using 256-bit HMAC signing", DateTime.UtcNow.ToLongTimeString());
-        }
+            if (refreshSigning.SigningKey == null)
+            {
+                string secret = LoadOrGenerateSecretKey("keys/authendpoints__refresh_secret.txt");
+                refreshSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+                refreshSigning.Algorithm = SecurityAlgorithms.HmacSha256;
+                _logger.LogInformation("Refresh token signing algorithm defaults to using 256-bit HMAC signing", DateTime.UtcNow.ToLongTimeString());
+            }
 
-        if (refreshOptions.Algorithm!.StartsWith("HS"))
-        {
             if (options.RefreshValidationParameters == null)
             {
                 options.RefreshValidationParameters = new TokenValidationParameters()
                 {
-                    IssuerSigningKey = refreshOptions.SigningKey,
+                    IssuerSigningKey = refreshSigning.SigningKey,
                     ValidIssuer = options.Issuer,
                     ValidAudience = options.Audience,
                     ValidateIssuerSigningKey = true,
@@ -70,7 +71,7 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
             }
             else
             {
-                options.RefreshValidationParameters.IssuerSigningKey = refreshOptions.SigningKey;
+                options.RefreshValidationParameters.IssuerSigningKey = refreshSigning.SigningKey;
             }
         }
     }
@@ -104,11 +105,28 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
         return GetRandomString(50, allowedChars);
     }
 
-    private string LoadOrGenerateSecretKey(string path)
+    private string LoadOrGenerateSecretKey(string filepath)
     {
-        // Check if file exist
-        // if exist, try to load the secret from the file.
-        // If not exist, generate a new secret key then save it to a new file.
-        return GetRandomSecretKey();
+        string directoryName = Path.GetDirectoryName(filepath);
+
+        if (!Directory.Exists(directoryName))
+        {
+            Directory.CreateDirectory(directoryName);
+        }
+
+        // if file exists
+        if (File.Exists(filepath))
+        {
+            // load
+            return File.ReadAllText(filepath);
+        }
+
+        // file not exist, generate new secret then save it to a new file
+        string secret = GetRandomSecretKey();
+
+        using var file = File.Create(filepath);
+        file.Write(Encoding.UTF8.GetBytes(secret));
+
+        return secret;
     }
 }
