@@ -1,5 +1,6 @@
 ﻿using AuthEndpoints.Models;
 using AuthEndpoints.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -107,27 +108,13 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     }
 
     /// <summary>
-    /// Use this endpoint to verify jwt
+    /// Use this endpoint to verify access jwt
     /// </summary>
-    [HttpPost("verify")]
-    public virtual async Task<IActionResult> Verify([FromBody] VerifyRequest request)
+    [Authorize(AuthenticationSchemes = "jwt")]
+    [HttpGet("verify")]
+    public virtual IActionResult Verify()
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
-
-        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.AccessValidationParameters!))
-        {
-            return Ok();
-        }
-
-        if (await jwtValidator.ValidateAsync(request.Token!, options.Value.RefreshValidationParameters!))
-        {
-            return Ok();
-        }
-
-        return Unauthorized();
+        return Ok();
     }
 
     private IActionResult BadRequestModelState()
