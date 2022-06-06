@@ -13,11 +13,7 @@ public class UnitTest_OptionsConfigurator
     [TestMethod]
     public void SymmetricKey_AutoCreate_AccessValidationParameters()
     {
-        using var loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder.AddConsole();
-        });
-        var configurator = new OptionsConfigurator(loggerFactory.CreateLogger<OptionsConfigurator>());
+        var configurator = new OptionsConfigurator();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var options = new AuthEndpointsOptions()
@@ -44,11 +40,7 @@ public class UnitTest_OptionsConfigurator
     [TestMethod]
     public void SymmetricKey_AutoCreate_RefreshValidationParameters()
     {
-        using var loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder.AddConsole();
-        });
-        var configurator = new OptionsConfigurator(loggerFactory.CreateLogger<OptionsConfigurator>());
+        var configurator = new OptionsConfigurator();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var options = new AuthEndpointsOptions()

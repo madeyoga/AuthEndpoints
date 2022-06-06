@@ -100,7 +100,7 @@ public class UnitTest_OptionsValidator
         {
         };
 
-        OptionsConfigurator configurator = new(loggerFactory.CreateLogger<OptionsConfigurator>());
+        OptionsConfigurator configurator = new();
         configurator.PostConfigure("test", options);
 
         var result = validator.Validate("test", options);

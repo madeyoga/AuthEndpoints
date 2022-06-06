@@ -88,17 +88,14 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 //        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
 //    };
 //})
+//.AddJwtBearerAuthScheme(new TokenValidationParameters()
+//{
+//
+//});
 
 builder.Services
     .AddAuthEndpoints<string, MyCustomIdentityUser>()
-    .AddJwtBearerAuthScheme(new TokenValidationParameters()
-    {
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
-        ValidIssuer = "https://localhost:8000",
-        ValidAudience = "https://localhost:8000",
-        ValidateIssuerSigningKey = true,
-        ClockSkew = TimeSpan.Zero,
-    });
+    .AddJwtBearerAuthScheme();
 
 var app = builder.Build();
 
