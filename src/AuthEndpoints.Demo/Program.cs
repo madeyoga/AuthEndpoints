@@ -93,9 +93,19 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 //
 //});
 
-builder.Services
-    .AddAuthEndpoints<string, MyCustomIdentityUser>()
-    .AddJwtBearerAuthScheme();
+builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
+{
+    options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
+    options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
+    options.EmailOptions = new EmailOptions()
+    {
+        Host = "smtp.gmail.com",
+        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
+        Port = 587,
+        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
+        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
+    };
+}).AddJwtBearerAuthScheme();
 
 var app = builder.Build();
 
