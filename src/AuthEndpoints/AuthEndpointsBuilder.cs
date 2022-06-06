@@ -28,20 +28,23 @@ public class AuthEndpointsBuilder
     public IServiceCollection Services { get; }
 
     /// <summary>
-    /// Gets the IdentityBuilder
+    /// Gets the <see cref="AuthEndpointsOptions"/>
     /// </summary>
-    public IdentityBuilder GetIdentityBuilder { get; }
+    /// <value>
+    /// Gets the <see cref="AuthEndpointsOptions"/>
+    /// </value>
+    public AuthEndpointsOptions Options { get; }
 
     /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
     /// </summary>
     /// <param name="userType">The type to use for the users.</param>
     /// <param name="services">The <see cref="IServiceCollection"/> to attach to.</param>
-    public AuthEndpointsBuilder(Type userType, IServiceCollection services, IdentityBuilder identityBuilder)
+    public AuthEndpointsBuilder(Type userType, IServiceCollection services, AuthEndpointsOptions options)
     {
         UserType = userType;
         Services = services;
-        GetIdentityBuilder = identityBuilder;
+        Options = options;
     }
 
     protected AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
@@ -124,12 +127,28 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Calls IdentityBuilder.AddDefaultTokenProviders()
+    /// Adds a jwt bearer defaults authentication scheme.
     /// </summary>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddDefaultTokenProviders()
+    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme()
     {
-        GetIdentityBuilder.AddDefaultTokenProviders();
+        if (Options.AccessValidationParameters == null)
+        {
+            Options.AccessValidationParameters = new TokenValidationParameters()
+            {
+                IssuerSigningKey = Options.AccessSigningOptions.SigningKey,
+                ValidIssuer = Options.Issuer,
+                ValidAudience = Options.Audience,
+                ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.Zero,
+            };
+        }
+        
+        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer("jwt", options =>
+            {
+                options.TokenValidationParameters = Options.AccessValidationParameters!;
+            });
         return this;
     }
 
@@ -140,10 +159,11 @@ public class AuthEndpointsBuilder
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(TokenValidationParameters parameters)
     {
-        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer("jwt", option =>
-        {
-            option.TokenValidationParameters = parameters;
-        });
+        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer("jwt", options =>
+            {
+                options.TokenValidationParameters = parameters;
+            });
         return this;
     }
 }

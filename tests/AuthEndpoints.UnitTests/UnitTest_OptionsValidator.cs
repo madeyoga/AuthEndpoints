@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +13,11 @@ public class UnitTest_OptionsValidator
     [TestMethod]
     public void Issuer_CannotBeNull()
     {
-        OptionsValidator validator = new();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
         var result = validator.Validate("test", new AuthEndpointsOptions());
 
@@ -22,7 +27,11 @@ public class UnitTest_OptionsValidator
     [TestMethod]
     public void Audience_CannotBeNull()
     {
-        OptionsValidator validator = new();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
         var result = validator.Validate("test", new AuthEndpointsOptions());
 
@@ -32,7 +41,11 @@ public class UnitTest_OptionsValidator
     [TestMethod]
     public void AccessSigningKey_CannotBeNull()
     {
-        OptionsValidator validator = new();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
         var result = validator.Validate("test", new AuthEndpointsOptions()
         {
@@ -52,7 +65,11 @@ public class UnitTest_OptionsValidator
     [TestMethod]
     public void RefreshSigningKey_CannotBeNull()
     {
-        OptionsValidator validator = new();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
         var result = validator.Validate("test", new AuthEndpointsOptions()
         {
@@ -70,27 +87,62 @@ public class UnitTest_OptionsValidator
     }
 
     [TestMethod]
-    public void Validate_ValidOptions()
+    public void ConfiguredOptions_ShouldBeValid()
     {
-        OptionsValidator validator = new();
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var options = new AuthEndpointsOptions()
+        {
+        };
+
+        OptionsConfigurator configurator = new();
+        configurator.PostConfigure("test", options);
+
+        var result = validator.Validate("test", options);
+
+        Assert.IsTrue(result.Succeeded);
+    }
+
+    [TestMethod]
+    public void Validate_ValidOptions()
+    {
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+        });
+        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+
         var result = validator.Validate("test", new AuthEndpointsOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {
-                SigningKey = key,
+                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                 Algorithm = SecurityAlgorithms.HmacSha256,
                 ExpirationMinutes = 120
             },
             RefreshSigningOptions = new JwtSigningOptions()
             {
-                SigningKey = key,
+                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
                 Algorithm = SecurityAlgorithms.HmacSha256,
                 ExpirationMinutes = 120
             },
             Issuer = "webapi",
-            Audience = "webapi"
+            Audience = "webapi",
+            AccessValidationParameters = new TokenValidationParameters()
+            {
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+            },
+            RefreshValidationParameters = new TokenValidationParameters()
+            {
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+            },
         });
 
         Assert.IsTrue(result.Succeeded);

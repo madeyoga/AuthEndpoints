@@ -1,15 +1,17 @@
-﻿using AuthEndpoints;
+﻿using System.Reflection;
+using System.Text;
+using AuthEndpoints;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
-using System.Text;
-using System.Xml.XPath;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 builder.Services.AddControllers();
 
@@ -51,7 +53,6 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 {
     option.User.RequireUniqueEmail = true;
-    // For testing only, remove this for production
     option.Password.RequireDigit = false;
     option.Password.RequireNonAlphanumeric = false;
     option.Password.RequireUppercase = false;
@@ -60,41 +61,51 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     .AddEntityFrameworkStores<MyDbContext>()
     .AddDefaultTokenProviders();
 
+//builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
+//{
+//    options.AccessSigningOptions = new JwtSigningOptions()
+//    {
+//        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
+//        Algorithm = SecurityAlgorithms.HmacSha256,
+//        ExpirationMinutes = 120,
+//    };
+//    options.RefreshSigningOptions = new JwtSigningOptions()
+//    {
+//        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
+//        Algorithm = SecurityAlgorithms.HmacSha256,
+//        ExpirationMinutes = 1200,
+//    };
+//    options.Audience = "https://localhost:8000";
+//    options.Issuer = "https://localhost:8000";
+//    options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
+//    options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
+//    options.EmailOptions = new EmailOptions()
+//    {
+//        Host = "smtp.gmail.com",
+//        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+//        Port = 587,
+//        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+//        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
+//    };
+//})
+//.AddJwtBearerAuthScheme(new TokenValidationParameters()
+//{
+//
+//});
+
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
 {
-    options.AccessSigningOptions = new JwtSigningOptions()
-    {
-        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
-        Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 120,
-    };
-    options.RefreshSigningOptions = new JwtSigningOptions()
-    {
-        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
-        Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 1200,
-    };
-    options.Audience = "https://localhost:8000";
-    options.Issuer = "https://localhost:8000";
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
     options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
     options.EmailOptions = new EmailOptions()
     {
         Host = "smtp.gmail.com",
-        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
+        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
         Port = 587,
-        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
-        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
+        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
+        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
-})
-.AddJwtBearerAuthScheme(new TokenValidationParameters()
-{
-    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
-    ValidIssuer = "https://localhost:8000",
-    ValidAudience = "https://localhost:8000",
-    ValidateIssuerSigningKey = true,
-    ClockSkew = TimeSpan.Zero,
-});
+}).AddJwtBearerAuthScheme();
 
 var app = builder.Build();
 

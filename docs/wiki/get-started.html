@@ -81,8 +81,8 @@
 
 <p>Follow steps below to install and use AuthEndpoints.</p>
 <h2 id="create-a-project">Create a project</h2>
-<p>Create an empty ASP.NET Core project</p>
-<pre><code>dotnet new web -n MyNewWebApp
+<p>Create a web api ASP.NET Core project</p>
+<pre><code>dotnet new webapi -n MyNewWebApp
 </code></pre>
 <h2 id="install-nuget-package">Install nuget package</h2>
 <p>Install the library using the following .net cli command:</p>
@@ -92,55 +92,31 @@
 <pre><code>Install-Package AuthEndpoints
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>Edit <code>Program.cs</code>, Add identity core services:</p>
-<pre><code class="lang-cs">builder.Services.AddIdentityCore&lt;MyCustomIdentityUser&gt;()
+<p>Edit <code>Program.cs</code>, Add required identity services:</p>
+<pre><code class="lang-cs">builder.Services.AddIdentity&lt;MyCustomIdentityUser&gt;()
   .AddEntityFrameworkStores&lt;MyDbContext&gt;()
   .AddDefaultTokenProviders();
 </code></pre>
-<p>Then add auth endpoints services and jwt bearer authentication scheme:</p>
-<pre><code class="lang-cs">var accessValidationParam = new TokenValidationParameters()
-{
-  IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;1234567890qwerty&quot;)),
-  ValidIssuer = &quot;https://localhost:8000&quot;,
-  ValidAudience = &quot;https://localhost:8000&quot;,
-  ValidateIssuerSigningKey = true,
-  ClockSkew = TimeSpan.Zero,
-};
+<p>then add auth endpoints services and jwt bearer authentication scheme:</p>
+<pre><code class="lang-cs">builder.Services
+  .AddAuthEndpoints&lt;string, MyCustomIdentityUser&gt;() // Use the default and minimum config
+  .AddJwtBearerAuthScheme();
+</code></pre>
+<p>then call <code>UseAuthentication</code> and <code>UseAuthorization</code>:</p>
+<pre><code class="lang-cs">...
 
-// AddAuthEndpoints&lt;TUserKey, TUser&gt;
-builder.Services.AddAuthEndpoints&lt;string, MyCustomIdentityUser&gt;(options =&gt; 
-{
-  options.AccessSigningOptions = new JwtSigningOptions()
-  {
-    // Key for verifying jwts will also be used for signing jwts
-    SigningKey = accessValidationParam.IssuerSigningKey,
-    Algorithm = SecurityAlgorithms.HmacSha256,
-    ExpirationMinutes = 120, // Expires in 2 hours
-  };
-  options.RefreshSigningOptions = new JwtSigningOptions()
-  {
-    SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;qwerty0987654321&quot;)),
-    Algorithm = SecurityAlgorithms.HmacSha256,
-    ExpirationMinutes = 2880, // Expires in 2 days
-  };
-  options.Audience = &quot;https://localhost:8000&quot;;
-  options.Issuer = &quot;https://localhost:8000&quot;;
-  options.EmailConfirmationUrl = &quot;http://localhost:3000/account/email-verify/{uid}/{token}&quot;;
-  options.PasswordResetUrl = &quot;http://localhost:3000/account/password-reset/{uid}/{token}&quot;;
-  options.EmailOptions = new EmailOptions() 
-  {
-    Host = &quot;smtp.gmail.com&quot;,
-    From = &quot;your@gmail.com&quot;,
-    Port = 587,
-    User = &quot;&lt;your mail app user&gt;&quot;,
-    Password = &quot;&lt;your mail app password&gt;&quot;
-  };
-})
-.AddJwtBearerAuthScheme(accessValidationParam);
+var app = builder.Build();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+...
+
+app.Run();
 </code></pre>
 <h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
-<p>Create a new directory called <code>Controllers</code> then create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyBaseAuthController: BaseEndpointsController&lt;string, IdentityUser&gt;
+<p>Create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
+<pre><code class="lang-cs">public class MyBaseAuthController : BaseEndpointsController&lt;string, IdentityUser&gt;
 {}
 </code></pre>
 <p>See what endpoints included in <a href="base-endpoints.html">BaseEndpointsController</a></p>

@@ -1,9 +1,10 @@
-﻿using AuthEndpoints.Services;
+﻿using System.IdentityModel.Tokens.Jwt;
+using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace AuthEndpoints;
 
@@ -12,12 +13,13 @@ namespace AuthEndpoints;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    internal static AuthEndpointsBuilder ConfigureServices<TUserKey, TUser>(IServiceCollection services)
+    internal static AuthEndpointsBuilder ConfigureServices<TUserKey, TUser>(IServiceCollection services, AuthEndpointsOptions options)
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
-        services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
-        services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
+        services.AddSingleton(typeof(IOptions<AuthEndpointsOptions>), Options.Create(options));
+        //services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
+        //services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
 
         // Add authendpoints core services
         services.TryAddScoped<IClaimsProvider<TUser>, DefaultClaimsProvider<TUserKey, TUser>>();
@@ -31,9 +33,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
-        var identityBuilder = services.AddIdentityCore<TUser>();
-
-        return new AuthEndpointsBuilder(typeof(TUser), services, identityBuilder);
+        return new AuthEndpointsBuilder(typeof(TUser), services, options);
     }
 
     /// <summary>
@@ -47,7 +47,6 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
-        services.AddOptions<AuthEndpointsOptions>().ValidateOnStart();
         return services.AddAuthEndpoints<TUserKey, TUser>(o => { });
     }
 
@@ -63,41 +62,21 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
+        var options = new AuthEndpointsOptions();
+
         if (setup != null)
         {
-            services.AddOptions<AuthEndpointsOptions>()
-                .Configure(setup)
-                .ValidateOnStart();
+            //services.AddOptions<AuthEndpointsOptions>()
+            //    .Configure(setup);
+            setup.Invoke(options);
+            using var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder.AddConsole();
+            });
+            new OptionsConfigurator().PostConfigure("default", options);
+            new OptionsValidator(loggerFactory.CreateLogger<OptionsValidator>()).Validate("default", options);
         }
 
-        return ConfigureServices<TUserKey, TUser>(services);
-    }
-
-    /// <summary>
-    /// Adds and configures the AuthEndpoints system.
-    /// </summary>
-    /// <typeparam name="TUserKey"></typeparam>
-    /// <typeparam name="TUser"></typeparam>
-    /// <param name="services"></param>
-    /// <param name="customOptions"></param>
-    /// <returns>A <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
-    public static AuthEndpointsBuilder AddAuthEndpoints<TUserKey, TUser>(this IServiceCollection services, AuthEndpointsOptions customOptions)
-        where TUserKey : IEquatable<TUserKey>
-        where TUser : IdentityUser<TUserKey>
-    {
-        services.AddOptions<AuthEndpointsOptions>().Configure(options =>
-        {
-            options.AccessSigningOptions = customOptions.AccessSigningOptions;
-            options.RefreshSigningOptions = customOptions.RefreshSigningOptions;
-            options.Audience = customOptions.Audience;
-            options.Issuer = customOptions.Issuer;
-            options.AccessValidationParameters = customOptions.AccessValidationParameters;
-            options.RefreshValidationParameters = customOptions.RefreshValidationParameters;
-
-            options.EmailConfirmationUrl = customOptions.EmailConfirmationUrl;
-            options.PasswordResetUrl = customOptions.PasswordResetUrl;
-            options.EmailOptions = customOptions.EmailOptions;
-        }).ValidateOnStart();
-        return ConfigureServices<TUserKey, TUser>(services);
+        return ConfigureServices<TUserKey, TUser>(services, options);
     }
 }

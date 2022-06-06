@@ -9,8 +9,8 @@ public class AuthEndpointsOptions
 {
     public const string Key = "AuthEndpoints";
 
-    public string? Issuer { get; set; }
-    public string? Audience { get; set; }
+    public string Issuer { get; set; } = "webapi";
+    public string Audience { get; set; } = "webapi";
 
     /// <summary>
     /// Signing options used for signing access jwts
@@ -53,5 +53,5 @@ public class AuthEndpointsOptions
     /// <summary>
     /// Email configuration used for sending reset password link or verification email link via email.
     /// </summary>
-    public EmailOptions? EmailOptions { get; set; } = new EmailOptions();
+    public EmailOptions? EmailOptions { get; set; }
 }

@@ -6,16 +6,16 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>A simple auth library for Asp.Net 6 that provides a set of web api controllers to handle jwt authentication actions</Description>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
     <Authors>yeogaa02</Authors>
     <Company>yeogaa02</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>jwt;json-web-token;endpoints;asp-net-core</PackageTags>
-    <PackageReleaseNotes>Password reset and email verification endpoints</PackageReleaseNotes>
-    <AssemblyVersion>1.3.0</AssemblyVersion>
-    <FileVersion>1.3.0</FileVersion>
+    <PackageReleaseNotes>Added 2fa endpoints</PackageReleaseNotes>
+    <AssemblyVersion>1.4.0</AssemblyVersion>
+    <FileVersion>1.4.0</FileVersion>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
