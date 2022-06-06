@@ -129,7 +129,6 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Adds a jwt bearer defaults authentication scheme.
     /// </summary>
-    /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme()
     {
@@ -149,6 +148,21 @@ public class AuthEndpointsBuilder
             .AddJwtBearer("jwt", options =>
             {
                 options.TokenValidationParameters = Options.AccessValidationParameters!;
+            });
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a jwt bearer defaults authentication scheme.
+    /// </summary>
+    /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(TokenValidationParameters parameters)
+    {
+        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer("jwt", options =>
+            {
+                options.TokenValidationParameters = parameters;
             });
         return this;
     }

@@ -97,7 +97,7 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 
     private string LoadOrGenerateSecretKey(string filepath)
     {
-        string directoryName = Path.GetDirectoryName(filepath);
+        string directoryName = Path.GetDirectoryName(filepath)!;
 
         if (!Directory.Exists(directoryName))
         {

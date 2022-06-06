@@ -53,5 +53,5 @@ public class AuthEndpointsOptions
     /// <summary>
     /// Email configuration used for sending reset password link or verification email link via email.
     /// </summary>
-    public EmailOptions? EmailOptions { get; set; } = new EmailOptions();
+    public EmailOptions? EmailOptions { get; set; }
 }
