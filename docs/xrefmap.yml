@@ -13,12 +13,12 @@ references:
   commentId: T:AuthEndpoints.AuthEndpointsBuilder
   fullName: AuthEndpoints.AuthEndpointsBuilder
   nameWithType: AuthEndpointsBuilder
-- uid: AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.AspNetCore.Identity.IdentityBuilder)
-  name: AuthEndpointsBuilder(Type, IServiceCollection, IdentityBuilder)
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_Type_Microsoft_Extensions_DependencyInjection_IServiceCollection_Microsoft_AspNetCore_Identity_IdentityBuilder_
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,Microsoft.AspNetCore.Identity.IdentityBuilder)
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Microsoft.Extensions.DependencyInjection.IServiceCollection, Microsoft.AspNetCore.Identity.IdentityBuilder)
-  nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder(Type, IServiceCollection, IdentityBuilder)
+- uid: AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
+  name: AuthEndpointsBuilder(Type, IServiceCollection, AuthEndpointsOptions)
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_Type_Microsoft_Extensions_DependencyInjection_IServiceCollection_AuthEndpoints_AuthEndpointsOptions_
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Microsoft.Extensions.DependencyInjection.IServiceCollection, AuthEndpoints.AuthEndpointsOptions)
+  nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder(Type, IServiceCollection, AuthEndpointsOptions)
 - uid: AuthEndpoints.AuthEndpointsBuilder.#ctor*
   name: AuthEndpointsBuilder
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_
@@ -58,19 +58,6 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddClaimsProvider(Of TProvider)()
   nameWithType: AuthEndpointsBuilder.AddClaimsProvider<TProvider>()
   nameWithType.vb: AuthEndpointsBuilder.AddClaimsProvider(Of TProvider)()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
-  name: AddDefaultTokenProviders()
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddDefaultTokenProviders
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders()
-  nameWithType: AuthEndpointsBuilder.AddDefaultTokenProviders()
-- uid: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders*
-  name: AddDefaultTokenProviders
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddDefaultTokenProviders_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
-  isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AddDefaultTokenProviders
-  nameWithType: AuthEndpointsBuilder.AddDefaultTokenProviders
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddEmailFactory*
   name: AddEmailFactory
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddEmailFactory_
@@ -119,6 +106,12 @@ references:
   fullName.vb: AuthEndpoints.AuthEndpointsBuilder.AddErrorDescriber(Of TDescriber)()
   nameWithType: AuthEndpointsBuilder.AddErrorDescriber<TDescriber>()
   nameWithType.vb: AuthEndpointsBuilder.AddErrorDescriber(Of TDescriber)()
+- uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme
+  name: AddJwtBearerAuthScheme()
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme()
+  nameWithType: AuthEndpointsBuilder.AddJwtBearerAuthScheme()
 - uid: AuthEndpoints.AuthEndpointsBuilder.AddJwtBearerAuthScheme(Microsoft.IdentityModel.Tokens.TokenValidationParameters)
   name: AddJwtBearerAuthScheme(TokenValidationParameters)
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_AddJwtBearerAuthScheme_Microsoft_IdentityModel_Tokens_TokenValidationParameters_
@@ -177,19 +170,19 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsBuilder.AddScoped
   nameWithType: AuthEndpointsBuilder.AddScoped
-- uid: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
-  name: GetIdentityBuilder
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_GetIdentityBuilder
-  commentId: P:AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
-  fullName: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
-  nameWithType: AuthEndpointsBuilder.GetIdentityBuilder
-- uid: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder*
-  name: GetIdentityBuilder
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_GetIdentityBuilder_
-  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
+- uid: AuthEndpoints.AuthEndpointsBuilder.Options
+  name: Options
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_Options
+  commentId: P:AuthEndpoints.AuthEndpointsBuilder.Options
+  fullName: AuthEndpoints.AuthEndpointsBuilder.Options
+  nameWithType: AuthEndpointsBuilder.Options
+- uid: AuthEndpoints.AuthEndpointsBuilder.Options*
+  name: Options
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_Options_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.Options
   isSpec: "True"
-  fullName: AuthEndpoints.AuthEndpointsBuilder.GetIdentityBuilder
-  nameWithType: AuthEndpointsBuilder.GetIdentityBuilder
+  fullName: AuthEndpoints.AuthEndpointsBuilder.Options
+  nameWithType: AuthEndpointsBuilder.Options
 - uid: AuthEndpoints.AuthEndpointsBuilder.Services
   name: Services
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_Services
@@ -664,14 +657,14 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).userManager
   nameWithType: JwtController<TUserKey, TUser>.userManager
   nameWithType.vb: JwtController(Of TUserKey, TUser).userManager
-- uid: AuthEndpoints.Controllers.JwtController`2.Verify(AuthEndpoints.Models.VerifyRequest)
-  name: Verify(VerifyRequest)
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Verify_AuthEndpoints_Models_VerifyRequest_
-  commentId: M:AuthEndpoints.Controllers.JwtController`2.Verify(AuthEndpoints.Models.VerifyRequest)
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.Verify(AuthEndpoints.Models.VerifyRequest)
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Verify(AuthEndpoints.Models.VerifyRequest)
-  nameWithType: JwtController<TUserKey, TUser>.Verify(VerifyRequest)
-  nameWithType.vb: JwtController(Of TUserKey, TUser).Verify(VerifyRequest)
+- uid: AuthEndpoints.Controllers.JwtController`2.Verify
+  name: Verify()
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Verify
+  commentId: M:AuthEndpoints.Controllers.JwtController`2.Verify
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.Verify()
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Verify()
+  nameWithType: JwtController<TUserKey, TUser>.Verify()
+  nameWithType.vb: JwtController(Of TUserKey, TUser).Verify()
 - uid: AuthEndpoints.Controllers.JwtController`2.Verify*
   name: Verify
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Verify_
@@ -1519,6 +1512,22 @@ references:
   commentId: T:AuthEndpoints.OptionsValidator
   fullName: AuthEndpoints.OptionsValidator
   nameWithType: OptionsValidator
+- uid: AuthEndpoints.OptionsValidator.#ctor(Microsoft.Extensions.Logging.ILogger{AuthEndpoints.OptionsValidator})
+  name: OptionsValidator(ILogger<OptionsValidator>)
+  href: api/AuthEndpoints.OptionsValidator.html#AuthEndpoints_OptionsValidator__ctor_Microsoft_Extensions_Logging_ILogger_AuthEndpoints_OptionsValidator__
+  commentId: M:AuthEndpoints.OptionsValidator.#ctor(Microsoft.Extensions.Logging.ILogger{AuthEndpoints.OptionsValidator})
+  name.vb: OptionsValidator(ILogger(Of OptionsValidator))
+  fullName: AuthEndpoints.OptionsValidator.OptionsValidator(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.OptionsValidator>)
+  fullName.vb: AuthEndpoints.OptionsValidator.OptionsValidator(Microsoft.Extensions.Logging.ILogger(Of AuthEndpoints.OptionsValidator))
+  nameWithType: OptionsValidator.OptionsValidator(ILogger<OptionsValidator>)
+  nameWithType.vb: OptionsValidator.OptionsValidator(ILogger(Of OptionsValidator))
+- uid: AuthEndpoints.OptionsValidator.#ctor*
+  name: OptionsValidator
+  href: api/AuthEndpoints.OptionsValidator.html#AuthEndpoints_OptionsValidator__ctor_
+  commentId: Overload:AuthEndpoints.OptionsValidator.#ctor
+  isSpec: "True"
+  fullName: AuthEndpoints.OptionsValidator.OptionsValidator
+  nameWithType: OptionsValidator.OptionsValidator
 - uid: AuthEndpoints.OptionsValidator.Validate(System.String,AuthEndpoints.AuthEndpointsOptions)
   name: Validate(String, AuthEndpointsOptions)
   href: api/AuthEndpoints.OptionsValidator.html#AuthEndpoints_OptionsValidator_Validate_System_String_AuthEndpoints_AuthEndpointsOptions_
@@ -1563,15 +1572,6 @@ references:
   fullName.vb: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.AuthEndpointsOptions))
   nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
   nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
-- uid: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
-  name: AddAuthEndpoints<TUserKey, TUser>(IServiceCollection, AuthEndpointsOptions)
-  href: api/AuthEndpoints.ServiceCollectionExtensions.html#AuthEndpoints_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_AuthEndpoints_AuthEndpointsOptions_
-  commentId: M:AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
-  name.vb: AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection, AuthEndpointsOptions)
-  fullName: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection, AuthEndpoints.AuthEndpointsOptions)
-  fullName.vb: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, AuthEndpoints.AuthEndpointsOptions)
-  nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(IServiceCollection, AuthEndpointsOptions)
-  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection, AuthEndpointsOptions)
 - uid: AuthEndpoints.Services
   name: AuthEndpoints.Services
   href: api/AuthEndpoints.Services.html

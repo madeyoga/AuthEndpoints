@@ -53,7 +53,7 @@ __Default URL__: `/jwt/refresh`
       <th>Response</th>
     </tr>
     <tr>
-      <td>GET</td>
+      <td>POST</td>
       <td>
         <ul>
           <li>refreshToken</li>
@@ -71,7 +71,7 @@ __Default URL__: `/jwt/refresh`
 
 ## JWT Verify
 
-Use this endpoints to verify jwt.
+Use this endpoints to verify access jwt.
 
 __Default URL__: `/users/set_password`
 
@@ -85,11 +85,9 @@ __Default URL__: `/users/set_password`
       <th>Response</th>
     </tr>
     <tr>
-      <td>POST</td>
+      <td>GET</td>
       <td>
-        <ul>
-          <li>token</li>
-        </ul>
+        -
       </td>
       <td>
         <ul>
