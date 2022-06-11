@@ -54,15 +54,13 @@ public class JwtController<TUserKey, TUser> : ControllerBase
 
         if (user == null)
         {
-            return Unauthorized();
+            return Unauthorized("Invalid credentials");
         }
 
         if (await userManager.GetTwoFactorEnabledAsync(user))
         {
             return Ok(new
             {
-                AccessToken = "",
-                RefreshToken = "",
                 AuthSuccess = false,
                 TwoStepVerificationRequired = true,
             });
