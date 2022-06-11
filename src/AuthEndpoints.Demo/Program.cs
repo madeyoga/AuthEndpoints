@@ -1,11 +1,9 @@
 ﻿using System.Reflection;
-using System.Text;
 using AuthEndpoints;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
