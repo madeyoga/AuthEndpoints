@@ -73,12 +73,17 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
     [HttpPost("enable_2fa_confirm")]
     public virtual async Task<IActionResult> EnableTwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest();
+        }
+
         string identity = HttpContext.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
 
         if (user == null)
         {
-            return Unauthorized();
+            return Unauthorized("Invalid user");
         }
 
         if (!user.EmailConfirmed)
@@ -118,7 +123,7 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
 
         if (user == null)
         {
-            return NotFound();
+            return Unauthorized("Invalid credentials");
         }
 
         if (!await userManager.GetTwoFactorEnabledAsync(user))
@@ -168,7 +173,7 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
 
         if (user == null)
         {
-            return NotFound();
+            return BadRequest();
         }
 
         if (!await userManager.GetTwoFactorEnabledAsync(user))

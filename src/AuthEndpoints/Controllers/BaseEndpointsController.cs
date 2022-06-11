@@ -121,6 +121,11 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     [HttpPost("verify_email_confirm")]
     public virtual async Task<IActionResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequestModelState();
+        }
+
         if (request.Identity == null || request.Token == null)
         {
             return BadRequest();

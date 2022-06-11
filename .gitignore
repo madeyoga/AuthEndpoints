@@ -17,6 +17,7 @@ _site
 *.db
 *.db-shm
 *.db-wal
+src/AuthEndpoints.Demo/keys/
 
 # User-specific files
 *.rsuser
