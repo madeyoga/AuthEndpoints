@@ -13,7 +13,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
-    <PackageReleaseNotes>Deprecate `BaseEndpointsController&lt;,&gt;`. Add  `BasicAuthenticationController&lt;,&gt;`</PackageReleaseNotes>
+    <PackageReleaseNotes>Update MailKit version to 3.3.0 and Deprecate `BaseEndpointsController&lt;,&gt;`. Add  `BasicAuthenticationController&lt;,&gt;`</PackageReleaseNotes>
     <AssemblyVersion>1.4.2</AssemblyVersion>
     <FileVersion>1.4.2</FileVersion>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
