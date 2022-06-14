@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Class BaseEndpointsController&lt;TUserKey, TUser&gt;
+    <title>Class BasicAuthenticationController&lt;TUserKey, TUser&gt;
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Class BaseEndpointsController&lt;TUserKey, TUser&gt;
+    <meta name="title" content="Class BasicAuthenticationController&lt;TUserKey, TUser&gt;
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,10 +78,10 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2">
   
   
-  <h1 id="AuthEndpoints_Controllers_BaseEndpointsController_2" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2" class="text-break">Class BaseEndpointsController&lt;TUserKey, TUser&gt;
+  <h1 id="AuthEndpoints_Controllers_BasicAuthenticationController_2" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2" class="text-break">Class BasicAuthenticationController&lt;TUserKey, TUser&gt;
   </h1>
   <div class="markdown level0 summary"><p>Inherit this base class to define endpoints that contain base authentication actions such as registration, set password, etc.</p>
 </div>
@@ -90,7 +90,7 @@
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
     <div class="level1"><span class="xref">Microsoft.AspNetCore.Mvc.ControllerBase</span></div>
-    <div class="level2"><span class="xref">BaseEndpointsController&lt;TUserKey, TUser&gt;</span></div>
+    <div class="level2"><span class="xref">BasicAuthenticationController&lt;TUserKey, TUser&gt;</span></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -631,11 +631,11 @@
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Controllers.html">AuthEndpoints.Controllers</a></h6>
   <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
-  <h5 id="AuthEndpoints_Controllers_BaseEndpointsController_2_syntax">Syntax</h5>
+  <h5 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">[Route(&quot;users/&quot;)]
 [ApiController]
-public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;, new()</code></pre>
+public class BasicAuthenticationController&lt;TUserKey, TUser&gt; : ControllerBase where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;, new()</code></pre>
   </div>
   <h5 class="typeParameters">Type Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -660,18 +660,18 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.%23ctor(Microsoft.AspNetCore.Identity.UserManager%7B%601%7D%2CMicrosoft.AspNetCore.Identity.IdentityErrorDescriber%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CAuthEndpoints.Services.IEmailSender%2CAuthEndpoints.Services.IEmailFactory)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.%23ctor(Microsoft.AspNetCore.Identity.UserManager%7B%601%7D%2CMicrosoft.AspNetCore.Identity.IdentityErrorDescriber%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CAuthEndpoints.Services.IEmailSender%2CAuthEndpoints.Services.IEmailFactory)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L30">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L29">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2__ctor_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)">BaseEndpointsController(UserManager&lt;TUser&gt;, IdentityErrorDescriber, IOptions&lt;AuthEndpointsOptions&gt;, IEmailSender, IEmailFactory)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2__ctor_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)">BasicAuthenticationController(UserManager&lt;TUser&gt;, IdentityErrorDescriber, IOptions&lt;AuthEndpointsOptions&gt;, IEmailSender, IEmailFactory)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public BaseEndpointsController(UserManager&lt;TUser&gt; userManager, IdentityErrorDescriber errorDescriber, IOptions&lt;AuthEndpointsOptions&gt; options, IEmailSender emailSender, IEmailFactory emailFactory)</code></pre>
+    <pre><code class="lang-csharp hljs">public BasicAuthenticationController(UserManager&lt;TUser&gt; userManager, IdentityErrorDescriber errorDescriber, IOptions&lt;AuthEndpointsOptions&gt; options, IEmailSender emailSender, IEmailFactory emailFactory)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -714,12 +714,12 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_emailFactory.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.emailFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_emailFactory.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.emailFactory%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L28">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L27">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_emailFactory" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.emailFactory">emailFactory</h4>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_emailFactory" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.emailFactory">emailFactory</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -743,12 +743,12 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_emailSender.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.emailSender%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_emailSender.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.emailSender%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L27">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L26">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_emailSender" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.emailSender">emailSender</h4>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_emailSender" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.emailSender">emailSender</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -772,12 +772,12 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_errorDescriber.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.errorDescriber%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_errorDescriber.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.errorDescriber%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L25">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L24">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_errorDescriber" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.errorDescriber">errorDescriber</h4>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_errorDescriber" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.errorDescriber">errorDescriber</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -801,12 +801,12 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_options.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.options%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_options.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.options%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L26">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L25">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_options" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.options">options</h4>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_options" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.options">options</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -830,12 +830,12 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_userManager.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.userManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_userManager.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.userManager%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L24">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L23">View Source</a>
   </span>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_userManager" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.userManager">userManager</h4>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_userManager" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.userManager">userManager</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
@@ -861,13 +861,13 @@ public class BaseEndpointsController&lt;TUserKey, TUser&gt; : ControllerBase whe
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_Delete.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.Delete%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_Delete.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.Delete%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L180">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L179">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_Delete_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.Delete*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_Delete" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.Delete">Delete()</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_Delete_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.Delete*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_Delete" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.Delete">Delete()</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to delete authenticated user.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -894,13 +894,13 @@ public virtual async Task&lt;IActionResult&gt; Delete()</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerification.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.EmailVerification%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerification.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.EmailVerification%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L90">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L89">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerification_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerification*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerification" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerification">EmailVerification()</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerification_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerification*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerification" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerification">EmailVerification()</h4>
   <div class="markdown level1 summary"><p>Use this endpoints to send email verification link via email
 You should provide site in your frontend application (configured by <a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_EmailConfirmationUrl">EmailConfirmationUrl</a>)
 which will send POST request to verify email confirmation endpoint.</p>
@@ -929,13 +929,13 @@ public virtual async Task&lt;IActionResult&gt; EmailVerification()</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L122">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L121">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerificationConfirm_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerificationConfirm*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)">EmailVerificationConfirm(ConfirmEmailRequest)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerificationConfirm_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)">EmailVerificationConfirm(ConfirmEmailRequest)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to confirm user email.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -978,13 +978,13 @@ public virtual async Task&lt;IActionResult&gt; EmailVerificationConfirm([FromBod
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_GetMe.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.GetMe%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_GetMe.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.GetMe%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L161">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L160">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_GetMe_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.GetMe*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_GetMe" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.GetMe">GetMe()</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_GetMe_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.GetMe*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_GetMe" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.GetMe">GetMe()</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to retrieve the authenticated user</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -1011,13 +1011,13 @@ public virtual async Task&lt;IActionResult&gt; GetMe()</code></pre>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_Register_AuthEndpoints_Models_RegisterRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.Register(AuthEndpoints.Models.RegisterRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_Register_AuthEndpoints_Models_RegisterRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.Register(AuthEndpoints.Models.RegisterRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L42">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L41">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_Register_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.Register*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_Register_AuthEndpoints_Models_RegisterRequest_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.Register(AuthEndpoints.Models.RegisterRequest)">Register(RegisterRequest)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_Register_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.Register*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_Register_AuthEndpoints_Models_RegisterRequest_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.Register(AuthEndpoints.Models.RegisterRequest)">Register(RegisterRequest)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to register a new user</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -1060,13 +1060,13 @@ public virtual async Task&lt;IActionResult&gt; Register([FromBody] RegisterReque
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L273">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L272">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPassword_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPassword*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)">ResetPassword(ResetPasswordRequest)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPassword_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)">ResetPassword(ResetPasswordRequest)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to send email to user with password reset link.
 You should provide site in your frontend application (configured by <a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_PasswordResetUrl">PasswordResetUrl</a>)
 which will send POST request to reset password confirmation endpoint.</p>
@@ -1111,13 +1111,13 @@ public virtual async Task&lt;IActionResult&gt; ResetPassword([FromBody] ResetPas
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L316">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L315">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPasswordConfirm_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPasswordConfirm*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)">ResetPasswordConfirm(ResetPasswordConfirmRequest)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPasswordConfirm_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)">ResetPasswordConfirm(ResetPasswordConfirmRequest)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to finish reset password process.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -1160,13 +1160,13 @@ public virtual async Task&lt;IActionResult&gt; ResetPasswordConfirm([FromBody] R
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.SetPassword(AuthEndpoints.Models.SetPasswordRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.SetPassword(AuthEndpoints.Models.SetPasswordRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L228">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L227">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_SetPassword_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.SetPassword*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest)">SetPassword(SetPasswordRequest)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_SetPassword_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest)">SetPassword(SetPasswordRequest)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to change user password</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -1210,13 +1210,13 @@ public virtual async Task&lt;IActionResult&gt; SetPassword([FromBody] SetPasswor
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602.SetUsername(AuthEndpoints.Models.SetUsernameRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602.SetUsername(AuthEndpoints.Models.SetUsernameRequest)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L202">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L201">View Source</a>
   </span>
-  <a id="AuthEndpoints_Controllers_BaseEndpointsController_2_SetUsername_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.SetUsername*"></a>
-  <h4 id="AuthEndpoints_Controllers_BaseEndpointsController_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_" data-uid="AuthEndpoints.Controllers.BaseEndpointsController`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest)">SetUsername(SetUsernameRequest)</h4>
+  <a id="AuthEndpoints_Controllers_BasicAuthenticationController_2_SetUsername_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername*"></a>
+  <h4 id="AuthEndpoints_Controllers_BasicAuthenticationController_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_" data-uid="AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest)">SetUsername(SetUsernameRequest)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to change user's username</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -1266,10 +1266,10 @@ public virtual async Task&lt;IActionResult&gt; SetUsername([FromBody] SetUsernam
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BaseEndpointsController_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BaseEndpointsController%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Controllers_BasicAuthenticationController_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.Controllers.BasicAuthenticationController%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BaseEndpointsController.cs/#L17" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Controllers/BasicAuthenticationController.cs/#L17" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

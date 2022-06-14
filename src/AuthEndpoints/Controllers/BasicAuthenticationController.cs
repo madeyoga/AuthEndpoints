@@ -14,10 +14,9 @@ namespace AuthEndpoints.Controllers;
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
-[Obsolete("BaseEndpointsController<,> is deprecated, please use BaseAuthenticationController<,> instead.")]
 [Route("users/")]
 [ApiController]
-public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
+public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
 {
@@ -27,7 +26,7 @@ public class BaseEndpointsController<TUserKey, TUser> : ControllerBase
     protected readonly IEmailSender emailSender;
     protected readonly IEmailFactory emailFactory;
 
-    public BaseEndpointsController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options, IEmailSender emailSender, IEmailFactory emailFactory)
+    public BasicAuthenticationController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options, IEmailSender emailSender, IEmailFactory emailFactory)
     {
         this.userManager = userManager;
         this.errorDescriber = errorDescriber;

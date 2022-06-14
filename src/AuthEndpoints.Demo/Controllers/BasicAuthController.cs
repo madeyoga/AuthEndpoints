@@ -7,9 +7,9 @@ using Microsoft.Extensions.Options;
 namespace AuthEndpoints.Demo.Controllers;
 
 [Tags("Authentication")]
-public class AuthenticationController : BaseEndpointsController<string, MyCustomIdentityUser>
+public class BasicAuthController : BasicAuthenticationController<string, MyCustomIdentityUser>
 {
-    public AuthenticationController(UserManager<MyCustomIdentityUser> userManager, 
+    public BasicAuthController(UserManager<MyCustomIdentityUser> userManager, 
         IdentityErrorDescriber errorDescriber, 
         IOptions<AuthEndpointsOptions> options, 
         IEmailSender emailSender,
