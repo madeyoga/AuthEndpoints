@@ -16,7 +16,7 @@ namespace AuthEndpoints.Controllers;
 /// <typeparam name="TUser"></typeparam>
 [Route("users/")]
 [ApiController]
-public class BaseAuthenticationController<TUserKey, TUser> : ControllerBase
+public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     where TUserKey : IEquatable<TUserKey>
     where TUser : IdentityUser<TUserKey>, new()
 {
@@ -26,7 +26,7 @@ public class BaseAuthenticationController<TUserKey, TUser> : ControllerBase
     protected readonly IEmailSender emailSender;
     protected readonly IEmailFactory emailFactory;
 
-    public BaseAuthenticationController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options, IEmailSender emailSender, IEmailFactory emailFactory)
+    public BasicAuthenticationController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options, IEmailSender emailSender, IEmailFactory emailFactory)
     {
         this.userManager = userManager;
         this.errorDescriber = errorDescriber;
