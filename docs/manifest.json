@@ -42,7 +42,19 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.BaseEndpointsController-2.html",
-          "hash": "GGZDaAK8kQUjPVfsxbkUfyM7G+gNlZC0fLknKQsiy0w="
+          "hash": "re2gr477mcunIAC2xGOdXA3IYOq2D2aVZwrWFDEZ7B4="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Controllers.BasicAuthenticationController-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html",
+          "hash": "8pvHXn/Lnjo9OJD0ANdyBIZ+3Myine3NmQ8keQudNSI="
         }
       },
       "is_incremental": false,
@@ -54,7 +66,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.JwtController-2.html",
-          "hash": "H28gMlPOw8SvdCAIioUYAIZ5NZHscDcgrJqEgsAvtLA="
+          "hash": "ljjnC10nVDJ5Dxx1PpU8hntY8tsd5E1/e7RatqRx4SI="
         }
       },
       "is_incremental": false,
@@ -66,7 +78,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html",
-          "hash": "jwSpPehg6eIWJmogFUY6iE6Oe6k3W86FQ78aWftWJi0="
+          "hash": "94uBzxSFhQLVOklgSWYtYEfebRpdYudQxNfl5kXja8U="
         }
       },
       "is_incremental": false,
@@ -78,7 +90,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.html",
-          "hash": "Et63oaOi3/bE4UAkRzzgfkyasiWE071pH7IkHjKU2bs="
+          "hash": "zkl0KYarZyKYYZnt3S75CM9MRRfLR37ch5ZTZD6DK+U="
         }
       },
       "is_incremental": false,
@@ -522,7 +534,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "UugT4l1RwAxalDPQXpiLxc/27NIE1pXeGCXXrRuD94A="
+          "hash": "wh8J4f9FVVYgPj1mdHoHgSMuIDPgrNII2ZVtX7+VS4c="
         }
       },
       "is_incremental": false,
@@ -698,13 +710,13 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 12,
-          "skipped_file_count": 10
+          "skipped_file_count": 12
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 41,
-          "skipped_file_count": 41
+          "total_file_count": 42,
+          "skipped_file_count": 37
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
