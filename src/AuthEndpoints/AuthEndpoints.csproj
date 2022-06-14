@@ -6,16 +6,16 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>A simple auth library for Asp.Net 6 that provides a set of web api controllers to handle authentication actions</Description>
-    <Version>1.4.1</Version>
+    <Version>1.4.2</Version>
     <Authors>yeogaa02</Authors>
     <Company>yeogaa02</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
-    <PackageTags>jwt;json-web-token;endpoints;asp-net-core</PackageTags>
-    <PackageReleaseNotes>Validate model state</PackageReleaseNotes>
-    <AssemblyVersion>1.4.1</AssemblyVersion>
-    <FileVersion>1.4.1</FileVersion>
+    <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
+    <PackageReleaseNotes>Deprecate `BaseEndpointsController&lt;,&gt;`. Add  `BasicAuthenticationController&lt;,&gt;`</PackageReleaseNotes>
+    <AssemblyVersion>1.4.2</AssemblyVersion>
+    <FileVersion>1.4.2</FileVersion>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
