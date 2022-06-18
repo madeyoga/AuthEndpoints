@@ -13,12 +13,12 @@ references:
   commentId: T:AuthEndpoints.AuthEndpointsBuilder
   fullName: AuthEndpoints.AuthEndpointsBuilder
   nameWithType: AuthEndpointsBuilder
-- uid: AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
-  name: AuthEndpointsBuilder(Type, IServiceCollection, AuthEndpointsOptions)
-  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_Type_Microsoft_Extensions_DependencyInjection_IServiceCollection_AuthEndpoints_AuthEndpointsOptions_
-  commentId: M:AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
-  fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Microsoft.Extensions.DependencyInjection.IServiceCollection, AuthEndpoints.AuthEndpointsOptions)
-  nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder(Type, IServiceCollection, AuthEndpointsOptions)
+- uid: AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
+  name: AuthEndpointsBuilder(Type, Type, IServiceCollection, AuthEndpointsOptions)
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_Type_Type_Microsoft_Extensions_DependencyInjection_IServiceCollection_AuthEndpoints_AuthEndpointsOptions_
+  commentId: M:AuthEndpoints.AuthEndpointsBuilder.#ctor(Type,Type,Microsoft.Extensions.DependencyInjection.IServiceCollection,AuthEndpoints.AuthEndpointsOptions)
+  fullName: AuthEndpoints.AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Type, Microsoft.Extensions.DependencyInjection.IServiceCollection, AuthEndpoints.AuthEndpointsOptions)
+  nameWithType: AuthEndpointsBuilder.AuthEndpointsBuilder(Type, Type, IServiceCollection, AuthEndpointsOptions)
 - uid: AuthEndpoints.AuthEndpointsBuilder.#ctor*
   name: AuthEndpointsBuilder
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder__ctor_
@@ -196,6 +196,19 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.AuthEndpointsBuilder.Services
   nameWithType: AuthEndpointsBuilder.Services
+- uid: AuthEndpoints.AuthEndpointsBuilder.UserKeyType
+  name: UserKeyType
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_UserKeyType
+  commentId: P:AuthEndpoints.AuthEndpointsBuilder.UserKeyType
+  fullName: AuthEndpoints.AuthEndpointsBuilder.UserKeyType
+  nameWithType: AuthEndpointsBuilder.UserKeyType
+- uid: AuthEndpoints.AuthEndpointsBuilder.UserKeyType*
+  name: UserKeyType
+  href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_UserKeyType_
+  commentId: Overload:AuthEndpoints.AuthEndpointsBuilder.UserKeyType
+  isSpec: "True"
+  fullName: AuthEndpoints.AuthEndpointsBuilder.UserKeyType
+  nameWithType: AuthEndpointsBuilder.UserKeyType
 - uid: AuthEndpoints.AuthEndpointsBuilder.UserType
   name: UserType
   href: api/AuthEndpoints.AuthEndpointsBuilder.html#AuthEndpoints_AuthEndpointsBuilder_UserType
@@ -1137,6 +1150,706 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.JwtSigningOptions.SigningKey
   nameWithType: JwtSigningOptions.SigningKey
+- uid: AuthEndpoints.MinimalApi
+  name: AuthEndpoints.MinimalApi
+  href: api/AuthEndpoints.MinimalApi.html
+  commentId: N:AuthEndpoints.MinimalApi
+  fullName: AuthEndpoints.MinimalApi
+  nameWithType: AuthEndpoints.MinimalApi
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions
+  name: AuthEndpointsBuilderExtensions
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html
+  commentId: T:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions
+  nameWithType: AuthEndpointsBuilderExtensions
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  name: Add2FAEndpoints(AuthEndpointsBuilder)
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_AuthEndpoints_AuthEndpointsBuilder_
+  commentId: M:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  nameWithType: AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpointsBuilder)
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints*
+  name: Add2FAEndpoints
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints
+  nameWithType: AuthEndpointsBuilderExtensions.Add2FAEndpoints
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions(AuthEndpoints.AuthEndpointsBuilder)
+  name: AddAllEndpointDefinitions(AuthEndpointsBuilder)
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddAllEndpointDefinitions_AuthEndpoints_AuthEndpointsBuilder_
+  commentId: M:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions(AuthEndpoints.AuthEndpointsBuilder)
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions(AuthEndpoints.AuthEndpointsBuilder)
+  nameWithType: AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions(AuthEndpointsBuilder)
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions*
+  name: AddAllEndpointDefinitions
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddAllEndpointDefinitions_
+  commentId: Overload:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions
+  nameWithType: AuthEndpointsBuilderExtensions.AddAllEndpointDefinitions
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  name: AddBasicAuthenticationEndpoints(AuthEndpointsBuilder)
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_AuthEndpoints_AuthEndpointsBuilder_
+  commentId: M:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  nameWithType: AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpointsBuilder)
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints*
+  name: AddBasicAuthenticationEndpoints
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints
+  nameWithType: AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  name: AddJwtEndpoints(AuthEndpointsBuilder)
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddJwtEndpoints_AuthEndpoints_AuthEndpointsBuilder_
+  commentId: M:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints(AuthEndpoints.AuthEndpointsBuilder)
+  nameWithType: AuthEndpointsBuilderExtensions.AddJwtEndpoints(AuthEndpointsBuilder)
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints*
+  name: AddJwtEndpoints
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddJwtEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints
+  nameWithType: AuthEndpointsBuilderExtensions.AddJwtEndpoints
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2
+  name: BasicAuthEndpointDefinition<TKey, TUser>
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html
+  commentId: T:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2
+  name.vb: BasicAuthEndpointDefinition(Of TKey, TUser)
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser)
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser)
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Delete(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: Delete(HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Delete_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Delete(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: Delete(HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.Delete(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).Delete(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.Delete(HttpContext, UserManager<TUser>)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).Delete(HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Delete*
+  name: Delete
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Delete_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Delete
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.Delete
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).Delete
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.Delete
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).Delete
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name: EmailVerification(HttpContext, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name.vb: EmailVerification(HttpContext, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.EmailVerification(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.EmailVerification(HttpContext, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification(HttpContext, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerification*
+  name: EmailVerification
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerification_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerification
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.EmailVerification
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.EmailVerification
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: EmailVerificationConfirm(ConfirmEmailRequest, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: EmailVerificationConfirm(ConfirmEmailRequest, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm(ConfirmEmailRequest, UserManager<TUser>)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm(ConfirmEmailRequest, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerificationConfirm*
+  name: EmailVerificationConfirm
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerificationConfirm_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.GetMe(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: GetMe(HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_GetMe_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.GetMe(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: GetMe(HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.GetMe(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).GetMe(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.GetMe(HttpContext, UserManager<TUser>)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).GetMe(HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.GetMe*
+  name: GetMe
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_GetMe_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.GetMe
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.GetMe
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).GetMe
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.GetMe
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).GetMe
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  name: MapEndpoints(WebApplication)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.MapEndpoints(WebApplication)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).MapEndpoints(WebApplication)
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.MapEndpoints*
+  name: MapEndpoints
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_MapEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.MapEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.MapEndpoints
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).MapEndpoints
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.MapEndpoints
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).MapEndpoints
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Register(AuthEndpoints.Models.RegisterRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  name: Register(RegisterRequest, UserManager<TUser>, IdentityErrorDescriber)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Register_AuthEndpoints_Models_RegisterRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Register(AuthEndpoints.Models.RegisterRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  name.vb: Register(RegisterRequest, UserManager(Of TUser), IdentityErrorDescriber)
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.Register(AuthEndpoints.Models.RegisterRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).Register(AuthEndpoints.Models.RegisterRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.Register(RegisterRequest, UserManager<TUser>, IdentityErrorDescriber)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).Register(RegisterRequest, UserManager(Of TUser), IdentityErrorDescriber)
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Register*
+  name: Register
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Register_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Register
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.Register
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).Register
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.Register
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).Register
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name: ResetPassword(ResetPasswordRequest, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name.vb: ResetPassword(ResetPasswordRequest, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword(AuthEndpoints.Models.ResetPasswordRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.ResetPassword(ResetPasswordRequest, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword(ResetPasswordRequest, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPassword*
+  name: ResetPassword
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPassword_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.ResetPassword
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.ResetPassword
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager<TUser>)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPasswordConfirm*
+  name: ResetPasswordConfirm
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPasswordConfirm_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPasswordConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: SetPassword(SetPasswordRequest, HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: SetPassword(SetPasswordRequest, HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.SetPassword(AuthEndpoints.Models.SetPasswordRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).SetPassword(AuthEndpoints.Models.SetPasswordRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.SetPassword(SetPasswordRequest, HttpContext, UserManager<TUser>)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).SetPassword(SetPasswordRequest, HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetPassword*
+  name: SetPassword
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetPassword_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.SetPassword
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).SetPassword
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.SetPassword
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).SetPassword
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: SetUsername(SetUsernameRequest, HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: SetUsername(SetUsernameRequest, HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.SetUsername(AuthEndpoints.Models.SetUsernameRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).SetUsername(AuthEndpoints.Models.SetUsernameRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.SetUsername(SetUsernameRequest, HttpContext, UserManager<TUser>)
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).SetUsername(SetUsernameRequest, HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetUsername*
+  name: SetUsername
+  href: api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetUsername_
+  commentId: Overload:AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetUsername
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition<TKey, TUser>.SetUsername
+  fullName.vb: AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition(Of TKey, TUser).SetUsername
+  nameWithType: BasicAuthEndpointDefinition<TKey, TUser>.SetUsername
+  nameWithType.vb: BasicAuthEndpointDefinition(Of TKey, TUser).SetUsername
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2
+  name: IBasicAuthEndpointDefinition<TKey, TUser>
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html
+  commentId: T:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2
+  name.vb: IBasicAuthEndpointDefinition(Of TKey, TUser)
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser)
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser)
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Delete(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: Delete(HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_Delete_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Delete(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: Delete(HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.Delete(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).Delete(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.Delete(HttpContext, UserManager<TUser>)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).Delete(HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Delete*
+  name: Delete
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_Delete_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Delete
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.Delete
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).Delete
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.Delete
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).Delete
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name: EmailVerification(HttpContext, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_EmailVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name.vb: EmailVerification(HttpContext, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerification(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerification(HttpContext, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification(HttpContext, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerification*
+  name: EmailVerification
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_EmailVerification_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerification
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerification
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerification
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerification
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: EmailVerificationConfirm(ConfirmEmailRequest, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: EmailVerificationConfirm(ConfirmEmailRequest, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm(ConfirmEmailRequest, UserManager<TUser>)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm(ConfirmEmailRequest, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerificationConfirm*
+  name: EmailVerificationConfirm
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_EmailVerificationConfirm_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.EmailVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.EmailVerificationConfirm
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).EmailVerificationConfirm
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.GetMe(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: GetMe(HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_GetMe_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.GetMe(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: GetMe(HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.GetMe(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).GetMe(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.GetMe(HttpContext, UserManager<TUser>)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).GetMe(HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.GetMe*
+  name: GetMe
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_GetMe_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.GetMe
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.GetMe
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).GetMe
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.GetMe
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).GetMe
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Register(AuthEndpoints.Models.RegisterRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  name: Register(RegisterRequest, UserManager<TUser>, IdentityErrorDescriber)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_Register_AuthEndpoints_Models_RegisterRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Register(AuthEndpoints.Models.RegisterRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  name.vb: Register(RegisterRequest, UserManager(Of TUser), IdentityErrorDescriber)
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.Register(AuthEndpoints.Models.RegisterRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).Register(AuthEndpoints.Models.RegisterRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.AspNetCore.Identity.IdentityErrorDescriber)
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.Register(RegisterRequest, UserManager<TUser>, IdentityErrorDescriber)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).Register(RegisterRequest, UserManager(Of TUser), IdentityErrorDescriber)
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Register*
+  name: Register
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_Register_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.Register
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.Register
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).Register
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.Register
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).Register
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name: ResetPassword(ResetPasswordRequest, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name.vb: ResetPassword(ResetPasswordRequest, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword(AuthEndpoints.Models.ResetPasswordRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.ResetPassword(ResetPasswordRequest, UserManager<TUser>, IOptions<AuthEndpointsOptions>, IEmailFactory, IEmailSender)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword(ResetPasswordRequest, UserManager(Of TUser), IOptions(Of AuthEndpointsOptions), IEmailFactory, IEmailSender)
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPassword*
+  name: ResetPassword
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_ResetPassword_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.ResetPassword
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.ResetPassword
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPassword
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager<TUser>)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPasswordConfirm*
+  name: ResetPasswordConfirm
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_ResetPasswordConfirm_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.ResetPasswordConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.ResetPasswordConfirm
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).ResetPasswordConfirm
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: SetPassword(SetPasswordRequest, HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: SetPassword(SetPasswordRequest, HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.SetPassword(AuthEndpoints.Models.SetPasswordRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).SetPassword(AuthEndpoints.Models.SetPasswordRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.SetPassword(SetPasswordRequest, HttpContext, UserManager<TUser>)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).SetPassword(SetPasswordRequest, HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetPassword*
+  name: SetPassword
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_SetPassword_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetPassword
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.SetPassword
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).SetPassword
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.SetPassword
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).SetPassword
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: SetUsername(SetUsernameRequest, HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: SetUsername(SetUsernameRequest, HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.SetUsername(AuthEndpoints.Models.SetUsernameRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).SetUsername(AuthEndpoints.Models.SetUsernameRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.SetUsername(SetUsernameRequest, HttpContext, UserManager<TUser>)
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).SetUsername(SetUsernameRequest, HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetUsername*
+  name: SetUsername
+  href: api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IBasicAuthEndpointDefinition_2_SetUsername_
+  commentId: Overload:AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition`2.SetUsername
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition<TKey, TUser>.SetUsername
+  fullName.vb: AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition(Of TKey, TUser).SetUsername
+  nameWithType: IBasicAuthEndpointDefinition<TKey, TUser>.SetUsername
+  nameWithType.vb: IBasicAuthEndpointDefinition(Of TKey, TUser).SetUsername
+- uid: AuthEndpoints.MinimalApi.IEndpointDefinition
+  name: IEndpointDefinition
+  href: api/AuthEndpoints.MinimalApi.IEndpointDefinition.html
+  commentId: T:AuthEndpoints.MinimalApi.IEndpointDefinition
+  fullName: AuthEndpoints.MinimalApi.IEndpointDefinition
+  nameWithType: IEndpointDefinition
+- uid: AuthEndpoints.MinimalApi.IEndpointDefinition.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  name: MapEndpoints(WebApplication)
+  href: api/AuthEndpoints.MinimalApi.IEndpointDefinition.html#AuthEndpoints_MinimalApi_IEndpointDefinition_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_
+  commentId: M:AuthEndpoints.MinimalApi.IEndpointDefinition.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName: AuthEndpoints.MinimalApi.IEndpointDefinition.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  nameWithType: IEndpointDefinition.MapEndpoints(WebApplication)
+- uid: AuthEndpoints.MinimalApi.IEndpointDefinition.MapEndpoints*
+  name: MapEndpoints
+  href: api/AuthEndpoints.MinimalApi.IEndpointDefinition.html#AuthEndpoints_MinimalApi_IEndpointDefinition_MapEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.IEndpointDefinition.MapEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IEndpointDefinition.MapEndpoints
+  nameWithType: IEndpointDefinition.MapEndpoints
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2
+  name: IJwtEndpointDefinition<TKey, TUser>
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html
+  commentId: T:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2
+  name.vb: IJwtEndpointDefinition(Of TKey, TUser)
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser)
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser)
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Create(AuthEndpoints.Models.LoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: Create(LoginRequest, IAuthenticator<TUser>, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IJwtEndpointDefinition_2_Create_AuthEndpoints_Models_LoginRequest_AuthEndpoints_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Create(AuthEndpoints.Models.LoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: Create(LoginRequest, IAuthenticator(Of TUser), UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>.Create(AuthEndpoints.Models.LoginRequest, AuthEndpoints.Services.IAuthenticator<TUser>, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Create(AuthEndpoints.Models.LoginRequest, AuthEndpoints.Services.IAuthenticator(Of TUser), Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>.Create(LoginRequest, IAuthenticator<TUser>, UserManager<TUser>)
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Create(LoginRequest, IAuthenticator(Of TUser), UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Create*
+  name: Create
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IJwtEndpointDefinition_2_Create_
+  commentId: Overload:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Create
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>.Create
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Create
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>.Create
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Create
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Refresh(AuthEndpoints.Models.RefreshRequest,AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})
+  name: Refresh(RefreshRequest, IJwtValidator, IOptions<AuthEndpointsOptions>, UserManager<TUser>, IAuthenticator<TUser>)
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IJwtEndpointDefinition_2_Refresh_AuthEndpoints_Models_RefreshRequest_AuthEndpoints_Services_IJwtValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__
+  commentId: M:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Refresh(AuthEndpoints.Models.RefreshRequest,AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})
+  name.vb: Refresh(RefreshRequest, IJwtValidator, IOptions(Of AuthEndpointsOptions), UserManager(Of TUser), IAuthenticator(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>.Refresh(AuthEndpoints.Models.RefreshRequest, AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Refresh(AuthEndpoints.Models.RefreshRequest, AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser))
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>.Refresh(RefreshRequest, IJwtValidator, IOptions<AuthEndpointsOptions>, UserManager<TUser>, IAuthenticator<TUser>)
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Refresh(RefreshRequest, IJwtValidator, IOptions(Of AuthEndpointsOptions), UserManager(Of TUser), IAuthenticator(Of TUser))
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Refresh*
+  name: Refresh
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IJwtEndpointDefinition_2_Refresh_
+  commentId: Overload:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Refresh
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>.Refresh
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Refresh
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>.Refresh
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Refresh
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Verify
+  name: Verify()
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IJwtEndpointDefinition_2_Verify
+  commentId: M:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Verify
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>.Verify()
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Verify()
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>.Verify()
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Verify()
+- uid: AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Verify*
+  name: Verify
+  href: api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_IJwtEndpointDefinition_2_Verify_
+  commentId: Overload:AuthEndpoints.MinimalApi.IJwtEndpointDefinition`2.Verify
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IJwtEndpointDefinition<TKey, TUser>.Verify
+  fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Verify
+  nameWithType: IJwtEndpointDefinition<TKey, TUser>.Verify
+  nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Verify
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2
+  name: JwtEndpointDefinition<TKey, TUser>
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html
+  commentId: T:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2
+  name.vb: JwtEndpointDefinition(Of TKey, TUser)
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser)
+  nameWithType: JwtEndpointDefinition<TKey, TUser>
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser)
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Create(AuthEndpoints.Models.LoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: Create(LoginRequest, IAuthenticator<TUser>, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_Create_AuthEndpoints_Models_LoginRequest_AuthEndpoints_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Create(AuthEndpoints.Models.LoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: Create(LoginRequest, IAuthenticator(Of TUser), UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.Create(AuthEndpoints.Models.LoginRequest, AuthEndpoints.Services.IAuthenticator<TUser>, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Create(AuthEndpoints.Models.LoginRequest, AuthEndpoints.Services.IAuthenticator(Of TUser), Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.Create(LoginRequest, IAuthenticator<TUser>, UserManager<TUser>)
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Create(LoginRequest, IAuthenticator(Of TUser), UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Create*
+  name: Create
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_Create_
+  commentId: Overload:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Create
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.Create
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Create
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.Create
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Create
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  name: MapEndpoints(WebApplication)
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_
+  commentId: M:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.MapEndpoints(WebApplication)
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).MapEndpoints(WebApplication)
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.MapEndpoints*
+  name: MapEndpoints
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_MapEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.MapEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.MapEndpoints
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).MapEndpoints
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.MapEndpoints
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).MapEndpoints
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Refresh(AuthEndpoints.Models.RefreshRequest,AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})
+  name: Refresh(RefreshRequest, IJwtValidator, IOptions<AuthEndpointsOptions>, UserManager<TUser>, IAuthenticator<TUser>)
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_Refresh_AuthEndpoints_Models_RefreshRequest_AuthEndpoints_Services_IJwtValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__
+  commentId: M:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Refresh(AuthEndpoints.Models.RefreshRequest,AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})
+  name.vb: Refresh(RefreshRequest, IJwtValidator, IOptions(Of AuthEndpointsOptions), UserManager(Of TUser), IAuthenticator(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.Refresh(AuthEndpoints.Models.RefreshRequest, AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Refresh(AuthEndpoints.Models.RefreshRequest, AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser))
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.Refresh(RefreshRequest, IJwtValidator, IOptions<AuthEndpointsOptions>, UserManager<TUser>, IAuthenticator<TUser>)
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Refresh(RefreshRequest, IJwtValidator, IOptions(Of AuthEndpointsOptions), UserManager(Of TUser), IAuthenticator(Of TUser))
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Refresh*
+  name: Refresh
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_Refresh_
+  commentId: Overload:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Refresh
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.Refresh
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Refresh
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.Refresh
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Refresh
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Verify
+  name: Verify()
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_Verify
+  commentId: M:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Verify
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.Verify()
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Verify()
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.Verify()
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Verify()
+- uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Verify*
+  name: Verify
+  href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html#AuthEndpoints_MinimalApi_JwtEndpointDefinition_2_Verify_
+  commentId: Overload:AuthEndpoints.MinimalApi.JwtEndpointDefinition`2.Verify
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.JwtEndpointDefinition<TKey, TUser>.Verify
+  fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Verify
+  nameWithType: JwtEndpointDefinition<TKey, TUser>.Verify
+  nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Verify
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2
+  name: TwoFactorEndpointDefinition<TKey, TUser>
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html
+  commentId: T:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2
+  name.vb: TwoFactorEndpointDefinition(Of TKey, TUser)
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser)
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser)
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name: EnableTwoStepVerification(HttpContext, UserManager<TUser>, IEmailFactory, IEmailSender)
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_
+  commentId: M:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name.vb: EnableTwoStepVerification(HttpContext, UserManager(Of TUser), IEmailFactory, IEmailSender)
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerification(HttpContext, UserManager<TUser>, IEmailFactory, IEmailSender)
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerification(HttpContext, UserManager(Of TUser), IEmailFactory, IEmailSender)
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification*
+  name: EnableTwoStepVerification
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_
+  commentId: Overload:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerification
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerification
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerification
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerification
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name: EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, HttpContext, UserManager<TUser>)
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__
+  commentId: M:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})
+  name.vb: EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, HttpContext, UserManager(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest, Microsoft.AspNetCore.Http.HttpContext, Microsoft.AspNetCore.Identity.UserManager(Of TUser))
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, HttpContext, UserManager<TUser>)
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, HttpContext, UserManager(Of TUser))
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm*
+  name: EnableTwoStepVerificationConfirm
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_
+  commentId: Overload:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerificationConfirm
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerificationConfirm
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.EnableTwoStepVerificationConfirm
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).EnableTwoStepVerificationConfirm
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  name: MapEndpoints(WebApplication)
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_
+  commentId: M:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.MapEndpoints(WebApplication)
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).MapEndpoints(WebApplication)
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.MapEndpoints*
+  name: MapEndpoints
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_MapEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.MapEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.MapEndpoints
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).MapEndpoints
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.MapEndpoints
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).MapEndpoints
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})
+  name: TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, UserManager<TUser>, IAuthenticator<TUser>)
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__
+  commentId: M:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})
+  name.vb: TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, UserManager(Of TUser), IAuthenticator(Of TUser))
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest, Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>)
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest, Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser))
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, UserManager<TUser>, IAuthenticator<TUser>)
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, UserManager(Of TUser), IAuthenticator(Of TUser))
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm*
+  name: TwoStepVerificationConfirm
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_
+  commentId: Overload:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationConfirm
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationConfirm
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationConfirm
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationConfirm
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name: TwoStepVerificationLogin(TwoStepVerificationLoginRequest, IAuthenticator<TUser>, UserManager<TUser>, IEmailFactory, IEmailSender)
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_AuthEndpoints_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_
+  commentId: M:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)
+  name.vb: TwoStepVerificationLogin(TwoStepVerificationLoginRequest, IAuthenticator(Of TUser), UserManager(Of TUser), IEmailFactory, IEmailSender)
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest, AuthEndpoints.Services.IAuthenticator<TUser>, Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest, AuthEndpoints.Services.IAuthenticator(Of TUser), Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IEmailFactory, AuthEndpoints.Services.IEmailSender)
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationLogin(TwoStepVerificationLoginRequest, IAuthenticator<TUser>, UserManager<TUser>, IEmailFactory, IEmailSender)
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationLogin(TwoStepVerificationLoginRequest, IAuthenticator(Of TUser), UserManager(Of TUser), IEmailFactory, IEmailSender)
+- uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin*
+  name: TwoStepVerificationLogin
+  href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html#AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_
+  commentId: Overload:AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationLogin
+  fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationLogin
+  nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationLogin
+  nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationLogin
+- uid: AuthEndpoints.MinimalApi.WebApplicationExtensions
+  name: WebApplicationExtensions
+  href: api/AuthEndpoints.MinimalApi.WebApplicationExtensions.html
+  commentId: T:AuthEndpoints.MinimalApi.WebApplicationExtensions
+  fullName: AuthEndpoints.MinimalApi.WebApplicationExtensions
+  nameWithType: WebApplicationExtensions
+- uid: AuthEndpoints.MinimalApi.WebApplicationExtensions.MapAuthEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  name: MapAuthEndpoints(WebApplication)
+  href: api/AuthEndpoints.MinimalApi.WebApplicationExtensions.html#AuthEndpoints_MinimalApi_WebApplicationExtensions_MapAuthEndpoints_Microsoft_AspNetCore_Builder_WebApplication_
+  commentId: M:AuthEndpoints.MinimalApi.WebApplicationExtensions.MapAuthEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  fullName: AuthEndpoints.MinimalApi.WebApplicationExtensions.MapAuthEndpoints(Microsoft.AspNetCore.Builder.WebApplication)
+  nameWithType: WebApplicationExtensions.MapAuthEndpoints(WebApplication)
+- uid: AuthEndpoints.MinimalApi.WebApplicationExtensions.MapAuthEndpoints*
+  name: MapAuthEndpoints
+  href: api/AuthEndpoints.MinimalApi.WebApplicationExtensions.html#AuthEndpoints_MinimalApi_WebApplicationExtensions_MapAuthEndpoints_
+  commentId: Overload:AuthEndpoints.MinimalApi.WebApplicationExtensions.MapAuthEndpoints
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.WebApplicationExtensions.MapAuthEndpoints
+  nameWithType: WebApplicationExtensions.MapAuthEndpoints
 - uid: AuthEndpoints.Models
   name: AuthEndpoints.Models
   href: api/AuthEndpoints.Models.html
@@ -1792,6 +2505,31 @@ references:
   fullName.vb: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.AuthEndpointsOptions))
   nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
   nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore*
+  name: AddAuthEndpointsCore
+  href: api/AuthEndpoints.ServiceCollectionExtensions.html#AuthEndpoints_ServiceCollectionExtensions_AddAuthEndpointsCore_
+  commentId: Overload:AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore
+  isSpec: "True"
+  fullName: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore
+- uid: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  name: AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection)
+  href: api/AuthEndpoints.ServiceCollectionExtensions.html#AuthEndpoints_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_
+  commentId: M:AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  name.vb: AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection)
+  fullName: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  fullName.vb: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection)
+  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection)
+- uid: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.AuthEndpointsOptions})
+  name: AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.ServiceCollectionExtensions.html#AuthEndpoints_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.AuthEndpointsOptions})
+  name.vb: AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action<AuthEndpoints.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.AuthEndpointsOptions))
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
+  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Services
   name: AuthEndpoints.Services
   href: api/AuthEndpoints.Services.html
