@@ -4,10 +4,17 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>1.4.0</Version>
+    <Description>Minimal api implementation for AuthEndpoints package</Description>
+    <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
+    <PackageReleaseNotes>Minimal api</PackageReleaseNotes>
+    <PackageTags>jwt;json-web-token;2fa;minimal-api;endpoints</PackageTags>
+    <AssemblyVersion>1.4.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuthEndpoints.Core\AuthEndpoints.Core.csproj" />
+    <PackageReference Include="AuthEndpoints.Core" Version="1.4.0" />
   </ItemGroup>
 
 </Project>
