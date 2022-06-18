@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
-        return new AuthEndpointsBuilder(typeof(TUser), services, options);
+        return new AuthEndpointsBuilder(typeof(TUserKey), typeof(TUser), services, options);
     }
 
     /// <summary>

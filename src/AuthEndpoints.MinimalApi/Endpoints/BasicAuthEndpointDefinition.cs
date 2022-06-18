@@ -1,55 +1,44 @@
-﻿using AuthEndpoints.Models;
+﻿using System.Security.Claims;
+using System.Web;
+using AuthEndpoints.Models;
 using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.Web;
 
-namespace AuthEndpoints.Controllers;
+namespace AuthEndpoints.MinimalApi;
 
-/// <summary>
-/// Inherit this base class to define endpoints that contain base authentication actions such as registration, set password, etc.
-/// </summary>
-/// <typeparam name="TUserKey"></typeparam>
-/// <typeparam name="TUser"></typeparam>
-[Route("users/")]
-[ApiController]
-public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
-    where TUserKey : IEquatable<TUserKey>
-    where TUser : IdentityUser<TUserKey>, new()
+public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBasicAuthEndpointDefinition<TKey, TUser> 
+    where TKey : IEquatable<TKey>
+    where TUser : IdentityUser<TKey>, new()
 {
-    protected readonly UserManager<TUser> userManager;
-    protected readonly IdentityErrorDescriber errorDescriber;
-    protected readonly AuthEndpointsOptions options;
-    protected readonly IEmailSender emailSender;
-    protected readonly IEmailFactory emailFactory;
-
-    public BasicAuthenticationController(UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber, IOptions<AuthEndpointsOptions> options, IEmailSender emailSender, IEmailFactory emailFactory)
+    public void MapEndpoints(WebApplication app)
     {
-        this.userManager = userManager;
-        this.errorDescriber = errorDescriber;
-        this.options = options.Value;
-        this.emailSender = emailSender;
-        this.emailFactory = emailFactory;
+        string baseUrl = "/users";
+        app.MapPost($"{baseUrl}", Register);
+        app.MapGet($"{baseUrl}/me", GetMe);
+        app.MapGet($"{baseUrl}/verify_email", EmailVerification);
+        app.MapPost($"{baseUrl}/verify_email_confirm", EmailVerificationConfirm);
+        app.MapPost($"{baseUrl}/set_username", SetUsername);
+        app.MapPost($"{baseUrl}/set_password", SetPassword);
+        app.MapPost($"{baseUrl}/reset_password", ResetPassword);
+        app.MapPost($"{baseUrl}/reset_password_confirm", ResetPasswordConfirm);
+        app.MapDelete($"{baseUrl}/delete", Delete);
     }
 
     /// <summary>
     /// Use this endpoint to register a new user
     /// </summary>
-    [HttpPost("")]
-    public virtual async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public virtual async Task<IResult> Register([FromBody] RegisterRequest request, UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber)
     {
-        if (!ModelState.IsValid)
-        {
-            IEnumerable<string> errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
-            return BadRequest(new ErrorResponse(errors));
-        }
+        // validate model state
 
         if (request.Password != request.ConfirmPassword)
         {
-            return BadRequest(new ErrorResponse("Password not match confirm password."));
+            return Results.BadRequest(new ErrorResponse("Password not match confirm password."));
         }
 
         TUser registrationUser = new TUser()
@@ -65,19 +54,32 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
 
             if (primaryError!.Code == nameof(errorDescriber.DuplicateEmail))
             {
-                return Conflict(new ErrorResponse("Email already exists."));
+                return Results.Conflict(new ErrorResponse("Email already exists."));
             }
             else if (primaryError!.Code == nameof(errorDescriber.DuplicateUserName))
             {
-                return Conflict(new ErrorResponse("Username already exists."));
+                return Results.Conflict(new ErrorResponse("Username already exists."));
             }
             else
             {
-                return Conflict(new ErrorResponse($"Error code: {primaryError!.Code}\n{string.Join(", ", result.Errors.Select(e => e.Description))}"));
+                return Results.Conflict(new ErrorResponse($"Error code: {primaryError!.Code}\n{string.Join(", ", result.Errors.Select(e => e.Description))}"));
             }
         }
 
-        return Ok();
+        return Results.Ok();
+    }
+
+    /// <summary>
+    /// Use this endpoint to retrieve the authenticated user
+    /// </summary>
+    [Authorize(AuthenticationSchemes = "jwt")]
+    [HttpGet("me")]
+    public virtual async Task<IResult> GetMe(HttpContext context, UserManager<TUser> userManager)
+    {
+        string identity = context.User.FindFirstValue("id");
+        TUser currentUser = await userManager.FindByIdAsync(identity);
+
+        return Results.Ok(currentUser);
     }
 
     /// <summary>
@@ -88,14 +90,20 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpGet("verify_email")]
-    public virtual async Task<IActionResult> EmailVerification()
+    public virtual async Task<IResult> EmailVerification(HttpContext context,
+        UserManager<TUser> userManager,
+        IOptions<AuthEndpointsOptions> opt,
+        IEmailFactory emailFactory,
+        IEmailSender emailSender)
     {
-        string identity = HttpContext.User.FindFirstValue("id");
+        AuthEndpointsOptions options = opt.Value;
+
+        string identity = context.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
-        
+
         if (user.EmailConfirmed)
         {
-            return Unauthorized();
+            return Results.Unauthorized();
         }
 
         var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -110,7 +118,7 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
         );
         await emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
-        return NoContent();
+        return Results.NoContent();
     }
 
     /// <summary>
@@ -119,73 +127,40 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("verify_email_confirm")]
-    public virtual async Task<IActionResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request)
+    public virtual async Task<IResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request,
+        UserManager<TUser> userManager)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
+        //if (!ModelState.IsValid)
+        //{
+        //    return BadRequestModelState();
+        //}
 
         if (request.Identity == null || request.Token == null)
         {
-            return BadRequest();
+            return Results.BadRequest();
         }
 
         var user = await userManager.FindByIdAsync(request.Identity);
 
         if (user == null)
         {
-            return BadRequest();
+            return Results.BadRequest();
         }
 
         if (user.EmailConfirmed)
         {
-            return Unauthorized();
+            return Results.Unauthorized();
         }
 
         var result = await userManager.ConfirmEmailAsync(user, request.Token);
 
         if (result.Succeeded)
         {
-            return NoContent();
+            return Results.NoContent();
         }
 
         IEnumerable<string> errors = result.Errors.Select(error => error.Description);
-        return Conflict(errors);
-    }
-
-    /// <summary>
-    /// Use this endpoint to retrieve the authenticated user
-    /// </summary>
-    [Authorize(AuthenticationSchemes = "jwt")]
-    [HttpGet("me")]
-    public virtual async Task<IActionResult> GetMe()
-    {
-        string identity = HttpContext.User.FindFirstValue("id");
-        TUser currentUser = await userManager.FindByIdAsync(identity);
-
-        return Ok(currentUser);
-    }
-
-    /// <summary>
-    /// Use this endpoint to delete authenticated user.
-    /// </summary>
-    /// <returns></returns>
-    [Authorize(AuthenticationSchemes = "jwt")]
-    [HttpDelete("delete")]
-    public virtual async Task<IActionResult> Delete()
-    {
-        var identity = HttpContext.User.FindFirstValue("id");
-        TUser user = await userManager.FindByIdAsync(identity);
-        var result = await userManager.DeleteAsync(user);
-
-        if (result.Succeeded)
-        {
-            return NoContent();
-        }
-
-        IEnumerable<string> errors = result.Errors.Select(error => error.Description);
-        return Conflict(errors);
+        return Results.Conflict(errors);
     }
 
     /// <summary>
@@ -195,25 +170,27 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpPost("set_username")]
-    public virtual async Task<IActionResult> SetUsername([FromBody] SetUsernameRequest request)
+    public virtual async Task<IResult> SetUsername([FromBody] SetUsernameRequest request,
+        HttpContext context,
+        UserManager<TUser> userManager)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
+        //if (!ModelState.IsValid)
+        //{
+        //    return BadRequestModelState();
+        //}
 
-        string identity = HttpContext.User.FindFirstValue("id");
+        string identity = context.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
 
         if (await userManager.CheckPasswordAsync(user, request.CurrentPassword) is false)
         {
-            return BadRequest(new ErrorResponse("Invalid current password"));
+            return Results.BadRequest(new ErrorResponse("Invalid current password"));
         }
 
         user.UserName = request.NewUsername;
         await userManager.UpdateAsync(user);
 
-        return NoContent();
+        return Results.NoContent();
     }
 
     /// <summary>
@@ -221,29 +198,31 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     /// </summary>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpPost("set_password")]
-    public virtual async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
+    public virtual async Task<IResult> SetPassword([FromBody] SetPasswordRequest request,
+        HttpContext context,
+        UserManager<TUser> userManager)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
+        //if (!ModelState.IsValid)
+        //{
+        //    return BadRequestModelState();
+        //}
 
         if (request.NewPassword != request.ConfirmNewPassword)
         {
-            return BadRequest(new ErrorResponse("New password not match confirm password"));
+            return Results.BadRequest(new ErrorResponse("New password not match confirm password"));
         }
 
         if (request.CurrentPassword == request.NewPassword)
         {
-            return BadRequest(new ErrorResponse("New password cannot be the same as current password"));
+            return Results.BadRequest(new ErrorResponse("New password cannot be the same as current password"));
         }
 
-        string identity = HttpContext.User.FindFirstValue("id");
+        string identity = context.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
 
         if (await userManager.CheckPasswordAsync(user, request.CurrentPassword) is false)
         {
-            return BadRequest(new ErrorResponse("Invalid current password"));
+            return Results.BadRequest(new ErrorResponse("Invalid current password"));
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
@@ -251,10 +230,10 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
 
         if (!result.Succeeded)
         {
-            return Conflict($"Error occured while updating password. Code: {result.Errors.First().Code}");
+            return Results.Conflict($"Error occured while updating password. Code: {result.Errors.First().Code}");
         }
 
-        return NoContent();
+        return Results.NoContent();
     }
 
     /// <summary>
@@ -265,23 +244,28 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("reset_password")]
-    public virtual async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    public virtual async Task<IResult> ResetPassword([FromBody] ResetPasswordRequest request,
+        UserManager<TUser> userManager,
+        IOptions<AuthEndpointsOptions> opt,
+        IEmailFactory emailFactory,
+        IEmailSender emailSender)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
+        //if (!ModelState.IsValid)
+        //{
+        //    return BadRequestModelState();
+        //}
+        AuthEndpointsOptions options = opt.Value;
 
         TUser user = await userManager.FindByEmailAsync(request.Email);
 
         if (user == null)
         {
-            return NotFound();
+            return Results.NotFound();
         }
 
         if (!user.EmailConfirmed)
         {
-            return Unauthorized();
+            return Results.Unauthorized();
         }
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
@@ -299,7 +283,7 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
         );
         await emailSender.SendEmailAsync(email).ConfigureAwait(false);
 
-        return NoContent();
+        return Results.NoContent();
     }
 
     /// <summary>
@@ -308,34 +292,50 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("reset_password_confirm")]
-    public virtual async Task<IActionResult> ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request)
+    public virtual async Task<IResult> ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request,
+        UserManager<TUser> userManager)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
+        //if (!ModelState.IsValid)
+        //{
+        //    return BadRequestModelState();
+        //}
 
         TUser user = await userManager.FindByIdAsync(request.Identity);
 
         if (user == null)
         {
-            return NotFound();
+            return Results.NotFound();
         }
 
         var result = await userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
 
         if (result.Succeeded)
         {
-            return NoContent();
+            return Results.NoContent();
         }
 
         IEnumerable<string> errors = result.Errors.Select(error => error.Description);
-        return Conflict(errors);
+        return Results.Conflict(errors);
     }
 
-    private IActionResult BadRequestModelState()
+    /// <summary>
+    /// Use this endpoint to delete authenticated user.
+    /// </summary>
+    /// <returns></returns>
+    [Authorize(AuthenticationSchemes = "jwt")]
+    [HttpDelete("delete")]
+    public virtual async Task<IResult> Delete(HttpContext context, UserManager<TUser> userManager)
     {
-        IEnumerable<string> errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
-        return BadRequest(new ErrorResponse(errors));
+        var identity = context.User.FindFirstValue("id");
+        TUser user = await userManager.FindByIdAsync(identity);
+        var result = await userManager.DeleteAsync(user);
+
+        if (result.Succeeded)
+        {
+            return Results.NoContent();
+        }
+
+        IEnumerable<string> errors = result.Errors.Select(error => error.Description);
+        return Results.Conflict(errors);
     }
 }

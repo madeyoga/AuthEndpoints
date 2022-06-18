@@ -12,6 +12,14 @@ namespace AuthEndpoints;
 public class AuthEndpointsBuilder
 {
     /// <summary>
+    /// Gets the type used for user id.
+    /// </summary>
+    /// <value>
+    /// The type used for user id.
+    /// </value>
+    public Type UserKeyType { get; }
+
+    /// <summary>
     /// Gets the type used for users.
     /// </summary>
     /// <value>
@@ -40,8 +48,9 @@ public class AuthEndpointsBuilder
     /// </summary>
     /// <param name="userType">The type to use for the users.</param>
     /// <param name="services">The <see cref="IServiceCollection"/> to attach to.</param>
-    public AuthEndpointsBuilder(Type userType, IServiceCollection services, AuthEndpointsOptions options)
+    public AuthEndpointsBuilder(Type userKeyType, Type userType, IServiceCollection services, AuthEndpointsOptions options)
     {
+        UserKeyType = userKeyType;
         UserType = userType;
         Services = services;
         Options = options;

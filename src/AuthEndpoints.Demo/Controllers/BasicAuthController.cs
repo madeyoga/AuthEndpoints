@@ -7,13 +7,13 @@ using Microsoft.Extensions.Options;
 namespace AuthEndpoints.Demo.Controllers;
 
 [Tags("Authentication")]
-public class BasicAuthController : BasicAuthenticationController<string, MyCustomIdentityUser>
+public class BasicAuthController // : BasicAuthenticationController<string, MyCustomIdentityUser>
 {
-    public BasicAuthController(UserManager<MyCustomIdentityUser> userManager, 
+    public BasicAuthController(UserManager<MyCustomIdentityUser> userManager,
         IdentityErrorDescriber errorDescriber, 
         IOptions<AuthEndpointsOptions> options, 
-        IEmailSender emailSender,
-        IEmailFactory emailFactory) : base(userManager, errorDescriber, options, emailSender, emailFactory)
+        IEmailSender emailSender, 
+        IEmailFactory emailFactory) // : base(userManager, errorDescriber, options, emailSender, emailFactory)
     {
     }
 }

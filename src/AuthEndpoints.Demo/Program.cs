@@ -2,6 +2,7 @@
 using AuthEndpoints;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
+using AuthEndpoints.MinimalApi;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -14,6 +15,7 @@ builder.Logging.AddConsole();
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
 	options.SwaggerDoc("v1", new OpenApiInfo()
@@ -59,38 +61,6 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     .AddEntityFrameworkStores<MyDbContext>()
     .AddDefaultTokenProviders();
 
-//builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
-//{
-//    options.AccessSigningOptions = new JwtSigningOptions()
-//    {
-//        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("1234567890qwerty")),
-//        Algorithm = SecurityAlgorithms.HmacSha256,
-//        ExpirationMinutes = 120,
-//    };
-//    options.RefreshSigningOptions = new JwtSigningOptions()
-//    {
-//        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("qwerty0987654321")),
-//        Algorithm = SecurityAlgorithms.HmacSha256,
-//        ExpirationMinutes = 1200,
-//    };
-//    options.Audience = "https://localhost:8000";
-//    options.Issuer = "https://localhost:8000";
-//    options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
-//    options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
-//    options.EmailOptions = new EmailOptions()
-//    {
-//        Host = "smtp.gmail.com",
-//        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
-//        Port = 587,
-//        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER"),
-//        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD"),
-//    };
-//})
-//.AddJwtBearerAuthScheme(new TokenValidationParameters()
-//{
-//
-//});
-
 builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
 {
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
@@ -103,7 +73,9 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
         User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
-}).AddJwtBearerAuthScheme();
+})
+    .AddAllEndpointDefinitions()
+    .AddJwtBearerAuthScheme();
 
 var app = builder.Build();
 
@@ -121,5 +93,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapAuthEndpoints();
 
 app.Run();
