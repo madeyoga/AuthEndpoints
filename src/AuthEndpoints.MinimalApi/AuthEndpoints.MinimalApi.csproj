@@ -11,6 +11,7 @@
     <PackageReleaseNotes>Minimal api</PackageReleaseNotes>
     <PackageTags>jwt;json-web-token;2fa;minimal-api;endpoints</PackageTags>
     <AssemblyVersion>1.4.0</AssemblyVersion>
+    <FileVersion>1.4.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
