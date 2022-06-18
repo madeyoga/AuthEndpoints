@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace AuthEndpoints.MinimalApi.Endpoints;
+namespace AuthEndpoints.MinimalApi;
 
 public interface IEndpointDefinition
 {

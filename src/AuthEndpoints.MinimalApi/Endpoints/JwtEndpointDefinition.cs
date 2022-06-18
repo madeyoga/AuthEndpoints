@@ -1,5 +1,4 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using AuthEndpoints.MinimalApi.Endpoints;
 using AuthEndpoints.Models;
 using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -9,9 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.MinimalApi.EndpointDefinitions;
+namespace AuthEndpoints.MinimalApi;
 
-internal class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
+public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpointDefinition<TKey, TUser> 
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
@@ -27,7 +26,7 @@ internal class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// Use this endpoint to obtain jwt
     /// </summary>
     /// <remarks>Use this endpoint to obtain jwt</remarks>
-    public virtual async Task<IResult> Create([FromBody] LoginRequest request, 
+    public virtual async Task<IResult> Create([FromBody] LoginRequest request,
         IAuthenticator<TUser> authenticator,
         UserManager<TUser> userManager)
     {
@@ -60,7 +59,7 @@ internal class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// <summary>
     /// Use this endpoint to refresh jwt
     /// </summary>
-    public virtual async Task<IResult> Refresh([FromBody] RefreshRequest request, 
+    public virtual async Task<IResult> Refresh([FromBody] RefreshRequest request,
         IJwtValidator jwtValidator,
         IOptions<AuthEndpointsOptions> options,
         UserManager<TUser> userManager,

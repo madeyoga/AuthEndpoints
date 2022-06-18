@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using System.Web;
-using AuthEndpoints.MinimalApi.Endpoints;
 using AuthEndpoints.Models;
 using AuthEndpoints.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,9 +9,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.MinimalApi.EndpointDefinitions;
+namespace AuthEndpoints.MinimalApi;
 
-public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition
+public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBasicAuthEndpointDefinition<TKey, TUser> 
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
@@ -91,10 +90,10 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// <returns></returns>
     [Authorize(AuthenticationSchemes = "jwt")]
     [HttpGet("verify_email")]
-    public virtual async Task<IResult> EmailVerification(HttpContext context, 
-        UserManager<TUser> userManager, 
-        IOptions<AuthEndpointsOptions> opt, 
-        IEmailFactory emailFactory, 
+    public virtual async Task<IResult> EmailVerification(HttpContext context,
+        UserManager<TUser> userManager,
+        IOptions<AuthEndpointsOptions> opt,
+        IEmailFactory emailFactory,
         IEmailSender emailSender)
     {
         AuthEndpointsOptions options = opt.Value;
@@ -128,7 +127,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("verify_email_confirm")]
-    public virtual async Task<IResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request, 
+    public virtual async Task<IResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request,
         UserManager<TUser> userManager)
     {
         //if (!ModelState.IsValid)
