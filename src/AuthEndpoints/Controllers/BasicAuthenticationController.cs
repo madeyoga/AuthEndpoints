@@ -161,11 +161,6 @@ public class BasicAuthenticationController<TUserKey, TUser> : ControllerBase
     [HttpGet("me")]
     public virtual async Task<IActionResult> GetMe()
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequestModelState();
-        }
-
         string identity = HttpContext.User.FindFirstValue("id");
         TUser currentUser = await userManager.FindByIdAsync(identity);
 

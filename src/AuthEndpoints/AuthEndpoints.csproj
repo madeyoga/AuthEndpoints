@@ -6,18 +6,18 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>A simple auth library for Asp.Net 6 that provides a set of web api controllers to handle authentication actions</Description>
-    <Version>1.4.3</Version>
+    <Version>1.4.4</Version>
     <Authors>yeogaa02</Authors>
     <Company>yeogaa02</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
-    <PackageReleaseNotes>Update dependency version</PackageReleaseNotes>
-    <AssemblyVersion>1.4.3</AssemblyVersion>
-    <FileVersion>1.4.3</FileVersion>
-    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>Refactors</PackageReleaseNotes>
+    <AssemblyVersion>1.4.4</AssemblyVersion>
+    <FileVersion>1.4.4</FileVersion>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>
@@ -32,9 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MailKit" Version="3.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.19.0" />
+    <PackageReference Include="AuthEndpoints.Core" Version="1.4.0" />
   </ItemGroup>
 
 </Project>
