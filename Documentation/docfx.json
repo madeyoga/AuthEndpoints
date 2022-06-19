@@ -8,6 +8,20 @@
           ],
           "exclude": [ "**/bin/**", "**/obj/**" ],
           "src": "../src/AuthEndpoints"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.Core"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.MinimalApi"
         }
       ],
       "dest": "api",
