@@ -4,6 +4,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>1.4.0</Version>
+    <Description>AuthEndpoints core services</Description>
+    <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
+    <PackageTags>authendpoints;jwt;json-web-token</PackageTags>
+    <PackageReleaseNotes>AuthEndpoints core services</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
