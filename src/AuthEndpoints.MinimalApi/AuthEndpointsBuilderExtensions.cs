@@ -25,6 +25,19 @@ public static class AuthEndpointsBuilderExtensions
         return builder;
     }
 
+    public static AuthEndpointsBuilder AddEndpointDefinition<TEndpointDefinition>(this AuthEndpointsBuilder builder)
+        where TEndpointDefinition : IEndpointDefinition
+    {
+        builder.Services.AddSingleton(typeof(IEndpointDefinition), typeof(TEndpointDefinition));
+        return builder;
+    }
+
+    public static AuthEndpointsBuilder AddEndpointDefinition(this AuthEndpointsBuilder builder, Type definitionType)
+    {
+        builder.Services.AddSingleton(typeof(IEndpointDefinition), definitionType);
+        return builder;
+    }
+
     public static AuthEndpointsBuilder AddAllEndpointDefinitions(this AuthEndpointsBuilder builder)
     {
         AddBasicAuthenticationEndpoints(builder);
