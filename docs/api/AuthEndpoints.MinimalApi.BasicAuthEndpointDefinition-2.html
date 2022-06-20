@@ -1,0 +1,769 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class BasicAuthEndpointDefinition&lt;TKey, TUser&gt;
+   | AuthEndpoints </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class BasicAuthEndpointDefinition&lt;TKey, TUser&gt;
+   | AuthEndpoints ">
+    <meta name="generator" content="docfx 2.59.2.0">
+    <meta name="description" content="An authentication library for ASP.Net 6">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2">
+  
+  
+  <h1 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2" class="text-break">Class BasicAuthEndpointDefinition&lt;TKey, TUser&gt;
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">BasicAuthEndpointDefinition&lt;TKey, TUser&gt;</span></div>
+  </div>
+  <div classs="implements">
+    <h5>Implements</h5>
+    <div><a class="xref" href="AuthEndpoints.MinimalApi.IEndpointDefinition.html">IEndpointDefinition</a></div>
+    <div><a class="xref" href="AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html">IBasicAuthEndpointDefinition</a>&lt;TKey, TUser&gt;</div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.MinimalApi.html">AuthEndpoints.MinimalApi</a></h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.MinimalApi.dll</h6>
+  <h5 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class BasicAuthEndpointDefinition&lt;TKey, TUser&gt; : IEndpointDefinition, IBasicAuthEndpointDefinition&lt;TKey, TUser&gt; where TKey : IEquatable&lt;TKey&gt; where TUser : IdentityUser&lt;TKey&gt;, new()</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TUser</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Delete_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.Delete(Microsoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L325">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Delete_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Delete*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Delete_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Delete(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})">Delete(HttpContext, UserManager&lt;TUser&gt;)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to delete authenticated user.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpDelete(&quot;delete&quot;)]
+public virtual async Task&lt;IResult&gt; Delete(HttpContext context, UserManager&lt;TUser&gt; userManager)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Http.HttpContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.EmailVerification(Microsoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CAuthEndpoints.Services.IEmailFactory%2CAuthEndpoints.Services.IEmailSender)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L91">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerification_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerification*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)">EmailVerification(HttpContext, UserManager&lt;TUser&gt;, IOptions&lt;AuthEndpointsOptions&gt;, IEmailFactory, IEmailSender)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoints to send email verification link via email
+You should provide site in your frontend application (configured by <a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_EmailConfirmationUrl">EmailConfirmationUrl</a>)
+which will send POST request to verify email confirmation endpoint.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpGet(&quot;verify_email&quot;)]
+public virtual async Task&lt;IResult&gt; EmailVerification(HttpContext context, UserManager&lt;TUser&gt; userManager, IOptions&lt;AuthEndpointsOptions&gt; opt, IEmailFactory emailFactory, IEmailSender emailSender)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Http.HttpContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.Extensions.Options.IOptions</span>&lt;<a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html">AuthEndpointsOptions</a>&gt;</td>
+        <td><span class="parametername">opt</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailFactory.html">IEmailFactory</a></td>
+        <td><span class="parametername">emailFactory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailSender.html">IEmailSender</a></td>
+        <td><span class="parametername">emailSender</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L129">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerificationConfirm_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerificationConfirm*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest,Microsoft.AspNetCore.Identity.UserManager{`1})">EmailVerificationConfirm(ConfirmEmailRequest, UserManager&lt;TUser&gt;)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to confirm user email.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[HttpPost(&quot;verify_email_confirm&quot;)]
+public virtual async Task&lt;IResult&gt; EmailVerificationConfirm([FromBody] ConfirmEmailRequest request, UserManager&lt;TUser&gt; userManager)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.ConfirmEmailRequest.html">ConfirmEmailRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_GetMe_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.GetMe(Microsoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L75">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_GetMe_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.GetMe*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_GetMe_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.GetMe(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})">GetMe(HttpContext, UserManager&lt;TUser&gt;)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to retrieve the authenticated user</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpGet(&quot;me&quot;)]
+public virtual async Task&lt;IResult&gt; GetMe(HttpContext context, UserManager&lt;TUser&gt; userManager)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Http.HttpContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L18">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_MapEndpoints_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.MapEndpoints*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)">MapEndpoints(WebApplication)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public void MapEndpoints(WebApplication app)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Builder.WebApplication</span></td>
+        <td><span class="parametername">app</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Register_AuthEndpoints_Models_RegisterRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.Register(AuthEndpoints.Models.RegisterRequest%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CMicrosoft.AspNetCore.Identity.IdentityErrorDescriber)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L35">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Register_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Register*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_Register_AuthEndpoints_Models_RegisterRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.Register(AuthEndpoints.Models.RegisterRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber)">Register(RegisterRequest, UserManager&lt;TUser&gt;, IdentityErrorDescriber)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to register a new user</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public virtual async Task&lt;IResult&gt; Register([FromBody] RegisterRequest request, UserManager&lt;TUser&gt; userManager, IdentityErrorDescriber errorDescriber)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.RegisterRequest.html">RegisterRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.IdentityErrorDescriber</span></td>
+        <td><span class="parametername">errorDescriber</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CAuthEndpoints.Services.IEmailFactory%2CAuthEndpoints.Services.IEmailSender)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L246">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPassword_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPassword*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest,Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)">ResetPassword(ResetPasswordRequest, UserManager&lt;TUser&gt;, IOptions&lt;AuthEndpointsOptions&gt;, IEmailFactory, IEmailSender)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to send email to user with password reset link.
+You should provide site in your frontend application (configured by <a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html#AuthEndpoints_AuthEndpointsOptions_PasswordResetUrl">PasswordResetUrl</a>)
+which will send POST request to reset password confirmation endpoint.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[HttpPost(&quot;reset_password&quot;)]
+public virtual async Task&lt;IResult&gt; ResetPassword([FromBody] ResetPasswordRequest request, UserManager&lt;TUser&gt; userManager, IOptions&lt;AuthEndpointsOptions&gt; opt, IEmailFactory emailFactory, IEmailSender emailSender)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.ResetPasswordRequest.html">ResetPasswordRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.Extensions.Options.IOptions</span>&lt;<a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html">AuthEndpointsOptions</a>&gt;</td>
+        <td><span class="parametername">opt</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailFactory.html">IEmailFactory</a></td>
+        <td><span class="parametername">emailFactory</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Services.IEmailSender.html">IEmailSender</a></td>
+        <td><span class="parametername">emailSender</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L294">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPasswordConfirm_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPasswordConfirm*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1})">ResetPasswordConfirm(ResetPasswordConfirmRequest, UserManager&lt;TUser&gt;)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to finish reset password process.</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[HttpPost(&quot;reset_password_confirm&quot;)]
+public virtual async Task&lt;IResult&gt; ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request, UserManager&lt;TUser&gt; userManager)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.ResetPasswordConfirmRequest.html">ResetPasswordConfirmRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.SetPassword(AuthEndpoints.Models.SetPasswordRequest%2CMicrosoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L199">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetPassword_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetPassword*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})">SetPassword(SetPasswordRequest, HttpContext, UserManager&lt;TUser&gt;)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to change user password</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpPost(&quot;set_password&quot;)]
+public virtual async Task&lt;IResult&gt; SetPassword([FromBody] SetPasswordRequest request, HttpContext context, UserManager&lt;TUser&gt; userManager)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.SetPasswordRequest.html">SetPasswordRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Http.HttpContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602.SetUsername(AuthEndpoints.Models.SetUsernameRequest%2CMicrosoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L171">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetUsername_" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetUsername*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})">SetUsername(SetUsernameRequest, HttpContext, UserManager&lt;TUser&gt;)</h4>
+  <div class="markdown level1 summary"><p>Use this endpoint to change user's username</p>
+</div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+[HttpPost(&quot;set_username&quot;)]
+public virtual async Task&lt;IResult&gt; SetUsername([FromBody] SetUsernameRequest request, HttpContext context, UserManager&lt;TUser&gt; userManager)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Models.SetUsernameRequest.html">SetUsernameRequest</a></td>
+        <td><span class="parametername">request</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Http.HttpContext</span></td>
+        <td><span class="parametername">context</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Identity.UserManager</span>&lt;TUser&gt;</td>
+        <td><span class="parametername">userManager</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Http.IResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <a class="xref" href="AuthEndpoints.MinimalApi.IEndpointDefinition.html">IEndpointDefinition</a>
+  </div>
+  <div>
+      <a class="xref" href="AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html">IBasicAuthEndpointDefinition&lt;TKey, TUser&gt;</a>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_BasicAuthEndpointDefinition_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/BasicAuthEndpointDefinition.cs/#L14" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Developed by <a href='https://github.com/nano-devs/AuthEndpoints'>MadeY</a> and <a href='https://github.com/nano-devs/AuthEndpoints/graphs/contributors'>contributors</a> / Licensed under <a href='#'>MIT</a> / Website generated by <a href='https://dotnet.github.io/docfx/'>DocFX</a>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>
