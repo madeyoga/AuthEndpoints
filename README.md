@@ -5,25 +5,7 @@
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of Web API controllers to handle basic web & JWT authentication actions such as registration, login, refresh, and verify. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
-
-## Available Endpoints
-
-- `/users`
-- `/users/me`
-- `/users/delete`
-- `/users/verify_email`
-- `/users/verify_email_confirm`
-- `/users/set_password`
-- `/users/reset_password`
-- `/users/reset_password_confirm`
-- `/users/enable_2fa`
-- `/users/enable_2fa_confirm`
-- `/users/two_step_verification_login`
-- `/users/two_step_verification_confirm`
-- `/jwt/create`
-- `/jwt/refresh`
-- `/jwt/verify`
+A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of Web API controllers and minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
 
 ## Installing via NuGet
 The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints/)
@@ -40,7 +22,60 @@ or in Visual Studio's Package Manager Console, enter the following command:
 Install-Package AuthEndpoints
 ```
 
-[Get started](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
+## Quick start
+Edit Program.cs, then add the required identity services:
+
+```cs
+builder.Services.AddIdentity<MyCustomIdentityUser>()
+  .AddEntityFrameworkStores<MyDbContext>()
+  .AddDefaultTokenProviders();
+```
+
+then add auth endpoints services and enable jwt bearer authentication
+
+```cs
+builder.Services
+  .AddAuthEndpoints<string, MyCustomIdentityUser>() // Use the default and minimum config
+  .AddJwtBearerAuthScheme();
+```
+
+### Map endpoints using the controller
+```cs
+public class MyBaseAuthController : BasicAuthenticationController<string, MyCustomIdentityUser>
+{}
+
+public class MyJwtController : JwtController<string, MyCustomIdentityUser>
+{}
+
+public class MyTwoFactorController : TwoStepVerificationController<string, MyCustomIdentityUser>
+{}
+```
+_or_ 
+
+### Map endpoints using the minimal api
+Install `AuthEndpoints.MinimalApi` package, then edit Program.cs:
+
+```cs
+builder.Services
+  .AddAuthEndpoints<string, MyCustomIdentityUser>()
+  .AddAllEndpointDefinitions() // add basic auth, jwt, 2fa endpoints
+  .AddJwtBearerAuthScheme();
+
+var app = builder.Build();
+
+...
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+...
+
+app.MapAuthEndpoints(); // Map minimal api endpoints
+
+app.Run();
+```
+
+Checkout [docs](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html) for more info.
 
 ## Documentations
 Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https://madeyoga.github.io/AuthEndpoints/) and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
