@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Namespace AuthEndpoints.MinimalApi
+    <title>Interface IMinimalValidator
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Namespace AuthEndpoints.MinimalApi
+    <meta name="title" content="Interface IMinimalValidator
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,39 +78,83 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.MinimalApi">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.MinimalApi.IMinimalValidator">
   
-  <h1 id="AuthEndpoints_MinimalApi" data-uid="AuthEndpoints.MinimalApi" class="text-break">Namespace AuthEndpoints.MinimalApi
+  
+  <h1 id="AuthEndpoints_MinimalApi_IMinimalValidator" data-uid="AuthEndpoints.MinimalApi.IMinimalValidator" class="text-break">Interface IMinimalValidator
   </h1>
   <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
-  <div class="markdown level0 remarks"></div>
-    <h3 id="classes">Classes
+  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.MinimalApi.html">AuthEndpoints.MinimalApi</a></h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.MinimalApi.dll</h6>
+  <h5 id="AuthEndpoints_MinimalApi_IMinimalValidator_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public interface IMinimalValidator</code></pre>
+  </div>
+  <h3 id="methods">Methods
   </h3>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html">AuthEndpointsBuilderExtensions</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html">BasicAuthEndpointDefinition&lt;TKey, TUser&gt;</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html">JwtEndpointDefinition&lt;TKey, TUser&gt;</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.MinimalValidator.html">MinimalValidator</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html">TwoFactorEndpointDefinition&lt;TKey, TUser&gt;</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.ValidationResult.html">ValidationResult</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.WebApplicationExtensions.html">WebApplicationExtensions</a></h4>
-      <section></section>
-    <h3 id="interfaces">Interfaces
-  </h3>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html">IBasicAuthEndpointDefinition&lt;TKey, TUser&gt;</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.IEndpointDefinition.html">IEndpointDefinition</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html">IJwtEndpointDefinition&lt;TKey, TUser&gt;</a></h4>
-      <section></section>
-      <h4><a class="xref" href="AuthEndpoints.MinimalApi.IMinimalValidator.html">IMinimalValidator</a></h4>
-      <section></section>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_IMinimalValidator_Validate__1___0_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.IMinimalValidator.Validate%60%601(%60%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Validators/IMinimalValidator.cs/#L5">View Source</a>
+  </span>
+  <a id="AuthEndpoints_MinimalApi_IMinimalValidator_Validate_" data-uid="AuthEndpoints.MinimalApi.IMinimalValidator.Validate*"></a>
+  <h4 id="AuthEndpoints_MinimalApi_IMinimalValidator_Validate__1___0_" data-uid="AuthEndpoints.MinimalApi.IMinimalValidator.Validate``1(``0)">Validate&lt;T&gt;(T)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">ValidationResult Validate&lt;T&gt;(T model)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">T</span></td>
+        <td><span class="parametername">model</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.MinimalApi.ValidationResult.html">ValidationResult</a></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">T</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
 </article>
           </div>
           
@@ -118,6 +162,12 @@
             <div class="sideaffix">
               <div class="contribution">
                 <ul class="nav">
+                  <li>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_IMinimalValidator.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.IMinimalValidator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Validators/IMinimalValidator.cs/#L3" class="contribution-link">View Source</a>
+                  </li>
                 </ul>
               </div>
               <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">

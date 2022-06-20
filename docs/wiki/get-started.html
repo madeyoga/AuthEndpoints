@@ -92,8 +92,10 @@
 <pre><code>Install-Package AuthEndpoints
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>Edit <code>Program.cs</code>, Add required identity services:</p>
-<pre><code class="lang-cs">builder.Services.AddIdentity&lt;MyCustomIdentityUser&gt;()
+<p>Edit <code>Program.cs</code>, Add the required identity services:</p>
+<pre><code class="lang-cs">builder.Services.AddAuthorization();
+builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt; { });
+builder.Services.AddIdentityCore&lt;MyCustomIdentityUser&gt;()
   .AddEntityFrameworkStores&lt;MyDbContext&gt;()
   .AddDefaultTokenProviders();
 </code></pre>
@@ -107,6 +109,8 @@
 
 var app = builder.Build();
 
+...
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -114,18 +118,66 @@ app.UseAuthorization();
 
 app.Run();
 </code></pre>
-<h2 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h2>
+<h2 id="map-endpoints-using-the-controller">Map endpoints using the controller</h2>
+<h3 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h3>
 <p>Create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyBaseAuthController : BaseEndpointsController&lt;string, IdentityUser&gt;
+<pre><code class="lang-cs">public class MyBaseAuthController : BasicAuthenticationController&lt;string, MyCustomIdentityUser&gt;
 {}
 </code></pre>
 <p>See what endpoints included in <a href="base-endpoints.html">BaseEndpointsController</a></p>
-<h2 id="add-jwt-endpoints">Add Jwt Endpoints</h2>
+<h3 id="add-jwt-endpoints">Add Jwt Endpoints</h3>
 <p>Create a new controller called <code>MyJwtController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyJwtController : JwtController&lt;string, IdentityUser&gt;
+<pre><code class="lang-cs">public class MyJwtController : JwtController&lt;string, MyCustomIdentityUser&gt;
 {}
 </code></pre>
 <p>See what endpoints included in <a href="jwt-endpoints.html">JwtController</a></p>
+<h2 id="map-endpoints-using-the-minimal-api">Map endpoints using the minimal api</h2>
+<p>Install <a href="https://www.nuget.org/packages/AuthEndpoints.MinimalApi">AuthEndpoints.MinimalApi</a> package and add endpoint definitions:</p>
+<pre><code class="lang-cs">builder.Services
+  .AddAuthEndpoints&lt;string, MyCustomIdentityUser&gt;()
+  .AddAllEndpointDefinitions() // Add endpoint definitions
+  .AddJwtBearerAuthScheme();
+</code></pre>
+<p>then call <code>app.MapAuthEndpoints()</code> before <code>app.Run()</code>:</p>
+<pre><code class="lang-cs">...
+
+var app = builder.Build();
+
+...
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+...
+
+app.MapAuthEndpoints();
+
+app.Run();
+</code></pre>
+<h2 id="available-endpoints">Available Endpoints</h2>
+<ul>
+<li><code>/users</code></li>
+<li><code>/users/me</code></li>
+<li><code>/users/delete</code></li>
+<li><code>/users/verify_email</code></li>
+<li><code>/users/verify_email_confirm</code></li>
+<li><code>/users/set_password</code></li>
+<li><code>/users/reset_password</code></li>
+<li><code>/users/reset_password_confirm</code></li>
+<li><code>/users/enable_2fa</code></li>
+<li><code>/users/enable_2fa_confirm</code></li>
+<li><code>/users/two_step_verification_login</code></li>
+<li><code>/users/two_step_verification_confirm</code></li>
+<li><code>/jwt/create</code></li>
+<li><code>/jwt/refresh</code></li>
+<li><code>/jwt/verify</code></li>
+</ul>
+<p>Checkout documentation for more details:</p>
+<ul>
+<li><a href="/wiki/base-endpoints.html">Basic authentication endpoints</a></li>
+<li><a href="/wiki/jwt-endpoints.html">JWT endpoints</a></li>
+<li><a href="/wiki/2fa-endpoints.html">2FA endpoints</a></li>
+</ul>
 </article>
           </div>
           

@@ -126,7 +126,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html",
-          "hash": "ifOLshCBMhdxxJEI+4eP8SY4i86/y8F3AWMnP5L2nUE="
+          "hash": "m0jkDBcs+cfTUpsXbu5yv69GTLFXoTtAOpVRaSsGBBw="
         }
       },
       "is_incremental": false,
@@ -182,6 +182,18 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.MinimalApi.IMinimalValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.MinimalApi.IMinimalValidator.html",
+          "hash": "IAOA2Ebpe5Ule9MShBC4yTK3RTzEgs+jq6T4DUxpRR0="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.yml",
       "output": {
         ".html": {
@@ -194,11 +206,35 @@
     },
     {
       "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.MinimalApi.MinimalValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.MinimalApi.MinimalValidator.html",
+          "hash": "lrUJaJGxfWMxwb+ByyOypyiGLrAxTKNoKnlJm16UroA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
       "source_relative_path": "api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.yml",
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html",
           "hash": "ZWZgtxJKAcLR7LvU6J1P0Syii41Dx6z2Inb3gibJ55E="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.MinimalApi.ValidationResult.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.MinimalApi.ValidationResult.html",
+          "hash": "+yDcK6he6sF7iqf+ulL7HZcQ/gqsIGaD82NN6yDws6c="
         }
       },
       "is_incremental": false,
@@ -222,7 +258,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.html",
-          "hash": "BAp9QvTgdJPksotRSwVW6pHDYrXcarht52f1lXOWVX8="
+          "hash": "uM/o4XhcVhkKIE9InhGCkSmSlBjO2jzJyb5fKFAVgQM="
         }
       },
       "is_incremental": false,
@@ -642,7 +678,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "6VzSbjun26jW7GppeSi7vaa8fIsdOOCr/4pe8Qnc1sw="
+          "hash": "kuESMe7M6Q0C5jCr8KBv9ez361PADELxhWzeXmRXgjg="
         }
       },
       "is_incremental": false,
@@ -654,7 +690,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "/6vqIKfShGy/qMo1e7fjhuA2CqdiyILFzxijueqlQHQ="
+          "hash": "JWIYeFJZLbUTJSzYr4/FttTr0BCAkc2kU8meImJwaxo="
         }
       },
       "is_incremental": false,
@@ -774,7 +810,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/get-started.html",
-          "hash": "z9boNn6ZUcryB4xfvXzu3PY5cVnG29I0T9p/jQWd4Y8="
+          "hash": "8SUfFrt06jefAZajeIKzpizNEGFaXYb05CBwC0CQTJ0="
         }
       },
       "is_incremental": false,
@@ -818,13 +854,13 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 12,
-          "skipped_file_count": 12
+          "skipped_file_count": 11
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 51,
-          "skipped_file_count": 4
+          "total_file_count": 54,
+          "skipped_file_count": 54
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
