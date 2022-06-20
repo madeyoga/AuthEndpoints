@@ -27,38 +27,6 @@ Install-Package AuthEndpoints
 
 [Get started](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html)
 
-## Available Endpoints
-
-- `/users`
-
-- `/users/me`
-
-- `/users/delete`
-
-- `/users/verify_email`
-
-- `/users/verify_email_confirm`
-
-- `/users/set_password`
-
-- `/users/reset_password`
-
-- `/users/reset_password_confirm`
-
-- `/users/enable_2fa`
-
-- `/users/enable_2fa_confirm`
-
-- `/users/two_step_verification_login`
-
-- `/users/two_step_verification_confirm`
-
-- `/jwt/create`
-
-- `/jwt/refresh`
-
-- `/jwt/verify`
-
 
 ## Contributing
 

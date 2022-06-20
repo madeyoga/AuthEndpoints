@@ -1201,6 +1201,28 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints
   nameWithType: AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition(AuthEndpoints.AuthEndpointsBuilder,Type)
+  name: AddEndpointDefinition(AuthEndpointsBuilder, Type)
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddEndpointDefinition_AuthEndpoints_AuthEndpointsBuilder_Type_
+  commentId: M:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition(AuthEndpoints.AuthEndpointsBuilder,Type)
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition(AuthEndpoints.AuthEndpointsBuilder, Type)
+  nameWithType: AuthEndpointsBuilderExtensions.AddEndpointDefinition(AuthEndpointsBuilder, Type)
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition*
+  name: AddEndpointDefinition
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddEndpointDefinition_
+  commentId: Overload:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition
+  nameWithType: AuthEndpointsBuilderExtensions.AddEndpointDefinition
+- uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition``1(AuthEndpoints.AuthEndpointsBuilder)
+  name: AddEndpointDefinition<TEndpointDefinition>(AuthEndpointsBuilder)
+  href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddEndpointDefinition__1_AuthEndpoints_AuthEndpointsBuilder_
+  commentId: M:AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition``1(AuthEndpoints.AuthEndpointsBuilder)
+  name.vb: AddEndpointDefinition(Of TEndpointDefinition)(AuthEndpointsBuilder)
+  fullName: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition<TEndpointDefinition>(AuthEndpoints.AuthEndpointsBuilder)
+  fullName.vb: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddEndpointDefinition(Of TEndpointDefinition)(AuthEndpoints.AuthEndpointsBuilder)
+  nameWithType: AuthEndpointsBuilderExtensions.AddEndpointDefinition<TEndpointDefinition>(AuthEndpointsBuilder)
+  nameWithType.vb: AuthEndpointsBuilderExtensions.AddEndpointDefinition(Of TEndpointDefinition)(AuthEndpointsBuilder)
 - uid: AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddJwtEndpoints(AuthEndpoints.AuthEndpointsBuilder)
   name: AddJwtEndpoints(AuthEndpointsBuilder)
   href: api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html#AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddJwtEndpoints_AuthEndpoints_AuthEndpointsBuilder_
@@ -1654,6 +1676,28 @@ references:
   fullName.vb: AuthEndpoints.MinimalApi.IJwtEndpointDefinition(Of TKey, TUser).Verify
   nameWithType: IJwtEndpointDefinition<TKey, TUser>.Verify
   nameWithType.vb: IJwtEndpointDefinition(Of TKey, TUser).Verify
+- uid: AuthEndpoints.MinimalApi.IMinimalValidator
+  name: IMinimalValidator
+  href: api/AuthEndpoints.MinimalApi.IMinimalValidator.html
+  commentId: T:AuthEndpoints.MinimalApi.IMinimalValidator
+  fullName: AuthEndpoints.MinimalApi.IMinimalValidator
+  nameWithType: IMinimalValidator
+- uid: AuthEndpoints.MinimalApi.IMinimalValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.MinimalApi.IMinimalValidator.html#AuthEndpoints_MinimalApi_IMinimalValidator_Validate_
+  commentId: Overload:AuthEndpoints.MinimalApi.IMinimalValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.IMinimalValidator.Validate
+  nameWithType: IMinimalValidator.Validate
+- uid: AuthEndpoints.MinimalApi.IMinimalValidator.Validate``1(``0)
+  name: Validate<T>(T)
+  href: api/AuthEndpoints.MinimalApi.IMinimalValidator.html#AuthEndpoints_MinimalApi_IMinimalValidator_Validate__1___0_
+  commentId: M:AuthEndpoints.MinimalApi.IMinimalValidator.Validate``1(``0)
+  name.vb: Validate(Of T)(T)
+  fullName: AuthEndpoints.MinimalApi.IMinimalValidator.Validate<T>(T)
+  fullName.vb: AuthEndpoints.MinimalApi.IMinimalValidator.Validate(Of T)(T)
+  nameWithType: IMinimalValidator.Validate<T>(T)
+  nameWithType.vb: IMinimalValidator.Validate(Of T)(T)
 - uid: AuthEndpoints.MinimalApi.JwtEndpointDefinition`2
   name: JwtEndpointDefinition<TKey, TUser>
   href: api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html
@@ -1733,6 +1777,28 @@ references:
   fullName.vb: AuthEndpoints.MinimalApi.JwtEndpointDefinition(Of TKey, TUser).Verify
   nameWithType: JwtEndpointDefinition<TKey, TUser>.Verify
   nameWithType.vb: JwtEndpointDefinition(Of TKey, TUser).Verify
+- uid: AuthEndpoints.MinimalApi.MinimalValidator
+  name: MinimalValidator
+  href: api/AuthEndpoints.MinimalApi.MinimalValidator.html
+  commentId: T:AuthEndpoints.MinimalApi.MinimalValidator
+  fullName: AuthEndpoints.MinimalApi.MinimalValidator
+  nameWithType: MinimalValidator
+- uid: AuthEndpoints.MinimalApi.MinimalValidator.Validate*
+  name: Validate
+  href: api/AuthEndpoints.MinimalApi.MinimalValidator.html#AuthEndpoints_MinimalApi_MinimalValidator_Validate_
+  commentId: Overload:AuthEndpoints.MinimalApi.MinimalValidator.Validate
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.MinimalValidator.Validate
+  nameWithType: MinimalValidator.Validate
+- uid: AuthEndpoints.MinimalApi.MinimalValidator.Validate``1(``0)
+  name: Validate<T>(T)
+  href: api/AuthEndpoints.MinimalApi.MinimalValidator.html#AuthEndpoints_MinimalApi_MinimalValidator_Validate__1___0_
+  commentId: M:AuthEndpoints.MinimalApi.MinimalValidator.Validate``1(``0)
+  name.vb: Validate(Of T)(T)
+  fullName: AuthEndpoints.MinimalApi.MinimalValidator.Validate<T>(T)
+  fullName.vb: AuthEndpoints.MinimalApi.MinimalValidator.Validate(Of T)(T)
+  nameWithType: MinimalValidator.Validate<T>(T)
+  nameWithType.vb: MinimalValidator.Validate(Of T)(T)
 - uid: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2
   name: TwoFactorEndpointDefinition<TKey, TUser>
   href: api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html
@@ -1831,6 +1897,38 @@ references:
   fullName.vb: AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationLogin
   nameWithType: TwoFactorEndpointDefinition<TKey, TUser>.TwoStepVerificationLogin
   nameWithType.vb: TwoFactorEndpointDefinition(Of TKey, TUser).TwoStepVerificationLogin
+- uid: AuthEndpoints.MinimalApi.ValidationResult
+  name: ValidationResult
+  href: api/AuthEndpoints.MinimalApi.ValidationResult.html
+  commentId: T:AuthEndpoints.MinimalApi.ValidationResult
+  fullName: AuthEndpoints.MinimalApi.ValidationResult
+  nameWithType: ValidationResult
+- uid: AuthEndpoints.MinimalApi.ValidationResult.Errors
+  name: Errors
+  href: api/AuthEndpoints.MinimalApi.ValidationResult.html#AuthEndpoints_MinimalApi_ValidationResult_Errors
+  commentId: P:AuthEndpoints.MinimalApi.ValidationResult.Errors
+  fullName: AuthEndpoints.MinimalApi.ValidationResult.Errors
+  nameWithType: ValidationResult.Errors
+- uid: AuthEndpoints.MinimalApi.ValidationResult.Errors*
+  name: Errors
+  href: api/AuthEndpoints.MinimalApi.ValidationResult.html#AuthEndpoints_MinimalApi_ValidationResult_Errors_
+  commentId: Overload:AuthEndpoints.MinimalApi.ValidationResult.Errors
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.ValidationResult.Errors
+  nameWithType: ValidationResult.Errors
+- uid: AuthEndpoints.MinimalApi.ValidationResult.IsValid
+  name: IsValid
+  href: api/AuthEndpoints.MinimalApi.ValidationResult.html#AuthEndpoints_MinimalApi_ValidationResult_IsValid
+  commentId: P:AuthEndpoints.MinimalApi.ValidationResult.IsValid
+  fullName: AuthEndpoints.MinimalApi.ValidationResult.IsValid
+  nameWithType: ValidationResult.IsValid
+- uid: AuthEndpoints.MinimalApi.ValidationResult.IsValid*
+  name: IsValid
+  href: api/AuthEndpoints.MinimalApi.ValidationResult.html#AuthEndpoints_MinimalApi_ValidationResult_IsValid_
+  commentId: Overload:AuthEndpoints.MinimalApi.ValidationResult.IsValid
+  isSpec: "True"
+  fullName: AuthEndpoints.MinimalApi.ValidationResult.IsValid
+  nameWithType: ValidationResult.IsValid
 - uid: AuthEndpoints.MinimalApi.WebApplicationExtensions
   name: WebApplicationExtensions
   href: api/AuthEndpoints.MinimalApi.WebApplicationExtensions.html
