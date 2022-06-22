@@ -24,10 +24,12 @@ Install-Package AuthEndpoints
 ```
 
 ## Quick start
-Edit Program.cs, then add the required identity services:
+Edit Program.cs, then add the required services:
 
 ```cs
-builder.Services.AddIdentity<MyCustomIdentityUser>()
+builder.Services.AddAuthorization();
+builder.Services.AddDbContext<MyDbContext>(options => { });
+builder.Services.AddIdentityCore<MyCustomIdentityUser>()
   .AddEntityFrameworkStores<MyDbContext>()
   .AddDefaultTokenProviders();
 ```
