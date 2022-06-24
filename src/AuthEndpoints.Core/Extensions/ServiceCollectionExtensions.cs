@@ -17,6 +17,8 @@ public static class ServiceCollectionExtensions
         where TUserKey : IEquatable<TUserKey>
         where TUser : IdentityUser<TUserKey>
     {
+        services.AddAuthorization();
+
         services.AddSingleton(typeof(IOptions<AuthEndpointsOptions>), Options.Create(options));
         //services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
         //services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
