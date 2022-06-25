@@ -5,12 +5,12 @@ All contributions are welcome: use-cases, documentation, code, patches, bug repo
 ## Documentation
 
 We use [docfx](https://github.com/dotnet/docfx) to generate documentations.
-The docfx project can be found in the [Documentation/](https://github.com/madeyoga/AuthEndpoints/tree/main/Documentation).
-You can contribute to Documentation either by opening an issue or sending a pull request, then set the Issue/PR type to "documentation".
+The docfx project can be found under [Documentation/](https://github.com/madeyoga/AuthEndpoints/tree/main/Documentation).
+You can contribute to Documentation by either opening an issue or sending a pull request, then set the Issue/PR type to "documentation".
 
 ## Report a bug
 
-To report a bug you should [open an issue](https://github.com/madeyoga/AuthEndpoints/issues) that summarizes the bug. Set the Issue type to "Bug".
+To report a bug you should [open an issue](https://github.com/madeyoga/AuthEndpoints/issues) that summarizes the bug. Set the Issue type to "bug".
 
 In order to help us understand and fix the bug it would be great if you could provide us with:
 
@@ -18,7 +18,7 @@ In order to help us understand and fix the bug it would be great if you could pr
 2. The expected behavior.
 3. The actual, incorrect behavior.
 
-Feel free to search the issue queue for existing issues that already describe the problem; if there is such a ticket please add your information as a comment.
+Feel free to search the issue queue for existing issues that already describe the problem; if there is such issue, please add your information as a comment.
 
 **If you want to provide a pull along with your bug report:**
 
