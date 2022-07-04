@@ -25,7 +25,8 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
 
 ## Current limitations
 - Only works with IdentityUser or custom identity user
-- No session based auth support 
+- No session based auth support
+- 2fa via email
 
 ## Installing via NuGet
 The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints/)
