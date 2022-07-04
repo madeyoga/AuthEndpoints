@@ -11,7 +11,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
 ## Features
 - Supported endpoints:
   - sign-up
-  - sign-in (jwt based)
+  - sign-in (create jwt)
   - email verification
   - refresh jwt
   - verify jwt
