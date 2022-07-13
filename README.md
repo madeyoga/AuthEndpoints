@@ -20,7 +20,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
   - change password
   - enable 2fa & login 2fa (via email)
 - JWT support
-- Symmetric and asymmetric based signature support
+- Works with a symmetric key (shared secret) or asymmetric keys (the private key of a private–public pair).
 - Works with custom identity user
 
 ## Current limitations
