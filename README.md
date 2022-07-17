@@ -47,18 +47,13 @@ Install-Package AuthEndpoints
 Edit Program.cs, then add the required services:
 
 ```cs
-builder.Services.AddAuthorization();
 builder.Services.AddDbContext<MyDbContext>(options => { });
 builder.Services.AddIdentityCore<MyCustomIdentityUser>()
   .AddEntityFrameworkStores<MyDbContext>()
   .AddDefaultTokenProviders();
-```
 
-then add auth endpoints services and enable jwt bearer authentication
-
-```cs
 builder.Services
-  .AddAuthEndpoints<string, MyCustomIdentityUser>() // Use the default and minimum config
+  .AddAuthEndpoints<string, MyCustomIdentityUser>() // <TUserKey, TUser>
   .AddJwtBearerAuthScheme();
 ```
 
@@ -79,6 +74,8 @@ _or_
 Install `AuthEndpoints.MinimalApi` package, then edit Program.cs:
 
 ```cs
+...
+
 builder.Services
   .AddAuthEndpoints<string, MyCustomIdentityUser>()
   .AddAllEndpointDefinitions() // add basic auth, jwt, 2fa endpoints
