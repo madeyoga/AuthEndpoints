@@ -71,7 +71,7 @@ __Default URL__: `/jwt/refresh`
 
 ## JWT Verify
 
-Use this endpoints to verify access jwt.
+Use this endpoint to verify access jwt.
 
 __Default URL__: `/users/set_password`
 
