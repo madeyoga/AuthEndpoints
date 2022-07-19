@@ -66,7 +66,7 @@ __Default URL__: `/users/enable_2fa_confirm`
 
 ## 2FA Login
 
-Use this endpoints to login with 2fa process.
+Use this endpoint to login with 2fa process.
 
 __Default URL__: `/users/two_step_verification_login`
 
@@ -102,7 +102,7 @@ __Default URL__: `/users/two_step_verification_login`
 
 ## 2FA Login Confirm
 
-Use this endpoints to login with 2fa process.
+Use this endpoint to login with 2fa process.
 
 __Default URL__: `/users/two_step_verification_confirm`
 

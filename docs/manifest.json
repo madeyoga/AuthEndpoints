@@ -474,7 +474,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.html",
-          "hash": "+ES9H0qDwdYATvWkEstQMwrre6rcRJHHPmAtJkg6tC4="
+          "hash": "q8c+rTt5I0Cu/eKapB2B+N35OvPRPytB8FMa+48AujE="
         }
       },
       "is_incremental": false,
@@ -685,6 +685,17 @@
       "version": ""
     },
     {
+      "type": "Resource",
+      "source_relative_path": "images/swagger.png",
+      "output": {
+        "resource": {
+          "relative_path": "images/swagger.png"
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
       "type": "Conceptual",
       "source_relative_path": "index.md",
       "output": {
@@ -714,19 +725,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/2fa-endpoints.html",
-          "hash": "xBQb0OCbx8Fih7bNi+FYK0dOARt8dmfCW6n559UiYSo="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "Conceptual",
-      "source_relative_path": "wiki/asym-jwt.md",
-      "output": {
-        ".html": {
-          "relative_path": "wiki/asym-jwt.html",
-          "hash": "MUxO/xwGqjYd0i1JobJtkq27FW4j5+tmLDeHo2CHz+A="
+          "hash": "5OIiwRCWQbwvYCAiyeAs8A9bHWczt53Bz7ejm5svNQ0="
         }
       },
       "is_incremental": false,
@@ -750,7 +749,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/base-endpoints.html",
-          "hash": "XwpuqLP4id2KxDMMwIM47zZYaoZw0dajuBnvdU2MmcA="
+          "hash": "0qxBg6yzBEQEAZ3MkCgM9VXwqsUEPTrCW50m7gQKiQ8="
         }
       },
       "is_incremental": false,
@@ -806,11 +805,23 @@
     },
     {
       "type": "Conceptual",
+      "source_relative_path": "wiki/encryption-type.md",
+      "output": {
+        ".html": {
+          "relative_path": "wiki/encryption-type.html",
+          "hash": "gy2f3ibqnBGgZlyyImQaVEc0y8aymcJY5oJFvXz7HZc="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "Conceptual",
       "source_relative_path": "wiki/get-started.md",
       "output": {
         ".html": {
           "relative_path": "wiki/get-started.html",
-          "hash": "8SUfFrt06jefAZajeIKzpizNEGFaXYb05CBwC0CQTJ0="
+          "hash": "x7CR5DyIFfMXP6MB8HbBaBjaCP/jO6S4Lpp6VMnsWto="
         }
       },
       "is_incremental": false,
@@ -822,7 +833,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/jwt-endpoints.html",
-          "hash": "Kt1sw61rMHxktsCaVv0ruresCuRcJg72iH5mUuIROi8="
+          "hash": "2dkfbIfQi4uUcLzYAArHfB9S0YCsxIk9MYfv1GFei00="
         }
       },
       "is_incremental": false,
@@ -834,7 +845,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/toc.html",
-          "hash": "ovn20hUei3sG+NsVMyVPBs+tasyYn35MA9rq6CVZCjI="
+          "hash": "YGV2a7XdMTuXAaqr12b2ssIbFHAyewq7XOolK6gveb4="
         }
       },
       "is_incremental": false,
@@ -854,13 +865,20 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 12,
-          "skipped_file_count": 11
+          "skipped_file_count": 12
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 54,
           "skipped_file_count": 54
+        },
+        "ResourceDocumentProcessor": {
+          "can_incremental": false,
+          "details": "Processor ResourceDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
+          "incrementalPhase": "build",
+          "total_file_count": 0,
+          "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

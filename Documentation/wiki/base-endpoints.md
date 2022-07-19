@@ -39,7 +39,7 @@ __Default URL__: `/users`
 
 ## User Verify Email
 
-Use this endpoints to send email verification link via email. 
+Use this endpoint to send email verification link via email. 
 You should provide site in your frontend application (configured by AuthEndpointsOptions.EmailConfirmationUrl) 
 which will send POST request to verify email confirmation endpoint.
 
@@ -100,7 +100,7 @@ __Default URL__: `/users/verify_email_confirm`
 
 ## User Retrieve
 
-Use this endpoints to retrieve the authenticated user data.
+Use this endpoint to retrieve the authenticated user data.
 
 __Default URL__: `/users/me`
 
@@ -130,7 +130,7 @@ __Default URL__: `/users/me`
 
 ## Set Password
 
-Use this endpoints to change user password.
+Use this endpoint to change user password.
 
 __Default URL__: `/users/set_password`
 
