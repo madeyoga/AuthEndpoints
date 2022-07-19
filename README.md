@@ -29,60 +29,47 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
 - 2fa via email
 
 ## Installing via NuGet
-The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints/)
+The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints.MinimalApi/)
 
 Install the library using the following .net cli command:
 
 ```
-dotnet add package AuthEndpoints
+dotnet add package AuthEndpoints.MinimalApi
 ```
 
 or in Visual Studio's Package Manager Console, enter the following command:
 
 ```
-Install-Package AuthEndpoints
+Install-Package AuthEndpoints.MinimalApi
 ```
 
 ## Quick start
-Edit Program.cs, then add the required services:
 
-```cs
-builder.Services.AddAuthorization();
-builder.Services.AddDbContext<MyDbContext>(options => { });
-builder.Services.AddIdentityCore<MyCustomIdentityUser>()
-  .AddEntityFrameworkStores<MyDbContext>()
-  .AddDefaultTokenProviders();
-```
-
-then add auth endpoints services and enable jwt bearer authentication
+Add the required identity services:
 
 ```cs
 builder.Services
-  .AddAuthEndpoints<string, MyCustomIdentityUser>() // Use the default and minimum config
-  .AddJwtBearerAuthScheme();
+  .AddIdentityCore<MyCustomIdentityUser>() // <-- or `AddIdentity<,>`
+  .AddEntityFrameworkStores<MyDbContext>() // <-- required
+  .AddDefaultTokenProviders();             // <-- required
 ```
 
-### Map endpoints using the controller
-```cs
-public class MyBaseAuthController : BasicAuthenticationController<string, MyCustomIdentityUser>
-{}
-
-public class MyJwtController : JwtController<string, MyCustomIdentityUser>
-{}
-
-public class MyTwoFactorController : TwoStepVerificationController<string, MyCustomIdentityUser>
-{}
-```
-_or_ 
-
-### Map endpoints using the minimal api
-Install `AuthEndpoints.MinimalApi` package, then edit Program.cs:
+Next, let's add auth endpoints services and jwt bearer authentication scheme:
 
 ```cs
 builder.Services
-  .AddAuthEndpoints<string, MyCustomIdentityUser>()
-  .AddAllEndpointDefinitions() // add basic auth, jwt, 2fa endpoints
+  // When no options provided, 
+  // AuthEndpoints will automatically create a secret key and use single security key
+  // for each access jwt and refresh jwt (symmetric encryption).
+  // Secrets will be created under `keys/` directory.
+  .AddAuthEndpoints<string, MyCustomIdentityUser>() // <TUserKey, TUser>
+  .AddAllEndpointDefinitions() // Add endpoint definitions
   .AddJwtBearerAuthScheme();
+```
+
+then finally, call `app.MapAuthEndpoints()` before `app.Run()`:
+
+```cs
 
 var app = builder.Build();
 
@@ -93,7 +80,7 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints(); // Map minimal api endpoints
+app.MapAuthEndpoints(); // <--
 
 app.Run();
 ```

@@ -86,60 +86,53 @@
 </code></pre>
 <h2 id="install-nuget-package">Install nuget package</h2>
 <p>Install the library using the following .net cli command:</p>
-<pre><code>dotnet add package AuthEndpoints
+<pre><code>dotnet add package AuthEndpoints.MinimalApi
 </code></pre>
 <p>or with nuget package manager:</p>
-<pre><code>Install-Package AuthEndpoints
+<pre><code>Install-Package AuthEndpoints.MinimalApi
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>Edit <code>Program.cs</code>, Add the required identity services:</p>
-<pre><code class="lang-cs">builder.Services.AddAuthorization();
-builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt; { });
-builder.Services.AddIdentityCore&lt;MyCustomIdentityUser&gt;()
-  .AddEntityFrameworkStores&lt;MyDbContext&gt;()
-  .AddDefaultTokenProviders();
-</code></pre>
-<p>then add auth endpoints services and jwt bearer authentication scheme:</p>
-<pre><code class="lang-cs">builder.Services
-  .AddAuthEndpoints&lt;string, MyCustomIdentityUser&gt;() // Use the default and minimum config
-  .AddJwtBearerAuthScheme();
-</code></pre>
-<p>then call <code>UseAuthentication</code> and <code>UseAuthorization</code>:</p>
-<pre><code class="lang-cs">...
+<p>First, let's create <code>MyDbContext</code>:</p>
+<pre><code class="lang-cs">// Data/MyDbContext.cs
 
-var app = builder.Build();
+using Microsoft.EntityFrameworkCore;
 
-...
+namespace MyNewWebApp.Data;
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-...
-
-app.Run();
+public class MyDbContext : DbContext
+{
+  public MyDbContext(DbContextOptions&lt;MyDbContext&gt; options) : base(options) { }
+}
 </code></pre>
-<h2 id="map-endpoints-using-the-controller">Map endpoints using the controller</h2>
-<h3 id="add-base-authentication-endpoints">Add Base Authentication Endpoints</h3>
-<p>Create a new controller called <code>MyBaseAuthController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyBaseAuthController : BasicAuthenticationController&lt;string, MyCustomIdentityUser&gt;
-{}
+<p>Configure database provider for <code>MyDbContext</code> and then add the required identity services:</p>
+<pre><code class="lang-cs">// Program.cs
+
+builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt; 
+{ 
+  // Configure database provider for `MyDbContext`
+});
+
+builder.Services
+  .AddIdentityCore&lt;IdentityUser&gt;() // &lt;-- or `AddIdentity&lt;,&gt;`
+  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;-- required
+  .AddDefaultTokenProviders();             // &lt;-- required
 </code></pre>
-<p>See what endpoints included in <a href="base-endpoints.html">BaseEndpointsController</a></p>
-<h3 id="add-jwt-endpoints">Add Jwt Endpoints</h3>
-<p>Create a new controller called <code>MyJwtController.cs</code> then add the following:</p>
-<pre><code class="lang-cs">public class MyJwtController : JwtController&lt;string, MyCustomIdentityUser&gt;
-{}
-</code></pre>
-<p>See what endpoints included in <a href="jwt-endpoints.html">JwtController</a></p>
-<h2 id="map-endpoints-using-the-minimal-api">Map endpoints using the minimal api</h2>
-<p>Install <a href="https://www.nuget.org/packages/AuthEndpoints.MinimalApi">AuthEndpoints.MinimalApi</a> package and add endpoint definitions:</p>
-<pre><code class="lang-cs">builder.Services
-  .AddAuthEndpoints&lt;string, MyCustomIdentityUser&gt;()
+<p>Next, let's add auth endpoints services and jwt bearer authentication scheme:</p>
+<pre><code class="lang-cs">// Program.cs
+
+builder.Services
+  // When no options provided, 
+  // AuthEndpoints will automatically create a secret key and use single security key
+  // for each access jwt and refresh jwt (symmetric encryption).
+  // Secrets will be created under `keys/` directory.
+  .AddAuthEndpoints&lt;string, IdentityUser&gt;() // &lt;TUserKey, TUser&gt;
   .AddAllEndpointDefinitions() // Add endpoint definitions
   .AddJwtBearerAuthScheme();
 </code></pre>
-<p>then call <code>app.MapAuthEndpoints()</code> before <code>app.Run()</code>:</p>
-<pre><code class="lang-cs">...
+<p>then finally, call <code>app.MapAuthEndpoints()</code> before <code>app.Run()</code>:</p>
+<pre><code class="lang-cs">// Program.cs
+
+...
 
 var app = builder.Build();
 
@@ -150,29 +143,69 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints();
+app.MapAuthEndpoints(); // &lt;--
+
+app.Run();
+</code></pre>
+<p>Run it and you should see auth endpoints available on swagger docs!</p>
+<p><img src="https://imgur.com/YT7htMW.png" alt="authendpoints swagger" title="authendpoints swagger"></p>
+<h2 id="full-source-code">Full Source Code</h2>
+<pre><code class="lang-cs">// Program.cs
+
+using AuthEndpoints;
+using AuthEndpoints.MinimalApi;
+using Microsoft.AspNetCore.Identity;
+using MyNewWebApp.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt; 
+{ 
+    // Configure database provider for `MyDbContext` here
+    // ...
+});
+
+builder.Services
+    .AddIdentityCore&lt;IdentityUser&gt;()
+    .AddEntityFrameworkStores&lt;MyDbContext&gt;()
+    .AddDefaultTokenProviders();
+
+builder.Services
+  // When no options provided, 
+  // AuthEndpoints will automatically create a secret key and use single security key
+  // for each access jwt and refresh jwt (symmetric encryption).
+  // Secrets will be created under `keys/` directory.
+  .AddAuthEndpoints&lt;string, IdentityUser&gt;()
+  .AddAllEndpointDefinitions() // Add endpoint definitions
+  .AddJwtBearerAuthScheme(); // Add jwt bearer auth
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.MapAuthEndpoints(); // &lt;-- Map minimal api endpoints
 
 app.Run();
 </code></pre>
 <h2 id="available-endpoints">Available Endpoints</h2>
-<ul>
-<li><code>/users</code></li>
-<li><code>/users/me</code></li>
-<li><code>/users/delete</code></li>
-<li><code>/users/verify_email</code></li>
-<li><code>/users/verify_email_confirm</code></li>
-<li><code>/users/set_password</code></li>
-<li><code>/users/reset_password</code></li>
-<li><code>/users/reset_password_confirm</code></li>
-<li><code>/users/enable_2fa</code></li>
-<li><code>/users/enable_2fa_confirm</code></li>
-<li><code>/users/two_step_verification_login</code></li>
-<li><code>/users/two_step_verification_confirm</code></li>
-<li><code>/jwt/create</code></li>
-<li><code>/jwt/refresh</code></li>
-<li><code>/jwt/verify</code></li>
-</ul>
-<p>Checkout documentation for more details:</p>
 <ul>
 <li><a href="/wiki/base-endpoints.html">Basic authentication endpoints</a></li>
 <li><a href="/wiki/jwt-endpoints.html">JWT endpoints</a></li>
@@ -186,7 +219,7 @@ app.Run();
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/update-docs/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
