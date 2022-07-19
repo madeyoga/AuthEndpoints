@@ -685,17 +685,6 @@
       "version": ""
     },
     {
-      "type": "Resource",
-      "source_relative_path": "images/swagger.png",
-      "output": {
-        "resource": {
-          "relative_path": "images/swagger.png"
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
       "type": "Conceptual",
       "source_relative_path": "index.md",
       "output": {
@@ -821,7 +810,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/get-started.html",
-          "hash": "x7CR5DyIFfMXP6MB8HbBaBjaCP/jO6S4Lpp6VMnsWto="
+          "hash": "Cmo4o51Y9UO+VGTKR44xNvB/Ho6q/sVsqGTkhu5B9ZQ="
         }
       },
       "is_incremental": false,
@@ -865,20 +854,13 @@
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 12,
-          "skipped_file_count": 12
+          "skipped_file_count": 11
         },
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 54,
           "skipped_file_count": 54
-        },
-        "ResourceDocumentProcessor": {
-          "can_incremental": false,
-          "details": "Processor ResourceDocumentProcessor cannot support incremental build because the processor doesn't implement ISupportIncrementalDocumentProcessor interface.",
-          "incrementalPhase": "build",
-          "total_file_count": 0,
-          "skipped_file_count": 0
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

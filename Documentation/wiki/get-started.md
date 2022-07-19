@@ -96,7 +96,7 @@ app.Run();
 
 Run it and you should see auth endpoints available on swagger docs!
 
-![authendpoints swagger](/images/swagger.png "authendpoints swagger")
+![authendpoints swagger](https://imgur.com/YT7htMW.png "authendpoints swagger")
 
 
 ## Full Source Code
