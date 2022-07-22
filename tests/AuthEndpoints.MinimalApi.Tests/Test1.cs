@@ -1,16 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using AuthEndpoints.Demo.Data;
-using AuthEndpoints.Demo.Models;
 using AuthEndpoints.Models;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-//using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace AuthEndpoints.MinimalApi.Tests;
 
@@ -187,23 +178,5 @@ public class Test1
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result!.AccessToken!);
         var response2 = await client.GetAsync("/jwt/verify");
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
-    }
-}
-
-class AuthApplication : WebApplicationFactory<Program>
-{
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        var root = new InMemoryDatabaseRoot();
-
-        builder.ConfigureServices(services =>
-        {
-            services.RemoveAll(typeof(DbContextOptions<MyDbContext>));
-
-            services.AddDbContext<MyDbContext>(options =>
-                options.UseInMemoryDatabase("Testing", root));
-        });
-
-        return base.CreateHost(builder);
     }
 }
