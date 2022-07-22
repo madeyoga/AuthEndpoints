@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj" />
+    <ProjectReference Include="..\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj" />
   </ItemGroup>
 
 </Project>

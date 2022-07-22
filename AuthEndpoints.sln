@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "src\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj", "{C07671F3-3F29-4037-86EA-C87A9FB7B1BD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints", "src\AuthEndpoints\AuthEndpoints.csproj", "{F44C64CF-147A-4722-AE05-0625A1CB77E7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.UnitTests", "tests\AuthEndpoints.UnitTests\AuthEndpoints.UnitTests.csproj", "{02E19E16-EF1D-4B6A-A81F-F8EBC5A1B29B}"
@@ -18,7 +16,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Core", "src\A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi", "src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj", "{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.MinimalApi.Tests", "tests\AuthEndpoints.MinimalApi.Tests\AuthEndpoints.MinimalApi.Tests.csproj", "{0AE039A2-B116-4FA1-B30E-91EED71D3854}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi.Tests", "tests\AuthEndpoints.MinimalApi.Tests\AuthEndpoints.MinimalApi.Tests.csproj", "{0AE039A2-B116-4FA1-B30E-91EED71D3854}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "tests\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj", "{529EF27A-876F-4D49-BC45-BAEBEDA882F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,10 +26,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C07671F3-3F29-4037-86EA-C87A9FB7B1BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C07671F3-3F29-4037-86EA-C87A9FB7B1BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C07671F3-3F29-4037-86EA-C87A9FB7B1BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C07671F3-3F29-4037-86EA-C87A9FB7B1BD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F44C64CF-147A-4722-AE05-0625A1CB77E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F44C64CF-147A-4722-AE05-0625A1CB77E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F44C64CF-147A-4722-AE05-0625A1CB77E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,6 +46,10 @@ Global
 		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Release|Any CPU.Build.0 = Release|Any CPU
+		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
