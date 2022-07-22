@@ -50,8 +50,8 @@ Add the required identity services:
 ```cs
 builder.Services
   .AddIdentityCore<MyCustomIdentityUser>() // <-- or `AddIdentity<,>`
-  .AddEntityFrameworkStores<MyDbContext>() // <-- required
-  .AddDefaultTokenProviders();             // <-- required
+  .AddEntityFrameworkStores<MyDbContext>() // <--
+  .AddDefaultTokenProviders();             // <--
 ```
 
 Next, let's add auth endpoints services and jwt bearer authentication scheme:
