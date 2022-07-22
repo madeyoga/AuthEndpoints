@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj" />
-    <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
+    <InternalsVisibleTo Include="AuthEndpoints.MinimalApi.Tests" />
   </ItemGroup>
 
 </Project>

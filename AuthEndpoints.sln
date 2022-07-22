@@ -14,9 +14,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.Core", "src\AuthEndpoints.Core\AuthEndpoints.Core.csproj", "{5D37E8F3-7C4A-4461-B16A-EBCDA206F09C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Core", "src\AuthEndpoints.Core\AuthEndpoints.Core.csproj", "{5D37E8F3-7C4A-4461-B16A-EBCDA206F09C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.MinimalApi", "src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj", "{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi", "src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj", "{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.MinimalApi.Tests", "tests\AuthEndpoints.MinimalApi.Tests\AuthEndpoints.MinimalApi.Tests.csproj", "{0AE039A2-B116-4FA1-B30E-91EED71D3854}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,10 @@ Global
 		{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0AE039A2-B116-4FA1-B30E-91EED71D3854}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
