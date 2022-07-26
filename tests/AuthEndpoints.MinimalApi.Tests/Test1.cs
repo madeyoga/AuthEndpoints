@@ -8,7 +8,7 @@ namespace AuthEndpoints.MinimalApi.Tests;
 public class Test1
 {
     [Fact]
-    public async Task Can_RegisterUser()
+    public async Task CreateUser()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -23,7 +23,37 @@ public class Test1
     }
 
     [Fact]
-    public async Task Cannot_RegisterDuplicateUsername()
+    public async Task CreateUser_InvalidEmail_Conflict()
+    {
+        await using var application = new AuthApplication();
+        var client = application.CreateClient();
+        var response = await client.PostAsJsonAsync("/users", new RegisterRequest
+        {
+            Email = "invalidEmail",
+            Username = "invalidEmail",
+            Password = "testtest",
+            ConfirmPassword = "testtest",
+        });
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateUser_ConfirmPasswordNotMatch_BadRequest()
+    {
+        await using var application = new AuthApplication();
+        var client = application.CreateClient();
+        var response = await client.PostAsJsonAsync("/users", new RegisterRequest
+        {
+            Email = "passwordNotMatch@test.com",
+            Username = "passwordNotMatch",
+            Password = "test1",
+            ConfirmPassword = "test2",
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateUser_DuplicateUsername_Conflict()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -46,7 +76,7 @@ public class Test1
     }
 
     [Fact]
-    public async Task Cannot_RegisterDuplicateEmail()
+    public async Task CreateUser_DuplicateEmail_Conflict()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -69,7 +99,7 @@ public class Test1
     }
 
     [Fact]
-    public async Task Can_CreateJwt()
+    public async Task CreateJwt()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -91,7 +121,36 @@ public class Test1
     }
 
     [Fact]
-    public async Task GetLoggedInUserData()
+    public async Task CreateJwt_InvalidCredentials_Unauthorized()
+    {
+        await using var application = new AuthApplication();
+        var client = application.CreateClient();
+        var registerResp = await client.PostAsJsonAsync("/users", new RegisterRequest
+        {
+            Email = "CreateJwt_InvalidCredentials@test.id",
+            Username = "InvalidCredentials",
+            Password = "testtest",
+            ConfirmPassword = "testtest",
+        });
+        Assert.Equal(HttpStatusCode.OK, registerResp.StatusCode);
+
+        var response = await client.PostAsJsonAsync("/jwt/create", new LoginRequest
+        {
+            Username = "InvalidCredentials1",
+            Password = "wrongpassword"
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var response2 = await client.PostAsJsonAsync("/jwt/create", new LoginRequest
+        {
+            Username = "wrongusername",
+            Password = "testtest"
+        });
+        Assert.Equal(HttpStatusCode.Unauthorized, response2.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetLoggedInUserData_Authorized()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -120,7 +179,16 @@ public class Test1
     }
 
     [Fact]
-    public async Task Can_RefreshJwt()
+    public async Task GetLoggedInUserData_Unauthorized()
+    {
+        await using var application = new AuthApplication();
+        var client = application.CreateClient();
+        var response2 = await client.GetAsync("/users/me");
+        Assert.Equal(HttpStatusCode.Unauthorized, response2.StatusCode);
+    }
+
+    [Fact]
+    public async Task RefreshJwt()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -143,7 +211,6 @@ public class Test1
         var result = await response1.Content.ReadFromJsonAsync<AuthenticatedUserResponse>();
         Assert.NotNull(result);
 
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result!.AccessToken!);
         var response2 = await client.PostAsJsonAsync("/jwt/refresh", new RefreshRequest
         {
             RefreshToken = result!.RefreshToken!,
@@ -152,7 +219,20 @@ public class Test1
     }
 
     [Fact]
-    public async Task Can_VerifyJwt()
+    public async Task RefreshJwt_InvalidToken_BadRequest()
+    {
+        await using var application = new AuthApplication();
+        var client = application.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/jwt/refresh", new RefreshRequest
+        {
+            RefreshToken = "RandomToken",
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task VerifyJwt()
     {
         await using var application = new AuthApplication();
         var client = application.CreateClient();
@@ -178,5 +258,15 @@ public class Test1
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result!.AccessToken!);
         var response2 = await client.GetAsync("/jwt/verify");
         Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+    }
+
+    [Fact]
+    public async Task VerifyJwt_InvalidToken_Unauthorized()
+    {
+        await using var application = new AuthApplication();
+        var client = application.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "RandomToken");
+        var response2 = await client.GetAsync("/jwt/verify");
+        Assert.Equal(HttpStatusCode.Unauthorized, response2.StatusCode);
     }
 }
