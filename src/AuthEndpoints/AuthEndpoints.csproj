@@ -6,14 +6,14 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>A simple auth library for Asp.Net 6 that provides a set of web api controllers and minimal api endpoints to handle authentication actions</Description>
-    <Version>1.4.7</Version>
+    <Version>1.4.8</Version>
     <Authors>yeogaa02</Authors>
     <Company>yeogaa02</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
-    <PackageReleaseNotes>Using core 1.4.3</PackageReleaseNotes>
+    <PackageReleaseNotes>Using core 1.4.4 and fix possible null reference warning</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <PackageReference Include="AuthEndpoints.Core" Version="1.4.4" />
+    <PackageReference Include="AuthEndpoints.MinimalApi" Version="1.4.4" />
   </ItemGroup>
 
 </Project>

@@ -50,7 +50,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        TUser? user = await authenticator.Authenticate(request.Username, request.Password);
+        TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
         {
@@ -82,7 +82,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken,
+        bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken!,
             options.Value.RefreshValidationParameters!);
 
         if (!isValidRefreshToken)
@@ -91,7 +91,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or invalid."));
         }
 
-        JwtSecurityToken jwt = jwtValidator.ReadJwtToken(request.RefreshToken);
+        JwtSecurityToken jwt = jwtValidator.ReadJwtToken(request.RefreshToken!);
         string userId = jwt.Claims.First(claim => claim.Type == "id").Value;
         TUser user = await userManager.FindByIdAsync(userId);
 

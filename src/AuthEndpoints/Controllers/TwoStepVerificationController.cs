@@ -119,7 +119,7 @@ public class TwoStepVerificationController<TUserKey, TUser> : ControllerBase
             return BadRequest();
         }
 
-        TUser? user = await authenticator.Authenticate(request.Username, request.Password);
+        TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
         {
