@@ -13,7 +13,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
-    <PackageReleaseNotes>Using core 1.4.4 and fix possible null reference warning</PackageReleaseNotes>
+    <PackageReleaseNotes>Using core 1.4.4 and fix possible null reference warning and include minimal api</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
