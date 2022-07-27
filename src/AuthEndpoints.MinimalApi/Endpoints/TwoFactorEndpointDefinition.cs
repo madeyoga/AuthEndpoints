@@ -116,7 +116,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
         //    return BadRequest();
         //}
 
-        TUser? user = await authenticator.Authenticate(request.Username, request.Password);
+        TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
         {
