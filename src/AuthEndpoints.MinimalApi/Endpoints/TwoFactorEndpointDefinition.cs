@@ -66,11 +66,6 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
         HttpContext context,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequest();
-        //}
-
         string identity = context.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
 
@@ -111,11 +106,6 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
         IEmailFactory emailFactory,
         IEmailSender emailSender)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequest();
-        //}
-
         TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
@@ -163,11 +153,6 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
         UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequest();
-        //}
-
         var user = await userManager.FindByEmailAsync(request.Email);
 
         if (user == null)

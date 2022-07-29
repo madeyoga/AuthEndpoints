@@ -34,8 +34,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// </summary>
     public virtual async Task<IResult> Register([FromBody] RegisterRequest request, UserManager<TUser> userManager, IdentityErrorDescriber errorDescriber)
     {
-        // validate model state
-
         if (request.Password != request.ConfirmPassword)
         {
             return Results.BadRequest(new ErrorResponse("Password not match confirm password."));
@@ -130,11 +128,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     public virtual async Task<IResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         if (request.Identity == null || request.Token == null)
         {
             return Results.BadRequest();
@@ -174,11 +167,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
         HttpContext context,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         string identity = context.User.FindFirstValue("id");
         TUser user = await userManager.FindByIdAsync(identity);
 
@@ -202,11 +190,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
         HttpContext context,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         if (request.NewPassword != request.ConfirmNewPassword)
         {
             return Results.BadRequest(new ErrorResponse("New password not match confirm password"));
@@ -250,10 +233,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
         IEmailFactory emailFactory,
         IEmailSender emailSender)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
         AuthEndpointsOptions options = opt.Value;
 
         TUser user = await userManager.FindByEmailAsync(request.Email);
@@ -295,11 +274,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     public virtual async Task<IResult> ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         TUser user = await userManager.FindByIdAsync(request.Identity);
 
         if (user == null)

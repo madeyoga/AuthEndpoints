@@ -30,11 +30,6 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
         IAuthenticator<TUser> authenticator,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
@@ -65,11 +60,6 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
         UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken!,
             options.Value.RefreshValidationParameters!);
 
