@@ -5,19 +5,19 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Simple Authorization | AuthEndpoints </title>
+    <title>2FA Endpoints | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Simple Authorization | AuthEndpoints ">
+    <meta name="title" content="2FA Endpoints | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
-    <link rel="shortcut icon" href="../images/favicon.ico">
-    <link rel="stylesheet" href="../styles/docfx.vendor.css">
-    <link rel="stylesheet" href="../styles/docfx.css">
-    <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="../toc.html">
-    <meta property="docfx:tocrel" content="toc.html">
+    <link rel="shortcut icon" href="../../images/favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
     
-    <meta property="docfx:rel" content="../">
+    <meta property="docfx:rel" content="../../">
     <meta property="docfx:newtab" content="true">
   </head>
   <body data-spy="scroll" data-target="#affix" data-offset="120">
@@ -34,8 +34,8 @@
                 <span class="icon-bar"></span>
               </button>
               
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../logo.svg" alt="">
               </a>
             </div>
             <div class="collapse navbar-collapse" id="navbar">
@@ -77,30 +77,123 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h1 id="simple-authorization">Simple Authorization</h1>
+<h1 id="2fa-endpoints">2FA Endpoints</h1>
 
-<p><code>AuthEndpointsBuilder.AddJwtBearerAuthScheme</code> enables JWT-bearer authentication using <code>&quot;jwt&quot;</code> scheme.</p>
-<p>The following code limits access to the MyController to jwt authenticated users:</p>
-<pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
-
-[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
-public class MyController : ControllerBase
-{}
-</code></pre>
-<p>If you want to apply authorization to an action rather than the controller, apply the <code>AuthorizeAttribute</code> attribute to the action itself:</p>
-<pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
-
-public class MyController : ControllerBase
-{
-  public ActionResult Get()
-  {}  
-
-  [Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
-  public ActionResult Post() 
-  {}
-}
-</code></pre>
-<p>Read more about simple authorization at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple">the documentation</a></p>
+<p><a href="/api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html"><code>TwoStepVerificationController&lt;TUserKey, TUser&gt;</code></a></p>
+<h2 id="2fa-enable">2FA Enable</h2>
+<p>Use this endpoint to send email with 2fa token for enabling 2fa.</p>
+<p><strong>Default URL</strong>: <code>/users/enable_2fa</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>
+        -
+      </td>
+      <td>
+        HTTP_200_OK,
+        HTTP_400_BAD_REQUEST,
+        HTTP_401_UNAUTHORIZED
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="2fa-enable-confirm">2FA Enable Confirm</h2>
+<p>Use this endpoint to finish enabling 2fa process.</p>
+<p><strong>Default URL</strong>: <code>/users/enable_2fa_confirm</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>Email</li>
+          <li>Provider</li>
+          <li>Token</li>
+        </ul>
+      </td>
+      <td>
+        HTTP_200_OK,
+        HTTP_400_BAD_REQUEST,
+        HTTP_401_UNAUTHORIZED
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="2fa-login">2FA Login</h2>
+<p>Use this endpoint to login with 2fa process.</p>
+<p><strong>Default URL</strong>: <code>/users/two_step_verification_login</code></p>
+<p><strong>Authorizations</strong> : (None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>username</li>
+          <li>password</li>
+          <li>provider</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_200_OK</li>
+          <li>HTTP_400_BAD_REQUEST</li>
+          <li>HTTP_401_UNAUTHORIZED</li>
+          <li>HTTP_404_NOT_FOUND</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="2fa-login-confirm">2FA Login Confirm</h2>
+<p>Use this endpoint to login with 2fa process.</p>
+<p><strong>Default URL</strong>: <code>/users/two_step_verification_confirm</code></p>
+<p><strong>Authorizations</strong> : (None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>email</li>
+          <li>provider</li>
+          <li>token</li>
+        </ul>
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_200_OK</li>
+          <li>HTTP_400_BAD_REQUEST</li>
+          <li>HTTP_401_UNAUTHORIZED</li>
+          <li>HTTP_404_NOT_FOUND</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 </article>
           </div>
           
@@ -109,7 +202,7 @@ public class MyController : ControllerBase
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/authorization.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/endpoints/2fa.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
@@ -136,8 +229,8 @@ public class MyController : ControllerBase
       </footer>
     </div>
     
-    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
   </body>
 </html>

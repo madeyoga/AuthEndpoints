@@ -14,6 +14,12 @@ public class MyAuthenticator : IAuthenticator<IdentityUser>
     {
       return null;
     }
+
+    if (!user.EmailConfirmed)
+    {
+      return null;
+    }
+    
     bool correctPassword = await userManager.CheckPasswordAsync(user, password);
     if (!correctPassword)
     {

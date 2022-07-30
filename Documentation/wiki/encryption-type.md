@@ -1,5 +1,7 @@
 # Configuring Enryption Type
 
+## Symmetric Encryption
+
 AuthEndpoints default options for signing and validating jwts use a single security key, this is being called a symmetric encryption. 
 Distributing the key in a secure way is one of the primary challenges of this encryption type, this also known as key distribution problem.
 Symmetric enryption allows anyone that has access to the key that the token was encrypted with, can also decrypt it. 

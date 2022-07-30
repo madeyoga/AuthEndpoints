@@ -5,9 +5,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Simple Authorization | AuthEndpoints </title>
+    <title>Email Verification Process | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Simple Authorization | AuthEndpoints ">
+    <meta name="title" content="Email Verification Process | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
@@ -77,30 +77,84 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h1 id="simple-authorization">Simple Authorization</h1>
+<h2 id="email-verification-process">Email Verification Process</h2>
 
-<p><code>AuthEndpointsBuilder.AddJwtBearerAuthScheme</code> enables JWT-bearer authentication using <code>&quot;jwt&quot;</code> scheme.</p>
-<p>The following code limits access to the MyController to jwt authenticated users:</p>
-<pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
-
-[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
-public class MyController : ControllerBase
-{}
-</code></pre>
-<p>If you want to apply authorization to an action rather than the controller, apply the <code>AuthorizeAttribute</code> attribute to the action itself:</p>
-<pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
-
-public class MyController : ControllerBase
+<p>The workflow should look like this:</p>
+<ol>
+<li>User click on a verify email button in frontend app, which will send GET request to the email verification endpoint, <code>/users/verify_email</code> by default.</li>
+<li>Api server will then send an email verification link to the user via email. You should provide site in your frontend application (configured by AuthEndpointsOptions.EmailConfirmationUrl).</li>
+<li>User click on the link and will get redirected to email verification page (in frontend app).</li>
+<li>Frontend app will then send a POST request to the confirm email verification endpoint, <code>/users/verify_email_confirm</code> by default.</li>
+<li>Api server will respond with <code>Status204NoContent</code> if succeeded.</li>
+</ol>
+<h2 id="configuring-options">Configuring options</h2>
+<pre><code class="lang-cs">builder.Services.AddAuthEndpoints&lt;string, IdentityUser&gt;(options =&gt; 
 {
-  public ActionResult Get()
-  {}  
+  // will be sent to the user via email.
+  options.EmailConfirmationUrl = &quot;https://myfrontend.com/account/verify-email-confirm/{uid}/{token}&quot;
 
-  [Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
-  public ActionResult Post() 
-  {}
-}
+  // Make sure email options are properly setup.
+  options.EmailOptions = new EmailOptions()
+  {
+    Host = &quot;smtp.gmail.com&quot;,
+    From = Environment.GetEnvironmentVariable(&quot;GOOGLE_MAIL_APP_USER&quot;)!,
+    Port = 587,
+    User = Environment.GetEnvironmentVariable(&quot;GOOGLE_MAIL_APP_USER&quot;)!,
+    Password = Environment.GetEnvironmentVariable(&quot;GOOGLE_MAIL_APP_PASSWORD&quot;)!,
+  };
+});
 </code></pre>
-<p>Read more about simple authorization at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple">the documentation</a></p>
+<p>Checkout <a href="email-config.html">how to configure email options</a></p>
+<h2 id="endpoints">Endpoints</h2>
+<h3 id="user-verify-email">User Verify Email</h3>
+<p>Use this endpoint to send email verification link via email.
+You should provide site in your frontend application (configured by AuthEndpointsOptions.EmailConfirmationUrl)
+which will send POST request to verify email confirmation endpoint.</p>
+<p><strong>Default URL</strong>: <code>/users/verify_email</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>
+        -
+      </td>
+      <td>
+        HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h3 id="user-verify-email-confirmation">User Verify Email Confirmation</h3>
+<p>Use this endpoint to finish email verification process.</p>
+<p><strong>Default URL</strong>: <code>/users/verify_email_confirm</code></p>
+<p><strong>Authorizations</strong> : (Jwt or None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>identity</li>
+          <li>token</li>
+        </ul>
+      </td>
+      <td>
+        HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_409_CONFLICT
+      </td>
+    </tr>
+  </tbody>
+</table>
 </article>
           </div>
           
@@ -109,7 +163,7 @@ public class MyController : ControllerBase
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/authorization.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/email-verification.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

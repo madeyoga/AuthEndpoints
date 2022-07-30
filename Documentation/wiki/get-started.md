@@ -15,13 +15,13 @@ dotnet new webapi -n MyNewWebApp
 Install the library using the following .net cli command:
 
 ```
-dotnet add package AuthEndpoints.MinimalApi
+dotnet add package AuthEndpoints
 ```
 
 or with nuget package manager:
 
 ```
-Install-Package AuthEndpoints.MinimalApi
+Install-Package AuthEndpoints
 ```
 
 
@@ -53,9 +53,9 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 });
 
 builder.Services
-  .AddIdentityCore<IdentityUser>() // <-- or `AddIdentity<,>`
-  .AddEntityFrameworkStores<MyDbContext>() // <-- required
-  .AddDefaultTokenProviders();             // <-- required
+  .AddIdentityCore<IdentityUser>()         // <-- or `AddIdentity<,>`
+  .AddEntityFrameworkStores<MyDbContext>() // <--
+  .AddDefaultTokenProviders();             // <--
 ```
 
 Next, let's add auth endpoints services and jwt bearer authentication scheme:
@@ -160,7 +160,8 @@ app.Run();
 
 
 ## Available Endpoints
+Checkout endpoints definition [docs](endpoints/definitions.md)
 
-- [Basic authentication endpoints](/wiki/base-endpoints.html)
-- [JWT endpoints](/wiki/jwt-endpoints.html)
-- [2FA endpoints](/wiki/2fa-endpoints.html)
+- [Basic authentication endpoints](endpoints/basic-authentication.md)
+- [JWT endpoints](endpoints/jwt.md)
+- [2FA endpoints](endpoints/2fa.md)
