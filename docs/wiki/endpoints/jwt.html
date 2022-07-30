@@ -5,19 +5,19 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Simple Authorization | AuthEndpoints </title>
+    <title>JWT Endpoints | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Simple Authorization | AuthEndpoints ">
+    <meta name="title" content="JWT Endpoints | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.2.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
-    <link rel="shortcut icon" href="../images/favicon.ico">
-    <link rel="stylesheet" href="../styles/docfx.vendor.css">
-    <link rel="stylesheet" href="../styles/docfx.css">
-    <link rel="stylesheet" href="../styles/main.css">
-    <meta property="docfx:navrel" content="../toc.html">
-    <meta property="docfx:tocrel" content="toc.html">
+    <link rel="shortcut icon" href="../../images/favicon.ico">
+    <link rel="stylesheet" href="../../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../../styles/docfx.css">
+    <link rel="stylesheet" href="../../styles/main.css">
+    <meta property="docfx:navrel" content="../../toc.html">
+    <meta property="docfx:tocrel" content="../toc.html">
     
-    <meta property="docfx:rel" content="../">
+    <meta property="docfx:rel" content="../../">
     <meta property="docfx:newtab" content="true">
   </head>
   <body data-spy="scroll" data-target="#affix" data-offset="120">
@@ -34,8 +34,8 @@
                 <span class="icon-bar"></span>
               </button>
               
-              <a class="navbar-brand" href="../index.html">
-                <img id="logo" class="svg" src="../logo.svg" alt="">
+              <a class="navbar-brand" href="../../index.html">
+                <img id="logo" class="svg" src="../../logo.svg" alt="">
               </a>
             </div>
             <div class="collapse navbar-collapse" id="navbar">
@@ -77,30 +77,91 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h1 id="simple-authorization">Simple Authorization</h1>
+<h1 id="jwt-endpoints">JWT Endpoints</h1>
 
-<p><code>AuthEndpointsBuilder.AddJwtBearerAuthScheme</code> enables JWT-bearer authentication using <code>&quot;jwt&quot;</code> scheme.</p>
-<p>The following code limits access to the MyController to jwt authenticated users:</p>
-<pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
-
-[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
-public class MyController : ControllerBase
-{}
-</code></pre>
-<p>If you want to apply authorization to an action rather than the controller, apply the <code>AuthorizeAttribute</code> attribute to the action itself:</p>
-<pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
-
-public class MyController : ControllerBase
-{
-  public ActionResult Get()
-  {}  
-
-  [Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
-  public ActionResult Post() 
-  {}
-}
-</code></pre>
-<p>Read more about simple authorization at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple">the documentation</a></p>
+<p><a href="/api/AuthEndpoints.Controllers.html#baseendpointscontroller-tuserkey-tuser"><code>JwtController&lt;TUserKey, TUser&gt;</code></a></p>
+<h2 id="jwt-create">JWT Create</h2>
+<p>Use this endpoint to obtain jwt.</p>
+<p><strong>Default URL</strong>: <code>/jwt/create</code></p>
+<p><strong>Authorizations</strong> : (Jwt or None)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>username</li>
+          <li>password</li>
+        </ul>
+      </td>
+      <td>
+        HTTP_200_OK
+        <ul>
+          <li>accessToken</li>
+          <li>refreshToken</li>
+        </ul>
+        HTTP_401_UNAUTHORIZED
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="jwt-refresh">JWT Refresh</h2>
+<p>Use this endpoint to refresh jwt.</p>
+<p><strong>Default URL</strong>: <code>/jwt/refresh</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>POST</td>
+      <td>
+        <ul>
+          <li>refreshToken</li>
+        </ul>
+      </td>
+      <td>
+        HTTP_200_OK
+        <ul>
+          <li>User data</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2 id="jwt-verify">JWT Verify</h2>
+<p>Use this endpoint to verify access jwt.</p>
+<p><strong>Default URL</strong>: <code>/users/set_password</code></p>
+<p><strong>Authorizations</strong> : (Jwt)</p>
+<table>
+  <tbody>
+    <tr>
+      <th>Method</th>
+      <th>Request</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>GET</td>
+      <td>
+        -
+      </td>
+      <td>
+        <ul>
+          <li>HTTP_200_OK</li>
+          <li>HTTP_401_UNAUTHORIZED</li>
+        </ul>
+      </td>
+    </tr>
+  </tbody>
+</table>
 </article>
           </div>
           
@@ -109,7 +170,7 @@ public class MyController : ControllerBase
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/authorization.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/endpoints/jwt.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
@@ -136,8 +197,8 @@ public class MyController : ControllerBase
       </footer>
     </div>
     
-    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
-    <script type="text/javascript" src="../styles/docfx.js"></script>
-    <script type="text/javascript" src="../styles/main.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../../styles/docfx.js"></script>
+    <script type="text/javascript" src="../../styles/main.js"></script>
   </body>
 </html>

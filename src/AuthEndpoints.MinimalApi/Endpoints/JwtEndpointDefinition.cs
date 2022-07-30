@@ -14,7 +14,7 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
-    public void MapEndpoints(WebApplication app)
+    public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/jwt";
         app.MapPost($"{baseUrl}/create", Create);
@@ -30,11 +30,6 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
         IAuthenticator<TUser> authenticator,
         UserManager<TUser> userManager)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
@@ -65,11 +60,6 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
         UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator)
     {
-        //if (!ModelState.IsValid)
-        //{
-        //    return BadRequestModelState();
-        //}
-
         bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken!,
             options.Value.RefreshValidationParameters!);
 
@@ -97,8 +87,8 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
     /// Use this endpoint to verify access jwt
     /// </summary>
     [Authorize(AuthenticationSchemes = "jwt")]
-    public virtual IResult Verify()
+    public virtual Task<IResult> Verify()
     {
-        return Results.Ok();
+        return Task.FromResult(Results.Ok());
     }
 }
