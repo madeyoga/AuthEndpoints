@@ -13,7 +13,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
-    public void MapEndpoints(WebApplication app)
+    public virtual void MapEndpoints(WebApplication app)
     {
         app.MapGet("/users/enable_2fa", EnableTwoStepVerification);
         app.MapPost("/users/enable_2fa_confirm", EnableTwoStepVerificationConfirm);

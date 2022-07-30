@@ -12,5 +12,5 @@ public interface IJwtEndpointDefinition<TKey, TUser>
 {
     Task<IResult> Create([FromBody] LoginRequest request, IAuthenticator<TUser> authenticator, UserManager<TUser> userManager);
     Task<IResult> Refresh([FromBody] RefreshRequest request, IJwtValidator jwtValidator, IOptions<AuthEndpointsOptions> options, UserManager<TUser> userManager, IAuthenticator<TUser> authenticator);
-    IResult Verify();
+    Task<IResult> Verify();
 }

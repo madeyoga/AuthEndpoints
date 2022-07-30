@@ -14,7 +14,7 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
-    public void MapEndpoints(WebApplication app)
+    public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/jwt";
         app.MapPost($"{baseUrl}/create", Create);
@@ -87,8 +87,8 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
     /// Use this endpoint to verify access jwt
     /// </summary>
     [Authorize(AuthenticationSchemes = "jwt")]
-    public virtual IResult Verify()
+    public virtual Task<IResult> Verify()
     {
-        return Results.Ok();
+        return Task.FromResult(Results.Ok());
     }
 }

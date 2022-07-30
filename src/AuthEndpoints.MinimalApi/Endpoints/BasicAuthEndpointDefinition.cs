@@ -15,7 +15,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
-    public void MapEndpoints(WebApplication app)
+    public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/users";
         app.MapPost($"{baseUrl}", Register);
