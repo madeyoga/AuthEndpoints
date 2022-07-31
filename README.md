@@ -34,13 +34,13 @@ The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/pa
 Install the library using the following .net cli command:
 
 ```
-dotnet add package AuthEndpoints.MinimalApi
+dotnet add package AuthEndpoints
 ```
 
 or in Visual Studio's Package Manager Console, enter the following command:
 
 ```
-Install-Package AuthEndpoints.MinimalApi
+Install-Package AuthEndpoints
 ```
 
 ## Quick start
