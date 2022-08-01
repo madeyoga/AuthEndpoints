@@ -9,5 +9,6 @@
 
 ## Reporting a Vulnerability
 
-Security is very important for authentication actions. If you discover any issue regarding security, please disclose the information responsibly by sending an email to m26416083@alumni.petra.ac.id 
-and not by creating a GitHub issue. We will respond swiftly to fix verifiable security issues.
+To report a vulnerability or a security-related issue, please send an email to m26416083@alumni.petra.ac.id with the details of the vulnerability. We will respond swiftly to fix verifiable security issues.
+
+**Do not file public issues on GitHub for security vulnerabilities**. Security vulnerabilities should be reported privately, to minimize attacks against current users of AuthEndpoints package before they are fixed.
