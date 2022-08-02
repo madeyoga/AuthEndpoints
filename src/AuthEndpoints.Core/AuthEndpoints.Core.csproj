@@ -4,12 +4,12 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.4.5</Version>
+    <Version>1.5.0</Version>
     <Description>AuthEndpoints core services</Description>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>authendpoints;jwt;json-web-token</PackageTags>
-    <PackageReleaseNotes>Update System.IdentityModel.Tokens.Jwt to 6.22.0</PackageReleaseNotes>
+    <PackageReleaseNotes>refactor(core)!: update token services and use default jwt bearer authentication</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 

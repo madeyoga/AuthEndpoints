@@ -73,13 +73,23 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IJwtFactory"/>.
+    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
     /// </summary>
-    /// <typeparam name="TGenerator">The type of the jwt factory.</typeparam>
+    /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtFactory<TGenerator>() where TGenerator : IJwtFactory
+    public virtual AuthEndpointsBuilder AddAccessTokenGenerator<TGenerator>() where TGenerator : class
     {
-        return AddScoped(typeof(IJwtFactory), typeof(TGenerator));
+        return AddScoped(typeof(IAccessTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
+    }
+
+    /// <summary>
+    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// </summary>
+    /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddRefreshTokenGenerator<TGenerator>() where TGenerator : class
+    {
+        return AddScoped(typeof(IRefreshTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
     }
 
     /// <summary>

@@ -12,20 +12,13 @@ namespace AuthEndpoints.Services;
 public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
-    private readonly IJwtFactory jwtFactory;
-    private readonly IClaimsProvider<TUser> claimsProvider;
-    private readonly AuthEndpointsOptions options;
     private readonly UserManager<TUser> userManager;
+    private readonly ITokenGeneratorService<TUser> tokenGenerator;
 
-    public DefaultAuthenticator(UserManager<TUser> userManager,
-        IJwtFactory jwtFactory,
-        IClaimsProvider<TUser> claimsProvider,
-        IOptions<AuthEndpointsOptions> options)
+    public DefaultAuthenticator(UserManager<TUser> userManager, ITokenGeneratorService<TUser> tokenGenerator)
     {
-        this.jwtFactory = jwtFactory;
-        this.claimsProvider = claimsProvider;
         this.userManager = userManager;
-        this.options = options.Value;
+        this.tokenGenerator = tokenGenerator;
     }
 
     /// <summary>
@@ -60,28 +53,8 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access Token and a refresh Token</returns>
     public Task<AuthenticatedUserResponse> Login(TUser user)
     {
-        string accessToken = jwtFactory.Create(
-            options.AccessSigningOptions.SigningKey!,
-            options.AccessSigningOptions.Algorithm,
-            new JwtPayload(
-                options.Issuer!,
-                options.Audience!,
-                claimsProvider.provideAccessClaims(user),
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(options.AccessSigningOptions.ExpirationMinutes)
-            )
-        );
-        string refreshToken = jwtFactory.Create(
-            options.RefreshSigningOptions.SigningKey!,
-            options.RefreshSigningOptions.Algorithm,
-            new JwtPayload(
-                options.Issuer!,
-                options.Audience!,
-                claimsProvider.provideRefreshClaims(user),
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(options.RefreshSigningOptions.ExpirationMinutes)
-            )
-        );
+        string accessToken = tokenGenerator.GenerateAccessToken(user);
+        string refreshToken = tokenGenerator.GenerateRefreshToken(user);
         return Task.FromResult(new AuthenticatedUserResponse()
         {
             AccessToken = accessToken,

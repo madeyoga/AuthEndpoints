@@ -20,12 +20,14 @@ public static class ServiceCollectionExtensions
         services.AddAuthorization();
 
         services.AddSingleton(typeof(IOptions<AuthEndpointsOptions>), Options.Create(options));
-        //services.TryAddSingleton<IPostConfigureOptions<AuthEndpointsOptions>, OptionsConfigurator>();
-        //services.TryAddSingleton<IValidateOptions<AuthEndpointsOptions>, OptionsValidator>();
 
         // Add authendpoints core services
         services.TryAddScoped<IClaimsProvider<TUser>, DefaultClaimsProvider<TUserKey, TUser>>();
-        services.TryAddScoped<IJwtFactory, DefaultJwtFactory>();
+
+        services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
+        services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
+        services.TryAddScoped<ITokenGeneratorService<TUser>, TokenGeneratorService<TUser>>();
+
         services.TryAddScoped<IJwtValidator, DefaultJwtValidator>();
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
 

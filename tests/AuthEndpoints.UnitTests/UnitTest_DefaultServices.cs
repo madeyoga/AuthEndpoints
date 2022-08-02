@@ -1,4 +1,6 @@
 ﻿using AuthEndpoints.Services;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -10,7 +12,6 @@ namespace AuthEndpoints.UnitTests;
 [TestClass]
 public class UnitTest_DefaultServices
 {
-    private string secret = "1234567890qwerty";
     private JwtSecurityTokenHandler? tokenHandler;
 
     [TestInitialize]
@@ -22,52 +23,71 @@ public class UnitTest_DefaultServices
     [TestMethod]
     public void CanCreateSymmetricJwt()
     {
-        var jwtFactory = new DefaultJwtFactory(tokenHandler!);
+        var secret = "qwerty1234567890";
+        var options = Options.Create(new AuthEndpointsOptions()
+        {
+            AccessSigningOptions = new JwtSigningOptions()
+            {
+                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+            },
 
-        var createdJwt = jwtFactory.Create(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-            SecurityAlgorithms.HmacSha256,
-            new JwtPayload(
-                "webapi",
-                "webapi",
-                null,
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(15)
-            )
-        );
+            AccessValidationParameters = new TokenValidationParameters()
+            {
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                ValidateIssuerSigningKey = true,
+                ClockSkew = TimeSpan.Zero,
+            }
+        });
+        var tokenGenerator = new AccessTokenGenerator<IdentityUser>(tokenHandler!,
+            options,
+            new DefaultClaimsProvider<string, IdentityUser>());
 
-        Assert.IsNotNull(createdJwt);
+        var user = new IdentityUser()
+        {
+            UserName = "test",
+            Email = "test@developerblogs.id"
+        };
+
+        var jwt = tokenGenerator.GenerateAccessToken(user);
+        Assert.IsNotNull(jwt);
     }
 
     [TestMethod]
     public void CanValidateSymmetricJwt()
     {
-        var jwtFactory = new DefaultJwtFactory(tokenHandler!);
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-
-        var createdJwt = jwtFactory.Create(
-            key,
-            SecurityAlgorithms.HmacSha256,
-            new JwtPayload(
-                "webapi",
-                "webapi",
-                null,
-                DateTime.UtcNow,
-                DateTime.UtcNow.AddMinutes(15)
-            )
-        );
-
-        var jwtValidator = new DefaultJwtValidator(tokenHandler!);
-        var validationParam = new TokenValidationParameters()
+        var secret = "qwerty1234567890";
+        var options = Options.Create(new AuthEndpointsOptions()
         {
-            IssuerSigningKey = key,
-            ValidIssuer = "webapi",
-            ValidAudience = "webapi",
-            ValidateIssuerSigningKey = true,
-            ClockSkew = TimeSpan.Zero,
+            AccessSigningOptions = new JwtSigningOptions()
+            {
+                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret))
+            },
+
+            AccessValidationParameters = new TokenValidationParameters()
+            {
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                ValidateIssuerSigningKey = true,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateActor = false,
+                ValidateLifetime = false,
+                ClockSkew = TimeSpan.Zero,
+            }
+        });
+        var tokenGenerator = new AccessTokenGenerator<IdentityUser>(tokenHandler!,
+            options,
+            new DefaultClaimsProvider<string, IdentityUser>());
+
+        var user = new IdentityUser()
+        {
+            UserName = "test",
+            Email = "test@developerblogs.id"
         };
 
-        Assert.IsTrue(jwtValidator.Validate(createdJwt, validationParam));
+        var jwt = tokenGenerator.GenerateAccessToken(user);
+        Assert.IsNotNull(jwt);
+
+        var jwtValidator = new DefaultJwtValidator(tokenHandler!);
+        Assert.IsTrue(jwtValidator.Validate(jwt, options.Value.AccessValidationParameters!));
     }
 }
