@@ -1,12 +1,14 @@
 # Change Log
 
 ## [1.5.0] -- 2022-08-02
+
+Refactor core services
+
 ### Added
 - Added `IAccessTokenGenerator`, `IRefreshTokenGenerator`, and TokenGeneratorService
 - Added default implementations for access token generator and refresh token generator
 
 ### Changed
-- Use default jwt bearer authentication.
 
 ### Fixed
 
