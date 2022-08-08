@@ -1,10 +1,12 @@
-﻿using AuthEndpoints.Models;
-using AuthEndpoints.Services;
+﻿using System.IdentityModel.Tokens.Jwt;
+using AuthEndpoints.Core;
+using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.IdentityModel.Tokens.Jwt;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Controllers;
 
@@ -20,18 +22,18 @@ public class JwtController<TUserKey, TUser> : ControllerBase
     where TUser : IdentityUser<TUserKey>
 {
     protected readonly UserManager<TUser> userManager;
-    protected readonly IJwtValidator jwtValidator;
+    protected readonly IRefreshTokenValidator tokenValidator;
     protected readonly IAuthenticator<TUser> authenticator;
     protected readonly IOptions<AuthEndpointsOptions> options;
 
     public JwtController(UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator,
-        IJwtValidator jwtValidator,
+        IRefreshTokenValidator tokenValidator,
         IOptions<AuthEndpointsOptions> options)
     {
         this.userManager = userManager;
         this.authenticator = authenticator;
-        this.jwtValidator = jwtValidator;
+        this.tokenValidator = tokenValidator;
         this.options = options;
     }
 
@@ -82,17 +84,16 @@ public class JwtController<TUserKey, TUser> : ControllerBase
             return BadRequestModelState();
         }
 
-        bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken!,
-            options.Value.RefreshValidationParameters!);
+        TokenValidationResult result = await tokenValidator.ValidateRefreshTokenAsync(request.RefreshToken!);
 
-        if (!isValidRefreshToken)
+        if (!result.IsValid)
         {
             // Token may be expired, invalid, etc. but this good enough for now.
             return BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or invalid."));
         }
 
-        JwtSecurityToken jwt = jwtValidator.ReadJwtToken(request.RefreshToken!);
-        string userId = jwt.Claims.First(claim => claim.Type == "id").Value;
+        JwtSecurityToken? jwt = result.SecurityToken as JwtSecurityToken;
+        string userId = jwt!.Claims.First(claim => claim.Type == "id").Value;
         TUser user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
@@ -101,7 +102,7 @@ public class JwtController<TUserKey, TUser> : ControllerBase
         }
 
         AuthenticatedUserResponse response = await authenticator.Login(user);
-
+        response.RefreshToken = "";
         return Ok(response);
     }
 

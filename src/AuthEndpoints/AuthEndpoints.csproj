@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>A simple jwt auth library for Asp.Net 6 that provides a set of web api controllers and minimal api endpoints to handle authentication actions</Description>
-    <Version>1.5.0</Version>
+    <Version>1.6.0</Version>
     <Authors>yeogaa02</Authors>
     <Company>yeogaa02</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
@@ -32,8 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AuthEndpoints.Core" Version="1.5.0" />
-    <PackageReference Include="AuthEndpoints.MinimalApi" Version="1.5.0" />
+    <ProjectReference Include="..\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,13 @@
-﻿using AuthEndpoints.Models;
-using AuthEndpoints.Services;
+﻿using System.Security.Claims;
+using System.Web;
+using AuthEndpoints.Core;
+using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.Core.Models;
+using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Security.Claims;
-using System.Web;
 
 namespace AuthEndpoints.Controllers;
 
