@@ -1,4 +1,4 @@
-## Email Verification Process
+## Email Verification Flow
 
 The workflow should look like this:
 

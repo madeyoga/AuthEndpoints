@@ -83,7 +83,7 @@
   
   <h1 id="AuthEndpoints_Services_RefreshTokenValidator" data-uid="AuthEndpoints.Services.RefreshTokenValidator" class="text-break">Class RefreshTokenValidator
   </h1>
-  <div class="markdown level0 summary"><p>Use this class to validate a refresh token</p>
+  <div class="markdown level0 summary"><p>Use this class to validate refresh tokens</p>
 </div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
@@ -94,7 +94,6 @@
   <div classs="implements">
     <h5>Implements</h5>
     <div><a class="xref" href="AuthEndpoints.Services.IRefreshTokenValidator.html">IRefreshTokenValidator</a></div>
-    <div><a class="xref" href="AuthEndpoints.Services.ITokenValidator.html">ITokenValidator</a></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -121,27 +120,27 @@
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Services.html">AuthEndpoints.Services</a></h6>
-  <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.Core.dll</h6>
   <h5 id="AuthEndpoints_Services_RefreshTokenValidator_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class RefreshTokenValidator : IRefreshTokenValidator, ITokenValidator</code></pre>
+    <pre><code class="lang-csharp hljs">public class RefreshTokenValidator : IRefreshTokenValidator</code></pre>
   </div>
   <h3 id="constructors">Constructors
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator.%23ctor(Microsoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CSystem.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Core_Repositories_IRefreshTokenRepository_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator.%23ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CAuthEndpoints.Core.Repositories.IRefreshTokenRepository)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenValidators/RefreshTokenValidator.cs/#L17">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Services/TokenValidators/RefreshTokenValidator.cs/#L19">View Source</a>
   </span>
   <a id="AuthEndpoints_Services_RefreshTokenValidator__ctor_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.#ctor*"></a>
-  <h4 id="AuthEndpoints_Services_RefreshTokenValidator__ctor_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.#ctor(Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)">RefreshTokenValidator(IOptions&lt;AuthEndpointsOptions&gt;, JwtSecurityTokenHandler)</h4>
+  <h4 id="AuthEndpoints_Services_RefreshTokenValidator__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Core_Repositories_IRefreshTokenRepository_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Core.Repositories.IRefreshTokenRepository)">RefreshTokenValidator(JwtSecurityTokenHandler, IOptions&lt;AuthEndpointsOptions&gt;, IRefreshTokenRepository)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public RefreshTokenValidator(IOptions&lt;AuthEndpointsOptions&gt; options, JwtSecurityTokenHandler tokenHandler)</code></pre>
+    <pre><code class="lang-csharp hljs">public RefreshTokenValidator(JwtSecurityTokenHandler tokenHandler, IOptions&lt;AuthEndpointsOptions&gt; options, IRefreshTokenRepository repository)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -154,13 +153,18 @@
     </thead>
     <tbody>
       <tr>
+        <td><span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler</span></td>
+        <td><span class="parametername">tokenHandler</span></td>
+        <td></td>
+      </tr>
+      <tr>
         <td><span class="xref">Microsoft.Extensions.Options.IOptions</span>&lt;<a class="xref" href="AuthEndpoints.AuthEndpointsOptions.html">AuthEndpointsOptions</a>&gt;</td>
         <td><span class="parametername">options</span></td>
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler</span></td>
-        <td><span class="parametername">tokenHandler</span></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Repositories.IRefreshTokenRepository.html">IRefreshTokenRepository</a></td>
+        <td><span class="parametername">repository</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -169,19 +173,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator_ReadJwtToken_System_String_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator_ValidateRefreshTokenAsync_System_String_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator.ValidateRefreshTokenAsync(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenValidators/RefreshTokenValidator.cs/#L28">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Services/TokenValidators/RefreshTokenValidator.cs/#L31">View Source</a>
   </span>
-  <a id="AuthEndpoints_Services_RefreshTokenValidator_ReadJwtToken_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken*"></a>
-  <h4 id="AuthEndpoints_Services_RefreshTokenValidator_ReadJwtToken_System_String_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.ReadJwtToken(System.String)">ReadJwtToken(String)</h4>
-  <div class="markdown level1 summary"><p>Use this method to convert string jwt to <span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityToken</span></p>
+  <a id="AuthEndpoints_Services_RefreshTokenValidator_ValidateRefreshTokenAsync_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.ValidateRefreshTokenAsync*"></a>
+  <h4 id="AuthEndpoints_Services_RefreshTokenValidator_ValidateRefreshTokenAsync_System_String_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.ValidateRefreshTokenAsync(System.String)">ValidateRefreshTokenAsync(String)</h4>
+  <div class="markdown level1 summary"><p>Validate a refresh token</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public JwtSecurityToken ReadJwtToken(string token)</code></pre>
+    <pre><code class="lang-csharp hljs">public async Task&lt;TokenValidationResult&gt; ValidateRefreshTokenAsync(string token)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -210,103 +214,7 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityToken</span></td>
-        <td><p>An instance of <span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityToken</span></p>
-</td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator_Validate_System_String_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator.Validate(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenValidators/RefreshTokenValidator.cs/#L38">View Source</a>
-  </span>
-  <a id="AuthEndpoints_Services_RefreshTokenValidator_Validate_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.Validate*"></a>
-  <h4 id="AuthEndpoints_Services_RefreshTokenValidator_Validate_System_String_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.Validate(System.String)">Validate(String)</h4>
-  <div class="markdown level1 summary"><p>Use this method to validate a refresh token. Token may be expired or invalid.</p>
-</div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public bool Validate(string token)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">token</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.Boolean</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator_ValidateAsync_System_String_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync(System.String)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenValidators/RefreshTokenValidator.cs/#L51">View Source</a>
-  </span>
-  <a id="AuthEndpoints_Services_RefreshTokenValidator_ValidateAsync_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync*"></a>
-  <h4 id="AuthEndpoints_Services_RefreshTokenValidator_ValidateAsync_System_String_" data-uid="AuthEndpoints.Services.RefreshTokenValidator.ValidateAsync(System.String)">ValidateAsync(String)</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public async Task&lt;bool&gt; ValidateAsync(string token)</code></pre>
-  </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.String</span></td>
-        <td><span class="parametername">token</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><span class="xref">System.Threading.Tasks.Task</span>&lt;<span class="xref">System.Boolean</span>&gt;</td>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.IdentityModel.Tokens.TokenValidationResult</span>&gt;</td>
         <td></td>
       </tr>
     </tbody>
@@ -314,9 +222,6 @@
   <h3 id="implements">Implements</h3>
   <div>
       <a class="xref" href="AuthEndpoints.Services.IRefreshTokenValidator.html">IRefreshTokenValidator</a>
-  </div>
-  <div>
-      <a class="xref" href="AuthEndpoints.Services.ITokenValidator.html">ITokenValidator</a>
   </div>
 </article>
           </div>
@@ -326,10 +231,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenValidator.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenValidator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenValidators/RefreshTokenValidator.cs/#L12" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Services/TokenValidators/RefreshTokenValidator.cs/#L13" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -349,7 +254,7 @@
             <span class="pull-right">
               <a href="#top">Back to top</a>
             </span>
-            Developed by <a href='https://github.com/nano-devs/AuthEndpoints'>MadeY</a> and <a href='https://github.com/nano-devs/AuthEndpoints/graphs/contributors'>contributors</a> / Licensed under <a href='#'>MIT</a> / Website generated by <a href='https://dotnet.github.io/docfx/'>DocFX</a>
+            Developed by <a href='https://github.com/madeyoga/AuthEndpoints'>MadeY</a> and <a href='https://github.com/madeyoga/AuthEndpoints/graphs/contributors'>contributors</a> / Licensed under <a href='#'>MIT</a> / Website generated by <a href='https://dotnet.github.io/docfx/'>DocFX</a>
             
           </div>
         </div>

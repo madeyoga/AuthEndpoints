@@ -1,4 +1,4 @@
-## Password Reset Process
+## Password Reset Flow
 
 The workflow should look like this:
 

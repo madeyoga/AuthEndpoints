@@ -14,35 +14,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.AuthEndpointsBuilder.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.AuthEndpointsBuilder.html",
-          "hash": "2Tl8mBITxbjbVX3LWfeqGwviQvwX4UwZR7xvFVhNU3w="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.AuthEndpointsOptions.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.AuthEndpointsOptions.html",
-          "hash": "AB/tMJ5dMogxjrTqTcCAhVormDnXdf4eTqGgKFfSTPs="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
       "source_relative_path": "api/AuthEndpoints.Controllers.BasicAuthenticationController-2.yml",
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html",
-          "hash": "5hykSHLyFpdw6WPUMtfQE0VGqDu6CXSR82RpApfQlpo="
+          "hash": "Ef+Z2WldgBFROHnidqKJ74TADiORBUWnKqUYzxP6s70="
         }
       },
       "is_incremental": false,
@@ -54,7 +30,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.JwtController-2.html",
-          "hash": "LtxE8qW7xKTYZQc0crBLKIr8iP6WAFwI0I7W4RzDVZ4="
+          "hash": "uZvmDlqs2PD0ZuDZDNVIFgiuouMfSMe3YAe4EpdCE1Q="
         }
       },
       "is_incremental": false,
@@ -66,7 +42,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html",
-          "hash": "iL4bU1Oqlq50H0t6uh+swumpI1ZcUcLxXK3AnDNXifk="
+          "hash": "2IXi54iSjUe78lhk63H91wcj7MklpNKdVkWCkrOVcVo="
         }
       },
       "is_incremental": false,
@@ -86,11 +62,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.EmailOptions.yml",
+      "source_relative_path": "api/AuthEndpoints.Core.AuthEndpointsBuilder.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.EmailOptions.html",
-          "hash": "Y/IEvRWUCjagl195sbVBme5qw2usZ06j9ds6NrwAa7o="
+          "relative_path": "api/AuthEndpoints.Core.AuthEndpointsBuilder.html",
+          "hash": "aA8Vzio5AurzDqp3Z3od+kcJqIytQURCB4PT4/rrh90="
         }
       },
       "is_incremental": false,
@@ -98,11 +74,599 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.JwtSigningOptions.yml",
+      "source_relative_path": "api/AuthEndpoints.Core.AuthEndpointsOptions.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.JwtSigningOptions.html",
-          "hash": "wXfuwlJnUwZzwdBlS5HtysYo+ebJuffcrMZ5uCTuo9o="
+          "relative_path": "api/AuthEndpoints.Core.AuthEndpointsOptions.html",
+          "hash": "a1CkRc/X+eX1W3VA+4C2lNNGqz+TUO+2GRboBw+6EoY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.AuthenticatedUserResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.AuthenticatedUserResponse.html",
+          "hash": "63KYc0ksZ8+Ao1EB52cCOBc5uhhF4gz3pDqguCeGvVE="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.ConfirmEmailRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.ConfirmEmailRequest.html",
+          "hash": "07AhApmj88Lybujv3UV3e6XkRKN+aNJt6WtCpONTTzU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.ErrorResponse.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.ErrorResponse.html",
+          "hash": "kCX2rhThHOya2YGkDX6Qm5sl9/KOg04FFJXZTIidH0Y="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.LoginRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.LoginRequest.html",
+          "hash": "aWK6sVhCO66vbyzCJ24EckhTnC8htvbM/kYPEY2Tdks="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.RefreshRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.RefreshRequest.html",
+          "hash": "yuUT0FLSR3n4XZgfbTSFqF8r9PchwCcDMfg48RR2Yq4="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.RegisterRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.RegisterRequest.html",
+          "hash": "0u4kXze8nMJ6EYpDPFCWMMu1282TKziRuo0F/gu2yMg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest.html",
+          "hash": "zFdUyYUAQucvtn6lKKGxaraiVJcCnB7Ts85Jo5m6ifo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.ResetPasswordRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.ResetPasswordRequest.html",
+          "hash": "NL31Fzhrt2LBN2JDyidWHO0lbf1Rwqksns3x/lURFzw="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.SetPasswordRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.SetPasswordRequest.html",
+          "hash": "ODQd9wCoqrxUvAtLWoxIUAkXc6y8PW35yG2lgI8UR9g="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.SetUsernameRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.SetUsernameRequest.html",
+          "hash": "zOBjI7AnAbywwf3VQ/YxdIkmOZL8zxGQTP+g1MMFS40="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest.html",
+          "hash": "+BRaRD22QdNIjqLubWzEdWCA0/JVb/ezCQqRI6ePIuY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest.html",
+          "hash": "/yOKvG+/R/n5CcsrHccChZLSeRk9tCyF797KuQN/DEk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.VerifyRequest.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.VerifyRequest.html",
+          "hash": "cnNhfOZHTO3N/gUmVTIo7pACLpTvn+s6tX2ubcHUYOY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Contracts.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Contracts.html",
+          "hash": "aNEc1zbrur8p8y/oR2FYW5BSxEwctlQZJzsP/gHS2sg="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.EmailOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.EmailOptions.html",
+          "hash": "s5jQPQ95Al40nHLYrPuwDuyU9Viddi0iCh5xe7UmL80="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.IBasicAuthEndpointDefinition-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Endpoints.IBasicAuthEndpointDefinition-2.html",
+          "hash": "HLF8u1u5bWz1K8tP1aW0MfYJ63QLLN2VN+xw5KAKt9k="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.IEndpointDefinition.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Endpoints.IEndpointDefinition.html",
+          "hash": "93PWURvsSsF/wfMkXxm+odttfBPU1Klay/pyOBjqozU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.IJwtEndpointDefinition-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Endpoints.IJwtEndpointDefinition-2.html",
+          "hash": "XdMfTNrPtmCQAxY7zFFHL5vDmFT42gGzMp5G6kD3E3g="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Endpoints.html",
+          "hash": "ksctyvAiH/1JiHBNK4ZTrOowqYqvBXCCIPtU72H042c="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Exceptions.RefreshTokenNotFoundException.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Exceptions.RefreshTokenNotFoundException.html",
+          "hash": "RmQhVR2V1UvN8mFISeOz4RbP3Bz4U8BCNATJ0aavGio="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Exceptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Exceptions.html",
+          "hash": "jKEvrG2uOL67EQbWEnOom1yC5vRDob+2jGfOdtDPzzc="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.JwtSigningOptions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.JwtSigningOptions.html",
+          "hash": "m09RAbq9oPOy45G0K9V0Ynnmh/EKutdX9VExcGa3gwA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Models.EmailData.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Models.EmailData.html",
+          "hash": "u5oVZKN2k/sYJYW70hzsO9mIHZ7lt/gHu5vaUGbMZgM="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Models.RefreshToken.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Models.RefreshToken.html",
+          "hash": "V7RiBb+xFWdS8b1KW6IWa2vmAFNxRjBQTbPAIMFDIEo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Models.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Models.html",
+          "hash": "+lK1DwOFPp/pnI+zoqBAFvxVFPd3yke2Iezp7LY+3j4="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.OptionsConfigurator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.OptionsConfigurator.html",
+          "hash": "qHvGA5+eqpC3tIblozo9hgXrwo/YeNjDtlmfNoAc4io="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.OptionsValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.OptionsValidator.html",
+          "hash": "IosFDBnDq4SLgcxrbWf0Z+ZfX0rizHvbDfpAZJZDbSY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Repositories.IRefreshTokenRepository.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Repositories.IRefreshTokenRepository.html",
+          "hash": "WoH5ulMFORgUL6UL9a6E2j7lcdT0l92esHN6DOSp2rQ="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Repositories.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Repositories.html",
+          "hash": "fLNJp5oIqnnKCKa7RvZ74tK1MYVKpjh+aZBRp1M23Zo="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.ServiceCollectionExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.ServiceCollectionExtensions.html",
+          "hash": "r88Ni9dBFqhMATFGJqdtdten5XuKnjNpqINK3MIJsIA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.AccessTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.AccessTokenGenerator-1.html",
+          "hash": "ac4Th9AOes+liCtnXKXImpZg7Y1cZGYaWrUmPVxNZG0="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.DefaultAuthenticator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.DefaultAuthenticator-1.html",
+          "hash": "WrZypefy4zmaBs1vhGpGSqM5ayMV+mWV+7LEP9TictA="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.DefaultClaimsProvider-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.DefaultClaimsProvider-2.html",
+          "hash": "UDj65TT6oUWYOR3EvKJhXFSoLe9Z1Y5QTHU7xihrCd4="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.DefaultEmailSender.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.DefaultEmailSender.html",
+          "hash": "xRJ+9jrR3TTizQAIdcDR68Cq5WGSjsaXZBQ8E0bk/ik="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.DefaultMessageFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.DefaultMessageFactory.html",
+          "hash": "mmRtUcmn5yYByY1UOrpEp+pOnn7TVhrqE774DDGLCRU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IAccessTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IAccessTokenGenerator-1.html",
+          "hash": "uJPAI5b6iwTajanjJRbUz0jbgNE++A0RWD27wvatNpU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IAuthenticator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IAuthenticator-1.html",
+          "hash": "QUxKQoET/StOD6QVV2oFtljQLTctBhJjNeHRXjIBx/M="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IClaimsProvider-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IClaimsProvider-1.html",
+          "hash": "FdbgGCHcEJkDo+WwycWEfz9D5b8SBsXIIU6V1DCjFts="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IEmailFactory.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IEmailFactory.html",
+          "hash": "2v+eooxaWOlB1bQIOVPGN7YX3RdT+urB4XpOUpchN5A="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IEmailSender.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IEmailSender.html",
+          "hash": "Dce8iUBdFZmp6yW3prVGbNSPRB4VvzX/h8uIQT1WnsY="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IRefreshTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IRefreshTokenGenerator-1.html",
+          "hash": "UmrIh6JF8M9LRGKWgcttJ+474Bz1b0dVq89Ak79bDT8="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.IRefreshTokenValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.IRefreshTokenValidator.html",
+          "hash": "Nl4rwxRaarYScNxcN3dRTM698sKAPzE5JHMvZCgk8Wk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.ITokenGeneratorService-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.ITokenGeneratorService-1.html",
+          "hash": "mvdJOOgpVJS2AN0zOUxu9cxohbTxC1B0hV0g94EsX3o="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.RefreshTokenGenerator-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.RefreshTokenGenerator-1.html",
+          "hash": "XMnll6G31iN66Cj4frAFF5B5Qm/bqs2BmMGM/sswAHk="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.RefreshTokenValidator.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.RefreshTokenValidator.html",
+          "hash": "nmCfipX/UCZJLUXG9NJdtac11b6Ih9y74pxR0l4gzco="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.TokenGeneratorService-1.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.TokenGeneratorService-1.html",
+          "hash": "mbaORacNqutLhCEpmVw/Y9hZ4k/lMqum0r0ZlOM73ac="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.Services.html",
+          "hash": "eZ6OLiN6KaXDBuZKvDVUVE1Jyqs/vrXkyoZY6P/RTFU="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.WebApplicationExtensions.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.WebApplicationExtensions.html",
+          "hash": "JTiBCN84o4zaTYn3cwydZv5fhDLteC2mc/GVotmTVVI="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.Core.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.Core.html",
+          "hash": "4MTcypq9Mk5pZdDkGlOjcLJWaT7U+xsMFCZ7yUSaflY="
         }
       },
       "is_incremental": false,
@@ -114,7 +678,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html",
-          "hash": "d4CuwtnzUwCzp1xhWRvhqAdKyLTMEqNZogTNh5sEdbQ="
+          "hash": "nPL6dGKsrUQrC7BP2gICyLU6Yu2xagNCWO4TuJ8tZ2E="
         }
       },
       "is_incremental": false,
@@ -126,43 +690,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html",
-          "hash": "ycWA9BwVZIjVZ8tdTKS90JkxKA63NQN9OcvSSm4Myiw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.MinimalApi.IBasicAuthEndpointDefinition-2.html",
-          "hash": "v9Z452h7qg+XP9Hw6mcPDKIl1Un9x0jGaThREykhb7k="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.MinimalApi.IEndpointDefinition.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.MinimalApi.IEndpointDefinition.html",
-          "hash": "0TeZ+GWmongJ9LE/kiFkRGFIr5CyZMVrGEErXzfqX8Y="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.MinimalApi.IJwtEndpointDefinition-2.html",
-          "hash": "aq5a/jyjgH1Bi8xgZQHdI3NMNx3dm5RotN6D9d2gGns="
+          "hash": "EySS8FDj3k+KAhwmcLRsBYoW4mudO0aR/nIdIAYvmWY="
         }
       },
       "is_incremental": false,
@@ -174,7 +702,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.IMinimalValidator.html",
-          "hash": "hJeK9PZ1eD5gx/KVqVkISQQRYlMpSioo2k1rjA+Nmno="
+          "hash": "W4XirtODct+Y8PBb4Io/UaUc8T8/dn8dOPG6CbtsSDQ="
         }
       },
       "is_incremental": false,
@@ -186,7 +714,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.JwtEndpointDefinition-2.html",
-          "hash": "MPeOWEKBSaiQXFeNBV+eM6y8yB8ZkT+3UrhR9nD/U64="
+          "hash": "fMOdIjM9CI0OBjYn0hbxnfh7CO4qMYrJXNrxDxUhwQI="
         }
       },
       "is_incremental": false,
@@ -198,7 +726,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.MinimalValidator.html",
-          "hash": "0kjCquuYkKCOPCZ8aNl9dpnkMboln913rweifUmfhi8="
+          "hash": "3AWw+yWa/4AokH2tDXd4qRowcmm5Oyb0UTmIj37JKe4="
         }
       },
       "is_incremental": false,
@@ -210,7 +738,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html",
-          "hash": "JUBTlXSPF1/g0cMiw9A4KnTyUR36vxcITLKHerBJ2fM="
+          "hash": "h5GSzmDFPL8O0Hj1ctZiJL/ED+d0DGWEeGt5cwdo7EI="
         }
       },
       "is_incremental": false,
@@ -222,19 +750,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.ValidationResult.html",
-          "hash": "XL5cGvHrNQpYrsRMak10BEyIacGLjPmKDYSUlF9mHVI="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.MinimalApi.WebApplicationExtensions.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.MinimalApi.WebApplicationExtensions.html",
-          "hash": "xfZEii1Wgeqfa81+sZ7j6Qez5gLVImV6BInNT2wgPi0="
+          "hash": "vyF4eqW6d/BKZpIYU+oJpUfVxmWMUilkj1Hm1KLAqYQ="
         }
       },
       "is_incremental": false,
@@ -246,403 +762,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.html",
-          "hash": "qElKgIz8c3LGXH0clMSARc0yxw4LDpi9V36J81DrTRw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.AuthenticatedUserResponse.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.AuthenticatedUserResponse.html",
-          "hash": "L+fMwpjsAjQXANY8i7Hhv1djNThxi4MGfyKfWJ66PfY="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.ConfirmEmailRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.ConfirmEmailRequest.html",
-          "hash": "3hL/acypM7885bX96sDKGNFGC62IGnfa0C0u80o3nHY="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.EmailData.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.EmailData.html",
-          "hash": "/Vb4ymignrgfW5WDXzUHAcYlS8oChEeFW4ZgoDonrYM="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.ErrorResponse.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.ErrorResponse.html",
-          "hash": "eC7Xu7wLjrErY2T7tSpw0YEx4oiEPmEi2PrHiDhw/pg="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.LoginRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.LoginRequest.html",
-          "hash": "k+mRdZEpdkxKwW1ICjbhunfTLSVYbJ8brNUdtTSN7h4="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.RefreshRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.RefreshRequest.html",
-          "hash": "3kPSKXZIQZe4W/QxfEzfss7NlO5TU5xNvvXSuk4OCeE="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.RegisterRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.RegisterRequest.html",
-          "hash": "/2mKZDUYMhR73JombjSg2crsgKF4rMGqoSNTZfCvpbA="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.ResetPasswordConfirmRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.ResetPasswordConfirmRequest.html",
-          "hash": "avNCOZZD3mzWzrH1NemCbH+BChz1t1lOM69LrOR5MTo="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.ResetPasswordRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.ResetPasswordRequest.html",
-          "hash": "FNTAi6vTr+RP/sVBKfD95bDMZJFswDAK7Nv5aVGjHnc="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.SetPasswordRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.SetPasswordRequest.html",
-          "hash": "/Z092arY9KltK0DD06S4x4GFbfiRPS6Na7zPXjJiOZA="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.SetUsernameRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.SetUsernameRequest.html",
-          "hash": "SrNj9HS7pmESnOE6VZD7P18o4c1UgGw4sq4S/lvmdXI="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html",
-          "hash": "nvWDqlAZ6bfo5rRMQAN8KOprHpM8KN9imgm9sTjgdCQ="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.TwoStepVerificationLoginRequest.html",
-          "hash": "TRFzqQ3t8jaocBGCWZaVYfZFpGko2gIRq/31JkxMF0I="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.VerifyRequest.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.VerifyRequest.html",
-          "hash": "Szkw5cIQ+9DNq6MANa5ldjlAhC+bUzmPMvYxNix2BIU="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Models.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Models.html",
-          "hash": "oqNkO3gldY9TUcr33G2Q6IL8HbUwnDBgM7C3e8rePlw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.OptionsConfigurator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.OptionsConfigurator.html",
-          "hash": "fblFr8IqfrOLaKIu3hqxUXtKJRTEuiUPuts3feShlKg="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.OptionsValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.OptionsValidator.html",
-          "hash": "04p0t4Y13k8hOYBgsRfrDV60zAlA44Rl9plB8XXIXNM="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.ServiceCollectionExtensions.html",
-          "hash": "i3FRHAWuQdJ0j71QCfs5ijmOx7lkuqIT0zQ10dnusx4="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.DefaultAuthenticator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.DefaultAuthenticator-1.html",
-          "hash": "H5cQU8HpVHG79he/ZLtTZu46+DivxRiFKqggNB5KEDg="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.DefaultClaimsProvider-2.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.DefaultClaimsProvider-2.html",
-          "hash": "R6zHQPP9FYxDF2WlsdOHbk62mJuD8kgLqD5Z+we8LJE="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.DefaultEmailSender.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.DefaultEmailSender.html",
-          "hash": "0A+ZVEqjxvMk+9Kkgdb5iJT0+ZaoHXHZZ4QSKcJK7kE="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.DefaultJwtFactory.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.DefaultJwtFactory.html",
-          "hash": "jWcdVLqLgjImXauaTc3ykUmo96ewl3x4875UQJbQDHI="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.DefaultJwtValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.DefaultJwtValidator.html",
-          "hash": "ejANZ348sxYzliEVYOadCVtm4r/Fr0DR3wqv5wfVHas="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.DefaultMessageFactory.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.DefaultMessageFactory.html",
-          "hash": "ayWAMVzKFbvf0Zy1+mLf1RkZr/3XB/TxcuJqsRZ1+iA="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IAuthenticator-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IAuthenticator-1.html",
-          "hash": "sWs9Cd6/o4eP0LhW3HLGPFSaZ1IBnb+MCG69lHkjZsE="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IClaimsProvider-1.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IClaimsProvider-1.html",
-          "hash": "fbOxtbNge8jsz2AiKs6yIny6EwFAZ4rPWbUj118ss8A="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IEmailFactory.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IEmailFactory.html",
-          "hash": "fAL9RJFjJmg/aYJD04QGHK8PB2Sb+ev2JY8m9g2A2S8="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IEmailSender.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IEmailSender.html",
-          "hash": "N26RdM0ty0xGY9AsOQMm38gLLURP8dNX+crZhOWcYQo="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IJwtFactory.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IJwtFactory.html",
-          "hash": "salO/3H/LPQT/rvNThlK/m7IeloW+1rof0m8oR+OYm4="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.IJwtValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.IJwtValidator.html",
-          "hash": "+TkRAkBMnVW5WwWRYLNKRLmQ0XVv317Lcnzdj6WT1yw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.RsaSignedJwtFactory.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.RsaSignedJwtFactory.html",
-          "hash": "mSNhtdcSuj7gt8WW5bYn26p5uRPQr8ALBSOrTSg4c5Y="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Services.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Services.html",
-          "hash": "uAuRLH4UxajNIXiwqSg5+gA6A6xm+3GlgOtJDb/LBn4="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.html",
-          "hash": "K7g2ZMpv66ElwMnKb6WBd4Ol1sQlJqo/hZxpPQa1qjk="
+          "hash": "p7DPZykEYJenwtIksg9nTBGyIGzZT5yRWrwj2awBijo="
         }
       },
       "is_incremental": false,
@@ -666,7 +786,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "gpW0d7Ifej7pqknOx6uhcMDkv81J4B3wDyGuDDGzwik="
+          "hash": "k7WNkADGYZ6+S2GAg5qNDERvGvrixaeqC632WAOCn8E="
         }
       },
       "is_incremental": false,
@@ -690,7 +810,7 @@
       "output": {
         ".html": {
           "relative_path": "toc.html",
-          "hash": "KLswiTiTx01oLPs22jzuNtDViuV23L+uzprz5eAF7OE="
+          "hash": "heA6R/fx+3urVX2CItx9N12PtkGKqD473n8noK4xcgo="
         }
       },
       "is_incremental": false,
@@ -762,7 +882,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/email-verification.html",
-          "hash": "+shMjsK2Yi4cixJbsScR1dVpgYSmAPa2QC+PCwzj4Ds="
+          "hash": "Owu0ehCX+F0hgOL6G4vlloFUJMceIwkemVeKhGs9txQ="
         }
       },
       "is_incremental": false,
@@ -846,7 +966,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/password-reset.html",
-          "hash": "IGJ1u+RP31+xsm92YlLVCd5XzTU2gir0UDdXvq1qNbc="
+          "hash": "NTfLKz3AK7y70qf650HoTkOt/g3H82MoLQsSll4qPqw="
         }
       },
       "is_incremental": false,
@@ -868,25 +988,23 @@
   "incremental_info": [
     {
       "status": {
-        "can_incremental": false,
-        "details": "Cannot build incrementally because config changed.",
+        "can_incremental": true,
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0,
-        "full_build_reason_code": "ConfigChanged"
+        "skipped_file_count": 0
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": false,
+          "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 15,
-          "skipped_file_count": 0
+          "skipped_file_count": 15
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": false,
+          "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 53,
-          "skipped_file_count": 0
+          "total_file_count": 63,
+          "skipped_file_count": 62
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

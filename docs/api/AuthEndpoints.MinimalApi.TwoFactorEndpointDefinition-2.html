@@ -92,7 +92,7 @@
   </div>
   <div classs="implements">
     <h5>Implements</h5>
-    <div><a class="xref" href="AuthEndpoints.MinimalApi.IEndpointDefinition.html">IEndpointDefinition</a></div>
+    <div><a class="xref" href="AuthEndpoints.Core.Endpoints.IEndpointDefinition.html">IEndpointDefinition</a></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -147,19 +147,19 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Services.IEmailFactory%2CAuthEndpoints.Services.IEmailSender)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IEmailFactory_AuthEndpoints_Core_Services_IEmailSender_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Core.Services.IEmailFactory%2CAuthEndpoints.Core.Services.IEmailSender)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L28">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L30">View Source</a>
   </span>
   <a id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)">EnableTwoStepVerification(HttpContext, UserManager&lt;TUser&gt;, IEmailFactory, IEmailSender)</h4>
+  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerification_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IEmailFactory_AuthEndpoints_Core_Services_IEmailSender_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerification(Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IEmailFactory,AuthEndpoints.Core.Services.IEmailSender)">EnableTwoStepVerification(HttpContext, UserManager&lt;TUser&gt;, IEmailFactory, IEmailSender)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to send email to user with 2fa token</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+    <pre><code class="lang-csharp hljs">[Authorize]
 public virtual async Task&lt;IResult&gt; EnableTwoStepVerification(HttpContext context, UserManager&lt;TUser&gt; userManager, IEmailFactory emailFactory, IEmailSender emailSender)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -183,12 +183,12 @@ public virtual async Task&lt;IResult&gt; EnableTwoStepVerification(HttpContext c
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IEmailFactory.html">IEmailFactory</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Services.IEmailFactory.html">IEmailFactory</a></td>
         <td><span class="parametername">emailFactory</span></td>
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IEmailSender.html">IEmailSender</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Services.IEmailSender.html">IEmailSender</a></td>
         <td><span class="parametername">emailSender</span></td>
         <td></td>
       </tr>
@@ -211,19 +211,19 @@ public virtual async Task&lt;IResult&gt; EnableTwoStepVerification(HttpContext c
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest%2CMicrosoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Core_Contracts_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.EnableTwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest%2CMicrosoft.AspNetCore.Http.HttpContext%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L64">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L64">View Source</a>
   </span>
   <a id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})">EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, HttpContext, UserManager&lt;TUser&gt;)</h4>
+  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Core_Contracts_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Http_HttpContext_Microsoft_AspNetCore_Identity_UserManager__1__" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Http.HttpContext,Microsoft.AspNetCore.Identity.UserManager{`1})">EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, HttpContext, UserManager&lt;TUser&gt;)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to finish enable 2fa process.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">[Authorize(AuthenticationSchemes = &quot;jwt&quot;)]
+    <pre><code class="lang-csharp hljs">[Authorize]
 public virtual async Task&lt;IResult&gt; EnableTwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request, HttpContext context, UserManager&lt;TUser&gt; userManager)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -237,7 +237,7 @@ public virtual async Task&lt;IResult&gt; EnableTwoStepVerificationConfirm([FromB
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html">TwoStepVerificationConfirmRequest</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest.html">TwoStepVerificationConfirmRequest</a></td>
         <td><span class="parametername">request</span></td>
         <td></td>
       </tr>
@@ -270,10 +270,10 @@ public virtual async Task&lt;IResult&gt; EnableTwoStepVerificationConfirm([FromB
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L16">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L18">View Source</a>
   </span>
   <a id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_MapEndpoints_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.MapEndpoints*"></a>
   <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_MapEndpoints_Microsoft_AspNetCore_Builder_WebApplication_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.MapEndpoints(Microsoft.AspNetCore.Builder.WebApplication)">MapEndpoints(WebApplication)</h4>
@@ -302,13 +302,13 @@ public virtual async Task&lt;IResult&gt; EnableTwoStepVerificationConfirm([FromB
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Services.IAuthenticator%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_AuthEndpoints_Core_Contracts_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IAuthenticator__1__.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.TwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Core.Services.IAuthenticator%7B%601%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L151">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L151">View Source</a>
   </span>
   <a id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1})">TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, UserManager&lt;TUser&gt;, IAuthenticator&lt;TUser&gt;)</h4>
+  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationConfirm_AuthEndpoints_Core_Contracts_TwoStepVerificationConfirmRequest_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IAuthenticator__1__" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest,Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IAuthenticator{`1})">TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest, UserManager&lt;TUser&gt;, IAuthenticator&lt;TUser&gt;)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to finish two step verification login process.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -328,7 +328,7 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationConfirm([FromBody] T
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Models.TwoStepVerificationConfirmRequest.html">TwoStepVerificationConfirmRequest</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest.html">TwoStepVerificationConfirmRequest</a></td>
         <td><span class="parametername">request</span></td>
         <td></td>
       </tr>
@@ -338,7 +338,7 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationConfirm([FromBody] T
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator</a>&lt;TUser&gt;</td>
+        <td><a class="xref" href="AuthEndpoints.Core.Services.IAuthenticator-1.html">IAuthenticator</a>&lt;TUser&gt;</td>
         <td><span class="parametername">authenticator</span></td>
         <td></td>
       </tr>
@@ -361,13 +361,13 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationConfirm([FromBody] T
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_AuthEndpoints_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest%2CAuthEndpoints.Services.IAuthenticator%7B%601%7D%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Services.IEmailFactory%2CAuthEndpoints.Services.IEmailSender)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_AuthEndpoints_Core_Contracts_TwoStepVerificationLoginRequest_AuthEndpoints_Core_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IEmailFactory_AuthEndpoints_Core_Services_IEmailSender_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602.TwoStepVerificationLogin(AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest%2CAuthEndpoints.Core.Services.IAuthenticator%7B%601%7D%2CMicrosoft.AspNetCore.Identity.UserManager%7B%601%7D%2CAuthEndpoints.Core.Services.IEmailFactory%2CAuthEndpoints.Core.Services.IEmailSender)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L102">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L102">View Source</a>
   </span>
   <a id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_AuthEndpoints_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IEmailFactory_AuthEndpoints_Services_IEmailSender_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest,AuthEndpoints.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IEmailFactory,AuthEndpoints.Services.IEmailSender)">TwoStepVerificationLogin(TwoStepVerificationLoginRequest, IAuthenticator&lt;TUser&gt;, UserManager&lt;TUser&gt;, IEmailFactory, IEmailSender)</h4>
+  <h4 id="AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2_TwoStepVerificationLogin_AuthEndpoints_Core_Contracts_TwoStepVerificationLoginRequest_AuthEndpoints_Core_Services_IAuthenticator__1__Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IEmailFactory_AuthEndpoints_Core_Services_IEmailSender_" data-uid="AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition`2.TwoStepVerificationLogin(AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest,AuthEndpoints.Core.Services.IAuthenticator{`1},Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IEmailFactory,AuthEndpoints.Core.Services.IEmailSender)">TwoStepVerificationLogin(TwoStepVerificationLoginRequest, IAuthenticator&lt;TUser&gt;, UserManager&lt;TUser&gt;, IEmailFactory, IEmailSender)</h4>
   <div class="markdown level1 summary"><p>Use this endpoint to login with 2fa process</p>
 </div>
   <div class="markdown level1 conceptual"></div>
@@ -387,12 +387,12 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationLogin([FromBody] Two
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Models.TwoStepVerificationLoginRequest.html">TwoStepVerificationLoginRequest</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest.html">TwoStepVerificationLoginRequest</a></td>
         <td><span class="parametername">request</span></td>
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IAuthenticator-1.html">IAuthenticator</a>&lt;TUser&gt;</td>
+        <td><a class="xref" href="AuthEndpoints.Core.Services.IAuthenticator-1.html">IAuthenticator</a>&lt;TUser&gt;</td>
         <td><span class="parametername">authenticator</span></td>
         <td></td>
       </tr>
@@ -402,12 +402,12 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationLogin([FromBody] Two
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IEmailFactory.html">IEmailFactory</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Services.IEmailFactory.html">IEmailFactory</a></td>
         <td><span class="parametername">emailFactory</span></td>
         <td></td>
       </tr>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IEmailSender.html">IEmailSender</a></td>
+        <td><a class="xref" href="AuthEndpoints.Core.Services.IEmailSender.html">IEmailSender</a></td>
         <td><span class="parametername">emailSender</span></td>
         <td></td>
       </tr>
@@ -430,7 +430,7 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationLogin([FromBody] Two
   </table>
   <h3 id="implements">Implements</h3>
   <div>
-      <a class="xref" href="AuthEndpoints.MinimalApi.IEndpointDefinition.html">IEndpointDefinition</a>
+      <a class="xref" href="AuthEndpoints.Core.Endpoints.IEndpointDefinition.html">IEndpointDefinition</a>
   </div>
 </article>
           </div>
@@ -440,10 +440,10 @@ public virtual async Task&lt;IResult&gt; TwoStepVerificationLogin([FromBody] Two
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_MinimalApi_TwoFactorEndpointDefinition_2.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition%602%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L12" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.MinimalApi/Endpoints/TwoFactorEndpointDefinition.cs/#L14" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
