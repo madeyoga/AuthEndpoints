@@ -16,13 +16,13 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser)
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.Core.AuthEndpointsOptions},AuthEndpoints.Core.Services.IEmailSender,AuthEndpoints.Core.Services.IEmailFactory)
   name: BasicAuthenticationController(UserManager<TUser>, IdentityErrorDescriber, IOptions<AuthEndpointsOptions>, IEmailSender, IEmailFactory)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__Microsoft_AspNetCore_Identity_IdentityErrorDescriber_Microsoft_Extensions_Options_IOptions_AuthEndpoints_Core_AuthEndpointsOptions__AuthEndpoints_Core_Services_IEmailSender_AuthEndpoints_Core_Services_IEmailFactory_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},Microsoft.AspNetCore.Identity.IdentityErrorDescriber,Microsoft.Extensions.Options.IOptions{AuthEndpoints.Core.AuthEndpointsOptions},AuthEndpoints.Core.Services.IEmailSender,AuthEndpoints.Core.Services.IEmailFactory)
   name.vb: BasicAuthenticationController(UserManager(Of TUser), IdentityErrorDescriber, IOptions(Of AuthEndpointsOptions), IEmailSender, IEmailFactory)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.BasicAuthenticationController(Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.AspNetCore.Identity.IdentityErrorDescriber, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>, AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).BasicAuthenticationController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.AspNetCore.Identity.IdentityErrorDescriber, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions), AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.BasicAuthenticationController(Microsoft.AspNetCore.Identity.UserManager<TUser>, Microsoft.AspNetCore.Identity.IdentityErrorDescriber, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Core.AuthEndpointsOptions>, AuthEndpoints.Core.Services.IEmailSender, AuthEndpoints.Core.Services.IEmailFactory)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).BasicAuthenticationController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), Microsoft.AspNetCore.Identity.IdentityErrorDescriber, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.Core.AuthEndpointsOptions), AuthEndpoints.Core.Services.IEmailSender, AuthEndpoints.Core.Services.IEmailFactory)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.BasicAuthenticationController(UserManager<TUser>, IdentityErrorDescriber, IOptions<AuthEndpointsOptions>, IEmailSender, IEmailFactory)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).BasicAuthenticationController(UserManager(Of TUser), IdentityErrorDescriber, IOptions(Of AuthEndpointsOptions), IEmailSender, IEmailFactory)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.#ctor*
@@ -84,12 +84,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).EmailVerification
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.EmailVerification
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).EmailVerification
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm(AuthEndpoints.Core.Contracts.ConfirmEmailRequest)
   name: EmailVerificationConfirm(ConfirmEmailRequest)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerificationConfirm_AuthEndpoints_Models_ConfirmEmailRequest_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).EmailVerificationConfirm(AuthEndpoints.Models.ConfirmEmailRequest)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_EmailVerificationConfirm_AuthEndpoints_Core_Contracts_ConfirmEmailRequest_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm(AuthEndpoints.Core.Contracts.ConfirmEmailRequest)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.EmailVerificationConfirm(AuthEndpoints.Core.Contracts.ConfirmEmailRequest)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).EmailVerificationConfirm(AuthEndpoints.Core.Contracts.ConfirmEmailRequest)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.EmailVerificationConfirm(ConfirmEmailRequest)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).EmailVerificationConfirm(ConfirmEmailRequest)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.EmailVerificationConfirm*
@@ -134,12 +134,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).options
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.options
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).options
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.Register(AuthEndpoints.Models.RegisterRequest)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.Register(AuthEndpoints.Core.Contracts.RegisterRequest)
   name: Register(RegisterRequest)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_Register_AuthEndpoints_Models_RegisterRequest_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.Register(AuthEndpoints.Models.RegisterRequest)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.Register(AuthEndpoints.Models.RegisterRequest)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).Register(AuthEndpoints.Models.RegisterRequest)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_Register_AuthEndpoints_Core_Contracts_RegisterRequest_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.Register(AuthEndpoints.Core.Contracts.RegisterRequest)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.Register(AuthEndpoints.Core.Contracts.RegisterRequest)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).Register(AuthEndpoints.Core.Contracts.RegisterRequest)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.Register(RegisterRequest)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).Register(RegisterRequest)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.Register*
@@ -151,12 +151,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).Register
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.Register
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).Register
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword(AuthEndpoints.Core.Contracts.ResetPasswordRequest)
   name: ResetPassword(ResetPasswordRequest)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPassword_AuthEndpoints_Models_ResetPasswordRequest_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).ResetPassword(AuthEndpoints.Models.ResetPasswordRequest)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPassword_AuthEndpoints_Core_Contracts_ResetPasswordRequest_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword(AuthEndpoints.Core.Contracts.ResetPasswordRequest)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.ResetPassword(AuthEndpoints.Core.Contracts.ResetPasswordRequest)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).ResetPassword(AuthEndpoints.Core.Contracts.ResetPasswordRequest)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.ResetPassword(ResetPasswordRequest)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).ResetPassword(ResetPasswordRequest)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPassword*
@@ -168,12 +168,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).ResetPassword
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.ResetPassword
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).ResetPassword
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm(AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest)
   name: ResetPasswordConfirm(ResetPasswordConfirmRequest)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPasswordConfirm_AuthEndpoints_Models_ResetPasswordConfirmRequest_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).ResetPasswordConfirm(AuthEndpoints.Models.ResetPasswordConfirmRequest)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_ResetPasswordConfirm_AuthEndpoints_Core_Contracts_ResetPasswordConfirmRequest_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm(AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.ResetPasswordConfirm(AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).ResetPasswordConfirm(AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.ResetPasswordConfirm(ResetPasswordConfirmRequest)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).ResetPasswordConfirm(ResetPasswordConfirmRequest)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.ResetPasswordConfirm*
@@ -185,12 +185,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).ResetPasswordConfirm
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.ResetPasswordConfirm
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).ResetPasswordConfirm
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword(AuthEndpoints.Core.Contracts.SetPasswordRequest)
   name: SetPassword(SetPasswordRequest)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_SetPassword_AuthEndpoints_Models_SetPasswordRequest_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword(AuthEndpoints.Models.SetPasswordRequest)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.SetPassword(AuthEndpoints.Models.SetPasswordRequest)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).SetPassword(AuthEndpoints.Models.SetPasswordRequest)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_SetPassword_AuthEndpoints_Core_Contracts_SetPasswordRequest_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword(AuthEndpoints.Core.Contracts.SetPasswordRequest)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.SetPassword(AuthEndpoints.Core.Contracts.SetPasswordRequest)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).SetPassword(AuthEndpoints.Core.Contracts.SetPasswordRequest)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.SetPassword(SetPasswordRequest)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).SetPassword(SetPasswordRequest)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.SetPassword*
@@ -202,12 +202,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).SetPassword
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.SetPassword
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).SetPassword
-- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest)
+- uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername(AuthEndpoints.Core.Contracts.SetUsernameRequest)
   name: SetUsername(SetUsernameRequest)
-  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_SetUsername_AuthEndpoints_Models_SetUsernameRequest_
-  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername(AuthEndpoints.Models.SetUsernameRequest)
-  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.SetUsername(AuthEndpoints.Models.SetUsernameRequest)
-  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).SetUsername(AuthEndpoints.Models.SetUsernameRequest)
+  href: api/AuthEndpoints.Controllers.BasicAuthenticationController-2.html#AuthEndpoints_Controllers_BasicAuthenticationController_2_SetUsername_AuthEndpoints_Core_Contracts_SetUsernameRequest_
+  commentId: M:AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername(AuthEndpoints.Core.Contracts.SetUsernameRequest)
+  fullName: AuthEndpoints.Controllers.BasicAuthenticationController<TUserKey, TUser>.SetUsername(AuthEndpoints.Core.Contracts.SetUsernameRequest)
+  fullName.vb: AuthEndpoints.Controllers.BasicAuthenticationController(Of TUserKey, TUser).SetUsername(AuthEndpoints.Core.Contracts.SetUsernameRequest)
   nameWithType: BasicAuthenticationController<TUserKey, TUser>.SetUsername(SetUsernameRequest)
   nameWithType.vb: BasicAuthenticationController(Of TUserKey, TUser).SetUsername(SetUsernameRequest)
 - uid: AuthEndpoints.Controllers.BasicAuthenticationController`2.SetUsername*
@@ -236,15 +236,15 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser)
   nameWithType: JwtController<TUserKey, TUser>
   nameWithType.vb: JwtController(Of TUserKey, TUser)
-- uid: AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
-  name: JwtController(UserManager<TUser>, IAuthenticator<TUser>, IJwtValidator, IOptions<AuthEndpointsOptions>)
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IJwtValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__
-  commentId: M:AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IJwtValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions})
-  name.vb: JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IJwtValidator, IOptions(Of AuthEndpointsOptions))
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.JwtController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>, AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions<AuthEndpoints.AuthEndpointsOptions>)
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).JwtController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser), AuthEndpoints.Services.IJwtValidator, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.AuthEndpointsOptions))
-  nameWithType: JwtController<TUserKey, TUser>.JwtController(UserManager<TUser>, IAuthenticator<TUser>, IJwtValidator, IOptions<AuthEndpointsOptions>)
-  nameWithType.vb: JwtController(Of TUserKey, TUser).JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IJwtValidator, IOptions(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IAuthenticator{`1},AuthEndpoints.Core.Services.IRefreshTokenValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.Core.AuthEndpointsOptions})
+  name: JwtController(UserManager<TUser>, IAuthenticator<TUser>, IRefreshTokenValidator, IOptions<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IAuthenticator__1__AuthEndpoints_Core_Services_IRefreshTokenValidator_Microsoft_Extensions_Options_IOptions_AuthEndpoints_Core_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Controllers.JwtController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IAuthenticator{`1},AuthEndpoints.Core.Services.IRefreshTokenValidator,Microsoft.Extensions.Options.IOptions{AuthEndpoints.Core.AuthEndpointsOptions})
+  name.vb: JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IRefreshTokenValidator, IOptions(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.JwtController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Core.Services.IAuthenticator<TUser>, AuthEndpoints.Core.Services.IRefreshTokenValidator, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Core.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).JwtController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Core.Services.IAuthenticator(Of TUser), AuthEndpoints.Core.Services.IRefreshTokenValidator, Microsoft.Extensions.Options.IOptions(Of AuthEndpoints.Core.AuthEndpointsOptions))
+  nameWithType: JwtController<TUserKey, TUser>.JwtController(UserManager<TUser>, IAuthenticator<TUser>, IRefreshTokenValidator, IOptions<AuthEndpointsOptions>)
+  nameWithType.vb: JwtController(Of TUserKey, TUser).JwtController(UserManager(Of TUser), IAuthenticator(Of TUser), IRefreshTokenValidator, IOptions(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Controllers.JwtController`2.#ctor*
   name: JwtController
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2__ctor_
@@ -262,12 +262,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).authenticator
   nameWithType: JwtController<TUserKey, TUser>.authenticator
   nameWithType.vb: JwtController(Of TUserKey, TUser).authenticator
-- uid: AuthEndpoints.Controllers.JwtController`2.Create(AuthEndpoints.Models.LoginRequest)
+- uid: AuthEndpoints.Controllers.JwtController`2.Create(AuthEndpoints.Core.Contracts.LoginRequest)
   name: Create(LoginRequest)
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Create_AuthEndpoints_Models_LoginRequest_
-  commentId: M:AuthEndpoints.Controllers.JwtController`2.Create(AuthEndpoints.Models.LoginRequest)
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.Create(AuthEndpoints.Models.LoginRequest)
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Create(AuthEndpoints.Models.LoginRequest)
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Create_AuthEndpoints_Core_Contracts_LoginRequest_
+  commentId: M:AuthEndpoints.Controllers.JwtController`2.Create(AuthEndpoints.Core.Contracts.LoginRequest)
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.Create(AuthEndpoints.Core.Contracts.LoginRequest)
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Create(AuthEndpoints.Core.Contracts.LoginRequest)
   nameWithType: JwtController<TUserKey, TUser>.Create(LoginRequest)
   nameWithType.vb: JwtController(Of TUserKey, TUser).Create(LoginRequest)
 - uid: AuthEndpoints.Controllers.JwtController`2.Create*
@@ -279,14 +279,6 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Create
   nameWithType: JwtController<TUserKey, TUser>.Create
   nameWithType.vb: JwtController(Of TUserKey, TUser).Create
-- uid: AuthEndpoints.Controllers.JwtController`2.jwtValidator
-  name: jwtValidator
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_jwtValidator
-  commentId: F:AuthEndpoints.Controllers.JwtController`2.jwtValidator
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.jwtValidator
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).jwtValidator
-  nameWithType: JwtController<TUserKey, TUser>.jwtValidator
-  nameWithType.vb: JwtController(Of TUserKey, TUser).jwtValidator
 - uid: AuthEndpoints.Controllers.JwtController`2.options
   name: options
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_options
@@ -295,12 +287,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).options
   nameWithType: JwtController<TUserKey, TUser>.options
   nameWithType.vb: JwtController(Of TUserKey, TUser).options
-- uid: AuthEndpoints.Controllers.JwtController`2.Refresh(AuthEndpoints.Models.RefreshRequest)
+- uid: AuthEndpoints.Controllers.JwtController`2.Refresh(AuthEndpoints.Core.Contracts.RefreshRequest)
   name: Refresh(RefreshRequest)
-  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Refresh_AuthEndpoints_Models_RefreshRequest_
-  commentId: M:AuthEndpoints.Controllers.JwtController`2.Refresh(AuthEndpoints.Models.RefreshRequest)
-  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.Refresh(AuthEndpoints.Models.RefreshRequest)
-  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Refresh(AuthEndpoints.Models.RefreshRequest)
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_Refresh_AuthEndpoints_Core_Contracts_RefreshRequest_
+  commentId: M:AuthEndpoints.Controllers.JwtController`2.Refresh(AuthEndpoints.Core.Contracts.RefreshRequest)
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.Refresh(AuthEndpoints.Core.Contracts.RefreshRequest)
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Refresh(AuthEndpoints.Core.Contracts.RefreshRequest)
   nameWithType: JwtController<TUserKey, TUser>.Refresh(RefreshRequest)
   nameWithType.vb: JwtController(Of TUserKey, TUser).Refresh(RefreshRequest)
 - uid: AuthEndpoints.Controllers.JwtController`2.Refresh*
@@ -312,6 +304,14 @@ references:
   fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).Refresh
   nameWithType: JwtController<TUserKey, TUser>.Refresh
   nameWithType.vb: JwtController(Of TUserKey, TUser).Refresh
+- uid: AuthEndpoints.Controllers.JwtController`2.tokenValidator
+  name: tokenValidator
+  href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_tokenValidator
+  commentId: F:AuthEndpoints.Controllers.JwtController`2.tokenValidator
+  fullName: AuthEndpoints.Controllers.JwtController<TUserKey, TUser>.tokenValidator
+  fullName.vb: AuthEndpoints.Controllers.JwtController(Of TUserKey, TUser).tokenValidator
+  nameWithType: JwtController<TUserKey, TUser>.tokenValidator
+  nameWithType.vb: JwtController(Of TUserKey, TUser).tokenValidator
 - uid: AuthEndpoints.Controllers.JwtController`2.userManager
   name: userManager
   href: api/AuthEndpoints.Controllers.JwtController-2.html#AuthEndpoints_Controllers_JwtController_2_userManager
@@ -346,13 +346,13 @@ references:
   fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser)
   nameWithType: TwoStepVerificationController<TUserKey, TUser>
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser)
-- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IAuthenticator{`1},AuthEndpoints.Core.Services.IEmailSender,AuthEndpoints.Core.Services.IEmailFactory)
   name: TwoStepVerificationController(UserManager<TUser>, IAuthenticator<TUser>, IEmailSender, IEmailFactory)
-  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Services_IAuthenticator__1__AuthEndpoints_Services_IEmailSender_AuthEndpoints_Services_IEmailFactory_
-  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Services.IAuthenticator{`1},AuthEndpoints.Services.IEmailSender,AuthEndpoints.Services.IEmailFactory)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2__ctor_Microsoft_AspNetCore_Identity_UserManager__1__AuthEndpoints_Core_Services_IAuthenticator__1__AuthEndpoints_Core_Services_IEmailSender_AuthEndpoints_Core_Services_IEmailFactory_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor(Microsoft.AspNetCore.Identity.UserManager{`1},AuthEndpoints.Core.Services.IAuthenticator{`1},AuthEndpoints.Core.Services.IEmailSender,AuthEndpoints.Core.Services.IEmailFactory)
   name.vb: TwoStepVerificationController(UserManager(Of TUser), IAuthenticator(Of TUser), IEmailSender, IEmailFactory)
-  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Services.IAuthenticator<TUser>, AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
-  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Services.IAuthenticator(Of TUser), AuthEndpoints.Services.IEmailSender, AuthEndpoints.Services.IEmailFactory)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController(Microsoft.AspNetCore.Identity.UserManager<TUser>, AuthEndpoints.Core.Services.IAuthenticator<TUser>, AuthEndpoints.Core.Services.IEmailSender, AuthEndpoints.Core.Services.IEmailFactory)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController(Microsoft.AspNetCore.Identity.UserManager(Of TUser), AuthEndpoints.Core.Services.IAuthenticator(Of TUser), AuthEndpoints.Core.Services.IEmailSender, AuthEndpoints.Core.Services.IEmailFactory)
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationController(UserManager<TUser>, IAuthenticator<TUser>, IEmailSender, IEmailFactory)
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationController(UserManager(Of TUser), IAuthenticator(Of TUser), IEmailSender, IEmailFactory)
 - uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.#ctor*
@@ -405,12 +405,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerification
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerification
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerification
-- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
   name: EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
-  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_
-  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
-  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
-  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_EnableTwoStepVerificationConfirm_AuthEndpoints_Core_Contracts_TwoStepVerificationConfirmRequest_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
 - uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.EnableTwoStepVerificationConfirm*
@@ -422,12 +422,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.EnableTwoStepVerificationConfirm
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).EnableTwoStepVerificationConfirm
-- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
   name: TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
-  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_AuthEndpoints_Models_TwoStepVerificationConfirmRequest_
-  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
-  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
-  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm(AuthEndpoints.Models.TwoStepVerificationConfirmRequest)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationConfirm_AuthEndpoints_Core_Contracts_TwoStepVerificationConfirmRequest_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm(AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest)
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm(TwoStepVerificationConfirmRequest)
 - uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationConfirm*
@@ -439,12 +439,12 @@ references:
   fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationConfirm
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationConfirm
-- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
+- uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest)
   name: TwoStepVerificationLogin(TwoStepVerificationLoginRequest)
-  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_AuthEndpoints_Models_TwoStepVerificationLoginRequest_
-  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
-  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
-  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin(AuthEndpoints.Models.TwoStepVerificationLoginRequest)
+  href: api/AuthEndpoints.Controllers.TwoStepVerificationController-2.html#AuthEndpoints_Controllers_TwoStepVerificationController_2_TwoStepVerificationLogin_AuthEndpoints_Core_Contracts_TwoStepVerificationLoginRequest_
+  commentId: M:AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin(AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest)
+  fullName: AuthEndpoints.Controllers.TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin(AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest)
+  fullName.vb: AuthEndpoints.Controllers.TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin(AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest)
   nameWithType: TwoStepVerificationController<TUserKey, TUser>.TwoStepVerificationLogin(TwoStepVerificationLoginRequest)
   nameWithType.vb: TwoStepVerificationController(Of TUserKey, TUser).TwoStepVerificationLogin(TwoStepVerificationLoginRequest)
 - uid: AuthEndpoints.Controllers.TwoStepVerificationController`2.TwoStepVerificationLogin*

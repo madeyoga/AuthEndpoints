@@ -31,13 +31,15 @@ First, let's create `MyDbContext`:
 
 ```cs
 // Data/MyDbContext.cs
-
+using AuthEndpoints.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MyNewWebApp.Data;
 
 public class MyDbContext : DbContext
 {
+  DbSet<RefreshToken> RefreshTokens; // <--
+
   public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 }
 ```
