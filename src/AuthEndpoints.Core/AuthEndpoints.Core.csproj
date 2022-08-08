@@ -9,7 +9,7 @@
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>authendpoints;jwt;json-web-token</PackageTags>
-    <PackageReleaseNotes>Move endpoint definition interfaces and its extensions from minimal api project to core project.</PackageReleaseNotes>
+    <PackageReleaseNotes>Move endpoint definition interfaces and its extensions from minimal api project to core project and refactor namespaces.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 

@@ -4,6 +4,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>1.6.0</Version>
+    <Description>Data access layer for AuthEndpoints package</Description>
+    <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>jwt;endpoints;authentication;authorization</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>

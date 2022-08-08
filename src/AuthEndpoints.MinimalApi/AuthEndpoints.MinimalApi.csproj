@@ -8,7 +8,7 @@
     <Description>Minimal api endpoints for AuthEndpoints package</Description>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
-    <PackageReleaseNotes>Move interfaces to core and refactor namespaces</PackageReleaseNotes>
+    <PackageReleaseNotes>Move interfaces to core and refactor namespaces and use infrastructure and core 1.6</PackageReleaseNotes>
     <PackageTags>jwt;json-web-token;2fa;minimal-api;endpoints</PackageTags>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
