@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints.Models;
+﻿namespace AuthEndpoints.Core.Contracts;
 
 /// <summary>
 /// the dto used to send an authenticated user response containing access Token and refresh Token

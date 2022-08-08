@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints;
+namespace AuthEndpoints.Core;
 
 public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 {
@@ -13,7 +13,7 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 
         if (accessSigning.SigningKey == null)
         {
-            string secret = LoadOrGenerateSecretKey("keys/authendpoints__access_secret.txt");
+            var secret = LoadOrGenerateSecretKey("keys/authendpoints__access_secret.txt");
             accessSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             accessSigning.Algorithm = SecurityAlgorithms.HmacSha256;
         }
@@ -41,7 +41,7 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 
         if (refreshSigning.SigningKey == null)
         {
-            string secret = LoadOrGenerateSecretKey("keys/authendpoints__refresh_secret.txt");
+            var secret = LoadOrGenerateSecretKey("keys/authendpoints__refresh_secret.txt");
             refreshSigning.SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             refreshSigning.Algorithm = SecurityAlgorithms.HmacSha256;
         }
@@ -74,11 +74,11 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
     /// <returns>a securely generated random string</returns>
     private string GetRandomString(int length, string allowedChars)
     {
-        string secret = "";
+        var secret = "";
 
-        for (int i = 0; i < length; i++)
+        for (var i = 0; i < length; i++)
         {
-            int randomIndex = RandomNumberGenerator.GetInt32(0, length);
+            var randomIndex = RandomNumberGenerator.GetInt32(0, length);
             secret += allowedChars[randomIndex];
         }
 
@@ -91,13 +91,13 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
     /// <returns>a securely generated 50 character random string</returns>
     private string GetRandomSecretKey()
     {
-        string allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)";
+        var allowedChars = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)";
         return GetRandomString(50, allowedChars);
     }
 
     private string LoadOrGenerateSecretKey(string filepath)
     {
-        string directoryName = Path.GetDirectoryName(filepath)!;
+        var directoryName = Path.GetDirectoryName(filepath)!;
 
         if (!Directory.Exists(directoryName))
         {
@@ -112,7 +112,7 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
         }
 
         // file not exist, generate new secret then save it to a new file
-        string secret = GetRandomSecretKey();
+        var secret = GetRandomSecretKey();
 
         using var file = File.Create(filepath);
         file.Write(Encoding.UTF8.GetBytes(secret));

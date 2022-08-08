@@ -1,9 +1,4 @@
-﻿using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-
-namespace AuthEndpoints.Demo.Controllers;
+﻿namespace AuthEndpoints.Demo.Controllers;
 
 public class TwoFactorController // : TwoStepVerificationController<string, MyCustomIdentityUser>
 {

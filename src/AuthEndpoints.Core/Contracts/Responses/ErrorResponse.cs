@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints.Models;
+﻿namespace AuthEndpoints.Core.Contracts;
 
 /// <summary>
 /// The dto used to send an error response to the client

@@ -1,8 +1,8 @@
-﻿using AuthEndpoints.Models;
+﻿using AuthEndpoints.Core.Models;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Use this class to create MimeMessage for email verification request and for reset password request.
@@ -33,7 +33,7 @@ public class DefaultMessageFactory : IEmailFactory
     /// <returns>a instance of MimeMessage</returns>
     public MimeMessage CreateConfirmationEmail(EmailData data)
     {
-        var message = Create(data); 
+        var message = Create(data);
         var body = @$"You're receiving this email because you need to finish email verification process.
 Please go to the following page to verify your email:
 

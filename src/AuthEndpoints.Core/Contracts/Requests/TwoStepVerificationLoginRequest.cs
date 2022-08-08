@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthEndpoints.Models;
+namespace AuthEndpoints.Core.Contracts;
 
 public class TwoStepVerificationLoginRequest : LoginRequest
 {

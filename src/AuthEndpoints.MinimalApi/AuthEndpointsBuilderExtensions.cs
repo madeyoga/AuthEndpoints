@@ -1,7 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AuthEndpoints.Core;
+using AuthEndpoints.Core.Endpoints;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.MinimalApi;
 
+/// <summary>
+/// Provides extensions to easily add authentication endpoints using the minimal api.
+/// </summary>
 public static class AuthEndpointsBuilderExtensions
 {
     public static AuthEndpointsBuilder AddBasicAuthenticationEndpoints(this AuthEndpointsBuilder builder)
@@ -25,20 +30,16 @@ public static class AuthEndpointsBuilderExtensions
         return builder;
     }
 
-    public static AuthEndpointsBuilder AddEndpointDefinition<TEndpointDefinition>(this AuthEndpointsBuilder builder)
-        where TEndpointDefinition : IEndpointDefinition
-    {
-        builder.Services.AddSingleton(typeof(IEndpointDefinition), typeof(TEndpointDefinition));
-        return builder;
-    }
-
-    public static AuthEndpointsBuilder AddEndpointDefinition(this AuthEndpointsBuilder builder, Type definitionType)
-    {
-        builder.Services.AddSingleton(typeof(IEndpointDefinition), definitionType);
-        return builder;
-    }
-
+    [Obsolete("Please use AddAuthEndpointDefinitions instead.")]
     public static AuthEndpointsBuilder AddAllEndpointDefinitions(this AuthEndpointsBuilder builder)
+    {
+        AddBasicAuthenticationEndpoints(builder);
+        AddJwtEndpoints(builder);
+        Add2FAEndpoints(builder);
+        return builder;
+    }
+
+    public static AuthEndpointsBuilder AddAuthEndpointDefinitions(this AuthEndpointsBuilder builder)
     {
         AddBasicAuthenticationEndpoints(builder);
         AddJwtEndpoints(builder);

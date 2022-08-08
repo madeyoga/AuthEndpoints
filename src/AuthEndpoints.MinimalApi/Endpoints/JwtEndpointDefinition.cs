@@ -1,16 +1,24 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using AuthEndpoints.Models;
-using AuthEndpoints.Services;
+using AuthEndpoints.Core;
+using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.Core.Endpoints;
+using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.MinimalApi;
 
-public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpointDefinition<TKey, TUser> 
+/// <summary>
+/// Minimal Api definitions for JWT endpoints.
+/// </summary>
+/// <typeparam name="TKey"></typeparam>
+/// <typeparam name="TUser"></typeparam>
+public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpointDefinition<TKey, TUser>
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
@@ -55,22 +63,21 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
     /// Use this endpoint to refresh jwt
     /// </summary>
     public virtual async Task<IResult> Refresh([FromBody] RefreshRequest request,
-        IJwtValidator jwtValidator,
+        IRefreshTokenValidator tokenValidator,
         IOptions<AuthEndpointsOptions> options,
         UserManager<TUser> userManager,
-        IAuthenticator<TUser> authenticator)
+        IAccessTokenGenerator<TUser> tokenGenerator)
     {
-        bool isValidRefreshToken = jwtValidator.Validate(request.RefreshToken!,
-            options.Value.RefreshValidationParameters!);
+        TokenValidationResult validationResult = await tokenValidator.ValidateRefreshTokenAsync(request.RefreshToken!);
 
-        if (!isValidRefreshToken)
+        if (!validationResult.IsValid)
         {
             // Token may be expired, invalid, etc. but this good enough for now.
-            return Results.BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or invalid."));
+            return Results.BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
         }
 
-        JwtSecurityToken jwt = jwtValidator.ReadJwtToken(request.RefreshToken!);
-        string userId = jwt.Claims.First(claim => claim.Type == "id").Value;
+        JwtSecurityToken? jwt = validationResult.SecurityToken as JwtSecurityToken;
+        string userId = jwt!.Claims.First(claim => claim.Type == "id").Value;
         TUser user = await userManager.FindByIdAsync(userId);
 
         if (user == null)
@@ -78,15 +85,16 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition, IJwtEndpo
             return Results.NotFound(new ErrorResponse("User not found."));
         }
 
-        AuthenticatedUserResponse response = await authenticator.Login(user);
-
-        return Results.Ok(response);
+        return Results.Ok(new
+        {
+            AccessToken = tokenGenerator.GenerateAccessToken(user)
+        });
     }
 
     /// <summary>
     /// Use this endpoint to verify access jwt
     /// </summary>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     public virtual Task<IResult> Verify()
     {
         return Task.FromResult(Results.Ok());

@@ -1,6 +1,6 @@
 ﻿using MimeKit;
 
-namespace AuthEndpoints.Models;
+namespace AuthEndpoints.Core.Models;
 
 /// <summary>
 /// The dto used for creating an MimeMessage object by IEmailFactory

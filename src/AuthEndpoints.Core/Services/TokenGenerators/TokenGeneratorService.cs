@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints.Services;
+﻿namespace AuthEndpoints.Core.Services;
 
 public class TokenGeneratorService<TUser> : ITokenGeneratorService<TUser>
 {

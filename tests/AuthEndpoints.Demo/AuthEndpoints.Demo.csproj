@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj" />
   </ItemGroup>
 
 </Project>

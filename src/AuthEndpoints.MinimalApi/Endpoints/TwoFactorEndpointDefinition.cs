@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
-using AuthEndpoints.Models;
-using AuthEndpoints.Services;
+using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.Core.Endpoints;
+using AuthEndpoints.Core.Models;
+using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -25,7 +27,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// Use this endpoint to send email to user with 2fa token
     /// </summary>
     /// <returns></returns>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     public virtual async Task<IResult> EnableTwoStepVerification(HttpContext context, 
         UserManager<TUser> userManager,
         IEmailFactory emailFactory,
@@ -45,8 +47,6 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
             return Results.Unauthorized();
         }
 
-        // return a qrcode url for token totp authenticator.
-
         var token = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
 
         var data = new EmailData(new string[] { user.Email }, "Enabling two-factor authentication (2FA) on your user account", token);
@@ -61,7 +61,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     public virtual async Task<IResult> EnableTwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request,
         HttpContext context,
         UserManager<TUser> userManager)

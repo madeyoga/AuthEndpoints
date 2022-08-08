@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints.Models;
+﻿namespace AuthEndpoints.Core.Contracts;
 
 /// <summary>
 /// the dto used for verify request

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthEndpoints.Models;
+namespace AuthEndpoints.Core.Contracts;
 
 /// <summary>
 /// The dto used for email confirmation request
