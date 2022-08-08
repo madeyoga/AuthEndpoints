@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "tests\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj", "{529EF27A-876F-4D49-BC45-BAEBEDA882F0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.Infrastructure", "src\AuthEndpoints.Infrastructure\AuthEndpoints.Infrastructure.csproj", "{8A07513F-E70E-41D2-86EC-012F9D472C6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
