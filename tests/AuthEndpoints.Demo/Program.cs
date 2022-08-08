@@ -62,7 +62,7 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 .AddEntityFrameworkStores<MyDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
+builder.Services.AddAuthEndpointsCore<string, MyCustomIdentityUser>(options =>
 {
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
     options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";

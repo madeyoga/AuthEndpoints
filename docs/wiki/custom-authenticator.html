@@ -112,7 +112,7 @@ then you need to write a custom authenticator. Something like this will work:</p
 }
 </code></pre>
 <p>finally, register it via <code>AuthEndpointsBuilder.AddAuthenticator&lt;&gt;()</code>:</p>
-<pre><code class="lang-cs">var builder = services.AddAuthEndpoints&lt;string, IdentityUser&gt;();
+<pre><code class="lang-cs">var builder = services.AddAuthEndpointsCore&lt;string, IdentityUser&gt;();
 builder.AddAuthenticator&lt;MyAuthenticator&gt;();
 </code></pre>
 </article>
@@ -123,7 +123,7 @@ builder.AddAuthenticator&lt;MyAuthenticator&gt;();
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/custom-authenticator.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/Documentation/wiki/custom-authenticator.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

@@ -32,7 +32,7 @@ var accessValidationParam = new TokenValidationParameters()
     ClockSkew = TimeSpan.Zero,
 };
 
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
+builder.Services.AddAuthEndpointsCore<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
     // Use private keys for signing options
     AccessSigningOptions = new JwtSigningOptions()
@@ -51,7 +51,6 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(new AuthEndpoint
     Issuer = "https://localhost:8000",
 
     // AccessValidationParameters will be used for verifying access jwts
-    AccessValidationParameters = accessValidationParam
-})
-.AddJwtBearerAuthScheme(accessValidationParam); // Verify with public key
+    AccessValidationParameters = accessValidationParam // verify with public key
+});
 ```

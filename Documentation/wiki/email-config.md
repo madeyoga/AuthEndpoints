@@ -9,7 +9,7 @@ Learn more about MailKit [here](https://github.com/jstedfast/MailKit)
 You can configure email backend settings via `AuthEndpointsOptions`, for example:
 
 ```cs
-builder.Services.AddAuthEndpoints<string, IdentityUser>(options => 
+var builder = builder.Services.AddAuthEndpointsCore<string, IdentityUser>(options => 
 {
   ...
 
@@ -27,8 +27,7 @@ builder.Services.AddAuthEndpoints<string, IdentityUser>(options =>
     User = "<gmail_app_user>",
     Password = "<gmail_app_password>",
   }
-})
-.AddJwtBearerAuthScheme(...);
+});
 ```
 
 ## Custom Email Factory

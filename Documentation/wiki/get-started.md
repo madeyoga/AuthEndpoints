@@ -68,9 +68,9 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpoints<string, IdentityUser>() // <TUserKey, TUser>
-  .AddAllEndpointDefinitions() // Add endpoint definitions
-  .AddJwtBearerAuthScheme();
+  .AddAuthEndpointsCore<string, IdentityUser>() // <TUserKey, TUser>
+  .AddRefreshTokenStore<MyDbContext>() // <-- 
+  .AddAuthEndpointDefinitions(); // Add endpoint definitions
 ```
 
 then finally, call `app.MapAuthEndpoints()` before `app.Run()`:
@@ -89,7 +89,7 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints(); // <--
+app.MapEndpoints(); // <--
 
 app.Run();
 ```
@@ -104,7 +104,8 @@ Run it and you should see auth endpoints available on swagger docs!
 ```cs
 // Program.cs
 
-using AuthEndpoints;
+using AuthEndpoints.Core;
+using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
 using Microsoft.AspNetCore.Identity;
 using MyNewWebApp.Data;
@@ -133,9 +134,9 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpoints<string, IdentityUser>()
-  .AddAllEndpointDefinitions() // Add endpoint definitions
-  .AddJwtBearerAuthScheme(); // Add jwt bearer auth
+  .AddAuthEndpointsCore<string, IdentityUser>() // <-- 
+  .AddRefreshTokenStore<MyDbContext>() // <-- 
+  .AddAuthEndpointDefinitions(); // Add endpoint definitions
 
 var app = builder.Build();
 
@@ -153,7 +154,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapAuthEndpoints(); // <-- Map minimal api endpoints
+app.MapEndpoints(); // <-- Map minimal api endpoints
 
 app.Run();
 ```
