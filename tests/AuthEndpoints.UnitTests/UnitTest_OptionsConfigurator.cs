@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using AuthEndpoints.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
