@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Implements <see cref="IClaimsProvider{TUser}"/> to define your claims provider

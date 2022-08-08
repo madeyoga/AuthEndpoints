@@ -1,6 +1,6 @@
-﻿using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Services;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using AuthEndpoints.Core.Services;
+using AuthEndpoints.Demo.Models;
 
 namespace AuthEndpoints.Demo.Services;
 

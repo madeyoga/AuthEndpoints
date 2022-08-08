@@ -1,4 +1,4 @@
-## Email Verification Process
+## Email Verification Flow
 
 The workflow should look like this:
 
@@ -11,7 +11,7 @@ The workflow should look like this:
 ## Configuring options
 
 ```cs
-builder.Services.AddAuthEndpoints<string, IdentityUser>(options => 
+var builder = builder.Services.AddAuthEndpointsCore<string, IdentityUser>(options => 
 {
   // will be sent to the user via email.
   options.EmailConfirmationUrl = "https://myfrontend.com/account/verify-email-confirm/{uid}/{token}"

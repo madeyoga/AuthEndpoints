@@ -45,6 +45,14 @@ Install-Package AuthEndpoints
 
 ## Quick start
 
+Add `DbSet<RefreshToken>` to dbcontext:
+
+```cs
+using AuthEndpoints.Core.Models;
+
+DbSet<RefreshToken>? RefreshTokens { get; set; }
+```
+
 Add the required identity services:
 
 ```cs
@@ -62,12 +70,12 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpoints<string, MyCustomIdentityUser>() // <TUserKey, TUser>
-  .AddAllEndpointDefinitions() // Add endpoint definitions
-  .AddJwtBearerAuthScheme();
+  .AddAuthEndpointsCore<string, MyCustomIdentityUser>() // <TUserKey, TUser>
+  .AddRefreshTokenStore<MyDbContext>()
+  .AddAuthEndpointDefinitions(); // Add endpoint definitions
 ```
 
-then finally, call `app.MapAuthEndpoints()` before `app.Run()`:
+then finally, call `app.MapEndpoints()` before `app.Run()`:
 
 ```cs
 
@@ -80,7 +88,7 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints(); // <--
+app.MapEndpoints(); // <--
 
 app.Run();
 ```

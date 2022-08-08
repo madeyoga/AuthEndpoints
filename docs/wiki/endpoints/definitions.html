@@ -85,14 +85,13 @@
 <li>JwtEndpointDefinition</li>
 <li>TwoFactorEndpointDefinition</li>
 </ul>
-<p>These definitions are automatically added when <code>.AddAllEndpointDefinitions()</code> is being used.</p>
+<p>These definitions are automatically added when <code>.AddAuthEndpointDefinitions()</code> is being used.</p>
 <h3 id="manually-add-endpoint-definition">Manually add endpoint definition</h3>
 <p>Instead of adding all the definitions, You can also add each of them manually depending on your needs. For example, you only need basic auth and jwt endpoints:</p>
 <pre><code class="lang-cs">builder.Services
-  .AddAuthEndpoints&lt;string, IdentityUser&gt;()
+  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;()
   .AddBasicAuthenticationEndpoints() // &lt;--
-  .AddJwtEndpoints() // &lt;--
-  .AddJwtBearerAuthScheme();
+  .AddJwtEndpoints();
 </code></pre>
 <h3 id="extending-endpoint-definition">Extending endpoint definition</h3>
 <p>You can also customise these endpoint definitions to match your exact needs. For example in basic auth definition, you want to exclude the email verification endpoints. In this case, you can extend the <code>BasicAuthEndpointDefinition</code> and override the <code>MapEndpoints(WebApplication app)</code> method. Checkout <a class="xref" href="../../api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html">api reference</a> for more info.</p>
@@ -112,12 +111,11 @@
 </code></pre>
 <p>Then register it via <code>AddEndpointDefinition&lt;&gt;()</code></p>
 <pre><code class="lang-cs">builder.Services
-  .AddAuthEndpoints&lt;string, IdentityUser&gt;()
+  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;()
   .AddEndpointDefinition&lt;MyAuthEndpointDefinition&gt;() // &lt;-- Add your endpoint definition.
-  .AddJwtEndpoints() // &lt;--
-  .AddJwtBearerAuthScheme();
+  .AddJwtEndpoints();
 </code></pre>
-<h3 id="implementing-your-own-endpoints-definition">Implementing your own Endpoints Definition</h3>
+<h3 id="implementing-your-own-endpoint-definition">Implementing your own Endpoint Definition</h3>
 <p>You can define your own minimal api endpoint definition by implementing the <code>IEndpointDefintion</code> inerface.</p>
 <pre><code class="lang-cs">internal class MyEndpointsDefinition : IEndpointDefinition
 {
@@ -133,14 +131,10 @@
 }
 </code></pre>
 <p>Add your endpoint definition</p>
-<pre><code class="lang-cs">var endpointsBuilder = builder.Services
-  .AddAuthEndpoints&lt;string, IdentityUser&gt;();
-  .AddEndpointDefinition&lt;MyEndpointsDefinition&gt;() // &lt;-- Add your endpoint definition
-  .AddJwtEndpoints(); // &lt;--
-
-endpointsBuilder.AddJwtBearerAuthScheme();
-endpointsBuilder.AddEndpointDefinition&lt;MyEndpointsDefinition&gt;();
+<pre><code class="lang-cs">var endpointsBuilder = builder.Services.AddAuthEndpointsCore&lt;string, IdentityUser&gt;();
 endpointsBuilder.AddJwtEndpoints();
+
+builder.Services.AddEndpointDefinition&lt;MyEndpointDefinition&gt;(); // &lt;--
 
 var app = builder.Build();
 
@@ -151,7 +145,7 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints(); // &lt;--
+app.MapEndpoints(); // &lt;--
 
 app.Run();
 </code></pre>
@@ -163,7 +157,7 @@ app.Run();
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/endpoints/definitions.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/Documentation/wiki/endpoints/definitions.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

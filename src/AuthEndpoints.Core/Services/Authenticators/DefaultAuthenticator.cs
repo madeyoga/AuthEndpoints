@@ -1,9 +1,9 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using AuthEndpoints.Models;
+﻿using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.Core.Models;
+using AuthEndpoints.Core.Repositories;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Default authenticator. 
@@ -14,11 +14,13 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
 {
     private readonly UserManager<TUser> userManager;
     private readonly ITokenGeneratorService<TUser> tokenGenerator;
+    private readonly IRefreshTokenRepository refreshTokenRepository;
 
-    public DefaultAuthenticator(UserManager<TUser> userManager, ITokenGeneratorService<TUser> tokenGenerator)
+    public DefaultAuthenticator(UserManager<TUser> userManager, ITokenGeneratorService<TUser> tokenGenerator, IRefreshTokenRepository refreshTokenRepository)
     {
         this.userManager = userManager;
         this.tokenGenerator = tokenGenerator;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     /// <summary>
@@ -29,14 +31,14 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     /// <returns>An instance of TUser if credentials are valid</returns>
     public async Task<TUser?> Authenticate(string username, string password)
     {
-        TUser user = await userManager.FindByNameAsync(username);
+        var user = await userManager.FindByNameAsync(username);
 
         if (user == null)
         {
             return null;
         }
 
-        bool correctPassword = await userManager.CheckPasswordAsync(user, password);
+        var correctPassword = await userManager.CheckPasswordAsync(user, password);
 
         if (!correctPassword)
         {
@@ -51,14 +53,19 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access Token and a refresh Token</returns>
-    public Task<AuthenticatedUserResponse> Login(TUser user)
+    public async Task<AuthenticatedUserResponse> Login(TUser user)
     {
-        string accessToken = tokenGenerator.GenerateAccessToken(user);
-        string refreshToken = tokenGenerator.GenerateRefreshToken(user);
-        return Task.FromResult(new AuthenticatedUserResponse()
+        var accessToken = tokenGenerator.GenerateAccessToken(user);
+        var refreshToken = tokenGenerator.GenerateRefreshToken(user);
+        await refreshTokenRepository.AddAsync(new RefreshToken
+        {
+            Token = refreshToken,
+        });
+        await refreshTokenRepository.SaveChangesAsync();
+        return new AuthenticatedUserResponse()
         {
             AccessToken = accessToken,
             RefreshToken = refreshToken,
-        });
+        };
     }
 }

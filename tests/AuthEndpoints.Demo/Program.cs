@@ -1,7 +1,8 @@
 ﻿using System.Reflection;
-using AuthEndpoints;
+using AuthEndpoints.Core;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
+using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -58,10 +59,10 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     option.Password.RequireUppercase = false;
     option.Password.RequiredLength = 0;
 })
-    .AddEntityFrameworkStores<MyDbContext>()
-    .AddDefaultTokenProviders();
+.AddEntityFrameworkStores<MyDbContext>()
+.AddDefaultTokenProviders();
 
-builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
+builder.Services.AddAuthEndpointsCore<string, MyCustomIdentityUser>(options =>
 {
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
     options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
@@ -74,8 +75,10 @@ builder.Services.AddAuthEndpoints<string, MyCustomIdentityUser>(options =>
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
 })
-    .AddAllEndpointDefinitions()
-    .AddJwtBearerAuthScheme();
+.AddRefreshTokenStore<MyDbContext>()
+.AddAuthEndpointDefinitions();
+
+builder.Services.AddEndpointDefinition<MyEndpointDefinition>();
 
 var app = builder.Build();
 
@@ -92,6 +95,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapAuthEndpoints();
+app.MapEndpoints();
 
 app.Run();

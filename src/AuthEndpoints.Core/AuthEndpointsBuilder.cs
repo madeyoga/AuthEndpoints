@@ -1,10 +1,11 @@
-﻿using AuthEndpoints.Services;
+﻿using AuthEndpoints.Core.Endpoints;
+using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints;
+namespace AuthEndpoints.Core;
 
 /// <summary>
 /// Helper functions for configuring AuthEndpoints services.
@@ -63,6 +64,31 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
+    /// Add endpoint definition
+    /// </summary>
+    /// <typeparam name="TEndpointDefinition"></typeparam>
+    /// <param name="builder"></param>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddEndpointDefinition<TEndpointDefinition>()
+        where TEndpointDefinition : IEndpointDefinition
+    {
+        Services.AddSingleton(typeof(IEndpointDefinition), typeof(TEndpointDefinition));
+        return this;
+    }
+
+    /// <summary>
+    /// Add endpoint definition
+    /// </summary>
+    /// <param name="builder"></param>
+    /// <param name="definitionType"></param>
+    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
+    public virtual AuthEndpointsBuilder AddEndpointDefinition(Type definitionType)
+    {
+        Services.AddSingleton(typeof(IEndpointDefinition), definitionType);
+        return this;
+    }
+
+    /// <summary>
     /// Adds an <see cref="IClaimsProvider{TUser}"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
@@ -90,16 +116,6 @@ public class AuthEndpointsBuilder
     public virtual AuthEndpointsBuilder AddRefreshTokenGenerator<TGenerator>() where TGenerator : class
     {
         return AddScoped(typeof(IRefreshTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IJwtValidator"/>
-    /// </summary>
-    /// <typeparam name="TValidator">The type of the jwt validator</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtValidator<TValidator>() where TValidator : IJwtValidator
-    {
-        return AddScoped(typeof(IJwtValidator), typeof(TValidator));
     }
 
     /// <summary>
@@ -162,7 +178,7 @@ public class AuthEndpointsBuilder
                 ClockSkew = TimeSpan.Zero,
             };
         }
-        
+
         Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer("jwt", options =>
             {

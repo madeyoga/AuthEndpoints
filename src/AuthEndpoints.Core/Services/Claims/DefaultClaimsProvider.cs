@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Use <see cref="DefaultClaimsProvider{TUserKey, TUser}"/> to get access token claims and refresh token claims

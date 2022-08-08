@@ -1,3 +1,3 @@
 # [Documentation](wiki/)
-# [Api Reference](api/)
+# [Api Reference](api/AuthEndpoints.Core.yml)
 # [GitHub](https://github.com/madeyoga/AuthEndpoints)

@@ -1,6 +1,6 @@
 ﻿using MimeKit;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 public interface IEmailSender
 {
     void SendEmail(MimeMessage message);

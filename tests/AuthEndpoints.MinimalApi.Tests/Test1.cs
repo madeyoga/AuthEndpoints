@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using AuthEndpoints.Models;
+using AuthEndpoints.Core.Contracts;
 
 namespace AuthEndpoints.MinimalApi.Tests;
 

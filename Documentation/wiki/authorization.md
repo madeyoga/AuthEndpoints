@@ -1,13 +1,11 @@
 # Simple Authorization
 
-`AuthEndpointsBuilder.AddJwtBearerAuthScheme` enables JWT-bearer authentication using `"jwt"` scheme.
-
 The following code limits access to the MyController to jwt authenticated users:
 
 ```cs
 using Microsoft.AspNetCore.Authorization;
 
-[Authorize(AuthenticationSchemes = "jwt")]
+[Authorize]
 public class MyController : ControllerBase
 {}
 ```
@@ -20,7 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 public class MyController : ControllerBase
 {
   public ActionResult Get()
-  {}  
+  {}
 
   [Authorize(AuthenticationSchemes = "jwt")]
   public ActionResult Post() 

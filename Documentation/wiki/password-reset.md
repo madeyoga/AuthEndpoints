@@ -1,4 +1,4 @@
-## Password Reset Process
+## Password Reset Flow
 
 The workflow should look like this:
 
@@ -14,7 +14,7 @@ The workflow should look like this:
 ## Configuring options
 
 ```cs
-builder.Services.AddAuthEndpoints<string, IdentityUser>(options => 
+var builder = builder.Services.AddAuthEndpointsCore<string, IdentityUser>(options => 
 {
   // will be sent to the user via email.
   options.PasswordResetUrl = "https://myfrontend.com/account/reset-password-confirm/{uid}/{token}" 

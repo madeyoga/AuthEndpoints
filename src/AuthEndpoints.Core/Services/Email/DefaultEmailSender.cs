@@ -3,7 +3,7 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Use this class to send an email using smtp client configured by <see cref="EmailOptions"/>.

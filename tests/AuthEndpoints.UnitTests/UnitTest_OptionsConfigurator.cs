@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Microsoft.Extensions.Logging;
+using AuthEndpoints.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

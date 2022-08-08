@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 public class AccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
     where TUser : class
@@ -20,7 +20,7 @@ public class AccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
 
     public string GenerateAccessToken(TUser user)
     {
-        JwtSigningOptions signingOptions = _options.AccessSigningOptions!;
+        var signingOptions = _options.AccessSigningOptions!;
         var credentials = new SigningCredentials(signingOptions.SigningKey, signingOptions.Algorithm);
         var header = new JwtHeader(credentials);
         var payload = new JwtPayload(

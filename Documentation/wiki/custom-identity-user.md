@@ -14,5 +14,5 @@ public class MyApplicationUser : IdentityUser<Guid>
 Then, you can simply specify the key type for `TUserKey` and the custom class for `TUser`:
 
 ```cs
-services.AddAuthEndpoints<Guid, MyApplicationUser>();
+services.AddAuthEndpointsCore<Guid, MyApplicationUser>();
 ```

@@ -1,7 +1,10 @@
 ﻿using System.Security.Claims;
 using System.Web;
-using AuthEndpoints.Models;
-using AuthEndpoints.Services;
+using AuthEndpoints.Core;
+using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.Core.Endpoints;
+using AuthEndpoints.Core.Models;
+using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -70,7 +73,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// <summary>
     /// Use this endpoint to retrieve the authenticated user
     /// </summary>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     [HttpGet("me")]
     public virtual async Task<IResult> GetMe(HttpContext context, UserManager<TUser> userManager)
     {
@@ -86,7 +89,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// which will send POST request to verify email confirmation endpoint.
     /// </summary>
     /// <returns></returns>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     [HttpGet("verify_email")]
     public virtual async Task<IResult> EmailVerification(HttpContext context,
         UserManager<TUser> userManager,
@@ -161,7 +164,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     [HttpPost("set_username")]
     public virtual async Task<IResult> SetUsername([FromBody] SetUsernameRequest request,
         HttpContext context,
@@ -184,7 +187,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// <summary>
     /// Use this endpoint to change user password
     /// </summary>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     [HttpPost("set_password")]
     public virtual async Task<IResult> SetPassword([FromBody] SetPasswordRequest request,
         HttpContext context,
@@ -296,7 +299,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// Use this endpoint to delete authenticated user.
     /// </summary>
     /// <returns></returns>
-    [Authorize(AuthenticationSchemes = "jwt")]
+    [Authorize]
     [HttpDelete("delete")]
     public virtual async Task<IResult> Delete(HttpContext context, UserManager<TUser> userManager)
     {

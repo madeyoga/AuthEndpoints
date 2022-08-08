@@ -83,8 +83,7 @@
   
   <h1 id="AuthEndpoints_Services_RefreshTokenGenerator_1" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1" class="text-break">Class RefreshTokenGenerator&lt;TUser&gt;
   </h1>
-  <div class="markdown level0 summary"><p>Use this class to generate refresh jwt for the given user</p>
-</div>
+  <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
@@ -94,7 +93,6 @@
   <div classs="implements">
     <h5>Implements</h5>
     <div><a class="xref" href="AuthEndpoints.Services.IRefreshTokenGenerator-1.html">IRefreshTokenGenerator</a>&lt;TUser&gt;</div>
-    <div><a class="xref" href="AuthEndpoints.Services.ITokenGenerator-1.html">ITokenGenerator</a>&lt;TUser&gt;</div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -121,10 +119,10 @@
     </div>
   </div>
   <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Services.html">AuthEndpoints.Services</a></h6>
-  <h6><strong>Assembly</strong>: AuthEndpoints.dll</h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.Core.dll</h6>
   <h5 id="AuthEndpoints_Services_RefreshTokenGenerator_1_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public class RefreshTokenGenerator&lt;TUser&gt; : IRefreshTokenGenerator&lt;TUser&gt;, ITokenGenerator&lt;TUser&gt; where TUser : class</code></pre>
+    <pre><code class="lang-csharp hljs">public class RefreshTokenGenerator&lt;TUser&gt; : IRefreshTokenGenerator&lt;TUser&gt; where TUser : class</code></pre>
   </div>
   <h5 class="typeParameters">Type Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -145,18 +143,18 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenGenerator%601.%23ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider%7B%600%7D%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CSystem.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IClaimsProvider__0__.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenGenerator%601.%23ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler%2CMicrosoft.Extensions.Options.IOptions%7BAuthEndpoints.AuthEndpointsOptions%7D%2CAuthEndpoints.Services.IClaimsProvider%7B%600%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenGenerators/RefreshTokenGenerator.cs/#L19">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Services/TokenGenerators/RefreshTokenGenerator.cs/#L14">View Source</a>
   </span>
   <a id="AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor*"></a>
-  <h4 id="AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_AuthEndpoints_Services_IRefreshTokenClaimsProvider__0__Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor(AuthEndpoints.Services.IRefreshTokenClaimsProvider{`0},Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler)">RefreshTokenGenerator(IRefreshTokenClaimsProvider&lt;TUser&gt;, IOptions&lt;AuthEndpointsOptions&gt;, JwtSecurityTokenHandler)</h4>
+  <h4 id="AuthEndpoints_Services_RefreshTokenGenerator_1__ctor_System_IdentityModel_Tokens_Jwt_JwtSecurityTokenHandler_Microsoft_Extensions_Options_IOptions_AuthEndpoints_AuthEndpointsOptions__AuthEndpoints_Services_IClaimsProvider__0__" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.#ctor(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler,Microsoft.Extensions.Options.IOptions{AuthEndpoints.AuthEndpointsOptions},AuthEndpoints.Services.IClaimsProvider{`0})">RefreshTokenGenerator(JwtSecurityTokenHandler, IOptions&lt;AuthEndpointsOptions&gt;, IClaimsProvider&lt;TUser&gt;)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public RefreshTokenGenerator(IRefreshTokenClaimsProvider&lt;TUser&gt; claimsProvider, IOptions&lt;AuthEndpointsOptions&gt; options, JwtSecurityTokenHandler tokenHandler)</code></pre>
+    <pre><code class="lang-csharp hljs">public RefreshTokenGenerator(JwtSecurityTokenHandler tokenHandler, IOptions&lt;AuthEndpointsOptions&gt; options, IClaimsProvider&lt;TUser&gt; claimsProvider)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -169,8 +167,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Services.IRefreshTokenClaimsProvider-1.html">IRefreshTokenClaimsProvider</a>&lt;TUser&gt;</td>
-        <td><span class="parametername">claimsProvider</span></td>
+        <td><span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler</span></td>
+        <td><span class="parametername">tokenHandler</span></td>
         <td></td>
       </tr>
       <tr>
@@ -179,8 +177,8 @@
         <td></td>
       </tr>
       <tr>
-        <td><span class="xref">System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler</span></td>
-        <td><span class="parametername">tokenHandler</span></td>
+        <td><a class="xref" href="AuthEndpoints.Services.IClaimsProvider-1.html">IClaimsProvider</a>&lt;TUser&gt;</td>
+        <td><span class="parametername">claimsProvider</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -189,19 +187,18 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenGenerator_1_Generate__0_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenGenerator%601.Generate(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenGenerator_1_GenerateRefreshToken__0_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenGenerator%601.GenerateRefreshToken(%600)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenGenerators/RefreshTokenGenerator.cs/#L31">View Source</a>
+    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Services/TokenGenerators/RefreshTokenGenerator.cs/#L21">View Source</a>
   </span>
-  <a id="AuthEndpoints_Services_RefreshTokenGenerator_1_Generate_" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.Generate*"></a>
-  <h4 id="AuthEndpoints_Services_RefreshTokenGenerator_1_Generate__0_" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.Generate(`0)">Generate(TUser)</h4>
-  <div class="markdown level1 summary"><p>Use this method to generate a refresh jwt for the given user</p>
-</div>
+  <a id="AuthEndpoints_Services_RefreshTokenGenerator_1_GenerateRefreshToken_" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.GenerateRefreshToken*"></a>
+  <h4 id="AuthEndpoints_Services_RefreshTokenGenerator_1_GenerateRefreshToken__0_" data-uid="AuthEndpoints.Services.RefreshTokenGenerator`1.GenerateRefreshToken(`0)">GenerateRefreshToken(TUser)</h4>
+  <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public string Generate(TUser user)</code></pre>
+    <pre><code class="lang-csharp hljs">public string GenerateRefreshToken(TUser user)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -231,17 +228,13 @@
     <tbody>
       <tr>
         <td><span class="xref">System.String</span></td>
-        <td><p>A jwt string</p>
-</td>
+        <td></td>
       </tr>
     </tbody>
   </table>
   <h3 id="implements">Implements</h3>
   <div>
       <a class="xref" href="AuthEndpoints.Services.IRefreshTokenGenerator-1.html">IRefreshTokenGenerator&lt;TUser&gt;</a>
-  </div>
-  <div>
-      <a class="xref" href="AuthEndpoints.Services.ITokenGenerator-1.html">ITokenGenerator&lt;TUser&gt;</a>
   </div>
 </article>
           </div>
@@ -251,10 +244,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenGenerator_1.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenGenerator%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Services_RefreshTokenGenerator_1.md&amp;value=---%0Auid%3A%20AuthEndpoints.Services.RefreshTokenGenerator%601%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/src/AuthEndpoints/Services/TokenGenerators/RefreshTokenGenerator.cs/#L12" class="contribution-link">View Source</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Services/TokenGenerators/RefreshTokenGenerator.cs/#L7" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
@@ -274,7 +267,7 @@
             <span class="pull-right">
               <a href="#top">Back to top</a>
             </span>
-            Developed by <a href='https://github.com/nano-devs/AuthEndpoints'>MadeY</a> and <a href='https://github.com/nano-devs/AuthEndpoints/graphs/contributors'>contributors</a> / Licensed under <a href='#'>MIT</a> / Website generated by <a href='https://dotnet.github.io/docfx/'>DocFX</a>
+            Developed by <a href='https://github.com/madeyoga/AuthEndpoints'>MadeY</a> and <a href='https://github.com/madeyoga/AuthEndpoints/graphs/contributors'>contributors</a> / Licensed under <a href='#'>MIT</a> / Website generated by <a href='https://dotnet.github.io/docfx/'>DocFX</a>
             
           </div>
         </div>

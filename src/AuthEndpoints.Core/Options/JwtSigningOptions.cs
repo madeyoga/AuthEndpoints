@@ -1,6 +1,6 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints;
+namespace AuthEndpoints.Core;
 
 /// <summary>
 /// Signing options for Jwt

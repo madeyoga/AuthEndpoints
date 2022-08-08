@@ -6,7 +6,7 @@ Currently endpoints are split into 3 EndpointDefinition classes:
 - JwtEndpointDefinition
 - TwoFactorEndpointDefinition
 
-These definitions are automatically added when `.AddAllEndpointDefinitions()` is being used. 
+These definitions are automatically added when `.AddAuthEndpointDefinitions()` is being used. 
 
 ### Manually add endpoint definition
 
@@ -14,10 +14,9 @@ Instead of adding all the definitions, You can also add each of them manually de
 
 ```cs
 builder.Services
-  .AddAuthEndpoints<string, IdentityUser>()
+  .AddAuthEndpointsCore<string, IdentityUser>()
   .AddBasicAuthenticationEndpoints() // <--
-  .AddJwtEndpoints() // <--
-  .AddJwtBearerAuthScheme();
+  .AddJwtEndpoints();
 ```
 
 ### Extending endpoint definition
@@ -44,13 +43,12 @@ Then register it via `AddEndpointDefinition<>()`
 
 ```cs
 builder.Services
-  .AddAuthEndpoints<string, IdentityUser>()
+  .AddAuthEndpointsCore<string, IdentityUser>()
   .AddEndpointDefinition<MyAuthEndpointDefinition>() // <-- Add your endpoint definition.
-  .AddJwtEndpoints() // <--
-  .AddJwtBearerAuthScheme();
+  .AddJwtEndpoints();
 ```
 
-### Implementing your own Endpoints Definition
+### Implementing your own Endpoint Definition
 
 You can define your own minimal api endpoint definition by implementing the `IEndpointDefintion` inerface.
 
@@ -72,14 +70,10 @@ internal class MyEndpointsDefinition : IEndpointDefinition
 Add your endpoint definition
 
 ```cs
-var endpointsBuilder = builder.Services
-  .AddAuthEndpoints<string, IdentityUser>();
-  .AddEndpointDefinition<MyEndpointsDefinition>() // <-- Add your endpoint definition
-  .AddJwtEndpoints(); // <--
-
-endpointsBuilder.AddJwtBearerAuthScheme();
-endpointsBuilder.AddEndpointDefinition<MyEndpointsDefinition>();
+var endpointsBuilder = builder.Services.AddAuthEndpointsCore<string, IdentityUser>();
 endpointsBuilder.AddJwtEndpoints();
+
+builder.Services.AddEndpointDefinition<MyEndpointDefinition>(); // <--
 
 var app = builder.Build();
 
@@ -90,7 +84,7 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints(); // <--
+app.MapEndpoints(); // <--
 
 app.Run();
 ```

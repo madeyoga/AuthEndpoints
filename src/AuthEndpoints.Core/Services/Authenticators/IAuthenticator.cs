@@ -1,6 +1,6 @@
-﻿using AuthEndpoints.Models;
+﻿using AuthEndpoints.Core.Contracts;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Implements <see cref="IAuthenticator{TUser}"/> to define your authenticator

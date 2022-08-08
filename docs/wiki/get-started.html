@@ -94,13 +94,15 @@
 <h2 id="quick-start">Quick Start</h2>
 <p>First, let's create <code>MyDbContext</code>:</p>
 <pre><code class="lang-cs">// Data/MyDbContext.cs
-
+using AuthEndpoints.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace MyNewWebApp.Data;
 
 public class MyDbContext : DbContext
 {
+  DbSet&lt;RefreshToken&gt; RefreshTokens; // &lt;--
+
   public MyDbContext(DbContextOptions&lt;MyDbContext&gt; options) : base(options) { }
 }
 </code></pre>
@@ -125,9 +127,9 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpoints&lt;string, IdentityUser&gt;() // &lt;TUserKey, TUser&gt;
-  .AddAllEndpointDefinitions() // Add endpoint definitions
-  .AddJwtBearerAuthScheme();
+  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;() // &lt;TUserKey, TUser&gt;
+  .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
+  .AddAuthEndpointDefinitions(); // Add endpoint definitions
 </code></pre>
 <p>then finally, call <code>app.MapAuthEndpoints()</code> before <code>app.Run()</code>:</p>
 <pre><code class="lang-cs">// Program.cs
@@ -143,7 +145,7 @@ app.UseAuthorization();
 
 ...
 
-app.MapAuthEndpoints(); // &lt;--
+app.MapEndpoints(); // &lt;--
 
 app.Run();
 </code></pre>
@@ -152,7 +154,8 @@ app.Run();
 <h2 id="full-source-code">Full Source Code</h2>
 <pre><code class="lang-cs">// Program.cs
 
-using AuthEndpoints;
+using AuthEndpoints.Core;
+using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
 using Microsoft.AspNetCore.Identity;
 using MyNewWebApp.Data;
@@ -181,9 +184,9 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpoints&lt;string, IdentityUser&gt;()
-  .AddAllEndpointDefinitions() // Add endpoint definitions
-  .AddJwtBearerAuthScheme(); // Add jwt bearer auth
+  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;() // &lt;-- 
+  .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
+  .AddAuthEndpointDefinitions(); // Add endpoint definitions
 
 var app = builder.Build();
 
@@ -201,7 +204,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapAuthEndpoints(); // &lt;-- Map minimal api endpoints
+app.MapEndpoints(); // &lt;-- Map minimal api endpoints
 
 app.Run();
 </code></pre>
@@ -220,7 +223,7 @@ app.Run();
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

@@ -1,9 +1,4 @@
-﻿using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Models;
-using AuthEndpoints.Services;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Demo.Controllers;
 

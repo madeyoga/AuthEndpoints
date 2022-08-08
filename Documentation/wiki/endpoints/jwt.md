@@ -62,7 +62,7 @@ __Default URL__: `/jwt/refresh`
       <td>
         HTTP_200_OK
         <ul>
-          <li>User data</li>
+          <li>accessToken</li>
         </ul>
       </td>
     </tr>

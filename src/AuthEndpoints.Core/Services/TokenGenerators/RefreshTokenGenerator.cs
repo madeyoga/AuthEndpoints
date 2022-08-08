@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthEndpoints.Services;
+namespace AuthEndpoints.Core.Services;
 
 public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
     where TUser : class
@@ -20,7 +20,7 @@ public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
 
     public string GenerateRefreshToken(TUser user)
     {
-        JwtSigningOptions signingOptions = _options.RefreshSigningOptions!;
+        var signingOptions = _options.RefreshSigningOptions!;
         var credentials = new SigningCredentials(signingOptions.SigningKey, signingOptions.Algorithm);
         var header = new JwtHeader(credentials);
         var payload = new JwtPayload(
