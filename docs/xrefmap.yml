@@ -1934,24 +1934,24 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints
   nameWithType: ServiceCollectionExtensions.AddAuthEndpoints
-- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  name: AddAuthEndpoints<TUserKey, TUser>(IServiceCollection)
-  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_
-  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  name.vb: AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection)
-  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(IServiceCollection)
-  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection)
-- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
-  name: AddAuthEndpoints<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
-  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__
-  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
-  name.vb: AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
-  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action<AuthEndpoints.Core.AuthEndpointsOptions>)
-  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.Core.AuthEndpointsOptions))
-  nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
-  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  name: AddAuthEndpoints<TUser>(IServiceCollection)
+  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_
+  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  name.vb: AddAuthEndpoints(Of TUser)(IServiceCollection)
+  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints<TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints(Of TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUser>(IServiceCollection)
+  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUser)(IServiceCollection)
+- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
+  name: AddAuthEndpoints<TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
+  name.vb: AddAuthEndpoints(Of TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints<TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action<AuthEndpoints.Core.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints(Of TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.Core.AuthEndpointsOptions))
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpoints<TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
+  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpoints(Of TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore*
   name: AddAuthEndpointsCore
   href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore_
@@ -1959,24 +1959,24 @@ references:
   isSpec: "True"
   fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore
   nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore
-- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  name: AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection)
-  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_
-  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  name.vb: AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection)
-  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection)
-  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection)
-  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection)
-- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
-  name: AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
-  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__
-  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
-  name.vb: AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
-  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action<AuthEndpoints.Core.AuthEndpointsOptions>)
-  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.Core.AuthEndpointsOptions))
-  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore<TUserKey, TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
-  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUserKey, TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
+- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  name: AddAuthEndpointsCore<TUser>(IServiceCollection)
+  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_
+  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  name.vb: AddAuthEndpointsCore(Of TUser)(IServiceCollection)
+  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore<TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection)
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore<TUser>(IServiceCollection)
+  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUser)(IServiceCollection)
+- uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
+  name: AddAuthEndpointsCore<TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
+  href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__
+  commentId: M:AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})
+  name.vb: AddAuthEndpointsCore(Of TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
+  fullName: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore<TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action<AuthEndpoints.Core.AuthEndpointsOptions>)
+  fullName.vb: AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUser)(Microsoft.Extensions.DependencyInjection.IServiceCollection, Action(Of AuthEndpoints.Core.AuthEndpointsOptions))
+  nameWithType: ServiceCollectionExtensions.AddAuthEndpointsCore<TUser>(IServiceCollection, Action<AuthEndpointsOptions>)
+  nameWithType.vb: ServiceCollectionExtensions.AddAuthEndpointsCore(Of TUser)(IServiceCollection, Action(Of AuthEndpointsOptions))
 - uid: AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition(Microsoft.Extensions.DependencyInjection.IServiceCollection,Type)
   name: AddEndpointDefinition(IServiceCollection, Type)
   href: api/AuthEndpoints.Core.ServiceCollectionExtensions.html#AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition_Microsoft_Extensions_DependencyInjection_IServiceCollection_Type_

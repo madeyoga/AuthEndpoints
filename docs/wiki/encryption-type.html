@@ -106,7 +106,7 @@ var accessValidationParam = new TokenValidationParameters()
     ClockSkew = TimeSpan.Zero,
 };
 
-builder.Services.AddAuthEndpointsCore&lt;string, MyCustomIdentityUser&gt;(new AuthEndpointsOptions()
+builder.Services.AddAuthEndpointsCore&lt;MyCustomIdentityUser&gt;(new AuthEndpointsOptions()
 {
     // Use private keys for signing options
     AccessSigningOptions = new JwtSigningOptions()
@@ -136,7 +136,7 @@ builder.Services.AddAuthEndpointsCore&lt;string, MyCustomIdentityUser&gt;(new Au
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/Documentation/wiki/encryption-type.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/Documentation/wiki/encryption-type.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>
