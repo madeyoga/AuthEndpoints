@@ -38,6 +38,6 @@ public class MyAuthenticator : IAuthenticator<IdentityUser>
 finally, register it via `AuthEndpointsBuilder.AddAuthenticator<>()`:
 
 ```cs
-var builder = services.AddAuthEndpointsCore<string, IdentityUser>();
+var builder = services.AddAuthEndpointsCore<IdentityUser>();
 builder.AddAuthenticator<MyAuthenticator>();
 ```

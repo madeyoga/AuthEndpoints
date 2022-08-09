@@ -38,7 +38,8 @@ namespace MyNewWebApp.Data;
 
 public class MyDbContext : DbContext
 {
-  DbSet<RefreshToken> RefreshTokens; // <--
+  DbSet<IdentityUser>? Users { get; set; }
+  DbSet<RefreshToken>? RefreshTokens { get; set; }
 
   public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
 }
@@ -70,7 +71,7 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore<string, IdentityUser>() // <TUserKey, TUser>
+  .AddAuthEndpointsCore<IdentityUser>() // <TUserKey, TUser>
   .AddRefreshTokenStore<MyDbContext>() // <-- 
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 ```
@@ -136,7 +137,7 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore<string, IdentityUser>() // <-- 
+  .AddAuthEndpointsCore<IdentityUser>() // <-- 
   .AddRefreshTokenStore<MyDbContext>() // <-- 
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 
