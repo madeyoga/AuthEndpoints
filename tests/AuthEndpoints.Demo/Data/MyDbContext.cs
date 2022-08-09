@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Demo.Data;
 
-public class MyDbContext : IdentityDbContext<MyCustomIdentityUser>
+public class MyDbContext : DbContext
 {
     public DbSet<RefreshToken>? RefreshTokens { get; set; }
+    public DbSet<MyCustomIdentityUser>? Users { get; set; }
 
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {

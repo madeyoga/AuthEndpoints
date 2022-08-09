@@ -24,17 +24,16 @@ builder.Services.AddSwaggerGen(options =>
 		Title = "My API - v1",
 		Version = "v1",
 		Description = "A simple example ASP.NET Core Web API",
-		TermsOfService = new Uri("https://example.com/terms"),
 		Contact = new OpenApiContact
 		{
 			Name = "contact",
 			Email = string.Empty,
-			Url = new Uri("https://example.com/contact"),
+			Url = new Uri("https://github.com/madeyoga/AuthEndpoints/issues"),
 		},
 		License = new OpenApiLicense
 		{
 			Name = "Use under MIT",
-			Url = new Uri("https://example.com/license"),
+			Url = new Uri("https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE"),
 		}
 	});
 
@@ -62,7 +61,7 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 .AddEntityFrameworkStores<MyDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.AddAuthEndpointsCore<string, MyCustomIdentityUser>(options =>
+builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
 {
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
     options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
