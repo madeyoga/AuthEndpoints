@@ -5,6 +5,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Core;
 
+/// <summary>
+/// A class for configuring <see cref="AuthEndpointsOptions"/>
+/// </summary>
 public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 {
     public void PostConfigure(string name, AuthEndpointsOptions options)
@@ -78,7 +81,7 @@ public class OptionsConfigurator : IPostConfigureOptions<AuthEndpointsOptions>
 
         for (var i = 0; i < length; i++)
         {
-            var randomIndex = RandomNumberGenerator.GetInt32(0, length);
+            var randomIndex = RandomNumberGenerator.GetInt32(0, allowedChars.Length);
             secret += allowedChars[randomIndex];
         }
 
