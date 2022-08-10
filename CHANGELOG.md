@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.7.0] -- 2022-08-02
+
+### Breaking Changes
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+- Removed generic parameter `TUserKey` from extension methods.
+
+### Security
+
+### Deprecated
+
 
 ## [1.6.0] -- 2022-08-02
 
