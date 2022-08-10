@@ -1,12 +1,15 @@
 # Change Log
 
-## [1.7.0] -- 2022-08-02
+
+## [1.7.0] -- 2022-08-10
 
 ### Breaking Changes
 
 ### Added
 
 ### Changed
+- (Core) Bump Microsoft.AspNetCore.Authentication.JwtBearer to 6.0.8
+- (Infrastructure) Bump Microsoft.EntityFrameworkCore to 6.0.8
 
 ### Fixed
 
@@ -18,7 +21,7 @@
 ### Deprecated
 
 
-## [1.6.0] -- 2022-08-02
+## [1.6.0] -- 2022-08-08
 
 Refactor namespaces
 
