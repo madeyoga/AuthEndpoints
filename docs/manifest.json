@@ -774,7 +774,7 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "F7/vS+qo67cGn2I7vBwGLrlUgkqYJYqXA0NpAb1H690="
+          "hash": "kREQo2ca98PEUDh0vQFnFcIb251v8/X8BNhEQ/pnSqM="
         }
       },
       "is_incremental": false,
@@ -798,7 +798,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "AXv9HAdbv2LIFTST+4rzQN+ZlXpqzbUaA+O2srO6XnU="
+          "hash": "XcgX2Ir4rJXNTHF/MY5DrkTaJ0E7S1wO6RrAUvBBSWo="
         }
       },
       "is_incremental": false,
@@ -822,7 +822,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/authorization.html",
-          "hash": "JbzUlg6DLfBh75I/c3990Sc1ra5rjIlvUFPEKibQM7E="
+          "hash": "qxzEUiRpunTyzBqLZCnnetbuBINJ9ll06MnA3yOWmi4="
         }
       },
       "is_incremental": false,
@@ -834,7 +834,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-authenticator.html",
-          "hash": "ZqC4QPmEuxvmMLMgQRHqFu0TVgldEpku+BHBOpMJlqo="
+          "hash": "7S9CzdvCsQ4iznsyjv303Rnl7i4Jk1swIXR+L/v1lJk="
         }
       },
       "is_incremental": false,
@@ -846,7 +846,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-claims.html",
-          "hash": "j92IldQmEiX6DERbTxUcyTt7cK8NNLS33zIf/a9i56c="
+          "hash": "2twrEECnbU/LRQqcEcT6gU0jAbeqqLJ7QP/XyndRLgo="
         }
       },
       "is_incremental": false,
@@ -858,7 +858,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-identity-user.html",
-          "hash": "95Wn7r7WFmA+6gTlpk5ENm+QBvDwo54nBPsNjlPx/6M="
+          "hash": "EVLj4ZuroFhT7bQPOlBv65m/0kJkCCJ+6uES39ixf7E="
         }
       },
       "is_incremental": false,
@@ -870,7 +870,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/email-config.html",
-          "hash": "SSv4uvbG6xCKgPoBxS7JkgpK+maUlcUMjCfzokQ7Mic="
+          "hash": "kgoIPB6WXYvWesxZLyoRstcLuBJnJR7nxZegawwYvhw="
         }
       },
       "is_incremental": false,
@@ -882,7 +882,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/email-verification.html",
-          "hash": "xvWj8qoNfasnjzLj67CMJfsoHjI+ij327KWFEU4MykE="
+          "hash": "L5TFBQVEnoT1UsdpmllRdbKJ7VPGZlh/y0IbzYEfFEE="
         }
       },
       "is_incremental": false,
@@ -894,7 +894,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/encryption-type.html",
-          "hash": "zDuT7RizxGeaaReqXnkIo5/424leRkoUDhf9QK6vkUE="
+          "hash": "XvoSwS/69lHfalK6BoBP3o8Ht6wt36cb+xecyKJ8Xps="
         }
       },
       "is_incremental": false,
@@ -906,7 +906,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/2fa.html",
-          "hash": "rjyaUt5Woy59ifWcp8fJecKXTYnVfwPkdC71cAQnPTA="
+          "hash": "WSEm6sD8fnzUUkvFgLvv9GHmK+k9TQRxAgxitVNEKok="
         }
       },
       "is_incremental": false,
@@ -918,7 +918,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/basic-authentication.html",
-          "hash": "wi4zA7vUAcw3KJSj31/tXyUIx7FCKAgBw6XYnKrXQKU="
+          "hash": "t1xlCC4sfeTiUr6VLecuIl169xbhy1aW0Jq4nvjC8fc="
         }
       },
       "is_incremental": false,
@@ -930,7 +930,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/definitions.html",
-          "hash": "eCvjAsLr4hq1pHOSlTeBfvfiqOf1qjtEHWIZAcDtO50="
+          "hash": "mSrMwt80bnmQLRlGw+PjOjcbVMpYkr+jYkm68ivBFPY="
         }
       },
       "is_incremental": false,
@@ -942,7 +942,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/jwt.html",
-          "hash": "GXW9g0bT1S7av7lCTAVc93R7egnwEfeWn/WmjM8zLzI="
+          "hash": "BvawPtzn9krH1XhMQbKjGNJULonu9+ZZnTXXybnQnHE="
         }
       },
       "is_incremental": false,
@@ -954,7 +954,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/get-started.html",
-          "hash": "85g722ZL98OsZySaPBafl8gUeO9xrwGFobsYtRuLPTo="
+          "hash": "s1hfiQIwbP8WKAihio90lqdnk5QeYd0DlvyCVMgOszw="
         }
       },
       "is_incremental": false,
@@ -966,7 +966,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/password-reset.html",
-          "hash": "hermzmx5+RSs70ZorVcjAgMG3WBeGqd5EIH9i2zDGV0="
+          "hash": "zZ1bHvL9mrdq/eyW5BwS0xfc0PdoAjkZpaVOVzIFFEI="
         }
       },
       "is_incremental": false,
@@ -988,25 +988,23 @@
   "incremental_info": [
     {
       "status": {
-        "can_incremental": false,
-        "details": "Cannot build incrementally because config changed.",
+        "can_incremental": true,
         "incrementalPhase": "build",
         "total_file_count": 0,
-        "skipped_file_count": 0,
-        "full_build_reason_code": "ConfigChanged"
+        "skipped_file_count": 0
       },
       "processors": {
         "ConceptualDocumentProcessor": {
-          "can_incremental": false,
+          "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 15,
-          "skipped_file_count": 0
+          "skipped_file_count": 15
         },
         "ManagedReferenceDocumentProcessor": {
-          "can_incremental": false,
+          "can_incremental": true,
           "incrementalPhase": "build",
           "total_file_count": 63,
-          "skipped_file_count": 0
+          "skipped_file_count": 63
         },
         "TocDocumentProcessor": {
           "can_incremental": false,
