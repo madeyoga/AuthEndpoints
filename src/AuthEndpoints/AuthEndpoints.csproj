@@ -13,7 +13,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
-    <PackageReleaseNotes>Using core &amp; Minimal Api 1.6.0</PackageReleaseNotes>
+    <PackageReleaseNotes>Update minimal api</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
