@@ -32,7 +32,7 @@ var accessValidationParam = new TokenValidationParameters()
     ClockSkew = TimeSpan.Zero,
 };
 
-builder.Services.AddAuthEndpointsCore<string, MyCustomIdentityUser>(new AuthEndpointsOptions()
+builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(new AuthEndpointsOptions()
 {
     // Use private keys for signing options
     AccessSigningOptions = new JwtSigningOptions()

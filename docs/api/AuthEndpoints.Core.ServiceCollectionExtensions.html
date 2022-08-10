@@ -125,21 +125,20 @@
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints%60%602(Microsoft.Extensions.DependencyInjection.IServiceCollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints%60%601(Microsoft.Extensions.DependencyInjection.IServiceCollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L61">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L72">View Source</a>
   </span>
   <a id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints*"></a>
-  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)">AddAuthEndpoints&lt;TUserKey, TUser&gt;(IServiceCollection)</h4>
+  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)">AddAuthEndpoints&lt;TUser&gt;(IServiceCollection)</h4>
   <div class="markdown level1 summary"><p>Adds the AuthEndpoints core services</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpoints&lt;TUserKey, TUser&gt;(this IServiceCollection services)
-
-    where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpoints&lt;TUser&gt;(this IServiceCollection services)
+    where TUser : class</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -184,10 +183,6 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="parametername">TUserKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
         <td><span class="parametername">TUser</span></td>
         <td></td>
       </tr>
@@ -195,21 +190,20 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints%60%602(Microsoft.Extensions.DependencyInjection.IServiceCollection%2CAction%7BAuthEndpoints.Core.AuthEndpointsOptions%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints%60%601(Microsoft.Extensions.DependencyInjection.IServiceCollection%2CAction%7BAuthEndpoints.Core.AuthEndpointsOptions%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L90">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L99">View Source</a>
   </span>
   <a id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints*"></a>
-  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})">AddAuthEndpoints&lt;TUserKey, TUser&gt;(IServiceCollection, Action&lt;AuthEndpointsOptions&gt;)</h4>
+  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpoints__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpoints``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})">AddAuthEndpoints&lt;TUser&gt;(IServiceCollection, Action&lt;AuthEndpointsOptions&gt;)</h4>
   <div class="markdown level1 summary"><p>Adds and configures the AuthEndpoints core system.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpoints&lt;TUserKey, TUser&gt;(this IServiceCollection services, Action&lt;AuthEndpointsOptions&gt; setup)
-
-    where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpoints&lt;TUser&gt;(this IServiceCollection services, Action&lt;AuthEndpointsOptions&gt; setup)
+    where TUser : class</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -261,11 +255,6 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="parametername">TUserKey</span></td>
-        <td><p>The type representing a User's primary key in the system.</p>
-</td>
-      </tr>
-      <tr>
         <td><span class="parametername">TUser</span></td>
         <td><p>The type representing a User in the system.</p>
 </td>
@@ -274,21 +263,20 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore%60%602(Microsoft.Extensions.DependencyInjection.IServiceCollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore%60%601(Microsoft.Extensions.DependencyInjection.IServiceCollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L75">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L85">View Source</a>
   </span>
   <a id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore*"></a>
-  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection)">AddAuthEndpointsCore&lt;TUserKey, TUser&gt;(IServiceCollection)</h4>
+  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)">AddAuthEndpointsCore&lt;TUser&gt;(IServiceCollection)</h4>
   <div class="markdown level1 summary"><p>Adds the AuthEndpoints core services</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpointsCore&lt;TUserKey, TUser&gt;(this IServiceCollection services)
-
-    where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpointsCore&lt;TUser&gt;(this IServiceCollection services)
+    where TUser : class</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -333,10 +321,6 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="parametername">TUserKey</span></td>
-        <td></td>
-      </tr>
-      <tr>
         <td><span class="parametername">TUser</span></td>
         <td></td>
       </tr>
@@ -344,21 +328,20 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore%60%602(Microsoft.Extensions.DependencyInjection.IServiceCollection%2CAction%7BAuthEndpoints.Core.AuthEndpointsOptions%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore%60%601(Microsoft.Extensions.DependencyInjection.IServiceCollection%2CAction%7BAuthEndpoints.Core.AuthEndpointsOptions%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L120">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L126">View Source</a>
   </span>
   <a id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore*"></a>
-  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__2_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``2(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})">AddAuthEndpointsCore&lt;TUserKey, TUser&gt;(IServiceCollection, Action&lt;AuthEndpointsOptions&gt;)</h4>
+  <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddAuthEndpointsCore__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_Action_AuthEndpoints_Core_AuthEndpointsOptions__" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddAuthEndpointsCore``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,Action{AuthEndpoints.Core.AuthEndpointsOptions})">AddAuthEndpointsCore&lt;TUser&gt;(IServiceCollection, Action&lt;AuthEndpointsOptions&gt;)</h4>
   <div class="markdown level1 summary"><p>Adds and configures the AuthEndpoints core system.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpointsCore&lt;TUserKey, TUser&gt;(this IServiceCollection services, Action&lt;AuthEndpointsOptions&gt; setup)
-
-    where TUserKey : IEquatable&lt;TUserKey&gt; where TUser : IdentityUser&lt;TUserKey&gt;</code></pre>
+    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddAuthEndpointsCore&lt;TUser&gt;(this IServiceCollection services, Action&lt;AuthEndpointsOptions&gt; setup)
+    where TUser : class</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -410,11 +393,6 @@
     </thead>
     <tbody>
       <tr>
-        <td><span class="parametername">TUserKey</span></td>
-        <td><p>The type representing a User's primary key in the system.</p>
-</td>
-      </tr>
-      <tr>
         <td><span class="parametername">TUser</span></td>
         <td><p>The type representing a User in the system.</p>
 </td>
@@ -423,10 +401,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition_Microsoft_Extensions_DependencyInjection_IServiceCollection_Type_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition(Microsoft.Extensions.DependencyInjection.IServiceCollection%2CType)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition_Microsoft_Extensions_DependencyInjection_IServiceCollection_Type_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition(Microsoft.Extensions.DependencyInjection.IServiceCollection%2CType)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L161">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L166">View Source</a>
   </span>
   <a id="AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition*"></a>
   <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition_Microsoft_Extensions_DependencyInjection_IServiceCollection_Type_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition(Microsoft.Extensions.DependencyInjection.IServiceCollection,Type)">AddEndpointDefinition(IServiceCollection, Type)</h4>
@@ -477,10 +455,10 @@
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition%60%601(Microsoft.Extensions.DependencyInjection.IServiceCollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition%60%601(Microsoft.Extensions.DependencyInjection.IServiceCollection)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L148">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L153">View Source</a>
   </span>
   <a id="AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition*"></a>
   <h4 id="AuthEndpoints_Core_ServiceCollectionExtensions_AddEndpointDefinition__1_Microsoft_Extensions_DependencyInjection_IServiceCollection_" data-uid="AuthEndpoints.Core.ServiceCollectionExtensions.AddEndpointDefinition``1(Microsoft.Extensions.DependencyInjection.IServiceCollection)">AddEndpointDefinition&lt;TEndpointDefinition&gt;(IServiceCollection)</h4>
@@ -490,7 +468,6 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public static IServiceCollection AddEndpointDefinition&lt;TEndpointDefinition&gt;(this IServiceCollection services)
-
     where TEndpointDefinition : IEndpointDefinition</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
@@ -549,10 +526,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/new/development-1.6/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_ServiceCollectionExtensions.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.ServiceCollectionExtensions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L16" class="contribution-link">View Source</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/development/src/AuthEndpoints.Core/Extensions/ServiceCollectionExtensions.cs/#L16" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

@@ -70,7 +70,7 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore<string, MyCustomIdentityUser>() // <TUserKey, TUser>
+  .AddAuthEndpointsCore<MyCustomIdentityUser>() // <TUser>
   .AddRefreshTokenStore<MyDbContext>()
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 ```

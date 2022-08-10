@@ -101,7 +101,8 @@ namespace MyNewWebApp.Data;
 
 public class MyDbContext : DbContext
 {
-  DbSet&lt;RefreshToken&gt; RefreshTokens; // &lt;--
+  DbSet&lt;IdentityUser&gt;? Users { get; set; }
+  DbSet&lt;RefreshToken&gt;? RefreshTokens { get; set; }
 
   public MyDbContext(DbContextOptions&lt;MyDbContext&gt; options) : base(options) { }
 }
@@ -127,7 +128,7 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;() // &lt;TUserKey, TUser&gt;
+  .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;TUserKey, TUser&gt;
   .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 </code></pre>
@@ -184,7 +185,7 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;() // &lt;-- 
+  .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;-- 
   .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 
@@ -223,7 +224,7 @@ app.Run();
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/nano-devs/AuthEndpoints/blob/development-1.6/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/Documentation/wiki/get-started.md/#L1" class="contribution-link">Improve this Doc</a>
                   </li>
                 </ul>
               </div>

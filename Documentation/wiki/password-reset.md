@@ -14,7 +14,7 @@ The workflow should look like this:
 ## Configuring options
 
 ```cs
-var builder = builder.Services.AddAuthEndpointsCore<string, IdentityUser>(options => 
+var builder = builder.Services.AddAuthEndpointsCore<IdentityUser>(options => 
 {
   // will be sent to the user via email.
   options.PasswordResetUrl = "https://myfrontend.com/account/reset-password-confirm/{uid}/{token}" 
