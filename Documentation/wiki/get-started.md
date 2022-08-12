@@ -27,7 +27,11 @@ Install-Package AuthEndpoints
 
 ## Quick Start
 
-First, let's create `MyDbContext`:
+First, let's install `Microsoft.AspNetCore.Identity.EntityFrameworkCore` and create `MyDbContext`:
+
+```
+dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+```
 
 ```cs
 // Data/MyDbContext.cs
@@ -57,11 +61,11 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 builder.Services
   .AddIdentityCore<IdentityUser>()         // <-- or `AddIdentity<,>`
-  .AddEntityFrameworkStores<MyDbContext>() // <--
+  .AddEntityFrameworkStores<MyDbContext>() // <-- requires Microsoft.AspNetCore.Identity.EntityFrameworkCore
   .AddDefaultTokenProviders();             // <--
 ```
 
-Next, let's add auth endpoints services and jwt bearer authentication scheme:
+Next, let's add auth endpoints services:
 
 ```cs
 // Program.cs
@@ -71,12 +75,12 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore<IdentityUser>() // <TUserKey, TUser>
+  .AddAuthEndpointsCore<IdentityUser>()
   .AddRefreshTokenStore<MyDbContext>() // <-- 
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 ```
 
-then finally, call `app.MapAuthEndpoints()` before `app.Run()`:
+then finally, call `app.MapEndpoints()` before `app.Run()`:
 
 ```cs
 // Program.cs
