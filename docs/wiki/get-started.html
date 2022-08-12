@@ -92,7 +92,9 @@
 <pre><code>Install-Package AuthEndpoints
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>First, let's create <code>MyDbContext</code>:</p>
+<p>First, let's install <code>Microsoft.AspNetCore.Identity.EntityFrameworkCore</code> and create <code>MyDbContext</code>:</p>
+<pre><code>dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+</code></pre>
 <pre><code class="lang-cs">// Data/MyDbContext.cs
 using AuthEndpoints.Core.Models;
 using Microsoft.EntityFrameworkCore;
@@ -117,10 +119,10 @@ builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt;
 
 builder.Services
   .AddIdentityCore&lt;IdentityUser&gt;()         // &lt;-- or `AddIdentity&lt;,&gt;`
-  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;--
+  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;-- requires Microsoft.AspNetCore.Identity.EntityFrameworkCore
   .AddDefaultTokenProviders();             // &lt;--
 </code></pre>
-<p>Next, let's add auth endpoints services and jwt bearer authentication scheme:</p>
+<p>Next, let's add auth endpoints services:</p>
 <pre><code class="lang-cs">// Program.cs
 
 builder.Services
@@ -128,11 +130,11 @@ builder.Services
   // AuthEndpoints will automatically create a secret key and use single security key
   // for each access jwt and refresh jwt (symmetric encryption).
   // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;TUserKey, TUser&gt;
+  .AddAuthEndpointsCore&lt;IdentityUser&gt;()
   .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
   .AddAuthEndpointDefinitions(); // Add endpoint definitions
 </code></pre>
-<p>then finally, call <code>app.MapAuthEndpoints()</code> before <code>app.Run()</code>:</p>
+<p>then finally, call <code>app.MapEndpoints()</code> before <code>app.Run()</code>:</p>
 <pre><code class="lang-cs">// Program.cs
 
 ...
