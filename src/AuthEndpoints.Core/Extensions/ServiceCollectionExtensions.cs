@@ -1,12 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using AuthEndpoints.Core.Endpoints;
+﻿using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Core;
 
@@ -15,7 +11,7 @@ namespace AuthEndpoints.Core;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    internal static AuthEndpointsBuilder ConfigureServices<TUser>(IServiceCollection services, AuthEndpointsOptions endpointsOptions)
+    internal static AuthEndpointsBuilder ConfigureServices<TUser>(IServiceCollection services)
         where TUser : class
     {
         var identityUserType = FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>));
@@ -25,29 +21,10 @@ public static class ServiceCollectionExtensions
         }
 
         var keyType = identityUserType.GenericTypeArguments[0];
-
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = endpointsOptions.AccessValidationParameters!;
-        })
-        .AddJwtBearer("jwt", options =>
-        {
-            options.TokenValidationParameters = endpointsOptions.AccessValidationParameters!;
-        });
         services.AddAuthorization();
 
-        services.AddSingleton(typeof(IOptions<AuthEndpointsOptions>), Options.Create(endpointsOptions));
+        //services.AddSingleton(typeof(IOptions<AuthEndpointsOptions>), Options.Create(endpointsOptions));
 
-        // Add authendpoints core services
-        var claimsProviderType = typeof(DefaultClaimsProvider<,>).MakeGenericType(keyType, typeof(TUser));
-        services.TryAddScoped(typeof(IClaimsProvider<TUser>), claimsProviderType);
-
-        services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
-        services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
-        services.TryAddScoped<ITokenGeneratorService<TUser>, TokenGeneratorService<TUser>>();
-
-        services.TryAddScoped<IRefreshTokenValidator, RefreshTokenValidator>();
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
 
         services.TryAddSingleton<IEmailFactory, DefaultMessageFactory>();
@@ -56,23 +33,7 @@ public static class ServiceCollectionExtensions
         var identityBuilder = services.AddIdentityCore<TUser>()
             .AddDefaultTokenProviders();
 
-        services.TryAddScoped<IdentityErrorDescriber>();
-        services.TryAddScoped<JwtSecurityTokenHandler>();
-
-        return new AuthEndpointsBuilder(keyType, typeof(TUser), services, endpointsOptions);
-    }
-
-    /// <summary>
-    /// Adds the AuthEndpoints core services
-    /// </summary>
-    /// <typeparam name="TUserKey"></typeparam>
-    /// <typeparam name="TUser"></typeparam>
-    /// <param name="services"></param>
-    /// <returns>An <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
-    public static AuthEndpointsBuilder AddAuthEndpoints<TUser>(this IServiceCollection services)
-        where TUser : class
-    {
-        return services.AddAuthEndpoints<TUser>(o => { });
+        return new AuthEndpointsBuilder(keyType, typeof(TUser), services);
     }
 
     /// <summary>
@@ -96,52 +57,16 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The services available in the application.</param>
     /// <param name="setup">An action to configure the <see cref="AuthEndpointsOptions"/>.</param>
     /// <returns>An <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
-    public static AuthEndpointsBuilder AddAuthEndpoints<TUser>(this IServiceCollection services, Action<AuthEndpointsOptions> setup)
-        where TUser : class
-    {
-        var options = new AuthEndpointsOptions();
-
-        if (setup != null)
-        {
-            setup.Invoke(options);
-            using var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-            new OptionsConfigurator().PostConfigure("default", options);
-            new OptionsValidator(loggerFactory.CreateLogger<OptionsValidator>()).Validate("default", options);
-        }
-
-        return ConfigureServices<TUser>(services, options);
-    }
-
-    /// <summary>
-    /// Adds and configures the AuthEndpoints core system.
-    /// </summary>
-    /// <typeparam name="TUserKey">The type representing a User's primary key in the system.</typeparam>
-    /// <typeparam name="TUser">The type representing a User in the system.</typeparam>
-    /// <param name="services">The services available in the application.</param>
-    /// <param name="setup">An action to configure the <see cref="AuthEndpointsOptions"/>.</param>
-    /// <returns>An <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
     public static AuthEndpointsBuilder AddAuthEndpointsCore<TUser>(this IServiceCollection services, Action<AuthEndpointsOptions> setup)
         where TUser : class
     {
-        var options = new AuthEndpointsOptions();
-
         if (setup != null)
         {
-            //services.AddOptions<AuthEndpointsOptions>()
-            //    .Configure(setup);
-            setup.Invoke(options);
-            using var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-            new OptionsConfigurator().PostConfigure("default", options);
-            new OptionsValidator(loggerFactory.CreateLogger<OptionsValidator>()).Validate("default", options);
+            services.AddOptions<AuthEndpointsOptions>()
+                .Configure(setup);
         }
 
-        return ConfigureServices<TUser>(services, options);
+        return ConfigureServices<TUser>(services);
     }
 
     /// <summary>

@@ -1,5 +1,5 @@
-﻿using AuthEndpoints.Core.Models;
-using AuthEndpoints.Core.Repositories;
+﻿using AuthEndpoints.SimpleJwt.Core;
+using AuthEndpoints.SimpleJwt.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Infrastructure;

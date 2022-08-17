@@ -1,9 +1,7 @@
 ﻿using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Core;
 
@@ -42,19 +40,18 @@ public class AuthEndpointsBuilder
     /// <value>
     /// Gets the <see cref="AuthEndpointsOptions"/>
     /// </value>
-    public AuthEndpointsOptions Options { get; }
+    //public AuthEndpointsOptions Options { get; }
 
     /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
     /// </summary>
     /// <param name="userType">The type to use for the users.</param>
     /// <param name="services">The <see cref="IServiceCollection"/> to attach to.</param>
-    public AuthEndpointsBuilder(Type userKeyType, Type userType, IServiceCollection services, AuthEndpointsOptions options)
+    public AuthEndpointsBuilder(Type userKeyType, Type userType, IServiceCollection services)
     {
         UserKeyType = userKeyType;
         UserType = userType;
         Services = services;
-        Options = options;
     }
 
     protected AuthEndpointsBuilder AddScoped(Type serviceType, Type concreteType)
@@ -86,36 +83,6 @@ public class AuthEndpointsBuilder
     {
         Services.AddSingleton(typeof(IEndpointDefinition), definitionType);
         return this;
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IClaimsProvider{TUser}"/>.
-    /// </summary>
-    /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddClaimsProvider<TProvider>() where TProvider : class
-    {
-        return AddScoped(typeof(IClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
-    /// </summary>
-    /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAccessTokenGenerator<TGenerator>() where TGenerator : class
-    {
-        return AddScoped(typeof(IAccessTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
-    /// </summary>
-    /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddRefreshTokenGenerator<TGenerator>() where TGenerator : class
-    {
-        return AddScoped(typeof(IRefreshTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
     }
 
     /// <summary>
@@ -158,47 +125,6 @@ public class AuthEndpointsBuilder
     public virtual AuthEndpointsBuilder AddEmailSender<TSender>() where TSender : IEmailSender
     {
         Services.AddSingleton(typeof(IEmailFactory), typeof(TSender));
-        return this;
-    }
-
-    /// <summary>
-    /// Adds a jwt bearer defaults authentication scheme.
-    /// </summary>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme()
-    {
-        if (Options.AccessValidationParameters == null)
-        {
-            Options.AccessValidationParameters = new TokenValidationParameters()
-            {
-                IssuerSigningKey = Options.AccessSigningOptions.SigningKey,
-                ValidIssuer = Options.Issuer,
-                ValidAudience = Options.Audience,
-                ValidateIssuerSigningKey = true,
-                ClockSkew = TimeSpan.Zero,
-            };
-        }
-
-        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer("jwt", options =>
-            {
-                options.TokenValidationParameters = Options.AccessValidationParameters!;
-            });
-        return this;
-    }
-
-    /// <summary>
-    /// Adds a jwt bearer defaults authentication scheme.
-    /// </summary>
-    /// <param name="parameters">Token validation parameters for JwtBearerOptions</param>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddJwtBearerAuthScheme(TokenValidationParameters parameters)
-    {
-        Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer("jwt", options =>
-            {
-                options.TokenValidationParameters = parameters;
-            });
         return this;
     }
 }

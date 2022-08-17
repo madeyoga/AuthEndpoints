@@ -16,34 +16,10 @@ public static class AuthEndpointsBuilderExtensions
         return builder;
     }
 
-    public static AuthEndpointsBuilder AddJwtEndpoints(this AuthEndpointsBuilder builder)
-    {
-        var type = typeof(JwtEndpointDefinition<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
-        builder.Services.AddSingleton(typeof(IEndpointDefinition), type);
-        return builder;
-    }
-
     public static AuthEndpointsBuilder Add2FAEndpoints(this AuthEndpointsBuilder builder)
     {
         var type = typeof(TwoFactorEndpointDefinition<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
         builder.Services.AddSingleton(typeof(IEndpointDefinition), type);
-        return builder;
-    }
-
-    [Obsolete("Please use AddAuthEndpointDefinitions instead.")]
-    public static AuthEndpointsBuilder AddAllEndpointDefinitions(this AuthEndpointsBuilder builder)
-    {
-        AddBasicAuthenticationEndpoints(builder);
-        AddJwtEndpoints(builder);
-        Add2FAEndpoints(builder);
-        return builder;
-    }
-
-    public static AuthEndpointsBuilder AddAuthEndpointDefinitions(this AuthEndpointsBuilder builder)
-    {
-        AddBasicAuthenticationEndpoints(builder);
-        AddJwtEndpoints(builder);
-        Add2FAEndpoints(builder);
         return builder;
     }
 }

@@ -151,7 +151,8 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     [HttpPost("two_step_verification_confirm")]
     public virtual async Task<IResult> TwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request,
         UserManager<TUser> userManager,
-        IAuthenticator<TUser> authenticator)
+        IAuthenticator<TUser> authenticator,
+        ILoginService<TUser> loginService)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
 
@@ -172,7 +173,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
             return Results.BadRequest("Invalid token");
         }
 
-        var response = await authenticator.Login(user);
+        var response = await loginService.Login(user);
 
         return Results.Ok(response);
     }

@@ -1,6 +1,4 @@
-﻿using AuthEndpoints.Core.Contracts;
-
-namespace AuthEndpoints.Core.Services;
+﻿namespace AuthEndpoints.Core.Services;
 
 /// <summary>
 /// Implements <see cref="IAuthenticator{TUser}"/> to define your authenticator
@@ -16,11 +14,4 @@ public interface IAuthenticator<TUser>
     /// <param name="password"></param>
     /// <returns>An instance of TUser if credentials are valid, else return null</returns>
     Task<TUser?> Authenticate(string username, string password);
-
-    /// <summary>
-    /// Implements this method to log a user in
-    /// </summary>
-    /// <param name="user"></param>
-    /// <returns>An instance of <see cref="AuthenticatedUserResponse"/></returns>
-    Task<AuthenticatedUserResponse> Login(TUser user);
 }

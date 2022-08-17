@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AuthEndpoints.Infrastructure\AuthEndpoints.Infrastructure.csproj" />
+    <ProjectReference Include="..\AuthEndpoints.Core\AuthEndpoints.Core.csproj" />
   </ItemGroup>
 
 </Project>
