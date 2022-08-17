@@ -11,6 +11,5 @@ public class MyDbContext : IdentityDbContext
 
     public MyDbContext(DbContextOptions<MyDbContext> options) : base(options)
     {
-
     }
 }
