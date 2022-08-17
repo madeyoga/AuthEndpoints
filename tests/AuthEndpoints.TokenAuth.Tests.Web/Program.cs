@@ -1,6 +1,5 @@
 ﻿using AuthEndpoints.Core;
 using AuthEndpoints.Core.Services;
-using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
 using AuthEndpoints.TokenAuth.Tests.Web;
 using AuthEndpoints.TokenAuth.Tests.Web.Data;
@@ -38,7 +37,6 @@ builder.Services.AddIdentityCore<IdentityUser>(option =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddAuthEndpointsCore<IdentityUser>()
-    .AddRefreshTokenStore<MyDbContext>()
     .AddBasicAuthenticationEndpoints();
 
 builder.Services.AddAuthentication("TokenAuth")

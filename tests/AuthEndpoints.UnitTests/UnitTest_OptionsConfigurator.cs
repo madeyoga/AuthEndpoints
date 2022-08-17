@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using AuthEndpoints.Core;
+using AuthEndpoints.SimpleJwt.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,7 +17,7 @@ public class UnitTest_OptionsConfigurator
         var configurator = new OptionsConfigurator();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var options = new AuthEndpointsOptions()
+        var options = new SimpleJwtOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {
@@ -43,7 +44,7 @@ public class UnitTest_OptionsConfigurator
         var configurator = new OptionsConfigurator();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var options = new AuthEndpointsOptions()
+        var options = new SimpleJwtOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {

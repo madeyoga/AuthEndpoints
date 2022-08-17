@@ -2,8 +2,8 @@
 using AuthEndpoints.Core;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
+using AuthEndpoints.SimpleJwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -74,8 +74,9 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
 })
-.AddRefreshTokenStore<MyDbContext>()
-.AddAuthEndpointDefinitions();
+.AddBasicAuthenticationEndpoints();
+
+builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
 
 builder.Services.AddEndpointDefinition<MyEndpointDefinition>();
 

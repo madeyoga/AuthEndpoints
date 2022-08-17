@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
-using AuthEndpoints.Core.Services;
 using AuthEndpoints.Demo.Models;
+using AuthEndpoints.SimpleJwt.Core.Services;
 
 namespace AuthEndpoints.Demo.Services;
 

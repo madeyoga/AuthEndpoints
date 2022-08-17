@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using AuthEndpoints.Core;
+using AuthEndpoints.SimpleJwt.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -20,7 +21,7 @@ public class UnitTest_OptionsValidator
         });
         OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
-        var result = validator.Validate("test", new AuthEndpointsOptions());
+        var result = validator.Validate("test", new SimpleJwtOptions());
 
         Assert.IsFalse(result.Succeeded);
     }
@@ -34,7 +35,7 @@ public class UnitTest_OptionsValidator
         });
         OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
-        var result = validator.Validate("test", new AuthEndpointsOptions());
+        var result = validator.Validate("test", new SimpleJwtOptions());
 
         Assert.IsFalse(result.Succeeded);
     }
@@ -48,7 +49,7 @@ public class UnitTest_OptionsValidator
         });
         OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
-        var result = validator.Validate("test", new AuthEndpointsOptions()
+        var result = validator.Validate("test", new SimpleJwtOptions()
         {
             RefreshSigningOptions = new JwtSigningOptions()
             {
@@ -72,7 +73,7 @@ public class UnitTest_OptionsValidator
         });
         OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
-        var result = validator.Validate("test", new AuthEndpointsOptions()
+        var result = validator.Validate("test", new SimpleJwtOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {
@@ -97,7 +98,7 @@ public class UnitTest_OptionsValidator
         OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
-        var options = new AuthEndpointsOptions()
+        var options = new SimpleJwtOptions()
         {
         };
 
@@ -120,7 +121,7 @@ public class UnitTest_OptionsValidator
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
-        var result = validator.Validate("test", new AuthEndpointsOptions()
+        var result = validator.Validate("test", new SimpleJwtOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {
