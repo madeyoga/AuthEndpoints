@@ -1,13 +1,13 @@
 ﻿using System.Security.Claims;
 using System.Security.Principal;
 using System.Text.Encodings.Web;
-using AuthEndpoints.TokenAuth.Tests.Web.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.TokenAuth.Tests.Web;
+namespace AuthEndpoints.TokenAuth.Core;
 
 public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<TokenBearerOptions>
     where TKey : class, IEquatable<TKey>
@@ -42,7 +42,7 @@ public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<T
             return AuthenticateResult.Fail("Unauthorized");
         }
 
-        string token = authorization["Bearer ".Length..].Trim();
+        var token = authorization["Bearer ".Length..].Trim();
 
         if (string.IsNullOrEmpty(token))
         {

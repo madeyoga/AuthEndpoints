@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.TokenAuth.Tests.Web.Contracts;
+using AuthEndpoints.TokenAuth.Core;
 
 namespace AuthEndpoints.TokenAuth.Tests;
 

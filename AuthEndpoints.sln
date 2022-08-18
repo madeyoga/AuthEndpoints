@@ -26,11 +26,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Tests", "tests\AuthEndpoints.TokenAuth.Tests\AuthEndpoints.TokenAuth.Tests.csproj", "{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.SimpleJwt", "src\AuthEndpoints.SimpleJwt\AuthEndpoints.SimpleJwt.csproj", "{9D598EE6-9461-49F5-A6AA-BDCE5DE3F392}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.SimpleJwt", "src\AuthEndpoints.SimpleJwt\AuthEndpoints.SimpleJwt.csproj", "{9D598EE6-9461-49F5-A6AA-BDCE5DE3F392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.TokenAuth", "src\AuthEndpoints.TokenAuth\AuthEndpoints.TokenAuth.csproj", "{28B762C2-8BFF-4FF8-B3D7-E6D0F51A3EC4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth", "src\AuthEndpoints.TokenAuth\AuthEndpoints.TokenAuth.csproj", "{28B762C2-8BFF-4FF8-B3D7-E6D0F51A3EC4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.SimpleJwt.Core", "src\AuthEndpoints.SimpleJwt.Core\AuthEndpoints.SimpleJwt.Core.csproj", "{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.SimpleJwt.Core", "src\AuthEndpoints.SimpleJwt.Core\AuthEndpoints.SimpleJwt.Core.csproj", "{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.TokenAuth.Core", "src\AuthEndpoints.TokenAuth.Core\AuthEndpoints.TokenAuth.Core.csproj", "{51E9A2FF-7EAB-4283-8088-595C8060C5C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -86,6 +88,10 @@ Global
 		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

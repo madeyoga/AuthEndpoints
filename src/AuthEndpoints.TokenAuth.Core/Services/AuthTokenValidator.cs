@@ -1,9 +1,7 @@
-﻿using AuthEndpoints.TokenAuth.Tests.Web.Models;
-using AuthEndpoints.TokenAuth.Tests.Web.Repositories;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthEndpoints.TokenAuth.Tests.Web.Services;
+namespace AuthEndpoints.TokenAuth.Core;
 
 public class AuthTokenValidator<TKey, TUser, TContext>
     where TKey : class, IEquatable<TKey>

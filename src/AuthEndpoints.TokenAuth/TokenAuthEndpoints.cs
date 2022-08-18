@@ -2,27 +2,30 @@
 using AuthEndpoints.Core.Contracts;
 using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using AuthEndpoints.TokenAuth.Tests.Web.Data;
-using AuthEndpoints.TokenAuth.Tests.Web.Repositories;
+using AuthEndpoints.TokenAuth.Core;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace AuthEndpoints.TokenAuth.Tests.Web.Endpoints;
+namespace AuthEndpoints.TokenAuth;
 
-public class TokenAuthEndpoints<TKey, TUser> : IEndpointDefinition
+public class TokenAuthEndpoints<TKey, TUser, TContext> : IEndpointDefinition
     where TKey : class, IEquatable<TKey>
     where TUser : IdentityUser<TKey>
+    where TContext : DbContext
 {
     public void MapEndpoints(WebApplication app)
     {
-        string groupName = "Token Authentication";
+        var groupName = "Token Authentication";
         app.MapPost("/token/login", Create).WithTags(groupName);
         app.MapPost("/token/logout", Destroy).WithTags(groupName);
     }
 
     public virtual async Task<IResult> Create([FromBody] LoginRequest request,
-        TokenRepository<TKey, TUser, MyDbContext> tokenRepository, 
+        TokenRepository<TKey, TUser, TContext> tokenRepository,
         IAuthenticator<TUser> authenticator,
         UserManager<TUser> userManager)
     {
@@ -43,7 +46,7 @@ public class TokenAuthEndpoints<TKey, TUser> : IEndpointDefinition
 
         var token = await tokenRepository.GetOrCreate(user.Id);
 
-        return Results.Ok(new
+        return Results.Ok(new TokenAuthResponse
         {
             AuthToken = token.Key
         });
@@ -51,7 +54,7 @@ public class TokenAuthEndpoints<TKey, TUser> : IEndpointDefinition
 
     [Authorize]
     public virtual async Task<IResult> Destroy(HttpContext context,
-        TokenRepository<TKey, TUser, MyDbContext> tokenRepository)
+        TokenRepository<TKey, TUser, TContext> tokenRepository)
     {
         string userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
 

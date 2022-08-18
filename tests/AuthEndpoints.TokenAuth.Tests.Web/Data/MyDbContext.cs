@@ -1,4 +1,4 @@
-﻿using AuthEndpoints.TokenAuth.Tests.Web.Models;
+﻿using AuthEndpoints.TokenAuth.Core;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

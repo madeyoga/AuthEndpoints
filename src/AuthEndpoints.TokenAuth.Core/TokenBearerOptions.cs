@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 
-namespace AuthEndpoints.TokenAuth.Tests.Web;
+namespace AuthEndpoints.TokenAuth.Core;
 
 public class TokenBearerOptions : AuthenticationSchemeOptions
 {

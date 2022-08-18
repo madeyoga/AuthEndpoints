@@ -1,14 +1,12 @@
-﻿using AuthEndpoints.TokenAuth.Tests.Web.Models;
-using AuthEndpoints.TokenAuth.Tests.Web.Services;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthEndpoints.TokenAuth.Tests.Web.Repositories;
+namespace AuthEndpoints.TokenAuth.Core;
 
 public class TokenRepository<TKey, TUser, TContext>
     where TKey : class, IEquatable<TKey>
     where TUser : IdentityUser<TKey>
-    where TContext: DbContext
+    where TContext : DbContext
 {
     private readonly TContext context;
     private readonly AuthTokenGenerator tokenGenerator;
@@ -60,7 +58,7 @@ public class TokenRepository<TKey, TUser, TContext>
 
     public async Task<Token<TKey, TUser>> GetOrCreate(TKey userId)
     {
-        List<Token<TKey, TUser>> userTokens = await FindByUserIdAsync(userId);
+        var userTokens = await FindByUserIdAsync(userId);
         if (userTokens.Count > 0)
         {
             return userTokens.First();

@@ -1,6 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using AuthEndpoints.Core;
 using AuthEndpoints.Core.Endpoints;
-using AuthEndpoints.Core.Services;
 using AuthEndpoints.Infrastructure;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton(typeof(IOptions<SimpleJwtOptions>), Options.Create(options));
 
-        var identityUserType = FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>));
+        var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>));
         if (identityUserType == null)
         {
             throw new InvalidOperationException("Generic type TUser is not IdentityUser");
@@ -99,20 +99,5 @@ public static class ServiceCollectionExtensions
         var type = typeof(JwtEndpointDefinition<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
         services.AddSingleton(typeof(IEndpointDefinition), type);
         return builder;
-    }
-
-    private static Type? FindGenericBaseType(Type currentType, Type genericBaseType)
-    {
-        Type? type = currentType;
-        while (type != null)
-        {
-            var genericType = type.IsGenericType ? type.GetGenericTypeDefinition() : null;
-            if (genericType != null && genericType == genericBaseType)
-            {
-                return type;
-            }
-            type = type.BaseType;
-        }
-        return null;
     }
 }

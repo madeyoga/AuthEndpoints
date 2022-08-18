@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace AuthEndpoints.TokenAuth.Tests.Web.Services;
+namespace AuthEndpoints.TokenAuth.Core;
 
 /// <summary>
 /// Use this class to create an authtoken
@@ -15,7 +15,7 @@ public class AuthTokenGenerator
 
         for (var i = 0; i < length; i++)
         {
-            int randomIndex = RandomNumberGenerator.GetInt32(0, allowedChars.Length);
+            var randomIndex = RandomNumberGenerator.GetInt32(0, allowedChars.Length);
             secret += allowedChars[randomIndex];
         }
 

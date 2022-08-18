@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-
-namespace AuthEndpoints.TokenAuth.Tests.Web.Models;
+﻿namespace AuthEndpoints.TokenAuth.Core;
 
 public class Token<TKey, TUser>
 {
