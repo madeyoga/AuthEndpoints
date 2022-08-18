@@ -37,15 +37,6 @@ builder.Services.AddAuthEndpointsCore<IdentityUser>()
 
 builder.Services.AddTokenAuthEndpoints<IdentityUser, MyDbContext>();
 
-//builder.Services.AddAuthentication("TokenAuth")
-//    .AddScheme<TokenBearerOptions, TokenBearerHandler<string, IdentityUser, MyDbContext>>("TokenAuth", "Token Authentication", null);
-
-//builder.Services.AddScoped<AuthTokenValidator<string, IdentityUser, MyDbContext>>();
-//builder.Services.AddScoped<AuthTokenGenerator>();
-//builder.Services.AddScoped<TokenRepository<string, IdentityUser, MyDbContext>>();
-//builder.Services.AddScoped<IAuthenticator<IdentityUser>, TokenAuthService<IdentityUser>>();
-//builder.Services.AddEndpointDefinition<TokenAuthEndpoints<string, IdentityUser>>();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

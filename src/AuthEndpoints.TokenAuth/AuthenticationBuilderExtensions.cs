@@ -34,5 +34,4 @@ public static class AuthenticationBuilderExtensions
     {
         return AddTokenBearer(builder, typeof(TKey), typeof(TUser), typeof(TContext));
     }
-
 }
