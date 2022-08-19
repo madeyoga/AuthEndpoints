@@ -1,6 +1,5 @@
 ﻿using AuthEndpoints.Core;
 using AuthEndpoints.MinimalApi;
-using AuthEndpoints.SimpleJwt;
 using AuthEndpoints.TokenAuth;
 using AuthEndpoints.TokenAuth.Tests.Web.Data;
 using Microsoft.AspNetCore.Identity;
