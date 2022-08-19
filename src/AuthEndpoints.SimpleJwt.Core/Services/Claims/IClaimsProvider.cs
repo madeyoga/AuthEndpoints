@@ -13,12 +13,12 @@ public interface IClaimsProvider<TUser> where TUser : class
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    IList<Claim> provideAccessClaims(TUser user);
+    IList<Claim> ProvideAccessClaims(TUser user);
 
     /// <summary>
     /// Use this method to get a list of claims for the given user
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    IList<Claim> provideRefreshClaims(TUser user);
+    IList<Claim> ProvideRefreshClaims(TUser user);
 }

@@ -17,7 +17,7 @@ public class DefaultClaimsProvider<TUserKey, TUser> : IClaimsProvider<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public IList<Claim> provideAccessClaims(TUser user)
+    public IList<Claim> ProvideAccessClaims(TUser user)
     {
         return new List<Claim>()
         {
@@ -31,7 +31,7 @@ public class DefaultClaimsProvider<TUserKey, TUser> : IClaimsProvider<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public IList<Claim> provideRefreshClaims(TUser user)
+    public IList<Claim> ProvideRefreshClaims(TUser user)
     {
         return new List<Claim>()
         {
