@@ -23,7 +23,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
         string baseUrl = "/users";
         string groupName = "Authentication";
         app.MapPost($"{baseUrl}", Register).WithTags(groupName);
-        app.MapGet($"{baseUrl}/me", GetMe).WithTags(groupName); ;
+        app.MapGet($"{baseUrl}/me", GetMe).WithTags(groupName);
         app.MapGet($"{baseUrl}/verify_email", EmailVerification).WithTags(groupName);
         app.MapPost($"{baseUrl}/verify_email_confirm", EmailVerificationConfirm).WithTags(groupName);
         app.MapPost($"{baseUrl}/set_username", SetUsername).WithTags(groupName);
