@@ -17,12 +17,13 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
 {
     public virtual void MapEndpoints(WebApplication app)
     {
-        app.MapGet("/users/enable_2fa", EnableTwoStepVerification);
-        app.MapPost("/users/enable_2fa_confirm", EnableTwoStepVerificationConfirm);
-        app.MapPost("/users/two_step_verification_login", TwoStepVerificationLogin);
-        app.MapPost("/users/two_step_verification_confirm", TwoStepVerificationConfirm);
+        string groupName = "Two Factor Authentication";
+        app.MapGet("/users/enable_2fa", EnableTwoStepVerification).WithTags(groupName);
+        app.MapPost("/users/enable_2fa_confirm", EnableTwoStepVerificationConfirm).WithTags(groupName);
+        app.MapPost("/users/two_step_verification_login", TwoStepVerificationLogin).WithTags(groupName);
+        app.MapPost("/users/two_step_verification_confirm", TwoStepVerificationConfirm).WithTags(groupName);
     }
-
+     
     /// <summary>
     /// Use this endpoint to send email to user with 2fa token
     /// </summary>

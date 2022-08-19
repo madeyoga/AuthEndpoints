@@ -21,15 +21,16 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/users";
-        app.MapPost($"{baseUrl}", Register);
-        app.MapGet($"{baseUrl}/me", GetMe);
-        app.MapGet($"{baseUrl}/verify_email", EmailVerification);
-        app.MapPost($"{baseUrl}/verify_email_confirm", EmailVerificationConfirm);
-        app.MapPost($"{baseUrl}/set_username", SetUsername);
-        app.MapPost($"{baseUrl}/set_password", SetPassword);
-        app.MapPost($"{baseUrl}/reset_password", ResetPassword);
-        app.MapPost($"{baseUrl}/reset_password_confirm", ResetPasswordConfirm);
-        app.MapDelete($"{baseUrl}/delete", Delete);
+        string groupName = "Authentication";
+        app.MapPost($"{baseUrl}", Register).WithTags(groupName);
+        app.MapGet($"{baseUrl}/me", GetMe).WithTags(groupName); ;
+        app.MapGet($"{baseUrl}/verify_email", EmailVerification).WithTags(groupName);
+        app.MapPost($"{baseUrl}/verify_email_confirm", EmailVerificationConfirm).WithTags(groupName);
+        app.MapPost($"{baseUrl}/set_username", SetUsername).WithTags(groupName);
+        app.MapPost($"{baseUrl}/set_password", SetPassword).WithTags(groupName);
+        app.MapPost($"{baseUrl}/reset_password", ResetPassword).WithTags(groupName);
+        app.MapPost($"{baseUrl}/reset_password_confirm", ResetPasswordConfirm).WithTags(groupName);
+        app.MapDelete($"{baseUrl}/delete", Delete).WithTags(groupName);
     }
 
     /// <summary>
