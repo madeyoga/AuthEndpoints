@@ -2,6 +2,6 @@
 
 namespace AuthEndpoints.TokenAuth.Core;
 
-public class TokenBearerOptions : AuthenticationSchemeOptions
+public class TokenBearerAuthenticationOptions : AuthenticationSchemeOptions
 {
 }
