@@ -52,7 +52,7 @@ public class TokenAuthEndpoints<TKey, TUser, TContext> : IEndpointDefinition
         });
     }
 
-    [Authorize]
+    [Authorize(AuthenticationSchemes = TokenBearerDefaults.AuthenticationScheme)]
     public virtual async Task<IResult> Destroy(HttpContext context,
         TokenRepository<TKey, TUser, TContext> tokenRepository)
     {

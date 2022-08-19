@@ -10,19 +10,15 @@ public static class AuthenticationBuilderExtensions
     {
         builder.Services.Configure<AuthenticationOptions>(o =>
         {
-            o.AddScheme("TokenBearer", scheme =>
+            o.AddScheme(TokenBearerDefaults.AuthenticationScheme, scheme =>
             {
                 scheme.HandlerType = typeof(TokenBearerHandler<,,>).MakeGenericType(keyType, userType, contextType);
-                scheme.DisplayName = "";
+                scheme.DisplayName = "Token Bearer Authentication";
             });
         });
-        //if (configureOptions != null)
-        //{
-        //    services.Configure(authenticationScheme, configureOptions);
-        //}
-        builder.Services.AddOptions<TokenBearerOptions>("TokenBearer").Validate(o =>
+        builder.Services.AddOptions<TokenBearerAuthenticationOptions>(TokenBearerDefaults.AuthenticationScheme).Validate(o =>
         {
-            o.Validate("TokenBearer");
+            o.Validate(TokenBearerDefaults.AuthenticationScheme);
             return true;
         });
         builder.Services.AddTransient(typeof(TokenBearerHandler<,,>).MakeGenericType(keyType, userType, contextType));
