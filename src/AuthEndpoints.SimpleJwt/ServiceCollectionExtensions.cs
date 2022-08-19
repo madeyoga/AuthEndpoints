@@ -1,6 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using AuthEndpoints.Core;
 using AuthEndpoints.Core.Endpoints;
+using AuthEndpoints.Core.Services;
 using AuthEndpoints.Infrastructure;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
@@ -35,6 +36,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
         services.TryAddScoped<ITokenGeneratorService<TUser>, TokenGeneratorService<TUser>>();
         services.TryAddScoped<IRefreshTokenValidator, RefreshTokenValidator>();
+        services.TryAddScoped<ILoginService<TUser>, JwtLoginService<TUser>>();
         services.TryAddScoped<JwtLoginService<TUser>>();
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
