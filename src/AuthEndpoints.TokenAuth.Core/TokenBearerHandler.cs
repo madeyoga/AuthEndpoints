@@ -9,14 +9,14 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.TokenAuth.Core;
 
-public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<TokenBearerOptions>
+public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<TokenBearerAuthenticationOptions>
     where TKey : class, IEquatable<TKey>
     where TUser : IdentityUser<TKey>
     where TContext : DbContext
 {
     private readonly AuthTokenValidator<TKey, TUser, TContext> validator;
 
-    public TokenBearerHandler(IOptionsMonitor<TokenBearerOptions> options,
+    public TokenBearerHandler(IOptionsMonitor<TokenBearerAuthenticationOptions> options,
                               ILoggerFactory logger,
                               UrlEncoder encoder,
                               ISystemClock clock,
@@ -28,7 +28,7 @@ public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<T
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (!Request.Headers.ContainsKey("Authorization"))
-            return AuthenticateResult.Fail("Unauthorized");
+            return AuthenticateResult.NoResult();
 
         string authorization = Request.Headers.Authorization.ToString();
 
@@ -39,14 +39,14 @@ public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<T
 
         if (!authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            return AuthenticateResult.Fail("Unauthorized");
+            return AuthenticateResult.NoResult();
         }
 
         var token = authorization["Bearer ".Length..].Trim();
 
         if (string.IsNullOrEmpty(token))
         {
-            return AuthenticateResult.Fail("Unauthorized");
+            return AuthenticateResult.NoResult();
         }
 
         var validatedToken = await validator.ValidateTokenAsync(token);
@@ -58,6 +58,7 @@ public class TokenBearerHandler<TKey, TUser, TContext> : AuthenticationHandler<T
 
         var claims = new List<Claim>
         {
+            new Claim("id", validatedToken.GetUser!.Id.ToString()!),
             new Claim(ClaimTypes.NameIdentifier, validatedToken.GetUser!.Id.ToString()!),
             new Claim(ClaimTypes.Name, validatedToken.GetUser!.UserName),
             new Claim(ClaimTypes.Email, validatedToken.GetUser!.Email),
