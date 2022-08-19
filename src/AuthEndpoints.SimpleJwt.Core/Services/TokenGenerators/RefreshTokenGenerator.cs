@@ -27,7 +27,7 @@ public class RefreshTokenGenerator<TUser> : IRefreshTokenGenerator<TUser>
         var payload = new JwtPayload(
             _options.Issuer!,
             _options.Audience!,
-            _claimsProvider.provideRefreshClaims(user),
+            _claimsProvider.ProvideRefreshClaims(user),
             DateTime.UtcNow,
             DateTime.UtcNow.AddMinutes(signingOptions.ExpirationMinutes)
         );
