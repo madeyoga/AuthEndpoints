@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Endpoint Definitions | AuthEndpoints </title>
+    <title>Implementing your own Endpoint Definition | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Endpoint Definitions | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.2.0">
+    <meta name="title" content="Implementing your own Endpoint Definition | AuthEndpoints ">
+    <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../../images/favicon.ico">
     <link rel="stylesheet" href="../../styles/docfx.vendor.css">
@@ -77,45 +77,8 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h1 id="endpoint-definitions">Endpoint Definitions</h1>
-
-<p>Currently endpoints are split into 3 EndpointDefinition classes:</p>
-<ul>
-<li>BasicAuthEndpointDefinition</li>
-<li>JwtEndpointDefinition</li>
-<li>TwoFactorEndpointDefinition</li>
-</ul>
-<p>These definitions are automatically added when <code>.AddAuthEndpointDefinitions()</code> is being used.</p>
-<h3 id="manually-add-endpoint-definition">Manually add endpoint definition</h3>
-<p>Instead of adding all the definitions, You can also add each of them manually depending on your needs. For example, you only need basic auth and jwt endpoints:</p>
-<pre><code class="lang-cs">builder.Services
-  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;()
-  .AddBasicAuthenticationEndpoints() // &lt;--
-  .AddJwtEndpoints();
-</code></pre>
-<h3 id="extending-endpoint-definition">Extending endpoint definition</h3>
-<p>You can also customise these endpoint definitions to match your exact needs. For example in basic auth definition, you want to exclude the email verification endpoints. In this case, you can extend the <code>BasicAuthEndpointDefinition</code> and override the <code>MapEndpoints(WebApplication app)</code> method. Checkout <a class="xref" href="../../api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html">api reference</a> for more info.</p>
-<pre><code class="lang-cs">internal class MyAuthEndpointDefinition : BasicAuthEndpointDefinition&lt;string, IdentityUser&gt;
-{
-  internal override void MapEndpoints(WebApplication app)
-  {
-    string baseUrl = &quot;/users&quot;;
-    app.MapPost($&quot;{baseUrl}&quot;, Register);
-    app.MapGet($&quot;{baseUrl}/me&quot;, GetMe);
-    app.MapPost($&quot;{baseUrl}/set_password&quot;, SetPassword);
-    app.MapPost($&quot;{baseUrl}/reset_password&quot;, ResetPassword);
-    app.MapPost($&quot;{baseUrl}/reset_password_confirm&quot;, ResetPasswordConfirm);
-    app.MapDelete($&quot;{baseUrl}/delete&quot;, Delete);
-  }
-}
-</code></pre>
-<p>Then register it via <code>AddEndpointDefinition&lt;&gt;()</code></p>
-<pre><code class="lang-cs">builder.Services
-  .AddAuthEndpointsCore&lt;string, IdentityUser&gt;()
-  .AddEndpointDefinition&lt;MyAuthEndpointDefinition&gt;() // &lt;-- Add your endpoint definition.
-  .AddJwtEndpoints();
-</code></pre>
 <h3 id="implementing-your-own-endpoint-definition">Implementing your own Endpoint Definition</h3>
+
 <p>You can define your own minimal api endpoint definition by implementing the <code>IEndpointDefintion</code> inerface.</p>
 <pre><code class="lang-cs">internal class MyEndpointsDefinition : IEndpointDefinition
 {

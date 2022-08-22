@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Simple Authorization | AuthEndpoints </title>
+    <title>Authorize with JWT bearer authentication scheme | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Simple Authorization | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.2.0">
+    <meta name="title" content="Authorize with JWT bearer authentication scheme | AuthEndpoints ">
+    <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -77,16 +77,16 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h1 id="simple-authorization">Simple Authorization</h1>
+<h1 id="authorize-with-jwt-bearer-authentication-scheme">Authorize with JWT bearer authentication scheme</h1>
 
 <p>The following code limits access to the MyController to jwt authenticated users:</p>
 <pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
 
-[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class MyController : ControllerBase
 {}
 </code></pre>
-<p>If you want to apply authorization to an action rather than the controller, apply the <code>AuthorizeAttribute</code> attribute to the action itself:</p>
+<p>If you want to apply authorization to an action rather than the controller, apply the <code>Authorize</code> attribute to the action itself:</p>
 <pre><code class="lang-cs">using Microsoft.AspNetCore.Authorization;
 
 public class MyController : ControllerBase
@@ -99,7 +99,7 @@ public class MyController : ControllerBase
   {}
 }
 </code></pre>
-<p>Read more about simple authorization at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple">the documentation</a></p>
+<p>Read more about authorization with a specific scheme at <a href="https://docs.microsoft.com/en-us/aspnet/core/security/authorization/limitingidentitybyscheme">the documentation</a></p>
 </article>
           </div>
           

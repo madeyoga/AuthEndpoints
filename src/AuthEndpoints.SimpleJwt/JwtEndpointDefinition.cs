@@ -4,6 +4,7 @@ using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -96,7 +97,7 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// <summary>
     /// Use this endpoint to verify access jwt
     /// </summary>
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public virtual Task<IResult> Verify()
     {
         return Task.FromResult(Results.Ok());

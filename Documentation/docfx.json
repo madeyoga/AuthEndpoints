@@ -7,14 +7,35 @@
             "**.csproj"
           ],
           "exclude": [ "**/bin/**", "**/obj/**" ],
-          "src": "../src/AuthEndpoints"
+          "src": "../src/AuthEndpoints.Core"
         },
         {
           "files": [
             "**.csproj"
           ],
           "exclude": [ "**/bin/**", "**/obj/**" ],
-          "src": "../src/AuthEndpoints.Core"
+          "src": "../src/AuthEndpoints.SimpleJwt"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.SimpleJwt.Core"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.TokenAuth"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.TokenAuth.Core"
         },
         {
           "files": [

@@ -23,12 +23,12 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
         app.MapPost("/users/two_step_verification_login", TwoStepVerificationLogin).WithTags(groupName);
         app.MapPost("/users/two_step_verification_confirm", TwoStepVerificationConfirm).WithTags(groupName);
     }
-     
+
     /// <summary>
     /// Use this endpoint to send email to user with 2fa token
     /// </summary>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> EnableTwoStepVerification(HttpContext context, 
         UserManager<TUser> userManager,
         IEmailFactory emailFactory,
@@ -62,7 +62,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [Authorize]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> EnableTwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request,
         HttpContext context,
         UserManager<TUser> userManager)
@@ -100,7 +100,6 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("two_step_verification_login")]
     public virtual async Task<IResult> TwoStepVerificationLogin([FromBody] TwoStepVerificationLoginRequest request,
         IAuthenticator<TUser> authenticator,
         UserManager<TUser> userManager,
@@ -149,7 +148,6 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("two_step_verification_confirm")]
     public virtual async Task<IResult> TwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request,
         UserManager<TUser> userManager,
         IAuthenticator<TUser> authenticator,

@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.TokenAuth.Core;
+﻿using AuthEndpoints.Core;
+using AuthEndpoints.TokenAuth.Core;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,8 +27,19 @@ public static class AuthenticationBuilderExtensions
         return builder;
     }
 
-    public static AuthenticationBuilder AddTokenBearer<TKey, TUser, TContext>(this AuthenticationBuilder builder)
+    public static AuthenticationBuilder AddTokenBearer(this AuthenticationBuilder builder, Type userType, Type contextType)
     {
-        return AddTokenBearer(builder, typeof(TKey), typeof(TUser), typeof(TContext));
+        var keyType = TypeHelper.FindKeyType(userType)!;
+        return AddTokenBearer(builder, keyType, userType, contextType);
+    }
+
+    public static AuthenticationBuilder AddTokenBearer<TUser, TContext>(this AuthenticationBuilder builder)
+    {
+        return AddTokenBearer(builder, typeof(TUser), typeof(TContext));
+    }
+
+    public static AuthenticationBuilder AddTokenBearer<Tkey, TUser, TContext>(this AuthenticationBuilder builder)
+    {
+        return AddTokenBearer(builder, typeof(Tkey), typeof(TUser), typeof(TContext));
     }
 }
