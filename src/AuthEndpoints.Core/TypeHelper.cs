@@ -1,4 +1,6 @@
-﻿namespace AuthEndpoints.Core;
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace AuthEndpoints.Core;
 
 /// <summary>
 /// Use this static class to find genericBaseType of currentType
@@ -18,5 +20,16 @@ public static class TypeHelper
             type = type.BaseType;
         }
         return null;
+    }
+
+    public static Type? FindKeyType(Type userType)
+    {
+        var identityUserType = FindGenericBaseType(userType, typeof(IdentityUser<>));
+        if (identityUserType == null)
+        {
+            throw new InvalidOperationException("Generic type TUser is not IdentityUser");
+        }
+        var keyType = identityUserType.GenericTypeArguments.First();
+        return keyType;
     }
 }
