@@ -33,5 +33,8 @@ public class MyClaimsProvider : IClaimsProvider<MyApplicationUser>
 then, add it using `AuthEndpointsBuilder.AddClaimsProvider<>();`
 
 ```cs
-builder.AddClaimsProvider<MyClaimsProvider>();
+SimpleJwtBuilder jwtBuilder = builder.Services
+  .AddSimpleJwtEndpoints<IdentityUser, MyDbContext>();
+
+jwtBuilder.AddClaimsProvider<MyClaimsProvider>();
 ```

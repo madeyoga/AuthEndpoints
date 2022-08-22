@@ -8,7 +8,7 @@
     <title>Token Claims | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Token Claims | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.2.0">
+    <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -107,7 +107,10 @@ To change this, you can write a custom claims provider. Something like this will
 }
 </code></pre>
 <p>then, add it using <code>AuthEndpointsBuilder.AddClaimsProvider&lt;&gt;();</code></p>
-<pre><code class="lang-cs">builder.AddClaimsProvider&lt;MyClaimsProvider&gt;();
+<pre><code class="lang-cs">SimpleJwtBuilder jwtBuilder = builder.Services
+  .AddSimpleJwtEndpoints&lt;IdentityUser, MyDbContext&gt;();
+
+jwtBuilder.AddClaimsProvider&lt;MyClaimsProvider&gt;();
 </code></pre>
 </article>
           </div>

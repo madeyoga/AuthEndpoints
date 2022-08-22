@@ -27,7 +27,7 @@ Install-Package AuthEndpoints
 
 ## Quick Start
 
-First, let's install `Microsoft.AspNetCore.Identity.EntityFrameworkCore` and create `MyDbContext`:
+First, let's install `Microsoft.AspNetCore.Identity.EntityFrameworkCore` and create a DbContext:
 
 ```
 dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
@@ -35,6 +35,7 @@ dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
 
 ```cs
 // Data/MyDbContext.cs
+
 using AuthEndpoints.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -60,9 +61,9 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 });
 
 builder.Services
-  .AddIdentityCore<IdentityUser>()         // <-- or `AddIdentity<,>`
-  .AddEntityFrameworkStores<MyDbContext>() // <-- requires Microsoft.AspNetCore.Identity.EntityFrameworkCore
-  .AddDefaultTokenProviders();             // <--
+  .AddIdentityCore<IdentityUser>() // <-- or `AddIdentity<,>`
+  .AddEntityFrameworkStores<MyDbContext>() // <-- Microsoft.AspNetCore.Identity.EntityFrameworkCore
+  .AddDefaultTokenProviders(); // <--
 ```
 
 Next, let's add auth endpoints services:
@@ -70,14 +71,14 @@ Next, let's add auth endpoints services:
 ```cs
 // Program.cs
 
+// Add basic authentication endpoints
 builder.Services
-  // When no options provided, 
-  // AuthEndpoints will automatically create a secret key and use single security key
-  // for each access jwt and refresh jwt (symmetric encryption).
-  // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore<IdentityUser>()
-  .AddRefreshTokenStore<MyDbContext>() // <-- 
-  .AddAuthEndpointDefinitions(); // Add endpoint definitions
+  .AddAuthEndpointsCore<IdentityUser>() // <-- 
+  .AddBasicAuthenticationEndpoints()
+  .Add2FAEndpoints();
+
+// Add JWT endpoints
+builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>();
 ```
 
 then finally, call `app.MapEndpoints()` before `app.Run()`:
@@ -91,8 +92,8 @@ var app = builder.Build();
 
 ...
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // <--
+app.UseAuthorization(); // <--
 
 ...
 
@@ -103,7 +104,7 @@ app.Run();
 
 Run it and you should see auth endpoints available on swagger docs!
 
-![authendpoints swagger](https://imgur.com/YT7htMW.png "authendpoints swagger")
+![authendpoints swagger](https://i.imgur.com/VCuIazI.png "authendpoints swagger")
 
 
 ## Full Source Code
@@ -112,8 +113,8 @@ Run it and you should see auth endpoints available on swagger docs!
 // Program.cs
 
 using AuthEndpoints.Core;
-using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
+using AuthEndpoints.SimpleJwt;
 using Microsoft.AspNetCore.Identity;
 using MyNewWebApp.Data;
 
@@ -127,37 +128,37 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<MyDbContext>(options => 
 { 
-    // Configure database provider for `MyDbContext` here
-    // ...
+  // Configure database provider for `MyDbContext` here
+  // ...
 });
 
 builder.Services
-    .AddIdentityCore<IdentityUser>()
-    .AddEntityFrameworkStores<MyDbContext>()
-    .AddDefaultTokenProviders();
+  .AddIdentityCore<IdentityUser>() // <--
+  .AddEntityFrameworkStores<MyDbContext>() // <-- Microsoft.AspNetCore.Identity.EntityFrameworkCore
+  .AddDefaultTokenProviders(); // <--
 
+// Add basic authentication
 builder.Services
-  // When no options provided, 
-  // AuthEndpoints will automatically create a secret key and use single security key
-  // for each access jwt and refresh jwt (symmetric encryption).
-  // Secrets will be created under `keys/` directory.
   .AddAuthEndpointsCore<IdentityUser>() // <-- 
-  .AddRefreshTokenStore<MyDbContext>() // <-- 
-  .AddAuthEndpointDefinitions(); // Add endpoint definitions
+  .AddBasicAuthenticationEndpoints()
+  .Add2FAEndpoints();
+
+// Add JWT endpoints
+builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // <--
+app.UseAuthorization(); // <--
 
 app.MapControllers();
 
