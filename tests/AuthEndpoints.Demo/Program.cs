@@ -46,20 +46,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 {
 	if (builder.Environment.IsDevelopment())
 	{
-		options.UseSqlite(builder.Configuration.GetConnectionString("DataSQLiteConnection"));
-	}
+        //options.UseSqlite(builder.Configuration.GetConnectionString("DataSQLiteConnection"));
+        options.UseInMemoryDatabase(databaseName: "Test");
+    }
 });
-
-builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
-{
-    option.User.RequireUniqueEmail = true;
-    option.Password.RequireDigit = false;
-    option.Password.RequireNonAlphanumeric = false;
-    option.Password.RequireUppercase = false;
-    option.Password.RequiredLength = 0;
-})
-.AddEntityFrameworkStores<MyDbContext>()
-.AddDefaultTokenProviders();
 
 builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
 {
@@ -77,9 +67,18 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
 .AddBasicAuthenticationEndpoints()
 .Add2FAEndpoints();
 
-builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
+builder.Services.AddIdentity<MyCustomIdentityUser, IdentityRole>(option =>
+{
+    option.User.RequireUniqueEmail = true;
+    option.Password.RequireDigit = false;
+    option.Password.RequireNonAlphanumeric = false;
+    option.Password.RequireUppercase = false;
+    option.Password.RequiredLength = 0;
+})
+.AddEntityFrameworkStores<MyDbContext>()
+.AddDefaultTokenProviders();
 
-builder.Services.AddEndpointDefinition<MyEndpointDefinition>();
+builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
 
 var app = builder.Build();
 
