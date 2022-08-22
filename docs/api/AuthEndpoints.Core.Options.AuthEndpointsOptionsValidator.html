@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Class AuthEndpointsBuilderExtensions
+    <title>Class AuthEndpointsOptionsValidator
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Class AuthEndpointsBuilderExtensions
+    <meta name="title" content="Class AuthEndpointsOptionsValidator
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,18 +78,21 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator">
   
   
-  <h1 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions" class="text-break">Class AuthEndpointsBuilderExtensions
+  <h1 id="AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator" data-uid="AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator" class="text-break">Class AuthEndpointsOptionsValidator
   </h1>
-  <div class="markdown level0 summary"><p>Provides extensions to easily add authentication endpoints using the minimal api.</p>
-</div>
+  <div class="markdown level0 summary"></div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
-    <div class="level1"><span class="xref">AuthEndpointsBuilderExtensions</span></div>
+    <div class="level1"><span class="xref">AuthEndpointsOptionsValidator</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">Microsoft.Extensions.Options.IValidateOptions</span>&lt;<a class="xref" href="AuthEndpoints.Core.AuthEndpointsOptions.html">AuthEndpointsOptions</a>&gt;</div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -115,28 +118,62 @@
       <span class="xref">System.Object.ToString()</span>
     </div>
   </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.MinimalApi.html">AuthEndpoints.MinimalApi</a></h6>
-  <h6><strong>Assembly</strong>: AuthEndpoints.MinimalApi.dll</h6>
-  <h5 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_syntax">Syntax</h5>
+  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Core.Options.html">AuthEndpoints.Core.Options</a></h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.Core.dll</h6>
+  <h5 id="AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class AuthEndpointsBuilderExtensions</code></pre>
+    <pre><code class="lang-csharp hljs">public class AuthEndpointsOptionsValidator : IValidateOptions&lt;AuthEndpointsOptions&gt;</code></pre>
   </div>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator__ctor_Microsoft_Extensions_Logging_ILogger_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.%23ctor(Microsoft.Extensions.Logging.ILogger)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.Core/Options/AuthEndpointsOptionsValidator.cs/#L10">View Source</a>
+  </span>
+  <a id="AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator__ctor_" data-uid="AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.#ctor*"></a>
+  <h4 id="AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator__ctor_Microsoft_Extensions_Logging_ILogger_" data-uid="AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.#ctor(Microsoft.Extensions.Logging.ILogger)">AuthEndpointsOptionsValidator(ILogger)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public AuthEndpointsOptionsValidator(ILogger logger)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.Extensions.Logging.ILogger</span></td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
   <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator_Validate_System_String_AuthEndpoints_Core_AuthEndpointsOptions_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.Validate(System.String%2CAuthEndpoints.Core.AuthEndpointsOptions)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.MinimalApi/AuthEndpointsBuilderExtensions.cs/#L19">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.Core/Options/AuthEndpointsOptionsValidator.cs/#L15">View Source</a>
   </span>
-  <a id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)">Add2FAEndpoints(AuthEndpointsBuilder)</h4>
+  <a id="AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator_Validate_" data-uid="AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.Validate*"></a>
+  <h4 id="AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator_Validate_System_String_AuthEndpoints_Core_AuthEndpointsOptions_" data-uid="AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.Validate(System.String,AuthEndpoints.Core.AuthEndpointsOptions)">Validate(String, AuthEndpointsOptions)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder Add2FAEndpoints(this AuthEndpointsBuilder builder)</code></pre>
+    <pre><code class="lang-csharp hljs">public ValidateOptionsResult Validate(string name, AuthEndpointsOptions options)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -149,8 +186,13 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
-        <td><span class="parametername">builder</span></td>
+        <td><span class="xref">System.String</span></td>
+        <td><span class="parametername">name</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsOptions.html">AuthEndpointsOptions</a></td>
+        <td><span class="parametername">options</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -165,58 +207,15 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
+        <td><span class="xref">Microsoft.Extensions.Options.ValidateOptionsResult</span></td>
         <td></td>
       </tr>
     </tbody>
   </table>
-  <span class="small pull-right mobile-hide">
-    <span class="divider">|</span>
-    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
-  </span>
-  <span class="small pull-right mobile-hide">
-    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.MinimalApi/AuthEndpointsBuilderExtensions.cs/#L12">View Source</a>
-  </span>
-  <a id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)">AddBasicAuthenticationEndpoints(AuthEndpointsBuilder)</h4>
-  <div class="markdown level1 summary"></div>
-  <div class="markdown level1 conceptual"></div>
-  <h5 class="decalaration">Declaration</h5>
-  <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddBasicAuthenticationEndpoints(this AuthEndpointsBuilder builder)</code></pre>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">Microsoft.Extensions.Options.IValidateOptions&lt;TOptions&gt;</span>
   </div>
-  <h5 class="parameters">Parameters</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Name</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
-        <td><span class="parametername">builder</span></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
-  <h5 class="returns">Returns</h5>
-  <table class="table table-bordered table-striped table-condensed">
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
-        <td></td>
-      </tr>
-    </tbody>
-  </table>
 </article>
           </div>
           
@@ -225,10 +224,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_Options_AuthEndpointsOptionsValidator.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.MinimalApi/AuthEndpointsBuilderExtensions.cs/#L10" class="contribution-link">View Source</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.Core/Options/AuthEndpointsOptionsValidator.cs/#L6" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>

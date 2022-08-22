@@ -21,7 +21,21 @@
             "**.csproj"
           ],
           "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.SimpleJwt.Core"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
           "src": "../src/AuthEndpoints.TokenAuth"
+        },
+        {
+          "files": [
+            "**.csproj"
+          ],
+          "exclude": [ "**/bin/**", "**/obj/**" ],
+          "src": "../src/AuthEndpoints.TokenAuth.Core"
         },
         {
           "files": [

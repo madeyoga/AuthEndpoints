@@ -34,10 +34,10 @@ public class SimpleJwtBuilder
     public IServiceCollection Services { get; }
 
     /// <summary>
-    /// Gets the <see cref="AuthEndpointsOptions"/>
+    /// Gets the <see cref="SimpleJwtOptions"/>
     /// </summary>
     /// <value>
-    /// Gets the <see cref="AuthEndpointsOptions"/>
+    /// Gets the <see cref="SimpleJwtOptions"/>
     /// </value>
     public SimpleJwtOptions Options { get; }
 

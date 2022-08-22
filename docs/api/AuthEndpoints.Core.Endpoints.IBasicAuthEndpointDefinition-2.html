@@ -90,6 +90,7 @@
   <h5 id="AuthEndpoints_Core_Endpoints_IBasicAuthEndpointDefinition_2_syntax">Syntax</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public interface IBasicAuthEndpointDefinition&lt;TKey, TUser&gt;
+
     where TKey : IEquatable&lt;TKey&gt; where TUser : IdentityUser&lt;TKey&gt;, new()</code></pre>
   </div>
   <h5 class="typeParameters">Type Parameters</h5>

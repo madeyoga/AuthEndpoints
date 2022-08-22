@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Class AuthEndpointsBuilderExtensions
+    <title>Class TypeHelper
    | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Class AuthEndpointsBuilderExtensions
+    <meta name="title" content="Class TypeHelper
    | AuthEndpoints ">
     <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
@@ -78,18 +78,18 @@
         </div>
         <div class="article row grid-right">
           <div class="col-md-10">
-            <article class="content wrap" id="_content" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.Core.TypeHelper">
   
   
-  <h1 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions" class="text-break">Class AuthEndpointsBuilderExtensions
+  <h1 id="AuthEndpoints_Core_TypeHelper" data-uid="AuthEndpoints.Core.TypeHelper" class="text-break">Class TypeHelper
   </h1>
-  <div class="markdown level0 summary"><p>Provides extensions to easily add authentication endpoints using the minimal api.</p>
+  <div class="markdown level0 summary"><p>Use this static class to find genericBaseType of currentType</p>
 </div>
   <div class="markdown level0 conceptual"></div>
   <div class="inheritance">
     <h5>Inheritance</h5>
     <div class="level0"><span class="xref">System.Object</span></div>
-    <div class="level1"><span class="xref">AuthEndpointsBuilderExtensions</span></div>
+    <div class="level1"><span class="xref">TypeHelper</span></div>
   </div>
   <div class="inheritedMembers">
     <h5>Inherited Members</h5>
@@ -115,28 +115,28 @@
       <span class="xref">System.Object.ToString()</span>
     </div>
   </div>
-  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.MinimalApi.html">AuthEndpoints.MinimalApi</a></h6>
-  <h6><strong>Assembly</strong>: AuthEndpoints.MinimalApi.dll</h6>
-  <h5 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_syntax">Syntax</h5>
+  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.Core.html">AuthEndpoints.Core</a></h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.Core.dll</h6>
+  <h5 id="AuthEndpoints_Core_TypeHelper_syntax">Syntax</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static class AuthEndpointsBuilderExtensions</code></pre>
+    <pre><code class="lang-csharp hljs">public static class TypeHelper</code></pre>
   </div>
   <h3 id="methods">Methods
   </h3>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_TypeHelper_FindGenericBaseType_Type_Type_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.TypeHelper.FindGenericBaseType(Type%2CType)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.MinimalApi/AuthEndpointsBuilderExtensions.cs/#L19">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.Core/TypeHelper.cs/#L10">View Source</a>
   </span>
-  <a id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_Add2FAEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.Add2FAEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)">Add2FAEndpoints(AuthEndpointsBuilder)</h4>
+  <a id="AuthEndpoints_Core_TypeHelper_FindGenericBaseType_" data-uid="AuthEndpoints.Core.TypeHelper.FindGenericBaseType*"></a>
+  <h4 id="AuthEndpoints_Core_TypeHelper_FindGenericBaseType_Type_Type_" data-uid="AuthEndpoints.Core.TypeHelper.FindGenericBaseType(Type,Type)">FindGenericBaseType(Type, Type)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder Add2FAEndpoints(this AuthEndpointsBuilder builder)</code></pre>
+    <pre><code class="lang-csharp hljs">public static Type? FindGenericBaseType(Type currentType, Type genericBaseType)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -149,8 +149,13 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
-        <td><span class="parametername">builder</span></td>
+        <td><span class="xref">Type</span></td>
+        <td><span class="parametername">currentType</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Type</span></td>
+        <td><span class="parametername">genericBaseType</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -165,25 +170,25 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">Type</span>&gt;</td>
         <td></td>
       </tr>
     </tbody>
   </table>
   <span class="small pull-right mobile-hide">
     <span class="divider">|</span>
-    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_TypeHelper_FindKeyType_Type_.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.TypeHelper.FindKeyType(Type)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
   </span>
   <span class="small pull-right mobile-hide">
-    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.MinimalApi/AuthEndpointsBuilderExtensions.cs/#L12">View Source</a>
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.Core/TypeHelper.cs/#L25">View Source</a>
   </span>
-  <a id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints*"></a>
-  <h4 id="AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions_AddBasicAuthenticationEndpoints_AuthEndpoints_Core_AuthEndpointsBuilder_" data-uid="AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.AddBasicAuthenticationEndpoints(AuthEndpoints.Core.AuthEndpointsBuilder)">AddBasicAuthenticationEndpoints(AuthEndpointsBuilder)</h4>
+  <a id="AuthEndpoints_Core_TypeHelper_FindKeyType_" data-uid="AuthEndpoints.Core.TypeHelper.FindKeyType*"></a>
+  <h4 id="AuthEndpoints_Core_TypeHelper_FindKeyType_Type_" data-uid="AuthEndpoints.Core.TypeHelper.FindKeyType(Type)">FindKeyType(Type)</h4>
   <div class="markdown level1 summary"></div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
-    <pre><code class="lang-csharp hljs">public static AuthEndpointsBuilder AddBasicAuthenticationEndpoints(this AuthEndpointsBuilder builder)</code></pre>
+    <pre><code class="lang-csharp hljs">public static Type? FindKeyType(Type userType)</code></pre>
   </div>
   <h5 class="parameters">Parameters</h5>
   <table class="table table-bordered table-striped table-condensed">
@@ -196,8 +201,8 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
-        <td><span class="parametername">builder</span></td>
+        <td><span class="xref">Type</span></td>
+        <td><span class="parametername">userType</span></td>
         <td></td>
       </tr>
     </tbody>
@@ -212,7 +217,7 @@
     </thead>
     <tbody>
       <tr>
-        <td><a class="xref" href="AuthEndpoints.Core.AuthEndpointsBuilder.html">AuthEndpointsBuilder</a></td>
+        <td><span class="xref">System.Nullable</span>&lt;<span class="xref">Type</span>&gt;</td>
         <td></td>
       </tr>
     </tbody>
@@ -225,10 +230,10 @@
               <div class="contribution">
                 <ul class="nav">
                   <li>
-                    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_MinimalApi_AuthEndpointsBuilderExtensions.md&amp;value=---%0Auid%3A%20AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_Core_TypeHelper.md&amp;value=---%0Auid%3A%20AuthEndpoints.Core.TypeHelper%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
                   </li>
                   <li>
-                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.MinimalApi/AuthEndpointsBuilderExtensions.cs/#L10" class="contribution-link">View Source</a>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.Core/TypeHelper.cs/#L8" class="contribution-link">View Source</a>
                   </li>
                 </ul>
               </div>
