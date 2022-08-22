@@ -3,6 +3,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using AuthEndpoints.Core;
 using AuthEndpoints.Core.Services;
+using AuthEndpoints.SimpleJwt.Core;
+using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -25,7 +27,7 @@ public class UnitTest_DefaultServices
     public void CanCreateSymmetricJwt()
     {
         var secret = "qwerty1234567890";
-        var options = Options.Create(new AuthEndpointsOptions()
+        var options = Options.Create(new SimpleJwtOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {
@@ -57,7 +59,7 @@ public class UnitTest_DefaultServices
     public void CanValidateSymmetricJwt()
     {
         var secret = "qwerty1234567890";
-        var options = Options.Create(new AuthEndpointsOptions()
+        var options = Options.Create(new SimpleJwtOptions()
         {
             AccessSigningOptions = new JwtSigningOptions()
             {

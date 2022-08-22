@@ -8,7 +8,7 @@
     <title>Configuring Enryption Type | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Configuring Enryption Type | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.2.0">
+    <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -115,17 +115,17 @@ builder.Services.AddAuthEndpointsCore&lt;MyCustomIdentityUser&gt;(new AuthEndpoi
         Algorithm = SecurityAlgorithms.RsaSha256, // Use &quot;RS256&quot; algorithm
         ExpirationMinutes = 120,
     },
+    // AccessValidationParameters will be used for verifying access jwts
+    AccessValidationParameters = accessValidationParam, // verify with public key
+
     RefreshSigningOptions = new JwtSigningOptions()
     {
-        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;&lt;private_key&gt;&quot;)),
+        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(&quot;&lt;secret_key&gt;&quot;)),
         Algorithm = SecurityAlgorithms.HmacSha256,
         ExpirationMinutes = 120,
     },
     Audience = &quot;https://localhost:8000&quot;,
     Issuer = &quot;https://localhost:8000&quot;,
-
-    // AccessValidationParameters will be used for verifying access jwts
-    AccessValidationParameters = accessValidationParam // verify with public key
 });
 </code></pre>
 </article>

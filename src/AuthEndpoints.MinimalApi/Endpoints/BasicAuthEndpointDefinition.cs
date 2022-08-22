@@ -21,15 +21,16 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/users";
-        app.MapPost($"{baseUrl}", Register);
-        app.MapGet($"{baseUrl}/me", GetMe);
-        app.MapGet($"{baseUrl}/verify_email", EmailVerification);
-        app.MapPost($"{baseUrl}/verify_email_confirm", EmailVerificationConfirm);
-        app.MapPost($"{baseUrl}/set_username", SetUsername);
-        app.MapPost($"{baseUrl}/set_password", SetPassword);
-        app.MapPost($"{baseUrl}/reset_password", ResetPassword);
-        app.MapPost($"{baseUrl}/reset_password_confirm", ResetPasswordConfirm);
-        app.MapDelete($"{baseUrl}/delete", Delete);
+        string groupName = "Authentication";
+        app.MapPost($"{baseUrl}", Register).WithTags(groupName);
+        app.MapGet($"{baseUrl}/me", GetMe).WithTags(groupName);
+        app.MapGet($"{baseUrl}/verify_email", EmailVerification).WithTags(groupName);
+        app.MapPost($"{baseUrl}/verify_email_confirm", EmailVerificationConfirm).WithTags(groupName);
+        app.MapPost($"{baseUrl}/set_username", SetUsername).WithTags(groupName);
+        app.MapPost($"{baseUrl}/set_password", SetPassword).WithTags(groupName);
+        app.MapPost($"{baseUrl}/reset_password", ResetPassword).WithTags(groupName);
+        app.MapPost($"{baseUrl}/reset_password_confirm", ResetPasswordConfirm).WithTags(groupName);
+        app.MapDelete($"{baseUrl}/delete", Delete).WithTags(groupName);
     }
 
     /// <summary>
@@ -73,13 +74,12 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// <summary>
     /// Use this endpoint to retrieve the authenticated user
     /// </summary>
-    [Authorize]
-    [HttpGet("me")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> GetMe(HttpContext context, UserManager<TUser> userManager)
     {
         string identity = context.User.FindFirstValue("id");
         TUser currentUser = await userManager.FindByIdAsync(identity);
-
+        
         return Results.Ok(currentUser);
     }
 
@@ -89,8 +89,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// which will send POST request to verify email confirmation endpoint.
     /// </summary>
     /// <returns></returns>
-    [Authorize]
-    [HttpGet("verify_email")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> EmailVerification(HttpContext context,
         UserManager<TUser> userManager,
         IOptions<AuthEndpointsOptions> opt,
@@ -127,7 +126,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("verify_email_confirm")]
     public virtual async Task<IResult> EmailVerificationConfirm([FromBody] ConfirmEmailRequest request,
         UserManager<TUser> userManager)
     {
@@ -164,8 +162,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [Authorize]
-    [HttpPost("set_username")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> SetUsername([FromBody] SetUsernameRequest request,
         HttpContext context,
         UserManager<TUser> userManager)
@@ -187,8 +184,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// <summary>
     /// Use this endpoint to change user password
     /// </summary>
-    [Authorize]
-    [HttpPost("set_password")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> SetPassword([FromBody] SetPasswordRequest request,
         HttpContext context,
         UserManager<TUser> userManager)
@@ -229,7 +225,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("reset_password")]
     public virtual async Task<IResult> ResetPassword([FromBody] ResetPasswordRequest request,
         UserManager<TUser> userManager,
         IOptions<AuthEndpointsOptions> opt,
@@ -273,7 +268,6 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    [HttpPost("reset_password_confirm")]
     public virtual async Task<IResult> ResetPasswordConfirm([FromBody] ResetPasswordConfirmRequest request,
         UserManager<TUser> userManager)
     {
@@ -299,8 +293,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     /// Use this endpoint to delete authenticated user.
     /// </summary>
     /// <returns></returns>
-    [Authorize]
-    [HttpDelete("delete")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
     public virtual async Task<IResult> Delete(HttpContext context, UserManager<TUser> userManager)
     {
         var identity = context.User.FindFirstValue("id");

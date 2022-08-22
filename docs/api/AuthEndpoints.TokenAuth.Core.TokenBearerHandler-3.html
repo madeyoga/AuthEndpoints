@@ -1,0 +1,412 @@
+﻿<!DOCTYPE html>
+<!--[if IE]><![endif]-->
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Class TokenBearerHandler&lt;TKey, TUser, TContext&gt;
+   | AuthEndpoints </title>
+    <meta name="viewport" content="width=device-width">
+    <meta name="title" content="Class TokenBearerHandler&lt;TKey, TUser, TContext&gt;
+   | AuthEndpoints ">
+    <meta name="generator" content="docfx 2.59.3.0">
+    <meta name="description" content="An authentication library for ASP.Net 6">
+    <link rel="shortcut icon" href="../images/favicon.ico">
+    <link rel="stylesheet" href="../styles/docfx.vendor.css">
+    <link rel="stylesheet" href="../styles/docfx.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <meta property="docfx:navrel" content="../toc.html">
+    <meta property="docfx:tocrel" content="toc.html">
+    
+    <meta property="docfx:rel" content="../">
+    <meta property="docfx:newtab" content="true">
+  </head>
+  <body data-spy="scroll" data-target="#affix" data-offset="120">
+    <div id="wrapper">
+      <header>
+        
+        <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              
+              <a class="navbar-brand" href="../index.html">
+                <img id="logo" class="svg" src="../logo.svg" alt="">
+              </a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar">
+              <form class="navbar-form navbar-right" role="search" id="search">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="search-query" placeholder="Search" autocomplete="off">
+                </div>
+              </form>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="subnav navbar navbar-default">
+          <div class="container hide-when-search" id="breadcrumb">
+            <ul class="breadcrumb">
+              <li></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="container body-content">
+        
+        <div id="search-results">
+          <div class="search-list">Search Results for <span></span></div>
+          <div class="sr-items">
+            <p><i class="glyphicon glyphicon-refresh index-loading"></i></p>
+          </div>
+          <ul id="pagination" data-first="First" data-prev="Previous" data-next="Next" data-last="Last"></ul>
+        </div>
+      </div>
+      <div role="main" class="container body-content hide-when-search">
+        
+        <div class="sidenav hide-when-search">
+          <a class="btn toc-toggle collapse" data-toggle="collapse" href="#sidetoggle" aria-expanded="false" aria-controls="sidetoggle">Show / Hide Table of Contents</a>
+          <div class="sidetoggle collapse" id="sidetoggle">
+            <div id="sidetoc"></div>
+          </div>
+        </div>
+        <div class="article row grid-right">
+          <div class="col-md-10">
+            <article class="content wrap" id="_content" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3">
+  
+  
+  <h1 id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3" class="text-break">Class TokenBearerHandler&lt;TKey, TUser, TContext&gt;
+  </h1>
+  <div class="markdown level0 summary"></div>
+  <div class="markdown level0 conceptual"></div>
+  <div class="inheritance">
+    <h5>Inheritance</h5>
+    <div class="level0"><span class="xref">System.Object</span></div>
+    <div class="level1"><span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler</span>&lt;<a class="xref" href="AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions.html">TokenBearerAuthenticationOptions</a>&gt;</div>
+    <div class="level2"><span class="xref">TokenBearerHandler&lt;TKey, TUser, TContext&gt;</span></div>
+  </div>
+  <div class="implements">
+    <h5>Implements</h5>
+    <div><span class="xref">Microsoft.AspNetCore.Authentication.IAuthenticationHandler</span></div>
+  </div>
+  <div class="inheritedMembers">
+    <h5>Inherited Members</h5>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.InitializeAsync(Microsoft.AspNetCore.Authentication.AuthenticationScheme, Microsoft.AspNetCore.Http.HttpContext)</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.InitializeEventsAsync()</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.CreateEventsAsync()</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.InitializeHandlerAsync()</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.BuildRedirectUri(System.String)</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.ResolveTarget(System.String)</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.AuthenticateAsync()</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.HandleAuthenticateOnceAsync()</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.HandleAuthenticateOnceSafeAsync()</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.HandleChallengeAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.ChallengeAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.ForbidAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Scheme</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Options</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Context</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Request</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Response</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.OriginalPath</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.OriginalPathBase</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Logger</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.UrlEncoder</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Clock</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.OptionsMonitor</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.Events</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.ClaimsIssuer</span>
+    </div>
+    <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.CurrentUri</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.Equals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetHashCode()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.GetType()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.MemberwiseClone()</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ReferenceEquals(System.Object, System.Object)</span>
+    </div>
+    <div>
+      <span class="xref">System.Object.ToString()</span>
+    </div>
+  </div>
+  <h6><strong>Namespace</strong>: <a class="xref" href="AuthEndpoints.TokenAuth.Core.html">AuthEndpoints.TokenAuth.Core</a></h6>
+  <h6><strong>Assembly</strong>: AuthEndpoints.TokenAuth.Core.dll</h6>
+  <h5 id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_syntax">Syntax</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public class TokenBearerHandler&lt;TKey, TUser, TContext&gt; : AuthenticationHandler&lt;TokenBearerAuthenticationOptions&gt;, IAuthenticationHandler where TKey : class, IEquatable&lt;TKey&gt; where TUser : IdentityUser&lt;TKey&gt; where TContext : DbContext</code></pre>
+  </div>
+  <h5 class="typeParameters">Type Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="parametername">TKey</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TUser</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="parametername">TContext</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="constructors">Constructors
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3__ctor_Microsoft_Extensions_Options_IOptionsMonitor_AuthEndpoints_TokenAuth_Core_TokenBearerAuthenticationOptions__Microsoft_Extensions_Logging_ILoggerFactory_System_Text_Encodings_Web_UrlEncoder_Microsoft_AspNetCore_Authentication_ISystemClock_AuthEndpoints_TokenAuth_Core_AuthTokenValidator__0__1__2__.md&amp;value=---%0Auid%3A%20AuthEndpoints.TokenAuth.Core.TokenBearerHandler%603.%23ctor(Microsoft.Extensions.Options.IOptionsMonitor%7BAuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions%7D%2CMicrosoft.Extensions.Logging.ILoggerFactory%2CSystem.Text.Encodings.Web.UrlEncoder%2CMicrosoft.AspNetCore.Authentication.ISystemClock%2CAuthEndpoints.TokenAuth.Core.AuthTokenValidator%7B%600%2C%601%2C%602%7D)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.TokenAuth.Core/TokenBearerHandler.cs/#L19">View Source</a>
+  </span>
+  <a id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3__ctor_" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3.#ctor*"></a>
+  <h4 id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3__ctor_Microsoft_Extensions_Options_IOptionsMonitor_AuthEndpoints_TokenAuth_Core_TokenBearerAuthenticationOptions__Microsoft_Extensions_Logging_ILoggerFactory_System_Text_Encodings_Web_UrlEncoder_Microsoft_AspNetCore_Authentication_ISystemClock_AuthEndpoints_TokenAuth_Core_AuthTokenValidator__0__1__2__" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3.#ctor(Microsoft.Extensions.Options.IOptionsMonitor{AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions},Microsoft.Extensions.Logging.ILoggerFactory,System.Text.Encodings.Web.UrlEncoder,Microsoft.AspNetCore.Authentication.ISystemClock,AuthEndpoints.TokenAuth.Core.AuthTokenValidator{`0,`1,`2})">TokenBearerHandler(IOptionsMonitor&lt;TokenBearerAuthenticationOptions&gt;, ILoggerFactory, UrlEncoder, ISystemClock, AuthTokenValidator&lt;TKey, TUser, TContext&gt;)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">public TokenBearerHandler(IOptionsMonitor&lt;TokenBearerAuthenticationOptions&gt; options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, AuthTokenValidator&lt;TKey, TUser, TContext&gt; validator)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.Extensions.Options.IOptionsMonitor</span>&lt;<a class="xref" href="AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions.html">TokenBearerAuthenticationOptions</a>&gt;</td>
+        <td><span class="parametername">options</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.Extensions.Logging.ILoggerFactory</span></td>
+        <td><span class="parametername">logger</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">System.Text.Encodings.Web.UrlEncoder</span></td>
+        <td><span class="parametername">encoder</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Authentication.ISystemClock</span></td>
+        <td><span class="parametername">clock</span></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><a class="xref" href="AuthEndpoints.TokenAuth.Core.AuthTokenValidator-3.html">AuthTokenValidator</a>&lt;TKey, TUser, TContext&gt;</td>
+        <td><span class="parametername">validator</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 id="methods">Methods
+  </h3>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_HandleAuthenticateAsync.md&amp;value=---%0Auid%3A%20AuthEndpoints.TokenAuth.Core.TokenBearerHandler%603.HandleAuthenticateAsync%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.TokenAuth.Core/TokenBearerHandler.cs/#L28">View Source</a>
+  </span>
+  <a id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_HandleAuthenticateAsync_" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3.HandleAuthenticateAsync*"></a>
+  <h4 id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_HandleAuthenticateAsync" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3.HandleAuthenticateAsync">HandleAuthenticateAsync()</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override async Task&lt;AuthenticateResult&gt; HandleAuthenticateAsync()</code></pre>
+  </div>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span>&lt;<span class="xref">Microsoft.AspNetCore.Authentication.AuthenticateResult</span>&gt;</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.HandleAuthenticateAsync()</span></div>
+  <span class="small pull-right mobile-hide">
+    <span class="divider">|</span>
+    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_HandleForbiddenAsync_Microsoft_AspNetCore_Authentication_AuthenticationProperties_.md&amp;value=---%0Auid%3A%20AuthEndpoints.TokenAuth.Core.TokenBearerHandler%603.HandleForbiddenAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">Improve this Doc</a>
+  </span>
+  <span class="small pull-right mobile-hide">
+    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.TokenAuth.Core/TokenBearerHandler.cs/#L76">View Source</a>
+  </span>
+  <a id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_HandleForbiddenAsync_" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3.HandleForbiddenAsync*"></a>
+  <h4 id="AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3_HandleForbiddenAsync_Microsoft_AspNetCore_Authentication_AuthenticationProperties_" data-uid="AuthEndpoints.TokenAuth.Core.TokenBearerHandler`3.HandleForbiddenAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)">HandleForbiddenAsync(AuthenticationProperties)</h4>
+  <div class="markdown level1 summary"></div>
+  <div class="markdown level1 conceptual"></div>
+  <h5 class="decalaration">Declaration</h5>
+  <div class="codewrapper">
+    <pre><code class="lang-csharp hljs">protected override Task HandleForbiddenAsync(AuthenticationProperties properties)</code></pre>
+  </div>
+  <h5 class="parameters">Parameters</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationProperties</span></td>
+        <td><span class="parametername">properties</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="returns">Returns</h5>
+  <table class="table table-bordered table-striped table-condensed">
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="xref">Task</span></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+  <h5 class="overrides">Overrides</h5>
+  <div><span class="xref">Microsoft.AspNetCore.Authentication.AuthenticationHandler&lt;AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions&gt;.HandleForbiddenAsync(Microsoft.AspNetCore.Authentication.AuthenticationProperties)</span></div>
+  <h3 id="implements">Implements</h3>
+  <div>
+      <span class="xref">Microsoft.AspNetCore.Authentication.IAuthenticationHandler</span>
+  </div>
+</article>
+          </div>
+          
+          <div class="hidden-sm col-md-2" role="complementary">
+            <div class="sideaffix">
+              <div class="contribution">
+                <ul class="nav">
+                  <li>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/new/main/apiSpec/new?filename=AuthEndpoints_TokenAuth_Core_TokenBearerHandler_3.md&amp;value=---%0Auid%3A%20AuthEndpoints.TokenAuth.Core.TokenBearerHandler%603%0Asummary%3A%20'*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax'%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A" class="contribution-link">Improve this Doc</a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/src/AuthEndpoints.TokenAuth.Core/TokenBearerHandler.cs/#L12" class="contribution-link">View Source</a>
+                  </li>
+                </ul>
+              </div>
+              <nav class="bs-docs-sidebar hidden-print hidden-xs hidden-sm affix" id="affix">
+                <h5>In This Article</h5>
+                <div></div>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer>
+        <div class="grad-bottom"></div>
+        <div class="footer">
+          <div class="container">
+            <span class="pull-right">
+              <a href="#top">Back to top</a>
+            </span>
+            Developed by <a href='https://github.com/madeyoga/AuthEndpoints'>MadeY</a> and <a href='https://github.com/madeyoga/AuthEndpoints/graphs/contributors'>contributors</a> / Licensed under <a href='#'>MIT</a> / Website generated by <a href='https://dotnet.github.io/docfx/'>DocFX</a>
+            
+          </div>
+        </div>
+      </footer>
+    </div>
+    
+    <script type="text/javascript" src="../styles/docfx.vendor.js"></script>
+    <script type="text/javascript" src="../styles/docfx.js"></script>
+    <script type="text/javascript" src="../styles/main.js"></script>
+  </body>
+</html>

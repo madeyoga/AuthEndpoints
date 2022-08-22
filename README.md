@@ -8,20 +8,22 @@
 
 A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of Web API controllers and minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, create jwt, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
 
-## Features
-- Supported endpoints:
+## Supported endpoints
+- Basic authentication actions:
   - sign-up
-  - sign-in (create jwt)
   - email verification
-  - refresh jwt
-  - verify jwt
   - user profile (retrieving)
   - reset password
   - change password
-  - enable 2fa & login 2fa (via email)
-- JWT support
-- Works with a symmetric key (shared secret) or asymmetric keys (the private key of a private–public pair).
-- Works with custom identity user
+  - enable 2fa
+  - login 2fa
+- TokenAuth:
+  - Create (login)
+  - Destroy (logout)
+- Simple JWT:
+  - Create (login)
+  - Refresh
+  - Verify
 
 ## Current limitations
 - Only works with IdentityUser or custom identity user
@@ -45,46 +47,39 @@ Install-Package AuthEndpoints
 
 ## Quick start
 
-Add `DbSet<RefreshToken>` to dbcontext:
-
 ```cs
+// MyDbContext.cs
+
+
 using AuthEndpoints.Core.Models;
 
-DbSet<RefreshToken>? RefreshTokens { get; set; }
+DbSet<RefreshToken>? RefreshTokens { get; set; } // <--
 ```
 
-Add the required identity services:
-
 ```cs
+// Program.cs
+
+
+// Required services
 builder.Services
-  .AddIdentityCore<MyCustomIdentityUser>() // <-- or `AddIdentity<,>`
-  .AddEntityFrameworkStores<MyDbContext>() // <--
-  .AddDefaultTokenProviders();             // <--
-```
+  .AddIdentityCore<IdentityUser>() // <-- or `AddIdentity<,>`
+  .AddEntityFrameworkStores<MyDbContext>() // <-- Install Microsoft.AspNetCore.Identity.EntityFrameworkCore
+  .AddDefaultTokenProviders(); // <--
 
-Next, let's add auth endpoints services and jwt bearer authentication scheme:
+// Add basic authentication endpoints
+builder.Services.AddAuthEndpointsCore<IdentityUser>()
+  .AddBasicAuthenticationEndpoints()
+  .Add2FAEndpoints();
 
-```cs
-builder.Services
-  // When no options provided, 
-  // AuthEndpoints will automatically create a secret key and use single security key
-  // for each access jwt and refresh jwt (symmetric encryption).
-  // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore<MyCustomIdentityUser>() // <TUser>
-  .AddRefreshTokenStore<MyDbContext>()
-  .AddAuthEndpointDefinitions(); // Add endpoint definitions
-```
-
-then finally, call `app.MapEndpoints()` before `app.Run()`:
-
-```cs
+// Add jwt endpoints
+builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>();
 
 var app = builder.Build();
 
 ...
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // <--
+app.UseAuthorization(); // <--
 
 ...
 

@@ -8,7 +8,7 @@
     <title>Getting started | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Getting started | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.2.0">
+    <meta name="generator" content="docfx 2.59.3.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -92,10 +92,11 @@
 <pre><code>Install-Package AuthEndpoints
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>First, let's install <code>Microsoft.AspNetCore.Identity.EntityFrameworkCore</code> and create <code>MyDbContext</code>:</p>
+<p>First, let's install <code>Microsoft.AspNetCore.Identity.EntityFrameworkCore</code> and create a DbContext:</p>
 <pre><code>dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
 </code></pre>
 <pre><code class="lang-cs">// Data/MyDbContext.cs
+
 using AuthEndpoints.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -118,21 +119,21 @@ builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt;
 });
 
 builder.Services
-  .AddIdentityCore&lt;IdentityUser&gt;()         // &lt;-- or `AddIdentity&lt;,&gt;`
-  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;-- requires Microsoft.AspNetCore.Identity.EntityFrameworkCore
-  .AddDefaultTokenProviders();             // &lt;--
+  .AddIdentityCore&lt;IdentityUser&gt;() // &lt;-- or `AddIdentity&lt;,&gt;`
+  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;-- Microsoft.AspNetCore.Identity.EntityFrameworkCore
+  .AddDefaultTokenProviders(); // &lt;--
 </code></pre>
 <p>Next, let's add auth endpoints services:</p>
 <pre><code class="lang-cs">// Program.cs
 
+// Add basic authentication endpoints
 builder.Services
-  // When no options provided, 
-  // AuthEndpoints will automatically create a secret key and use single security key
-  // for each access jwt and refresh jwt (symmetric encryption).
-  // Secrets will be created under `keys/` directory.
-  .AddAuthEndpointsCore&lt;IdentityUser&gt;()
-  .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
-  .AddAuthEndpointDefinitions(); // Add endpoint definitions
+  .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;-- 
+  .AddBasicAuthenticationEndpoints()
+  .Add2FAEndpoints();
+
+// Add JWT endpoints
+builder.Services.AddSimpleJwtEndpoints&lt;IdentityUser, MyDbContext&gt;();
 </code></pre>
 <p>then finally, call <code>app.MapEndpoints()</code> before <code>app.Run()</code>:</p>
 <pre><code class="lang-cs">// Program.cs
@@ -143,8 +144,8 @@ var app = builder.Build();
 
 ...
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // &lt;--
+app.UseAuthorization(); // &lt;--
 
 ...
 
@@ -153,13 +154,13 @@ app.MapEndpoints(); // &lt;--
 app.Run();
 </code></pre>
 <p>Run it and you should see auth endpoints available on swagger docs!</p>
-<p><img src="https://imgur.com/YT7htMW.png" alt="authendpoints swagger" title="authendpoints swagger"></p>
+<p><img src="https://i.imgur.com/VCuIazI.png" alt="authendpoints swagger" title="authendpoints swagger"></p>
 <h2 id="full-source-code">Full Source Code</h2>
 <pre><code class="lang-cs">// Program.cs
 
 using AuthEndpoints.Core;
-using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
+using AuthEndpoints.SimpleJwt;
 using Microsoft.AspNetCore.Identity;
 using MyNewWebApp.Data;
 
@@ -173,37 +174,37 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt; 
 { 
-    // Configure database provider for `MyDbContext` here
-    // ...
+  // Configure database provider for `MyDbContext` here
+  // ...
 });
 
 builder.Services
-    .AddIdentityCore&lt;IdentityUser&gt;()
-    .AddEntityFrameworkStores&lt;MyDbContext&gt;()
-    .AddDefaultTokenProviders();
+  .AddIdentityCore&lt;IdentityUser&gt;() // &lt;--
+  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;-- Microsoft.AspNetCore.Identity.EntityFrameworkCore
+  .AddDefaultTokenProviders(); // &lt;--
 
+// Add basic authentication
 builder.Services
-  // When no options provided, 
-  // AuthEndpoints will automatically create a secret key and use single security key
-  // for each access jwt and refresh jwt (symmetric encryption).
-  // Secrets will be created under `keys/` directory.
   .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;-- 
-  .AddRefreshTokenStore&lt;MyDbContext&gt;() // &lt;-- 
-  .AddAuthEndpointDefinitions(); // Add endpoint definitions
+  .AddBasicAuthenticationEndpoints()
+  .Add2FAEndpoints();
+
+// Add JWT endpoints
+builder.Services.AddSimpleJwtEndpoints&lt;IdentityUser, MyDbContext&gt;();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+  app.UseSwagger();
+  app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication(); // &lt;--
+app.UseAuthorization(); // &lt;--
 
 app.MapControllers();
 

@@ -1,7 +1,4 @@
-﻿using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Models;
-using AuthEndpoints.Core.Repositories;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Core.Services;
 
@@ -13,14 +10,10 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
     private readonly UserManager<TUser> userManager;
-    private readonly ITokenGeneratorService<TUser> tokenGenerator;
-    private readonly IRefreshTokenRepository refreshTokenRepository;
 
-    public DefaultAuthenticator(UserManager<TUser> userManager, ITokenGeneratorService<TUser> tokenGenerator, IRefreshTokenRepository refreshTokenRepository)
+    public DefaultAuthenticator(UserManager<TUser> userManager)
     {
         this.userManager = userManager;
-        this.tokenGenerator = tokenGenerator;
-        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     /// <summary>
@@ -46,26 +39,5 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
         }
 
         return user;
-    }
-
-    /// <summary>
-    /// Use this method to get an access Token and a refresh Token for the given TUser
-    /// </summary>
-    /// <param name="user"></param>
-    /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access Token and a refresh Token</returns>
-    public async Task<AuthenticatedUserResponse> Login(TUser user)
-    {
-        var accessToken = tokenGenerator.GenerateAccessToken(user);
-        var refreshToken = tokenGenerator.GenerateRefreshToken(user);
-        await refreshTokenRepository.AddAsync(new RefreshToken
-        {
-            Token = refreshToken,
-        });
-        await refreshTokenRepository.SaveChangesAsync();
-        return new AuthenticatedUserResponse()
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-        };
     }
 }

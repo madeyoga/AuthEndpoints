@@ -41,16 +41,16 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(new AuthEndpointsOpt
         Algorithm = SecurityAlgorithms.RsaSha256, // Use "RS256" algorithm
         ExpirationMinutes = 120,
     },
+    // AccessValidationParameters will be used for verifying access jwts
+    AccessValidationParameters = accessValidationParam, // verify with public key
+
     RefreshSigningOptions = new JwtSigningOptions()
     {
-        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<private_key>")),
+        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("<secret_key>")),
         Algorithm = SecurityAlgorithms.HmacSha256,
         ExpirationMinutes = 120,
     },
     Audience = "https://localhost:8000",
     Issuer = "https://localhost:8000",
-
-    // AccessValidationParameters will be used for verifying access jwts
-    AccessValidationParameters = accessValidationParam // verify with public key
 });
 ```

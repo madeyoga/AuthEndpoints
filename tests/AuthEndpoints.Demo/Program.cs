@@ -2,8 +2,8 @@
 using AuthEndpoints.Core;
 using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.Infrastructure;
 using AuthEndpoints.MinimalApi;
+using AuthEndpoints.SimpleJwt;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -46,20 +46,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 {
 	if (builder.Environment.IsDevelopment())
 	{
-		options.UseSqlite(builder.Configuration.GetConnectionString("DataSQLiteConnection"));
-	}
+        //options.UseSqlite(builder.Configuration.GetConnectionString("DataSQLiteConnection"));
+        options.UseInMemoryDatabase(databaseName: "Test");
+    }
 });
-
-builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
-{
-    option.User.RequireUniqueEmail = true;
-    option.Password.RequireDigit = false;
-    option.Password.RequireNonAlphanumeric = false;
-    option.Password.RequireUppercase = false;
-    option.Password.RequiredLength = 0;
-})
-.AddEntityFrameworkStores<MyDbContext>()
-.AddDefaultTokenProviders();
 
 builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
 {
@@ -74,10 +64,21 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
 })
-.AddRefreshTokenStore<MyDbContext>()
-.AddAuthEndpointDefinitions();
+.AddBasicAuthenticationEndpoints()
+.Add2FAEndpoints();
 
-builder.Services.AddEndpointDefinition<MyEndpointDefinition>();
+builder.Services.AddIdentity<MyCustomIdentityUser, IdentityRole>(option =>
+{
+    option.User.RequireUniqueEmail = true;
+    option.Password.RequireDigit = false;
+    option.Password.RequireNonAlphanumeric = false;
+    option.Password.RequireUppercase = false;
+    option.Password.RequiredLength = 0;
+})
+.AddEntityFrameworkStores<MyDbContext>()
+.AddDefaultTokenProviders();
+
+builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
 
 var app = builder.Build();
 
