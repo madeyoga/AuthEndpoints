@@ -4,5 +4,5 @@ public static class TokenBearerDefaults
     /// <summary>
     /// Default value for AuthenticationScheme property in the TokenBearerAuthenticationsOptions
     /// </summary>
-    public const string AuthenticationScheme = "TokenBearer";
+    public const string AuthenticationScheme = "Bearer";
 }

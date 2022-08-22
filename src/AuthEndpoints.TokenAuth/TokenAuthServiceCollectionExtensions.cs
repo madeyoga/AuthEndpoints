@@ -13,12 +13,7 @@ public static class TokenAuthServiceCollectionExtensions
         where TUser : class
         where TContext : DbContext
     {
-        var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>));
-        if (identityUserType == null)
-        {
-            throw new InvalidOperationException("Generic type TUser is not IdentityUser");
-        }
-        var keyType = identityUserType.GenericTypeArguments[0];
+        var keyType = TypeHelper.FindKeyType(typeof(TUser))!;
         var userType = typeof(TUser);
         var contextType = typeof(TContext);
 
@@ -36,8 +31,8 @@ public static class TokenAuthServiceCollectionExtensions
         var builder = AddTokenAuthCore<TUser, TContext>(services);
 
         // Add auth scheme
-        services.AddAuthentication("TokenBearer")
-            .AddTokenBearer(builder.KeyType, builder.UserType, builder.ContextType);
+        services.AddAuthentication(TokenBearerDefaults.AuthenticationScheme)
+            .AddTokenBearer(builder.UserType, builder.ContextType);
 
         var loginServiceType = typeof(TokenAuthLoginService<,,>).MakeGenericType(builder.KeyType, builder.UserType, builder.ContextType);
         services.AddScoped(typeof(ILoginService<TUser>), loginServiceType);
