@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using AuthEndpoints.Core;
-using AuthEndpoints.Core.Services;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Identity;

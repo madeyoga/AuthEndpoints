@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using AuthEndpoints.Core;
 using AuthEndpoints.SimpleJwt.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
