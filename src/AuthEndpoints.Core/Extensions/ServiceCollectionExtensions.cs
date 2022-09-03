@@ -1,6 +1,7 @@
 ﻿using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -11,16 +12,11 @@ namespace AuthEndpoints.Core;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    internal static AuthEndpointsBuilder ConfigureServices<TUser>(IServiceCollection services)
+    internal static AuthEndpointsBuilder ConfigureServices<TUser, TContext>(IServiceCollection services)
         where TUser : class
+        where TContext : DbContext
     {
-        var identityUserType = FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>));
-        if (identityUserType == null)
-        {
-            throw new InvalidOperationException("Generic type TUser is not IdentityUser");
-        }
-
-        var keyType = identityUserType.GenericTypeArguments[0];
+        var keyType = TypeHelper.FindKeyType(typeof(TUser))!;
         services.AddAuthorization();
 
         //services.AddSingleton(typeof(IOptions<AuthEndpointsOptions>), Options.Create(endpointsOptions));
@@ -31,6 +27,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IEmailSender, DefaultEmailSender>();
 
         var identityBuilder = services.AddIdentityCore<TUser>()
+            .AddEntityFrameworkStores<TContext>()
             .AddDefaultTokenProviders();
 
         return new AuthEndpointsBuilder(keyType, typeof(TUser), services);
@@ -43,10 +40,11 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TUser"></typeparam>
     /// <param name="services"></param>
     /// <returns>An <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
-    public static AuthEndpointsBuilder AddAuthEndpointsCore<TUser>(this IServiceCollection services)
+    public static AuthEndpointsBuilder AddAuthEndpointsCore<TUser, TContext>(this IServiceCollection services)
         where TUser : class
+        where TContext : DbContext
     {
-        return services.AddAuthEndpointsCore<TUser>(o => { });
+        return services.AddAuthEndpointsCore<TUser, TContext>(o => { });
     }
 
     /// <summary>
@@ -57,8 +55,9 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The services available in the application.</param>
     /// <param name="setup">An action to configure the <see cref="AuthEndpointsOptions"/>.</param>
     /// <returns>An <see cref="AuthEndpointsBuilder"/> for creating and configuring the AuthEndpoints system.</returns>
-    public static AuthEndpointsBuilder AddAuthEndpointsCore<TUser>(this IServiceCollection services, Action<AuthEndpointsOptions> setup)
+    public static AuthEndpointsBuilder AddAuthEndpointsCore<TUser, TContext>(this IServiceCollection services, Action<AuthEndpointsOptions> setup)
         where TUser : class
+        where TContext : DbContext
     {
         if (setup != null)
         {
@@ -66,7 +65,7 @@ public static class ServiceCollectionExtensions
                 .Configure(setup);
         }
 
-        return ConfigureServices<TUser>(services);
+        return ConfigureServices<TUser, TContext>(services);
     }
 
     /// <summary>
