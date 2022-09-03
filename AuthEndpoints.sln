@@ -20,8 +20,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "tests\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj", "{529EF27A-876F-4D49-BC45-BAEBEDA882F0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Infrastructure", "src\AuthEndpoints.Infrastructure\AuthEndpoints.Infrastructure.csproj", "{8A07513F-E70E-41D2-86EC-012F9D472C6F}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Tests.Web", "tests\AuthEndpoints.TokenAuth.Tests.Web\AuthEndpoints.TokenAuth.Tests.Web.csproj", "{5245A420-F562-4DED-85F9-0D2B4E912810}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Tests", "tests\AuthEndpoints.TokenAuth.Tests\AuthEndpoints.TokenAuth.Tests.csproj", "{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}"
@@ -32,7 +30,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.SimpleJwt.Core", "src\AuthEndpoints.SimpleJwt.Core\AuthEndpoints.SimpleJwt.Core.csproj", "{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.TokenAuth.Core", "src\AuthEndpoints.TokenAuth.Core\AuthEndpoints.TokenAuth.Core.csproj", "{51E9A2FF-7EAB-4283-8088-595C8060C5C1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Core", "src\AuthEndpoints.TokenAuth.Core\AuthEndpoints.TokenAuth.Core.csproj", "{51E9A2FF-7EAB-4283-8088-595C8060C5C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,10 +62,6 @@ Global
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8A07513F-E70E-41D2-86EC-012F9D472C6F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5245A420-F562-4DED-85F9-0D2B4E912810}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5245A420-F562-4DED-85F9-0D2B4E912810}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5245A420-F562-4DED-85F9-0D2B4E912810}.Release|Any CPU.ActiveCfg = Release|Any CPU
