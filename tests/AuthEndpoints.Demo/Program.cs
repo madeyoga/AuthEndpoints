@@ -4,7 +4,7 @@ using AuthEndpoints.Demo.Data;
 using AuthEndpoints.Demo.Models;
 using AuthEndpoints.MinimalApi;
 using AuthEndpoints.SimpleJwt;
-using Microsoft.AspNetCore.Identity;
+using AuthEndpoints.TokenAuth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -51,7 +51,16 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     }
 });
 
-builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
+builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
+{
+    option.User.RequireUniqueEmail = true;
+    option.Password.RequireDigit = false;
+    option.Password.RequireNonAlphanumeric = false;
+    option.Password.RequireUppercase = false;
+    option.Password.RequiredLength = 0;
+});
+
+builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser, MyDbContext>(options =>
 {
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
     options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
@@ -66,17 +75,6 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser>(options =>
 })
 .AddBasicAuthenticationEndpoints()
 .Add2FAEndpoints();
-
-builder.Services.AddIdentity<MyCustomIdentityUser, IdentityRole>(option =>
-{
-    option.User.RequireUniqueEmail = true;
-    option.Password.RequireDigit = false;
-    option.Password.RequireNonAlphanumeric = false;
-    option.Password.RequireUppercase = false;
-    option.Password.RequiredLength = 0;
-})
-.AddEntityFrameworkStores<MyDbContext>()
-.AddDefaultTokenProviders();
 
 builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
 

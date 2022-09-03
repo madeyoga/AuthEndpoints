@@ -32,7 +32,7 @@ builder.Services.AddIdentityCore<IdentityUser>(option =>
 .AddEntityFrameworkStores<MyDbContext>()
 .AddDefaultTokenProviders();
 
-builder.Services.AddAuthEndpointsCore<IdentityUser>()
+builder.Services.AddAuthEndpointsCore<IdentityUser, MyDbContext>()
     .AddBasicAuthenticationEndpoints();
 
 builder.Services.AddTokenAuthEndpoints<IdentityUser, MyDbContext>();
