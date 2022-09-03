@@ -1,8 +1,7 @@
-﻿using AuthEndpoints.SimpleJwt.Core;
-using AuthEndpoints.SimpleJwt.Core.Models;
+﻿using AuthEndpoints.SimpleJwt.Core.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthEndpoints.Infrastructure;
+namespace AuthEndpoints.SimpleJwt.Core;
 
 public class RefreshTokenRepository<TContext> : IRefreshTokenRepository where TContext : DbContext
 {

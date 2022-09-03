@@ -1,5 +1,6 @@
 ﻿using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.SimpleJwt.Core;
@@ -98,6 +99,12 @@ public class SimpleJwtBuilder
     public virtual SimpleJwtBuilder AddErrorDescriber<TDescriber>() where TDescriber : IdentityErrorDescriber
     {
         Services.AddScoped<IdentityErrorDescriber, TDescriber>();
+        return this;
+    }
+
+    public virtual SimpleJwtBuilder AddRefreshTokenStore<TContext>() where TContext : DbContext
+    {
+        Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository<TContext>>();
         return this;
     }
 }
