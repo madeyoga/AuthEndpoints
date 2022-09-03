@@ -2,7 +2,6 @@
 using AuthEndpoints.Core;
 using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using AuthEndpoints.Infrastructure;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

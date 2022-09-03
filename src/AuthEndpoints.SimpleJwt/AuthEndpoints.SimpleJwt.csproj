@@ -4,15 +4,15 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2.0.1</Version>
+    <Version>2.0.2</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Using SimpleJwt.Core 2.0.1</PackageReleaseNotes>
+    <PackageReleaseNotes>bump SimpleJwt.Core from 2.0.1 to 2.0.2 and remove unused namespaces</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AuthEndpoints.Core\AuthEndpoints.Core.csproj" />
-    <ProjectReference Include="..\AuthEndpoints.Infrastructure\AuthEndpoints.Infrastructure.csproj" />
+    <ProjectReference Include="..\AuthEndpoints.SimpleJwt.Core\AuthEndpoints.SimpleJwt.Core.csproj" />
   </ItemGroup>
 
 </Project>
