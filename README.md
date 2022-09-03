@@ -53,7 +53,11 @@ Install-Package AuthEndpoints
 
 using AuthEndpoints.SimpleJwt.Core.Models;
 
-DbSet<RefreshToken>? RefreshTokens { get; set; } // <--
+public class MyDbContext : DbContext
+{
+  public DbSet<RefreshToken>? RefreshTokens { get; set; } // <--
+  public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
+}
 ```
 
 ```cs
