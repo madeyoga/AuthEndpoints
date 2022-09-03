@@ -82,12 +82,12 @@
 <p>You can define your own minimal api endpoint definition by implementing the <code>IEndpointDefintion</code> inerface.</p>
 <pre><code class="lang-cs">internal class MyEndpointsDefinition : IEndpointDefinition
 {
-  internal void MapEndpoints(WebApplication app) 
+  public void MapEndpoints(WebApplication app) 
   {
     app.MapGet(&quot;/helloworld&quot;, HelloWorldEndpoint);
   }
 
-  internal Task&lt;IResult&gt; HelloWorldEndpoint()
+  private Task&lt;IResult&gt; HelloWorldEndpoint()
   {
     return Task.FromResult(Results.Ok());
   }

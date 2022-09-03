@@ -5,12 +5,12 @@ You can define your own minimal api endpoint definition by implementing the `IEn
 ```cs
 internal class MyEndpointsDefinition : IEndpointDefinition
 {
-  internal void MapEndpoints(WebApplication app) 
+  public void MapEndpoints(WebApplication app) 
   {
     app.MapGet("/helloworld", HelloWorldEndpoint);
   }
 
-  internal Task<IResult> HelloWorldEndpoint()
+  private Task<IResult> HelloWorldEndpoint()
   {
     return Task.FromResult(Results.Ok());
   }
