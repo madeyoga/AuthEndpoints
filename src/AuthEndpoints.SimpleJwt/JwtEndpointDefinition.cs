@@ -57,7 +57,7 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
             });
         }
 
-        var response = await jwtLoginService.Login(user);
+        var response = await jwtLoginService.LoginAsync(user);
 
         return Results.Ok(response);
     }

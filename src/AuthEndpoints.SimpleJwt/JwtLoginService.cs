@@ -16,7 +16,8 @@ public class JwtLoginService<TUser> : ILoginService<TUser>
     private readonly ITokenGeneratorService<TUser> tokenGenerator;
     private readonly IRefreshTokenRepository refreshTokenRepository;
 
-    public JwtLoginService(ITokenGeneratorService<TUser> tokenGenerator, IRefreshTokenRepository refreshTokenRepository)
+    public JwtLoginService(ITokenGeneratorService<TUser> tokenGenerator,
+                           IRefreshTokenRepository refreshTokenRepository)
     {
         this.tokenGenerator = tokenGenerator;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -27,7 +28,7 @@ public class JwtLoginService<TUser> : ILoginService<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access Token and a refresh Token</returns>
-    public async Task<object> Login(TUser user)
+    public async Task<object> LoginAsync(TUser user)
     {
         var accessToken = tokenGenerator.GenerateAccessToken(user);
         var refreshToken = tokenGenerator.GenerateRefreshToken(user);

@@ -50,8 +50,9 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
             });
         }
 
-        var response = await jwtLoginService.Login(user) as AuthenticatedUserResponse;
+        //await jwtLoginService.LoginAsync(user);
 
+        var response = await jwtLoginService.LoginAsync(user) as AuthenticatedUserResponse;
         context.Response.Cookies.Append("X-Access-Token", response!.AccessToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
         context.Response.Cookies.Append("X-Refresh-Token", response.RefreshToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
 
