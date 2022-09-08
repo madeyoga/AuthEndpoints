@@ -258,7 +258,7 @@ public class Test1
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result!.AccessToken!);
         var response2 = await client.GetAsync("/jwt/verify");
-        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response2.StatusCode);
     }
 
     [Fact]
