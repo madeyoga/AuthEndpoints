@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.SimpleJwt.Contracts;
 
 namespace AuthEndpoints.MinimalApi.Tests;
 
