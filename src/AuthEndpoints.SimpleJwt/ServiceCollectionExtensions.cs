@@ -171,6 +171,9 @@ public static class ServiceCollectionExtensions
             };
         });
 
+        services.AddHttpContextAccessor();
+        services.AddScoped<ILoginService<TUser>, JwtHttpOnlyCookieLoginService<TUser>>();
+
         var builder = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
 
         var type = typeof(JwtCookieEndpointDefinitions<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
