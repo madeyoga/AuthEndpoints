@@ -2,5 +2,5 @@
 
 public interface ILoginService<TUser> where TUser : class
 {
-    Task<object> Login(TUser user);
+    Task<object> LoginAsync(TUser user);
 }

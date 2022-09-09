@@ -26,6 +26,8 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IEmailFactory, DefaultMessageFactory>();
         services.TryAddSingleton<IEmailSender, DefaultEmailSender>();
 
+        services.AddEndpointsApiExplorer();
+
         var identityBuilder = services.AddIdentityCore<TUser>()
             .AddEntityFrameworkStores<TContext>()
             .AddDefaultTokenProviders();

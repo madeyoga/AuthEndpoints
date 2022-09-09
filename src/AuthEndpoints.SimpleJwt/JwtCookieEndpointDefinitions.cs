@@ -2,41 +2,34 @@
 using AuthEndpoints.Core.Contracts;
 using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using AuthEndpoints.SimpleJwt.Core;
+using AuthEndpoints.SimpleJwt.Contracts;
 using AuthEndpoints.SimpleJwt.Core.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt;
 
-/// <summary>
-/// Minimal Api definitions for JWT endpoints.
-/// </summary>
-/// <typeparam name="TKey"></typeparam>
-/// <typeparam name="TUser"></typeparam>
-public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
+public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
-    public virtual void MapEndpoints(WebApplication app)
+    public void MapEndpoints(WebApplication app)
     {
-        string baseUrl = "/jwt";
-        app.MapPost($"{baseUrl}/create", Create).WithTags("Json Web Token");
-        app.MapPost($"{baseUrl}/refresh", Refresh).WithTags("Json Web Token");
-        app.MapGet($"{baseUrl}/verify", Verify).WithTags("Json Web Token");
+        app.MapPost("/jwt/create", Create).WithTags("Json Web Token");
+        app.MapPost("/jwt/refresh", Refresh).WithTags("Json Web Token");
+        app.MapGet("/jwt/verify", Verify).WithTags("Json Web Token");
     }
 
     /// <summary>
-    /// Use this endpoint to obtain jwt
+    /// Use this endpoint to login.
     /// </summary>
     /// <remarks>Use this endpoint to obtain jwt</remarks>
     public virtual async Task<IResult> Create([FromBody] LoginRequest request,
+        HttpContext context,
         IAuthenticator<TUser> authenticator,
         JwtLoginService<TUser> jwtLoginService,
         UserManager<TUser> userManager)
@@ -57,45 +50,48 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
             });
         }
 
-        var response = await jwtLoginService.LoginAsync(user);
+        //await jwtLoginService.LoginAsync(user);
 
-        return Results.Ok(response);
+        var response = await jwtLoginService.LoginAsync(user) as AuthenticatedUserResponse;
+        context.Response.Cookies.Append("X-Access-Token", response!.AccessToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+        context.Response.Cookies.Append("X-Refresh-Token", response.RefreshToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+
+        return Results.NoContent();
     }
 
     /// <summary>
     /// Use this endpoint to refresh jwt
     /// </summary>
-    public virtual async Task<IResult> Refresh([FromBody] RefreshRequest request,
+    public virtual async Task<IResult> Refresh(HttpContext context,
         IRefreshTokenValidator tokenValidator,
         UserManager<TUser> userManager,
         IAccessTokenGenerator<TUser> tokenGenerator)
     {
-        TokenValidationResult validationResult = await tokenValidator.ValidateRefreshTokenAsync(request.RefreshToken!);
+        if (!context.Request.Cookies.TryGetValue("X-Refresh-Token", out var token))
+        {
+            return Results.BadRequest();
+        }
 
+        TokenValidationResult validationResult = await tokenValidator.ValidateRefreshTokenAsync(token!);
         if (!validationResult.IsValid)
         {
-            // Token may be expired, invalid, etc.
             return Results.BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
         }
 
         JwtSecurityToken? jwt = validationResult.SecurityToken as JwtSecurityToken;
         string userId = jwt!.Claims.First(claim => claim.Type == "id").Value;
         TUser user = await userManager.FindByIdAsync(userId);
-
         if (user == null)
         {
             return Results.NotFound(new ErrorResponse("User not found."));
         }
 
-        return Results.Ok(new
-        {
-            AccessToken = tokenGenerator.GenerateAccessToken(user)
-        });
+        string accessToken = tokenGenerator.GenerateAccessToken(user);
+        context.Response.Cookies.Append("X-Access-Token", accessToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+
+        return Results.NoContent();
     }
 
-    /// <summary>
-    /// Use this endpoint to verify access jwt
-    /// </summary>
     [Authorize(AuthenticationSchemes = "jwt")]
     public virtual Task<IResult> Verify()
     {
