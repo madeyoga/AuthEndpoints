@@ -120,7 +120,7 @@ builder.Services.AddDbContext&lt;MyDbContext&gt;(options =&gt;
 
 builder.Services
   .AddIdentityCore&lt;IdentityUser&gt;() // &lt;-- or `AddIdentity&lt;,&gt;`
-  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;-- Microsoft.AspNetCore.Identity.EntityFrameworkCore
+  .AddEntityFrameworkStores&lt;MyDbContext&gt;() // &lt;--
   .AddDefaultTokenProviders(); // &lt;--
 </code></pre>
 <p>Next, let's add auth endpoints services:</p>
@@ -128,7 +128,7 @@ builder.Services
 
 // Add basic authentication endpoints
 builder.Services
-  .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;-- 
+  .AddAuthEndpointsCore&lt;IdentityUser, MyDbContext&gt;() // &lt;-- 
   .AddBasicAuthenticationEndpoints()
   .Add2FAEndpoints();
 

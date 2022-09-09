@@ -26,7 +26,7 @@ public class TokenAuthLoginService<TKey, TUser, TContext> : ILoginService<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns><see cref="TokenAuthResponse"/></returns>
-    public async Task<object> Login(TUser user)
+    public async Task<object> LoginAsync(TUser user)
     {
         var token = await tokenRepository.GetOrCreate(user.Id);
 

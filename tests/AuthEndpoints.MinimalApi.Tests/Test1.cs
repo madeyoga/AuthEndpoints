@@ -2,6 +2,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AuthEndpoints.Core.Contracts;
+using AuthEndpoints.SimpleJwt.Contracts;
 
 namespace AuthEndpoints.MinimalApi.Tests;
 
@@ -257,7 +258,7 @@ public class Test1
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result!.AccessToken!);
         var response2 = await client.GetAsync("/jwt/verify");
-        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, response2.StatusCode);
     }
 
     [Fact]

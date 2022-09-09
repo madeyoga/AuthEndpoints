@@ -172,7 +172,7 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
             return Results.BadRequest("Invalid token");
         }
 
-        var response = await loginService.Login(user);
+        var response = await loginService.LoginAsync(user);
 
         return Results.Ok(response);
     }

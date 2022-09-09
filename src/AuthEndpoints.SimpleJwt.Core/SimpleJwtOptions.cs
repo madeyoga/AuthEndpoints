@@ -24,7 +24,7 @@ public class SimpleJwtOptions
     public JwtSigningOptions RefreshSigningOptions { get; set; } = new JwtSigningOptions()
     {
         Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 2880
+        ExpirationMinutes = 1440
     };
 
     /// <summary>

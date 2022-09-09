@@ -65,15 +65,12 @@ public class MyDbContext : DbContext
 
 
 // Required services
-builder.Services
-  .AddIdentityCore<IdentityUser>() // <-- or `AddIdentity<,>`
-  .AddEntityFrameworkStores<MyDbContext>() // <-- Install Microsoft.AspNetCore.Identity.EntityFrameworkCore
-  .AddDefaultTokenProviders(); // <--
+builder.Services.AddIdentityCore<IdentityUser>(); // <--
 
-// Add basic authentication endpoints
-builder.Services.AddAuthEndpointsCore<IdentityUser>()
-  .AddBasicAuthenticationEndpoints()
-  .Add2FAEndpoints();
+// Add core & basic authentication endpoints
+builder.Services.AddAuthEndpointsCore<IdentityUser, MyDbContext>() // <--
+                .AddBasicAuthenticationEndpoints()
+                .Add2FAEndpoints();
 
 // Add jwt endpoints
 builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>();
