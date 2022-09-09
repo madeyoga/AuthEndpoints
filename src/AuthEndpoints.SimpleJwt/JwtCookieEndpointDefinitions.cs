@@ -56,7 +56,7 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
         context.Response.Cookies.Append("X-Access-Token", response!.AccessToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
         context.Response.Cookies.Append("X-Refresh-Token", response.RefreshToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
 
-        return Results.Ok();
+        return Results.NoContent();
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
         string accessToken = tokenGenerator.GenerateAccessToken(user);
         context.Response.Cookies.Append("X-Access-Token", accessToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
 
-        return Results.Ok();
+        return Results.NoContent();
     }
 
     [Authorize(AuthenticationSchemes = "jwt")]
