@@ -53,7 +53,7 @@ Install-Package AuthEndpoints
 
 using AuthEndpoints.SimpleJwt.Core.Models;
 
-public class MyDbContext : DbContext
+public class MyDbContext : IdentityDbContext
 {
   public DbSet<RefreshToken>? RefreshTokens { get; set; } // <--
   public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
@@ -73,6 +73,10 @@ builder.Services.AddAuthEndpointsCore<IdentityUser, MyDbContext>() // <--
                 .Add2FAEndpoints();
 
 // Add jwt endpoints
+// When no options are provided
+// AuthEndpoints will create a secret key and use a single security key (symmetric encryption)
+// for each access jwt and refresh jwt.
+// Secrets will be created under `keys/` directory.
 builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>();
 
 var app = builder.Build();
