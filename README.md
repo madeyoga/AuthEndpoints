@@ -60,6 +60,20 @@ public class MyDbContext : DbContext
 }
 ```
 
+Add migration and apply migration:
+
+```
+// using dotnet cli
+$ dotnet ef migrations add CreateRefreshToken
+$ dotnet ef database update
+
+// or using package manager console in visual studio
+PM> Add-Migration CreateRefreshToken
+PM> Update-Database
+```
+
+Add endpoints
+
 ```cs
 // Program.cs
 
@@ -88,6 +102,8 @@ app.MapEndpoints(); // <--
 
 app.Run();
 ```
+
+![swagger_authendpoints](https://i.imgur.com/VCuIazI.png)
 
 Checkout [docs](https://madeyoga.github.io/AuthEndpoints/wiki/get-started.html) for more info.
 
