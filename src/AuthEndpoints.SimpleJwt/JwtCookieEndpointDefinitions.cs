@@ -17,10 +17,10 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
-    public void MapEndpoints(WebApplication app)
+    public virtual void MapEndpoints(WebApplication app)
     {
         app.MapPost("/jwt/create", Create).WithTags("Json Web Token");
-        app.MapPost("/jwt/refresh", Refresh).WithTags("Json Web Token");
+        app.MapGet("/jwt/refresh", Refresh).WithTags("Json Web Token");
         app.MapGet("/jwt/verify", Verify).WithTags("Json Web Token");
     }
 

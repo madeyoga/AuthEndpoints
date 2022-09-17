@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt;
 
@@ -84,22 +85,30 @@ public static class ServiceCollectionExtensions
             new OptionsConfigurator().PostConfigure("default", sjOptions);
             new OptionsValidator(loggerFactory.CreateLogger<OptionsValidator>()).Validate("default", sjOptions);
         }
+        var configureOptions = ConfigureJwtBearerOptions(sjOptions);
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
-        {
-            options.TokenValidationParameters = sjOptions.AccessValidationParameters!;
-        })
-        .AddJwtBearer("jwt", options =>
-        {
-            options.TokenValidationParameters = sjOptions.AccessValidationParameters!;
-        });
+        .AddJwtBearer(configureOptions)
+        .AddJwtBearer("jwt", configureOptions);
 
-        var builder = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
+        if (sjOptions.HttpOnlyCookie)
+        {
+            services.AddHttpContextAccessor();
+            services.TryAddScoped<ILoginService<TUser>, JwtHttpOnlyCookieLoginService<TUser>>();
 
-        var type = typeof(JwtEndpointDefinition<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
-        services.AddSingleton(typeof(IEndpointDefinition), type);
-        return builder;
+            var builder = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
+
+            var jwtCookieEndpointsType = typeof(JwtCookieEndpointDefinitions<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
+            services.AddSingleton(typeof(IEndpointDefinition), jwtCookieEndpointsType);
+
+            return builder;
+        }
+
+        var builder1 = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
+
+        var endpointsType = typeof(JwtEndpointDefinition<,>).MakeGenericType(builder1.UserKeyType, builder1.UserType);
+        services.AddSingleton(typeof(IEndpointDefinition), endpointsType);
+        return builder1;
     }
 
     /// <summary>
@@ -108,11 +117,15 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TUser"></typeparam>
     /// <param name="services"></param>
     /// <returns>An <see cref="SimpleJwtBuilder"/> for creating and configuring the SimpleJwt system.</returns>
+    [Obsolete(message: "Please use AddSimpleJwtEndpoints(options) instead.")]
     public static SimpleJwtBuilder AddJwtCookieEndpoints<TUser, TContext>(this IServiceCollection services)
         where TUser : class
         where TContext : DbContext
     {
-        return services.AddJwtCookieEndpoints<TUser, TContext>(o => { });
+        return services.AddSimpleJwtEndpoints<TUser, TContext>(o => 
+        {
+            o.HttpOnlyCookie = true;
+        });
     }
 
     /// <summary>
@@ -122,25 +135,17 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The services available in the application.</param>
     /// <param name="setup">An action to configure the <see cref="SimpleJwtOptions"/>.</param>
     /// <returns>An <see cref="SimpleJwtBuilder"/> for creating and configuring the SimpleJwt system.</returns>
+    [Obsolete(message: "Please use AddSimpleJwtEndpoints(options) instead.")]
     public static SimpleJwtBuilder AddJwtCookieEndpoints<TUser, TContext>(this IServiceCollection services, Action<SimpleJwtOptions> setup)
         where TUser : class
         where TContext : DbContext
     {
-        var sjOptions = new SimpleJwtOptions();
+        return services.AddSimpleJwtEndpoints<TUser, TContext>(setup);
+    }
 
-        if (setup != null)
-        {
-            setup.Invoke(sjOptions);
-            using var loggerFactory = LoggerFactory.Create(builder =>
-            {
-                builder.AddConsole();
-            });
-            new OptionsConfigurator().PostConfigure("default", sjOptions);
-            new OptionsValidator(loggerFactory.CreateLogger<OptionsValidator>()).Validate("default", sjOptions);
-        }
-
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(options =>
+    private static Action<JwtBearerOptions> ConfigureJwtBearerOptions(SimpleJwtOptions sjOptions)
+    {
+        return options =>
         {
             options.TokenValidationParameters = sjOptions.AccessValidationParameters!;
             options.Events = new JwtBearerEvents()
@@ -154,30 +159,6 @@ public static class ServiceCollectionExtensions
                     return Task.CompletedTask;
                 },
             };
-        })
-        .AddJwtBearer("jwt", options =>
-        {
-            options.TokenValidationParameters = sjOptions.AccessValidationParameters!;
-            options.Events = new JwtBearerEvents()
-            {
-                OnMessageReceived = context =>
-                {
-                    if (context.Request.Cookies.ContainsKey("X-Access-Token"))
-                    {
-                        context.Token = context.Request.Cookies["X-Access-Token"];
-                    }
-                    return Task.CompletedTask;
-                },
-            };
-        });
-
-        services.AddHttpContextAccessor();
-        services.AddScoped<ILoginService<TUser>, JwtHttpOnlyCookieLoginService<TUser>>();
-
-        var builder = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
-
-        var type = typeof(JwtCookieEndpointDefinitions<,>).MakeGenericType(builder.UserKeyType, builder.UserType);
-        services.AddSingleton(typeof(IEndpointDefinition), type);
-        return builder;
+        };
     }
 }

@@ -6,6 +6,8 @@ public class SimpleJwtOptions
 {
     public const string Key = "SimpleJwtOptions";
 
+    public bool HttpOnlyCookie { get; set; } = false;
+
     public string Issuer { get; set; } = "webapi";
     public string Audience { get; set; } = "webapi";
 
