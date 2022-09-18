@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using AuthEndpoints.Core;
 using AuthEndpoints.Demo.Data;
+using AuthEndpoints.Demo.Endpoints;
 using AuthEndpoints.Demo.Models;
 using AuthEndpoints.MinimalApi;
 using AuthEndpoints.SimpleJwt;
-using AuthEndpoints.TokenAuth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -76,7 +76,12 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser, MyDbContext>(options
 .AddBasicAuthenticationEndpoints()
 .Add2FAEndpoints();
 
-builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
+builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>(options =>
+{
+    options.HttpOnlyCookie = false;
+});
+
+builder.Services.AddEndpointDefinition<JwtCookieEndpoints>();
 
 var app = builder.Build();
 
