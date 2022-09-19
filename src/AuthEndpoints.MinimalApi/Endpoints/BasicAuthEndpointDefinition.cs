@@ -21,7 +21,7 @@ public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBa
     public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/users";
-        string groupName = "Authentication";
+        string groupName = "Users";
         app.MapPost($"{baseUrl}", Register).WithTags(groupName);
         app.MapGet($"{baseUrl}/me", GetMe).WithTags(groupName);
         app.MapGet($"{baseUrl}/verify_email", EmailVerification).WithTags(groupName);
