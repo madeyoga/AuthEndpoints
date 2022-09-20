@@ -1,4 +1,5 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt.Core;
 
@@ -6,7 +7,12 @@ public class SimpleJwtOptions
 {
     public const string Key = "SimpleJwtOptions";
 
-    public bool HttpOnlyCookie { get; set; } = false;
+    public bool UseCookie { get; set; } = false;
+    public CookieOptions CookieOptions { get; set; } = new CookieOptions()
+    {
+        HttpOnly = true,
+        SameSite = SameSiteMode.Lax,
+    };
 
     public string Issuer { get; set; } = "webapi";
     public string Audience { get; set; } = "webapi";

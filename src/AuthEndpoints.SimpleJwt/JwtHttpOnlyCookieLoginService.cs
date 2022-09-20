@@ -39,8 +39,8 @@ public class JwtHttpOnlyCookieLoginService<TUser> : ILoginService<TUser>
         await refreshTokenRepository.SaveChangesAsync();
 
         var context = httpContextAccessor.HttpContext!;
-        context.Response.Cookies.Append("X-Access-Token", accessToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
-        context.Response.Cookies.Append("X-Refresh-Token", refreshToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Strict });
+        context.Response.Cookies.Append("X-Access-Token", accessToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Lax });
+        context.Response.Cookies.Append("X-Refresh-Token", refreshToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Lax });
 
         return new AuthenticatedUserResponse()
         {
