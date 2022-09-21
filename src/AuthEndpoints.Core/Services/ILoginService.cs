@@ -1,6 +1,8 @@
-﻿namespace AuthEndpoints.Core.Services;
+﻿using System.Security.Claims;
 
-public interface ILoginService<TUser> where TUser : class
+namespace AuthEndpoints.Core.Services;
+
+public interface ILoginService
 {
-    Task<object> LoginAsync(TUser user);
+    Task<object> LoginAsync(ClaimsPrincipal user);
 }

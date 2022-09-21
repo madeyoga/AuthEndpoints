@@ -34,7 +34,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj" />
     <ProjectReference Include="..\AuthEndpoints.SimpleJwt\AuthEndpoints.SimpleJwt.csproj" />
-    <ProjectReference Include="..\AuthEndpoints.TokenAuth\AuthEndpoints.TokenAuth.csproj" />
   </ItemGroup>
 
 </Project>

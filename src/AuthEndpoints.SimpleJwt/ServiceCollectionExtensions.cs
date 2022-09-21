@@ -11,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt;
 
@@ -30,14 +29,13 @@ public static class ServiceCollectionExtensions
         }
         var keyType = identityUserType.GenericTypeArguments[0];
 
-        var claimsProviderType = typeof(DefaultClaimsProvider<,>).MakeGenericType(keyType, typeof(TUser));
-        services.TryAddScoped(typeof(IClaimsProvider<TUser>), claimsProviderType);
-        services.TryAddScoped<IAccessTokenGenerator<TUser>, AccessTokenGenerator<TUser>>();
-        services.TryAddScoped<IRefreshTokenGenerator<TUser>, RefreshTokenGenerator<TUser>>();
-        services.TryAddScoped<ITokenGeneratorService<TUser>, TokenGeneratorService<TUser>>();
+        services.TryAddScoped<IClaimsProvider, DefaultClaimsProvider>();
+        services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
+        services.TryAddScoped<IRefreshTokenGenerator, RefreshTokenGenerator>();
+        services.TryAddScoped<ITokenGeneratorService, TokenGeneratorService>();
         services.TryAddScoped<IRefreshTokenValidator, RefreshTokenValidator>();
-        services.TryAddScoped<ILoginService<TUser>, JwtLoginService<TUser>>();
-        services.TryAddScoped<JwtLoginService<TUser>>();
+        services.TryAddScoped<ILoginService, JwtLoginService>();
+        services.TryAddScoped<JwtLoginService>();
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
@@ -88,13 +86,18 @@ public static class ServiceCollectionExtensions
         var configureOptions = ConfigureJwtBearerOptions(sjOptions);
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(configureOptions)
-        .AddJwtBearer("jwt", configureOptions);
+                .AddJwtBearer(configureOptions)
+                .AddJwtBearer("jwt", configureOptions);
+
+        services.AddHttpContextAccessor();
+        services.TryAddScoped<ILoginService, JwtHttpOnlyCookieLoginService>();
+        services.TryAddScoped<JwtHttpOnlyCookieLoginService>();
 
         if (sjOptions.UseCookie)
         {
             services.AddHttpContextAccessor();
-            services.TryAddScoped<ILoginService<TUser>, JwtHttpOnlyCookieLoginService<TUser>>();
+            services.TryAddScoped<ILoginService, JwtHttpOnlyCookieLoginService>();
+            services.TryAddScoped<JwtHttpOnlyCookieLoginService>();
 
             var builder = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
 

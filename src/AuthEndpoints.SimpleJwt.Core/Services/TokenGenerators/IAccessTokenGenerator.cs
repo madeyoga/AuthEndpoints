@@ -1,5 +1,8 @@
-﻿namespace AuthEndpoints.SimpleJwt.Core.Services;
-public interface IAccessTokenGenerator<TUser>
+﻿using System.Security.Claims;
+
+namespace AuthEndpoints.SimpleJwt.Core.Services;
+
+public interface IAccessTokenGenerator
 {
-    string GenerateAccessToken(TUser user);
+    string GenerateAccessToken(ClaimsPrincipal user);
 }

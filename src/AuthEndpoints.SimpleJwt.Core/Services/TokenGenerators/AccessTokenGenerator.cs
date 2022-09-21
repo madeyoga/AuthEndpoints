@@ -1,24 +1,24 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt.Core.Services;
 
-public class AccessTokenGenerator<TUser> : IAccessTokenGenerator<TUser>
-    where TUser : class
+public class AccessTokenGenerator : IAccessTokenGenerator
 {
     private readonly JwtSecurityTokenHandler _tokenHandler;
     private readonly SimpleJwtOptions _options;
-    private readonly IClaimsProvider<TUser> _claimsProvider;
+    private readonly IClaimsProvider _claimsProvider;
 
-    public AccessTokenGenerator(JwtSecurityTokenHandler tokenHandler, IOptions<SimpleJwtOptions> options, IClaimsProvider<TUser> claimsProvider)
+    public AccessTokenGenerator(JwtSecurityTokenHandler tokenHandler, IOptions<SimpleJwtOptions> options, IClaimsProvider claimsProvider)
     {
         _tokenHandler = tokenHandler;
         _options = options.Value;
         _claimsProvider = claimsProvider;
     }
 
-    public string GenerateAccessToken(TUser user)
+    public string GenerateAccessToken(ClaimsPrincipal user)
     {
         var signingOptions = _options.AccessSigningOptions!;
         var credentials = new SigningCredentials(signingOptions.SigningKey, signingOptions.Algorithm);

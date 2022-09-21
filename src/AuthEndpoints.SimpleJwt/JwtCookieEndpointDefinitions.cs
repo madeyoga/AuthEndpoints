@@ -1,14 +1,16 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using AuthEndpoints.Core.Contracts;
 using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using AuthEndpoints.SimpleJwt.Contracts;
+using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt;
@@ -20,7 +22,7 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
     public virtual void MapEndpoints(WebApplication app)
     {
         app.MapPost("/jwt/create", Create).WithTags("Json Web Token");
-        app.MapGet("/jwt/refresh", Refresh).WithTags("Json Web Token");
+        app.MapPost("/jwt/refresh", Refresh).WithTags("Json Web Token");
         app.MapGet("/jwt/verify", Verify).WithTags("Json Web Token");
     }
 
@@ -29,16 +31,16 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
     /// </summary>
     /// <remarks>Use this endpoint to obtain jwt</remarks>
     public virtual async Task<IResult> Create([FromBody] LoginRequest request,
-        HttpContext context,
-        IAuthenticator<TUser> authenticator,
-        JwtLoginService<TUser> jwtLoginService,
-        UserManager<TUser> userManager)
+                                              IAuthenticator<TUser> authenticator,
+                                              JwtHttpOnlyCookieLoginService jwtLoginService,
+                                              UserManager<TUser> userManager,
+                                              IUserClaimsPrincipalFactory<TUser> claimsFactory)
     {
         TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
         {
-            return Results.Unauthorized();
+            return Results.BadRequest();
         }
 
         if (await userManager.GetTwoFactorEnabledAsync(user))
@@ -50,11 +52,9 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
             });
         }
 
-        //await jwtLoginService.LoginAsync(user);
+        ClaimsPrincipal userClaimsPrincipal = await claimsFactory.CreateAsync(user);
 
-        var response = await jwtLoginService.LoginAsync(user) as AuthenticatedUserResponse;
-        context.Response.Cookies.Append("X-Access-Token", response!.AccessToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Lax });
-        context.Response.Cookies.Append("X-Refresh-Token", response.RefreshToken!, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Lax });
+        await jwtLoginService.LoginAsync(userClaimsPrincipal);
 
         return Results.NoContent();
     }
@@ -63,11 +63,13 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
     /// Use this endpoint to refresh jwt
     /// </summary>
     public virtual async Task<IResult> Refresh(HttpContext context,
-        IRefreshTokenValidator tokenValidator,
-        UserManager<TUser> userManager,
-        IAccessTokenGenerator<TUser> tokenGenerator)
+                                               IUserClaimsPrincipalFactory<TUser> claimsFactory,
+                                               IRefreshTokenValidator tokenValidator,
+                                               UserManager<TUser> userManager,
+                                               IAccessTokenGenerator tokenGenerator,
+                                               IOptions<SimpleJwtOptions> options)
     {
-        if (!context.Request.Cookies.TryGetValue("X-Refresh-Token", out var token))
+        if (!context.Request.Cookies.TryGetValue("X-Refresh-Token", out string? token))
         {
             return Results.BadRequest();
         }
@@ -83,11 +85,12 @@ public class JwtCookieEndpointDefinitions<TKey, TUser> : IEndpointDefinition
         TUser user = await userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            return Results.NotFound(new ErrorResponse("User not found."));
+            return Results.BadRequest();
         }
 
-        string accessToken = tokenGenerator.GenerateAccessToken(user);
-        context.Response.Cookies.Append("X-Access-Token", accessToken, new CookieOptions() { HttpOnly = true, SameSite = SameSiteMode.Lax });
+        ClaimsPrincipal principal = await claimsFactory.CreateAsync(user);
+        string accessToken = tokenGenerator.GenerateAccessToken(principal);
+        context.Response.Cookies.Append("X-Access-Token", accessToken, options.Value.CookieOptions);
 
         return Results.NoContent();
     }
