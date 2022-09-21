@@ -23,7 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.TokenAuth\AuthEndpoints.TokenAuth.csproj" />
   </ItemGroup>
 
 </Project>

@@ -78,7 +78,7 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser, MyDbContext>(options
 
 builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>(options =>
 {
-    options.HttpOnlyCookie = false;
+    options.UseCookie = false;
 });
 
 builder.Services.AddEndpointDefinition<JwtCookieEndpoints>();

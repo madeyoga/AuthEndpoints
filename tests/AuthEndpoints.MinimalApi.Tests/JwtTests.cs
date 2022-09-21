@@ -46,17 +46,17 @@ public class JwtTests
 
         var response = await client.PostAsJsonAsync("/jwt/create", new LoginRequest
         {
-            Username = "InvalidCredentials1",
+            Username = "InvalidCredentials",
             Password = "wrongpassword"
         });
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var response2 = await client.PostAsJsonAsync("/jwt/create", new LoginRequest
         {
             Username = "wrongusername",
             Password = "testtest"
         });
-        Assert.Equal(HttpStatusCode.Unauthorized, response2.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response2.StatusCode);
     }
 
     [Fact]

@@ -1,8 +1,6 @@
 ﻿using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.SimpleJwt.Contracts;
 
 namespace AuthEndpoints.MinimalApi.Tests;
 
@@ -46,17 +44,17 @@ public class JwtInHttpOnlyCookieTests
 
         var response = await client.PostAsJsonAsync("/jwt/cookie/create", new LoginRequest
         {
-            Username = "InvalidCredentials1",
+            Username = "InvalidCredentialsJwtCookie",
             Password = "wrongpassword"
         });
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var response2 = await client.PostAsJsonAsync("/jwt/cookie/create", new LoginRequest
         {
             Username = "wrongusername",
             Password = "testtest"
         });
-        Assert.Equal(HttpStatusCode.Unauthorized, response2.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response2.StatusCode);
     }
 
     [Fact]

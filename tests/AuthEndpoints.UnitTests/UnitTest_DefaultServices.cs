@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
@@ -39,17 +42,22 @@ public class UnitTest_DefaultServices
                 ClockSkew = TimeSpan.Zero,
             }
         });
-        var tokenGenerator = new AccessTokenGenerator<IdentityUser>(tokenHandler!,
+        var tokenGenerator = new AccessTokenGenerator(tokenHandler!,
             options,
-            new DefaultClaimsProvider<string, IdentityUser>());
+            new DefaultClaimsProvider());
 
         var user = new IdentityUser()
         {
+            Id = "1",
             UserName = "test",
             Email = "test@developerblogs.id"
         };
 
-        var jwt = tokenGenerator.GenerateAccessToken(user);
+        IList<Claim> claims = new List<Claim>();
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, "1"));
+        var id = new ClaimsIdentity(claims);
+
+        var jwt = tokenGenerator.GenerateAccessToken(new ClaimsPrincipal(id));
         Assert.IsNotNull(jwt);
     }
 
@@ -75,9 +83,10 @@ public class UnitTest_DefaultServices
                 ClockSkew = TimeSpan.Zero,
             }
         });
-        var tokenGenerator = new AccessTokenGenerator<IdentityUser>(tokenHandler!,
+
+        var tokenGenerator = new AccessTokenGenerator(tokenHandler!,
             options,
-            new DefaultClaimsProvider<string, IdentityUser>());
+            new DefaultClaimsProvider());
 
         var user = new IdentityUser()
         {
@@ -85,7 +94,11 @@ public class UnitTest_DefaultServices
             Email = "test@developerblogs.id"
         };
 
-        var jwt = tokenGenerator.GenerateAccessToken(user);
+        IList<Claim> claims = new List<Claim>();
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, "1"));
+        var id = new ClaimsIdentity(claims);
+
+        var jwt = tokenGenerator.GenerateAccessToken(new ClaimsPrincipal(id));
         Assert.IsNotNull(jwt);
 
         //var jwtValidator = new DefaultJwtValidator(tokenHandler!);
