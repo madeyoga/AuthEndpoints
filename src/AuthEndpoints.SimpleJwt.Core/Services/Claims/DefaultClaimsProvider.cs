@@ -16,7 +16,7 @@ public class DefaultClaimsProvider : IClaimsProvider
     /// <returns></returns>
     public virtual IEnumerable<Claim> ProvideAccessClaims(ClaimsPrincipal user)
     {
-        return user.Claims;
+        return GetUserClaims(user);
     }
 
     /// <summary>
@@ -25,6 +25,11 @@ public class DefaultClaimsProvider : IClaimsProvider
     /// <param name="user"></param>
     /// <returns></returns>
     public virtual IEnumerable<Claim> ProvideRefreshClaims(ClaimsPrincipal user)
+    {
+        return GetUserClaims(user);
+    }
+
+    private static IEnumerable<Claim> GetUserClaims(ClaimsPrincipal user)
     {
         Claim? identitfierClaim = user.FindFirst(ClaimTypes.NameIdentifier);
         if (identitfierClaim == null)
