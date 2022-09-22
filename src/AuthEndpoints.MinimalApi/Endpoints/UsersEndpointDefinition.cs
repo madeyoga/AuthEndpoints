@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.MinimalApi;
 
-public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBasicAuthEndpointDefinition<TKey, TUser> 
+public class UsersEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBasicAuthEndpointDefinition<TKey, TUser> 
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
