@@ -73,7 +73,7 @@ PM> Add-Migration CreateRefreshToken
 PM> Update-Database
 ```
 
-Add endpoints
+Add endpoints and call `app.MapEndpoints()` before `app.Run();`
 
 ```cs
 // Program.cs
@@ -82,9 +82,9 @@ Add endpoints
 // Required services
 builder.Services.AddIdentityCore<IdentityUser>(); // <--
 
-// Add core & basic authentication endpoints
+// Add core services & users api
 builder.Services.AddAuthEndpointsCore<IdentityUser, MyDbContext>() // <--
-                .AddBasicAuthenticationEndpoints()
+                .AddUsersApiEndpoints()
                 .Add2FAEndpoints();
 
 // Add jwt endpoints
@@ -129,11 +129,11 @@ To use this approach, you can simply:
 ```cs
 builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>(options => 
 {
-  options.HttpOnlyCookie = true;
+  options.UseCookie = true;
 });
 ```
 
-When using `HttpOnlyCookie = true`, jwts will be stored in httponly cookie with samesite set to strict. All jwt endpoints will return 204 NoContent
+When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite set to lax by default. All jwt endpoints will return 204 NoContent
 instead of returning the access and refresh tokens to the client as json (tokens are no longer handled at the client side).
 
 Keep in mind that storing jwts inside HttpOnly Cookie does not prevent XSS attacks.
@@ -143,12 +143,11 @@ If site is vulnerable to XSS, with httponly cookie, attacker cannot grab the tok
 However, attacker can still make a request on of behalf of the user.
 You must always follow best practices against XSS including escaping contents.
 
-Cookie is considered more secure, but it might be vulnerable to cross-site request forgery (CSRF) attacks (client browser might not support SameSite strict attribute, 
-checkout [browser compatibility](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite#browser_compatibility)).
+Cookie is considered more secure, but it might be vulnerable to cross-site request forgery (CSRF) attacks.
 Antiforgery is not handled by default and so you might need some custom code to flow a CSRF token between the server and your client application.
 
 ### Which approach should you use?
-Most of the times you may want to store JWTs in HttpOnly SameSite strict Cookie. It makes development process easier and considered more secure because tokens are no longer handled at the client side.
+Most of the times you may want to store JWTs in HttpOnly Cookie. It makes development process easier and considered more secure because tokens are no longer handled at the client side.
 
 ## Documentations
 Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https://madeyoga.github.io/AuthEndpoints/) and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
