@@ -73,7 +73,7 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser, MyDbContext>(options
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
 })
-.AddBasicAuthenticationEndpoints()
+.AddUsersApiEndpoints()
 .Add2FAEndpoints();
 
 builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>(options =>
