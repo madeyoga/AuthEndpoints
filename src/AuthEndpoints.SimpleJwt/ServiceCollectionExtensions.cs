@@ -89,10 +89,6 @@ public static class ServiceCollectionExtensions
                 .AddJwtBearer(configureOptions)
                 .AddJwtBearer("jwt", configureOptions);
 
-        services.AddHttpContextAccessor();
-        services.TryAddScoped<ILoginService, JwtHttpOnlyCookieLoginService>();
-        services.TryAddScoped<JwtHttpOnlyCookieLoginService>();
-
         if (sjOptions.UseCookie)
         {
             services.AddHttpContextAccessor();
