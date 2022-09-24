@@ -120,7 +120,7 @@ Let's say we store the tokens in web storage.
 Any JavaScript running on our site will have access to web storage.
 This make the tokens can be easily grabbed via cross-site scripting (XSS) attacks.
 
-To avoid this issue, you might consider storing jwts inside httponly cookie. This adds a layer of protection to the jwts.
+To avoid this issue, you can store the jwts inside httponly cookie instead of web storage. This adds a layer of protection to the jwts.
 HttpOnly flag on cookie mitigate the risk of client side script accessing the protected cookie.
 With this approach, token storage and handling are all done at the backend side.
 
@@ -133,15 +133,15 @@ builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>(options =>
 });
 ```
 
-When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite set to lax by default. All jwt endpoints will return 204 NoContent
+When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite flag set to lax by default. All jwt endpoints will return 204 NoContent
 instead of returning the access and refresh tokens to the client as json (tokens are no longer handled at the client side).
 
 Keep in mind that storing jwts inside HttpOnly Cookie does not prevent XSS attacks.
-XSS basically means somebody can remotely run js code on our site.
+XSS basically means somebody can remotely run malicious code on our site.
 This has nothing to do with whether the token is stored in web storage or whether its stored in httponly cookie.
 If site is vulnerable to XSS, with httponly cookie, attacker cannot grab the tokens.
 However, attacker can still make a request on of behalf of the user.
-You must always follow best practices against XSS including escaping contents.
+Make sure to follow best practices against XSS including escaping contents.
 
 Cookie is considered more secure, but it might be vulnerable to cross-site request forgery (CSRF) attacks.
 Antiforgery is not handled by default and so you might need some custom code to flow a CSRF token between the server and your client application.
