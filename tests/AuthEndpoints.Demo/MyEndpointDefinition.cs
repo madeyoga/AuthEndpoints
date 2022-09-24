@@ -1,4 +1,4 @@
-﻿using AuthEndpoints.Core.Endpoints;
+﻿using AuthEndpoints.Core;
 
 internal class MyEndpointDefinition : IEndpointDefinition
 {
