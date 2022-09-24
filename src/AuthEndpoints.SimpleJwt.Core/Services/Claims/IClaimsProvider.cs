@@ -3,7 +3,7 @@
 namespace AuthEndpoints.SimpleJwt.Core.Services;
 
 /// <summary>
-/// Implements <see cref="IClaimsProvider{TUser}"/> to define your claims provider
+/// Implements <see cref="IClaimsProvider"/> to define your claims provider
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
 public interface IClaimsProvider

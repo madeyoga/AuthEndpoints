@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using AuthEndpoints.Core;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
 using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Authorization;

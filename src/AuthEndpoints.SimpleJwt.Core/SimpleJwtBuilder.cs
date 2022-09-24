@@ -62,7 +62,7 @@ public class SimpleJwtBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IClaimsProvider"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="SimpleJwtBuilder"/> instance.</returns>
@@ -72,7 +72,7 @@ public class SimpleJwtBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IAccessTokenGenerator"/>.
     /// </summary>
     /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
     /// <returns>The current <see cref="SimpleJwtBuilder"/> instance.</returns>
@@ -82,7 +82,7 @@ public class SimpleJwtBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IAccessTokenGenerator"/>.
     /// </summary>
     /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
     /// <returns>The current <see cref="SimpleJwtBuilder"/> instance.</returns>

@@ -1,5 +1,4 @@
 ﻿using AuthEndpoints.Core;
-using AuthEndpoints.Core.Endpoints;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.MinimalApi;

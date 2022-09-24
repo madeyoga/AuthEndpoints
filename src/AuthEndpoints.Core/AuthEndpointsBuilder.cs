@@ -1,5 +1,4 @@
-﻿using AuthEndpoints.Core.Endpoints;
-using AuthEndpoints.Core.Services;
+﻿using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -120,7 +119,7 @@ public class AuthEndpointsBuilder
     /// <summary>
     /// Adds an <see cref="IEmailSender"/>
     /// </summary>
-    /// <typeparam name="TEmailFactory"></typeparam>
+    /// <typeparam name="TSender"></typeparam>
     /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
     public virtual AuthEndpointsBuilder AddEmailSender<TSender>() where TSender : IEmailSender
     {

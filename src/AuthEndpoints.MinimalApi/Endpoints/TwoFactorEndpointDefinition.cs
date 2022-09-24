@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
+using AuthEndpoints.Core;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Models;
 using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;

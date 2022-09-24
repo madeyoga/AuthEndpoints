@@ -2,7 +2,6 @@
 using System.Web;
 using AuthEndpoints.Core;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Models;
 using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +13,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.MinimalApi;
 
-public class UsersEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBasicAuthEndpointDefinition<TKey, TUser> 
+public class UsersEndpointDefinition<TKey, TUser> : IEndpointDefinition
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {

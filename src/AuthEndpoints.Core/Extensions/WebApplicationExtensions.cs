@@ -1,5 +1,4 @@
-﻿using AuthEndpoints.Core.Endpoints;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Core;

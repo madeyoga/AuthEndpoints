@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.Core.Options;
+namespace AuthEndpoints.Core;
 
 public class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {

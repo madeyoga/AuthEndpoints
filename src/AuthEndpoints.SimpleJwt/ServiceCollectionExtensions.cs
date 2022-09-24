@@ -1,6 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using AuthEndpoints.Core;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;

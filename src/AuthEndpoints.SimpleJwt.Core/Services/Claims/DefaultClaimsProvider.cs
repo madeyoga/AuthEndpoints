@@ -3,7 +3,7 @@
 namespace AuthEndpoints.SimpleJwt.Core.Services;
 
 /// <summary>
-/// Use <see cref="DefaultClaimsProvider{TUserKey, TUser}"/> to get access token claims and refresh token claims
+/// Use <see cref="DefaultClaimsProvider"/> to get access token claims and refresh token claims
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
