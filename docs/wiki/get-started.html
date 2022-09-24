@@ -8,7 +8,7 @@
     <title>Getting started | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Getting started | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.3.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -92,9 +92,7 @@
 <pre><code>Install-Package AuthEndpoints
 </code></pre>
 <h2 id="quick-start">Quick Start</h2>
-<p>First, let's install <code>Microsoft.AspNetCore.Identity.EntityFrameworkCore</code> and create a DbContext:</p>
-<pre><code>dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
-</code></pre>
+<p>First, let's create a DbContext:</p>
 <pre><code class="lang-cs">// Data/MyDbContext.cs
 
 using AuthEndpoints.Core.Models;
@@ -126,10 +124,10 @@ builder.Services
 <p>Next, let's add auth endpoints services:</p>
 <pre><code class="lang-cs">// Program.cs
 
-// Add basic authentication endpoints
+// Add users api endpoints
 builder.Services
   .AddAuthEndpointsCore&lt;IdentityUser, MyDbContext&gt;() // &lt;-- 
-  .AddBasicAuthenticationEndpoints()
+  .AddUsersApiEndpoints()
   .Add2FAEndpoints();
 
 // Add JWT endpoints
@@ -153,8 +151,8 @@ app.MapEndpoints(); // &lt;--
 
 app.Run();
 </code></pre>
-<p>Run it and you should see auth endpoints available on swagger docs!</p>
-<p><img src="https://i.imgur.com/VCuIazI.png" alt="authendpoints swagger" title="authendpoints swagger"></p>
+<p>Run it and you should see endpoints available on swagger docs!</p>
+<p><img src="https://i.imgur.com/rqMbFNy.png" alt="authendpoints swagger" title="authendpoints swagger"></p>
 <h2 id="full-source-code">Full Source Code</h2>
 <pre><code class="lang-cs">// Program.cs
 
@@ -186,7 +184,7 @@ builder.Services
 // Add basic authentication
 builder.Services
   .AddAuthEndpointsCore&lt;IdentityUser&gt;() // &lt;-- 
-  .AddBasicAuthenticationEndpoints()
+  .AddUsersApiEndpoints()
   .Add2FAEndpoints();
 
 // Add JWT endpoints
@@ -215,7 +213,7 @@ app.Run();
 <h2 id="available-endpoints">Available Endpoints</h2>
 <p>Checkout endpoints definition <a href="endpoints/definitions.html">docs</a></p>
 <ul>
-<li><a href="endpoints/basic-authentication.html">Basic authentication endpoints</a></li>
+<li><a href="endpoints/base-endpoints.html">Users endpoints</a></li>
 <li><a href="endpoints/jwt.html">JWT endpoints</a></li>
 <li><a href="endpoints/2fa.html">2FA endpoints</a></li>
 </ul>

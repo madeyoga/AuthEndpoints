@@ -18,7 +18,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.AuthEndpointsBuilder.html",
-          "hash": "hOOQHSFc4ZMsTQOjnCIlwRf1JMp/pTvryaOqSJOX/W4="
+          "hash": "c5tX/DlSdCMfQKgkzNnRiQk3HCMwYwAgeszYyIA+PcE="
         }
       },
       "is_incremental": false,
@@ -30,7 +30,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.AuthEndpointsOptions.html",
-          "hash": "UtI9AI2dACNuVXd/xbE4cllm2VkZZLaju+0DWiENNp8="
+          "hash": "GLn/EowocAa8WnGpQtNBVXBFV1UGtPpHHgGtBXIAu1k="
         }
       },
       "is_incremental": false,
@@ -38,11 +38,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Contracts.AuthenticatedUserResponse.yml",
+      "source_relative_path": "api/AuthEndpoints.Core.AuthEndpointsOptionsValidator.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Contracts.AuthenticatedUserResponse.html",
-          "hash": "I6vFmga1BZvNVUIblH+cmx0VVKyDqD37YShH+yyPFvg="
+          "relative_path": "api/AuthEndpoints.Core.AuthEndpointsOptionsValidator.html",
+          "hash": "0gE5zET4yDuncOLS48tccrWdn4c/2RffcgiruaDnYEE="
         }
       },
       "is_incremental": false,
@@ -54,7 +54,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.ConfirmEmailRequest.html",
-          "hash": "pU3wlIc/1HjT9/i+CrfR9gTQWj6zXTHJT27H7HVke8Y="
+          "hash": "2qdd2H6cCT4bAsleT8hRuJ6KsRmZvnwhVTaKGy/Yi/4="
         }
       },
       "is_incremental": false,
@@ -66,7 +66,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.ErrorResponse.html",
-          "hash": "o2EEDCqKerw5FqjmpnzmOQdKXz0HpW4CqXOONLd2Bdk="
+          "hash": "aVyUo9PBO0H9tCAfVE/R72X4PNDyTT+aKorSlBY/dJs="
         }
       },
       "is_incremental": false,
@@ -78,7 +78,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.LoginRequest.html",
-          "hash": "WPI4YsBtTfecPT0Ku5ptcH0d5ink/frmovk46fHQPWE="
+          "hash": "H+uAcwZdiDPd1R+MVHrbGJY5e2bZQHummavQOIehqBA="
         }
       },
       "is_incremental": false,
@@ -90,7 +90,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.RefreshRequest.html",
-          "hash": "QdqgCPFVJe1ZjMYMTIFpHtB+z1ZpIJWea9dL5PoPijk="
+          "hash": "MJWqBiDWUvCPR45AYkh+I48iisIzNV7J0JFqI6pZseQ="
         }
       },
       "is_incremental": false,
@@ -102,7 +102,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.RegisterRequest.html",
-          "hash": "DnzHxAJ+cVf2wrUPKEyePvaZSMz5p/NZfNMkPXX+XGM="
+          "hash": "66tEVDix/7J0SFPdGd8R554ml8yR+7fHurjgd4cVg1o="
         }
       },
       "is_incremental": false,
@@ -114,7 +114,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.ResetPasswordConfirmRequest.html",
-          "hash": "VevLrSTB+AGn6lLgilBjMiZ/rJAjeNGQeL2Rhw59QZ0="
+          "hash": "0sr4GzsIcMwQXOsevi/7rzISZvGOlu2PFZ4u3uVpHg0="
         }
       },
       "is_incremental": false,
@@ -126,7 +126,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.ResetPasswordRequest.html",
-          "hash": "lL351dOFecl77HE7pmhROLJ+gvnH2mnu/HEJBHrxqR8="
+          "hash": "Li5pBbA5/ocJhtCAgylZAF3sO6Xw8LlXN2btHoi/x8o="
         }
       },
       "is_incremental": false,
@@ -138,7 +138,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.SetPasswordRequest.html",
-          "hash": "/QGn/XYDyp76w7WQ7ln9MfxAzrri6iO5MbI/QJ5nt14="
+          "hash": "Ri5Z19kPN7A6l1UTEUo2M+w87I/MI2mX+uOnI72BlKs="
         }
       },
       "is_incremental": false,
@@ -150,7 +150,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.SetUsernameRequest.html",
-          "hash": "HFERzgfH9PyaGYiPqD0ZCvu2q3uPJ87Nc7GaqOe2qYo="
+          "hash": "R7w+ELRtFgMI16mJgAxIvtOTqKqX5FT+Cm+7fZNECyI="
         }
       },
       "is_incremental": false,
@@ -162,7 +162,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.TwoStepVerificationConfirmRequest.html",
-          "hash": "3muAl8xJ4a6pwBI/xMsHOFbn/vOt8xBdQIkJAVggsG4="
+          "hash": "ynEWAclnRMkcaY3LmDAaIK0beZJVvq9Hk+XltSk5tsk="
         }
       },
       "is_incremental": false,
@@ -174,7 +174,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.TwoStepVerificationLoginRequest.html",
-          "hash": "DMJ66dA8/FZDjJ2TB96XNc98PNQdaizXuWf0wNjWtW0="
+          "hash": "e8Ly/Wd6bleek99ZEUkj1D1KUa9qhvgruETMD1dEbpA="
         }
       },
       "is_incremental": false,
@@ -186,7 +186,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.VerifyRequest.html",
-          "hash": "RcNy7l0Y8BclM72Pvb+PCNvsB517O8CpgfqsooWwTA4="
+          "hash": "4y90bc+9Th41lbCol3FOT4yRpsxbdfcAxQ6lPIQuL/U="
         }
       },
       "is_incremental": false,
@@ -198,7 +198,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Contracts.html",
-          "hash": "kqTS9hqvImLcUULPPYtQQjF0gNAs+gGlsX8Qyn6X0Y8="
+          "hash": "NB2onMQKctFFIO3Lpp8ldp+415hP7zKwKt534qr84x8="
         }
       },
       "is_incremental": false,
@@ -210,7 +210,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.EmailOptions.html",
-          "hash": "UQ89a7k3joJQ4LqyA+8JzkVjEUqmYh4BiPyyaI0VivA="
+          "hash": "5xjVnnHMy3ScY96qBCaNfLZB8fi0gL3zHQ38aGcHhks="
         }
       },
       "is_incremental": false,
@@ -218,35 +218,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.IBasicAuthEndpointDefinition-2.yml",
+      "source_relative_path": "api/AuthEndpoints.Core.IEndpointDefinition.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Endpoints.IBasicAuthEndpointDefinition-2.html",
-          "hash": "ekFuMjzXInzLEebC3i/Q3KLR4PHpmsc0Cns6F+fMNPw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.IEndpointDefinition.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Endpoints.IEndpointDefinition.html",
-          "hash": "ymVu21fpRh3bQ/820908uXqymEO7I/VScUD7uhTwIOI="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Endpoints.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Endpoints.html",
-          "hash": "CHGV+M3AI64+WgLpk4BgcXYzUWMuwyLooFQZtSHbZnA="
+          "relative_path": "api/AuthEndpoints.Core.IEndpointDefinition.html",
+          "hash": "8FoWypEgM9JcrkGkdbRNDvFJiX82FSIG4czCjRJlU4U="
         }
       },
       "is_incremental": false,
@@ -258,7 +234,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Models.EmailData.html",
-          "hash": "3ZI0ZzF9OfqW8jkkXhpBjKNeN9qDS/gbm5s+Tqq1KoM="
+          "hash": "ggd9B3ycmPpQtnAO+/c8aQD2J2Dwl9VGzqyJGpRASv0="
         }
       },
       "is_incremental": false,
@@ -270,31 +246,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Models.html",
-          "hash": "YZ4FIzpHuEk8JouN8aWANWaHVENumV72DO1Fs31KCDM="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Options.AuthEndpointsOptionsValidator.html",
-          "hash": "Tc9qRx4LFinmF6T2JzaaSbmT2+eAIw+P2JVVKQspYpw="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Options.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Options.html",
-          "hash": "k7qEEYdNhhodZEPq744fm41jSyOSFAKVye18Nalobtw="
+          "hash": "SCAqI/jYx928fPz9P/CpcTlmbbR0ZD9a1fl8sDMGlXY="
         }
       },
       "is_incremental": false,
@@ -306,7 +258,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.ServiceCollectionExtensions.html",
-          "hash": "zW0Xfp+PHs1VA5JZZceSF5ELuS/YI5Wi39a4TI6TZX0="
+          "hash": "432A2BnHYoKbHjk/tVpXbaJecJGZzF19xyniiA+rTGU="
         }
       },
       "is_incremental": false,
@@ -318,7 +270,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.DefaultAuthenticator-1.html",
-          "hash": "P7hecfubdbNYjGLz4Z8vyLFdGVzkKVJSEgTQKTpX5ss="
+          "hash": "lyeO2faxwZem8xDx13bPgvfSKCT77kNeTP/L6ns4+8I="
         }
       },
       "is_incremental": false,
@@ -330,7 +282,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.DefaultEmailSender.html",
-          "hash": "nmfhU7ZBK7A46VMH68zAcdb+6hw5uTPn+xmR6jg51iY="
+          "hash": "lI3v4WAGUgbzfkxyXw19w/pY1qmoMShrt4aX2dh3JRs="
         }
       },
       "is_incremental": false,
@@ -342,7 +294,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.DefaultMessageFactory.html",
-          "hash": "m0wU3tnlgI6N+IPvcbeA9/iOZvf1fOwUp9WKdFngoK8="
+          "hash": "7vhVKVZm5MZdgl9YbcKCq3ieILcF39Xc+5nue3QfSxI="
         }
       },
       "is_incremental": false,
@@ -354,7 +306,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.IAuthenticator-1.html",
-          "hash": "p9X0Z+tAm8Md6JIqFeFjyHig9mavDQRdObp3SuAG3uw="
+          "hash": "6yCjnEctTdmXXoLVNeRYOSVRnD1URlLa8vJIHVsM8Eo="
         }
       },
       "is_incremental": false,
@@ -366,7 +318,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.IEmailFactory.html",
-          "hash": "WBTgcC2r0zJxSAFyDRG4GgxwPQD+Yqjc2ORZ+dXyFfE="
+          "hash": "7qnqL9YzLqWCDCtU6888obxcFEev6XWjmNoxpPGqpjM="
         }
       },
       "is_incremental": false,
@@ -378,7 +330,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.IEmailSender.html",
-          "hash": "CaKTApta1GLWY6je88TlVMrGbsJFvm86v9tS6gmgxog="
+          "hash": "bDg3eT7wAvsSOdezdypscIxEdOeNIdkaazl0N1GiwQc="
         }
       },
       "is_incremental": false,
@@ -386,11 +338,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.Core.Services.ILoginService-1.yml",
+      "source_relative_path": "api/AuthEndpoints.Core.Services.ILoginService.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.Core.Services.ILoginService-1.html",
-          "hash": "JAxwagCUbeKpTwrVbxeRO6zUmENNFUIkOzAa1fb9wos="
+          "relative_path": "api/AuthEndpoints.Core.Services.ILoginService.html",
+          "hash": "4TTtPeWDRIvJ2DUt4Fpo1wTCtISwByI6WT0rCgUIUo0="
         }
       },
       "is_incremental": false,
@@ -402,7 +354,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.Services.html",
-          "hash": "W3zfNh8ucLbrtk2Hfa80fPShOK3scmAMfN0EK0eU9HU="
+          "hash": "fSiU/mlegeVAFtNSfjNOWz8bPjW9hgp8GOteGuGbkmo="
         }
       },
       "is_incremental": false,
@@ -414,7 +366,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.TypeHelper.html",
-          "hash": "wZDxsxgO8fJjSLj0R0roWEyQ8/TVqYMu9V2E+u5B6NQ="
+          "hash": "JrtklCzv5QqEytXi7N0of0xJGcQ2IoSPH3r1AUBBH1Y="
         }
       },
       "is_incremental": false,
@@ -426,7 +378,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.WebApplicationExtensions.html",
-          "hash": "sU2Ub+irRgH82fLw5tEGQj4WjxX1Ro5WOqmVVlVH8VY="
+          "hash": "WA3+nYJ2VrNwcDP/seuw2mPfWo/VPnPc18w4c/9uLIU="
         }
       },
       "is_incremental": false,
@@ -438,7 +390,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.Core.html",
-          "hash": "CcL7NrraJoxusweiKPCZSP6jX+jCWgvVqRdaiwb5yrI="
+          "hash": "RDYIrXKwzOjaM/GVme+TOYaerFKwBN+wjwdo0skiK1A="
         }
       },
       "is_incremental": false,
@@ -450,19 +402,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.AuthEndpointsBuilderExtensions.html",
-          "hash": "4fRt9B4hQE+Cg9Eshai3TH8MOl5/vi4nht/maUqTKio="
-        }
-      },
-      "is_incremental": false,
-      "version": ""
-    },
-    {
-      "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.yml",
-      "output": {
-        ".html": {
-          "relative_path": "api/AuthEndpoints.MinimalApi.BasicAuthEndpointDefinition-2.html",
-          "hash": "qgkPPwfdtwQuzJH6YS+q8juBQEUOfT8OZ1sLTLaykos="
+          "hash": "Ibk9WiREjwEBboPYIr34WEGeJaWNPeP+6Bs8vC9bXcg="
         }
       },
       "is_incremental": false,
@@ -474,7 +414,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.IMinimalValidator.html",
-          "hash": "rgbFMN3auN/iWA5iSt7YbsGhVbyiQ7qNcGlZXign+BM="
+          "hash": "kupqnQfqm+lvOJr513YWvYmZ3mULK7yzrYuGRPmL+i4="
         }
       },
       "is_incremental": false,
@@ -486,7 +426,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.MinimalValidator.html",
-          "hash": "sBFQrObK8YVGgbOoyjBblp8srapwZUOAKa0bH3zCVx0="
+          "hash": "TIORk8dQ2cPjUmFFUqDpMslxzeZcdaJpdgGcKEJPasA="
         }
       },
       "is_incremental": false,
@@ -498,7 +438,19 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.TwoFactorEndpointDefinition-2.html",
-          "hash": "pTchEcql0hkY4Ho7cus9e9wWidSpcUEbFIbv26hbTlI="
+          "hash": "mGM5ueZ2copgrJNDU+7/3i9FJuOq//DqRh1oXhjhxIs="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.MinimalApi.UsersEndpointDefinition-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.MinimalApi.UsersEndpointDefinition-2.html",
+          "hash": "RRrEmID7li8+V1sHPFaGRDwfbio+h7cE6gaAbHII8pw="
         }
       },
       "is_incremental": false,
@@ -510,7 +462,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.ValidationResult.html",
-          "hash": "Z0i7++ZCcIVLLqq5Cv0VfICrGs0bAf+C/5BDjGa/PVc="
+          "hash": "tjdRC9fzVVKdBt78oqkuI3cznDsgxoFtFz5j9LdbGAI="
         }
       },
       "is_incremental": false,
@@ -522,7 +474,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.MinimalApi.html",
-          "hash": "H0M8yibitN3yb5llE2/mQdi7Wt+4t1IwvWW3I70ZEic="
+          "hash": "9NNxRb3W7qC7ddMq3x+gYNZL5ihJzOBnNFyAHbbD2lI="
         }
       },
       "is_incremental": false,
@@ -534,7 +486,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Contracts.AuthenticatedUserResponse.html",
-          "hash": "kWcAtD3PRCsEyN1bc5rFsSntZ2D5UsjgnmJ3cpX9P5U="
+          "hash": "MIPwZkkl9oC4XS0Kau/7ZDBRSNTUynSj7HtME28PUXU="
         }
       },
       "is_incremental": false,
@@ -546,7 +498,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Contracts.html",
-          "hash": "rpbxVlb7YJPuDj/7Go31JX1Mil005/Bo/lsWTNR+unM="
+          "hash": "XsQbh5hUutkzIt6jpMVL5Vt4Rriy9sFWPnf9iLDVzDU="
         }
       },
       "is_incremental": false,
@@ -558,7 +510,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.IRefreshTokenRepository.html",
-          "hash": "B473PER2xy10Uw/01uv7jyBzFm4uYenmS4hfmPE0skE="
+          "hash": "9GoZm+RUk0zJ1wV4m/tz3h4473E+uiV+9ToNQ4wPmBE="
         }
       },
       "is_incremental": false,
@@ -570,7 +522,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.JwtSigningOptions.html",
-          "hash": "Wp2U4/eCYzC8sF/0TBREqyK9NIJ4z3vzojDDKuz8GaU="
+          "hash": "4Aq7Vw0qPr7PzPS6YV6G2dbgnMZ+QH9fNAZiYL//04I="
         }
       },
       "is_incremental": false,
@@ -582,7 +534,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Models.RefreshToken.html",
-          "hash": "1EnzlD0fLZNpd9Hoy/VHM6769uzNO1EdiSLrtqXGDIk="
+          "hash": "a/hlUatQawEuwnYlVkSEusr+RbZgc9YYVMmK2bQV1ao="
         }
       },
       "is_incremental": false,
@@ -594,7 +546,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Models.html",
-          "hash": "tjbFOvG+/yvDrh4p7meGxnRBTNU+2AMjip0S5YmtVBk="
+          "hash": "Q/IM1LxKoRK4vmXymcetMGIC9j6zfzPzCwdLIeqd9lk="
         }
       },
       "is_incremental": false,
@@ -606,7 +558,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.OptionsConfigurator.html",
-          "hash": "RRyaj+kkTCk13Kg1XRdCYgr/qShAx07J7FVZ1Tl1q5w="
+          "hash": "CtKMxhIefRtpt0OGI9izwM4TTaZ2Y6uwEs6rFPeU4TI="
         }
       },
       "is_incremental": false,
@@ -618,7 +570,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.OptionsValidator.html",
-          "hash": "E8Mqr3CkiNtJLcH7mxNqCyoPs89kZ35ByJd3SWVLuag="
+          "hash": "FNmklLoty37jsbj0E5j7tvoyOP2/1k2ZSkZhM0jbW8Y="
         }
       },
       "is_incremental": false,
@@ -630,7 +582,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.RefreshTokenNotFoundException.html",
-          "hash": "Hj+tPmKP83+7d7Fw9pSSgzQNV9OuAGCbJBFLx39Tkco="
+          "hash": "44DSaa4FR+gZyYbC/c5m34oBDXOhEneCA9KZUHm3aaI="
         }
       },
       "is_incremental": false,
@@ -642,7 +594,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.RefreshTokenRepository-1.html",
-          "hash": "DVr7ZXkiGrn7xlvG1NNd1xSQmwUl3mrGG3i7o1qXQBk="
+          "hash": "zSnUTf1IpO+HgqW8u0MxDrJmR5p60At9pBUHt0uP37I="
         }
       },
       "is_incremental": false,
@@ -650,11 +602,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.AccessTokenGenerator-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.AccessTokenGenerator.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.AccessTokenGenerator-1.html",
-          "hash": "rQxOwG/ruRGFoI9aRGysUz0jZiY5qMrufERoIw1aciM="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.AccessTokenGenerator.html",
+          "hash": "oNpvAoHUFA+Q2RWrxp15kH3tIKgRP2O7V6myOmzzU6Q="
         }
       },
       "is_incremental": false,
@@ -662,11 +614,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.DefaultClaimsProvider-2.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.DefaultClaimsProvider.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.DefaultClaimsProvider-2.html",
-          "hash": "6ACHdIpKzf+tZYif6+2yDXIefouIGjDYaQEe34Ig3IM="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.DefaultClaimsProvider.html",
+          "hash": "dT13+JQwV1XWTy+BLvThbc4WWXSxB8dmHkkHi2EcOFE="
         }
       },
       "is_incremental": false,
@@ -674,11 +626,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator-1.html",
-          "hash": "EIk6VKiLtuF2kYY7rZs9byDEreP4x8Jdxu5catJ/464="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator.html",
+          "hash": "SqUAKl4toWhZW0Im3v/3hszBhelUwTNToJQC3+XzXQA="
         }
       },
       "is_incremental": false,
@@ -686,11 +638,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IClaimsProvider-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IClaimsProvider.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IClaimsProvider-1.html",
-          "hash": "ugk/aKIEg63stz6Vf61sIMkAR6xsdxCzB9bYi5vW/Kw="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IClaimsProvider.html",
+          "hash": "Fsre5pq1uEly+hdoxTM7hXM43MW/Ay0SEjVA6OVXJBw="
         }
       },
       "is_incremental": false,
@@ -698,11 +650,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IRefreshTokenGenerator-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IRefreshTokenGenerator.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IRefreshTokenGenerator-1.html",
-          "hash": "GWjS4OhmFItDtUo2+TcyQhHJftSIHXLnKDM0ZMkXSvY="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IRefreshTokenGenerator.html",
+          "hash": "BqR+pErtukAjpXnOkArTq+SuWeZwhX6Z6xk4jV9pnio="
         }
       },
       "is_incremental": false,
@@ -714,7 +666,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.IRefreshTokenValidator.html",
-          "hash": "41pseccC5UpUeppl0CeAPEODiwbkIxlP8Hd2ZoeFEhk="
+          "hash": "eEqD0kF9MXdyq7Uo7Zjzl/PXMVrX6h5y1m8wRhBNTHQ="
         }
       },
       "is_incremental": false,
@@ -722,11 +674,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.ITokenGeneratorService-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.ITokenGeneratorService.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.ITokenGeneratorService-1.html",
-          "hash": "2hhSmFUWkUuF0GB1Knl9bGrdEM9lzVazY6xsENv4r3g="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.ITokenGeneratorService.html",
+          "hash": "zpnwGWdpsZble6+4UfeRSSbOJ35GXDZBTPiQO+4naP8="
         }
       },
       "is_incremental": false,
@@ -734,11 +686,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.RefreshTokenGenerator-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.RefreshTokenGenerator.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.RefreshTokenGenerator-1.html",
-          "hash": "Fp7OjVDIPrDuPnobZ1Y1O/nZseoS01endAWhoPaXLc4="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.RefreshTokenGenerator.html",
+          "hash": "1t+HBi83KlFju8CrXBKUKscZVqtwvNETUpQ7ubG7IGA="
         }
       },
       "is_incremental": false,
@@ -750,7 +702,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.RefreshTokenValidator.html",
-          "hash": "S3Bjy8eBQfohvLaTn37c0kARNiWq+tKCtBhAqYzODG8="
+          "hash": "PRr7RdA+O0Try+W4EBHuoQGK99ta0yT/yF3ojXvuw4M="
         }
       },
       "is_incremental": false,
@@ -758,11 +710,11 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.TokenGeneratorService-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.TokenGeneratorService.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.TokenGeneratorService-1.html",
-          "hash": "4GSwCqkBCHs4ezcpichgKKZHxbxcjJxrwDNovyaXcp4="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.TokenGeneratorService.html",
+          "hash": "W6pMkw0TNpXscbEkkYj4U2FWUR1sOhf1JGzpJDarjF4="
         }
       },
       "is_incremental": false,
@@ -774,7 +726,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.Services.html",
-          "hash": "EIecg0iNzQvB4YEEcsi2FzosXQuXzIZ1oEI4ASa9Mvw="
+          "hash": "LL3oekt4aVLiDMWOTus2OXX9wC2AoqmZh3B7ElPNbBo="
         }
       },
       "is_incremental": false,
@@ -786,7 +738,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.html",
-          "hash": "NmmnBvNDZtNHqSPt7Y19y4CS2uFKxA34PHRdlmSgDW4="
+          "hash": "mnM+CUqS+Ol+Jr8vJbwwhzQrjMEIh23SGJUUQ1j8IZQ="
         }
       },
       "is_incremental": false,
@@ -798,7 +750,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.SimpleJwtOptions.html",
-          "hash": "A9Ngaxqv8tp0hBMMRWBK9SqrW/4zOjKTATwS8YqqXQk="
+          "hash": "kd2h+oIHXT2cHSzz2nigwAp7fgReRp6+KHBUmdtPmQ4="
         }
       },
       "is_incremental": false,
@@ -810,7 +762,19 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.Core.html",
-          "hash": "iECeGNX2qfFZVFr2VgwbIFQIh7vqnxxhYuYk1zRNcJ4="
+          "hash": "1+zxJcG+fk5zpVb/QD2STQeM3oc4d3X57VxT3yokhG8="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.JwtCookieEndpointDefinitions-2.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.SimpleJwt.JwtCookieEndpointDefinitions-2.html",
+          "hash": "leXELTUE+SwWqJES4kX3OpOBt7H0fZVceSwjphZMF8k="
         }
       },
       "is_incremental": false,
@@ -822,7 +786,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.JwtEndpointDefinition-2.html",
-          "hash": "L6cPi4wE59AN+/3Q4B0AlvIJIKcoPOpc1PFphSMmf8U="
+          "hash": "7zdVajkalfT1Kin4GJTJ908c//dlmPaDMZUwApX6nPM="
         }
       },
       "is_incremental": false,
@@ -830,11 +794,23 @@
     },
     {
       "type": "ManagedReference",
-      "source_relative_path": "api/AuthEndpoints.SimpleJwt.JwtLoginService-1.yml",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.JwtHttpOnlyCookieLoginService.yml",
       "output": {
         ".html": {
-          "relative_path": "api/AuthEndpoints.SimpleJwt.JwtLoginService-1.html",
-          "hash": "WedVNZ7YxqSMdk2Qi7igL8iUA2tI8YxNPPF2ov+x9pw="
+          "relative_path": "api/AuthEndpoints.SimpleJwt.JwtHttpOnlyCookieLoginService.html",
+          "hash": "JPGts+Ftp5IfLxrxN4Dqi63rnPH98xsUa3bKKnWI85g="
+        }
+      },
+      "is_incremental": false,
+      "version": ""
+    },
+    {
+      "type": "ManagedReference",
+      "source_relative_path": "api/AuthEndpoints.SimpleJwt.JwtLoginService.yml",
+      "output": {
+        ".html": {
+          "relative_path": "api/AuthEndpoints.SimpleJwt.JwtLoginService.html",
+          "hash": "WalBayl0Sc8UCULSc09T0LiE2oXmHlo3oA27Z+AR+tQ="
         }
       },
       "is_incremental": false,
@@ -846,7 +822,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.ServiceCollectionExtensions.html",
-          "hash": "KafKKxUzn2oQ8rX/QB966Nslqrf3gfB9zYJXPDoRiY4="
+          "hash": "6Q6UYkZs4KuWBcfaY0Y9bMEe/SV+izWFHgzMfofuwZI="
         }
       },
       "is_incremental": false,
@@ -858,7 +834,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.SimpleJwt.html",
-          "hash": "k5QqwsRjdJu9R6LX4+lvwdRKemXlRreDoA1sACHBoos="
+          "hash": "43P0EOIcRZ8zXp8eu/N058N7ZS6UaKPIt5tCWn2lrJU="
         }
       },
       "is_incremental": false,
@@ -870,7 +846,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.AuthenticationBuilderExtensions.html",
-          "hash": "aRMxAmJFQMlInWzi7xwm1KkWXHPMYiivKCqekdaCzCI="
+          "hash": "puCmPXiwSVAn+2zo0nBd8RD3siZmnhqBU9wH5doxd/s="
         }
       },
       "is_incremental": false,
@@ -882,7 +858,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.AuthTokenGenerator.html",
-          "hash": "91GDzX71vwBPFz+i+PixtzVT0GzNqHec76BHw9nsDG4="
+          "hash": "WKYf21pYJnFoXMsGJEeiAprkPfJ2Aiv3l+HX5c5Zj5g="
         }
       },
       "is_incremental": false,
@@ -894,7 +870,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.AuthTokenValidator-3.html",
-          "hash": "8+eGVc3vhEgtCvtB+hjGZAk29ryfRS30BAOTFm7EgUo="
+          "hash": "jTKpy0uN81DkQ0FS9u04RgniBmqBT1LyljYag4/bC2c="
         }
       },
       "is_incremental": false,
@@ -906,7 +882,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.Token-2.html",
-          "hash": "kz3194UONugQvtafibcRdl7gtoQL6v4jQtc9kW52e/U="
+          "hash": "C97gBkuQVkUZjYujkCTqFRRLtb1OKUN5Q0dtMBHNkko="
         }
       },
       "is_incremental": false,
@@ -918,7 +894,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenAuthBuilder.html",
-          "hash": "xcMOA9GeuovjoRZ3KJXL6XNwD141HDLrdKHVOvDbhPU="
+          "hash": "Id4+KeumcIYUkJ5sIOmyqQ/ZGM+gQzUckHX4bm6lXKA="
         }
       },
       "is_incremental": false,
@@ -930,7 +906,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenAuthResponse.html",
-          "hash": "+bwHHDVpjyFMQnisTwFNKGq7NAdk6vd8Y9qHyRs7Jbg="
+          "hash": "TLzWJxfL8aTXvj0Y0HyTLcd90eN+XD6lubNcrjfuhhs="
         }
       },
       "is_incremental": false,
@@ -942,7 +918,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenAuthServiceCollectionExtensions.html",
-          "hash": "zPFyG7IGwsDm7YzztKyDTasVkEHEbwOmYYrGLEflvUE="
+          "hash": "Ox/A0endi/0nmuQnRLNRAsYnMzUUOmv5611pajuln0g="
         }
       },
       "is_incremental": false,
@@ -954,7 +930,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenBearerAuthenticationOptions.html",
-          "hash": "eus8Bj+eWCwngyYui0whz2jL3pB8iDBxDiw09QRKhqc="
+          "hash": "7OUr7OxumPBwzU3M0QVeXAu2mRapHl2iFxWz1Yg9AI8="
         }
       },
       "is_incremental": false,
@@ -966,7 +942,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenBearerDefaults.html",
-          "hash": "E92QXno2wRbW2Ly/nHERIuG1TXuWOCbRjhN8Ztpo1RM="
+          "hash": "9jn6SGJWg2DisZaZrsc+TNOsbEcCCo9zCVaMnikGWFM="
         }
       },
       "is_incremental": false,
@@ -978,7 +954,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenBearerHandler-3.html",
-          "hash": "uDdDFJEz9QaKtFaci/aJbjMwDlMGhswqOvbnM32ype4="
+          "hash": "xQvNHzAFR8RZQklkjfv6695XNNYnnF1c+H1Y5W4d93A="
         }
       },
       "is_incremental": false,
@@ -990,7 +966,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.TokenRepository-3.html",
-          "hash": "EsQ7NEOIKesUjKX6/AsAAJO+b8lLAUUvlNHGArfb2ec="
+          "hash": "0W1Xs4+/tWkSM8ieEChMbdOB0qCNKVLZyS+xNlNv4E8="
         }
       },
       "is_incremental": false,
@@ -1002,7 +978,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.Core.html",
-          "hash": "NypPa/rD2rRPiavyDAQHnC15h3/Aw4wwRBFS+M8xjIE="
+          "hash": "0Tb4oWzhxZ3iG7Ym7tv2LcPPBsijKU3vlayhhKQQcGM="
         }
       },
       "is_incremental": false,
@@ -1014,7 +990,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.TokenAuthEndpoints-3.html",
-          "hash": "wPgPCOGpwAMCrWeJWBk/jMPk58GCbZgI+S8qeH1Mgf4="
+          "hash": "tSNAjaSzJRgUacHUan36okk0yLl8fwAiLR671Yz9Hkc="
         }
       },
       "is_incremental": false,
@@ -1026,7 +1002,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.TokenAuthLoginService-3.html",
-          "hash": "egoepF8AYCl3GtU381/QMiDl+1PShMhnK3aVetQ8E0M="
+          "hash": "CkNTbUixLmSc5QtE4KXX+5BfzdIqOqbRXMPZPlFzOYQ="
         }
       },
       "is_incremental": false,
@@ -1038,7 +1014,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.TokenAuthServiceCollectionExtensions.html",
-          "hash": "LNQA2QhCwUgqQ0iiZZuPr7DUAtwqGzyUs5eFtCWkir8="
+          "hash": "hlUXylY7LjPmHlnnKmXQhIHXJA5yKA5hof2orSbb+fU="
         }
       },
       "is_incremental": false,
@@ -1050,7 +1026,7 @@
       "output": {
         ".html": {
           "relative_path": "api/AuthEndpoints.TokenAuth.html",
-          "hash": "8VpBjfbvQqvsAxAotCfZGV/Wslh77drr/o9EW6ntE44="
+          "hash": "EcPazFB14qne1LQNwv4hozAmVhROgzOQhf33gwL75Rk="
         }
       },
       "is_incremental": false,
@@ -1062,7 +1038,7 @@
       "output": {
         ".html": {
           "relative_path": "api/index.html",
-          "hash": "frUqkTeKjl5yabdkFn/7Fdg+mVMMHXDl+5JxTtT2tMI="
+          "hash": "TsE2XjVHf2ltNkaYkyaPLKMwkGA+g8b1uo855ekZkqA="
         }
       },
       "is_incremental": false,
@@ -1074,7 +1050,7 @@
       "output": {
         ".html": {
           "relative_path": "api/toc.html",
-          "hash": "Z4SuD1tbhWJ/t9YsHLXjMPbdnZsEekCAhb/iB+RXOD0="
+          "hash": "qWNkRbaYB2GxbGsx3c4mrGH0FSDwdJM6VxyYmz/gau0="
         }
       },
       "is_incremental": false,
@@ -1086,7 +1062,7 @@
       "output": {
         ".html": {
           "relative_path": "index.html",
-          "hash": "S4O/e5vIOxEv36LnHKg811Hhn7uOMwINKgmuyRl2pBM="
+          "hash": "TtA4xjHIqUiYpP6NSA+3WcFpYGdoZH7TfELtU17MYhU="
         }
       },
       "is_incremental": false,
@@ -1110,7 +1086,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/authorization.html",
-          "hash": "kI8SA/XAHq9pdo/joDs2+/jwBADTJjNdXbpGgYl+yms="
+          "hash": "ORlFVSAJdawqs7B/+bkGQSXUeNIfmJVONgOPGT05ltQ="
         }
       },
       "is_incremental": false,
@@ -1122,7 +1098,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-authenticator.html",
-          "hash": "WyY4PlLZJ7vv3hg7MiqbGeHGqu1YJzTWTZbKjPrWQw0="
+          "hash": "QoaoNI5HW5ljxjRqebsk+TYxF6G51G0h/CTgTTZhoUo="
         }
       },
       "is_incremental": false,
@@ -1134,7 +1110,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/custom-claims.html",
-          "hash": "x9AjD0kk2/uLHxnvJ2Y99GJvQO4IwPT0in5C8s0lFGM="
+          "hash": "mKs6DRJYQjOAnvAt9sji1Fozj5MQhyp4BwNiasE/cZM="
         }
       },
       "is_incremental": false,
@@ -1146,7 +1122,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/email-config.html",
-          "hash": "Uud5bh/iFoeh1JWZ1ZJnlisBE8svnlVUeve94HuPBbU="
+          "hash": "PwAhMMQZ1pD4NgqQqaPGVniVoyvgJQVPtvbX908WZb8="
         }
       },
       "is_incremental": false,
@@ -1158,7 +1134,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/email-verification.html",
-          "hash": "KQzBRNwRpVrQ1wnHMiyVRbnEHza6Wn8whmGKv6X+TFE="
+          "hash": "U3P7van+A83oYj9zUnjH/YPmlPapQoKCT0WAgyato14="
         }
       },
       "is_incremental": false,
@@ -1170,7 +1146,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/encryption-type.html",
-          "hash": "5QhCG5uLMyzpKxPuD4pLljnYd3jEiy4lIN4MNJgLSS0="
+          "hash": "QP3RsMjntaA+h4y1/TvjVAPtn1XHDGyvz3/bHQUyZaQ="
         }
       },
       "is_incremental": false,
@@ -1182,7 +1158,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/2fa.html",
-          "hash": "w7HuDWADi77isOSZbfY9Kdjdj4XvG+P7PissixW44nc="
+          "hash": "oeSPgJHNWIXCsLI92dchwrGS026gnz1LVppql1ZVrNo="
         }
       },
       "is_incremental": false,
@@ -1190,11 +1166,11 @@
     },
     {
       "type": "Conceptual",
-      "source_relative_path": "wiki/endpoints/basic-authentication.md",
+      "source_relative_path": "wiki/endpoints/base-endpoints.md",
       "output": {
         ".html": {
-          "relative_path": "wiki/endpoints/basic-authentication.html",
-          "hash": "l4x1mCppB2s38sBOkShC7mofSdxoGFc+8MO9ofBwa0o="
+          "relative_path": "wiki/endpoints/base-endpoints.html",
+          "hash": "6HJCmynVInuw53iuIbVH8mBFz+5zYFZ0TKCwORTNJto="
         }
       },
       "is_incremental": false,
@@ -1206,7 +1182,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/definitions.html",
-          "hash": "+xAvsB0yK7So2E7j7dW/lE/cM90X+1dx2aSbvG1SEXo="
+          "hash": "Y7YfB2Jwx4/KexQ5nmMQNMFQZ67GqVUeQdHsF7K6/6I="
         }
       },
       "is_incremental": false,
@@ -1218,7 +1194,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/endpoints/jwt.html",
-          "hash": "zwgQ9mUxH5cAaspkS0sAfKE4JsTtaLlUbtkU7XR+qbg="
+          "hash": "+jLcnYjrFEC8Zx/aefvP5xzhfQq2UfNvxSaZFQbqP+o="
         }
       },
       "is_incremental": false,
@@ -1230,7 +1206,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/get-started.html",
-          "hash": "qtEl/2iqzvduA12B6puB2aMpNDmw/8Enxs4l/UboLvo="
+          "hash": "DhkLQWCQTeBPqWcyFZSIqZ6c0I0n6X7cK+1m5UXh2mE="
         }
       },
       "is_incremental": false,
@@ -1242,7 +1218,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/password-reset.html",
-          "hash": "/dm/p9+vO66y3P8KA+Dam8mG9OZrbzvPvvDYKEZmfzA="
+          "hash": "4bN2IOAQoeySLuHxNT2w3gHQ9XNExuX9+E/lt4TIHXc="
         }
       },
       "is_incremental": false,
@@ -1254,7 +1230,7 @@
       "output": {
         ".html": {
           "relative_path": "wiki/toc.html",
-          "hash": "QVyZEpzzrAwHsu3/eFM/NbGQu/XlWghaaa9gIGHuGH8="
+          "hash": "TG/fHDGwL8bqE273tDZyERJuGLkASV1rMnYtEkLggFc="
         }
       },
       "is_incremental": false,
@@ -1279,8 +1255,8 @@
         "ManagedReferenceDocumentProcessor": {
           "can_incremental": true,
           "incrementalPhase": "build",
-          "total_file_count": 87,
-          "skipped_file_count": 87
+          "total_file_count": 85,
+          "skipped_file_count": 85
         },
         "TocDocumentProcessor": {
           "can_incremental": false,

@@ -5,10 +5,10 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <title>Implementing your own Endpoint Definition | AuthEndpoints </title>
+    <title>Using IEndpointDefinition | AuthEndpoints </title>
     <meta name="viewport" content="width=device-width">
-    <meta name="title" content="Implementing your own Endpoint Definition | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.3.0">
+    <meta name="title" content="Using IEndpointDefinition | AuthEndpoints ">
+    <meta name="generator" content="docfx 2.59.4.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../../images/favicon.ico">
     <link rel="stylesheet" href="../../styles/docfx.vendor.css">
@@ -77,9 +77,9 @@
         <div class="article row grid-right">
           <div class="col-md-10">
             <article class="content wrap" id="_content" data-uid="">
-<h3 id="implementing-your-own-endpoint-definition">Implementing your own Endpoint Definition</h3>
+<h3 id="using-iendpointdefinition">Using IEndpointDefinition</h3>
 
-<p>You can define your own minimal api endpoint definition by implementing the <code>IEndpointDefintion</code> inerface.</p>
+<p>You can define your own minimal api endpoint definition by implementing the <code>IEndpointDefintion</code> interface.</p>
 <pre><code class="lang-cs">internal class MyEndpointsDefinition : IEndpointDefinition
 {
   public void MapEndpoints(WebApplication app) 
@@ -94,10 +94,7 @@
 }
 </code></pre>
 <p>Add your endpoint definition</p>
-<pre><code class="lang-cs">var endpointsBuilder = builder.Services.AddAuthEndpointsCore&lt;string, IdentityUser&gt;();
-endpointsBuilder.AddJwtEndpoints();
-
-builder.Services.AddEndpointDefinition&lt;MyEndpointDefinition&gt;(); // &lt;--
+<pre><code class="lang-cs">builder.Services.AddEndpointDefinition&lt;MyEndpointDefinition&gt;(); // &lt;--
 
 var app = builder.Build();
 

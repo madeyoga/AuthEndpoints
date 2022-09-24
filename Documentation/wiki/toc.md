@@ -1,6 +1,6 @@
 # [Get Started](get-started.md)
-# [Supported Endpoints](endpoints/basic-authentication.md)
-## [Base Endpoints](endpoints/basic-authentication.md)
+# [Supported Endpoints](endpoints/base-endpoints.md)
+## [Base Endpoints](endpoints/base-endpoints.md)
 ## [Jwt Endpoints](endpoints/jwt.md)
 ## [2FA Endpoints](endpoints/2fa.md)
 # [Endpoint Definition](endpoints/definitions.md)

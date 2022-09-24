@@ -1,6 +1,6 @@
-### Implementing your own Endpoint Definition
+### Using IEndpointDefinition
 
-You can define your own minimal api endpoint definition by implementing the `IEndpointDefintion` inerface.
+You can define your own minimal api endpoint definition by implementing the `IEndpointDefintion` interface.
 
 ```cs
 internal class MyEndpointsDefinition : IEndpointDefinition
@@ -20,9 +20,6 @@ internal class MyEndpointsDefinition : IEndpointDefinition
 Add your endpoint definition
 
 ```cs
-var endpointsBuilder = builder.Services.AddAuthEndpointsCore<string, IdentityUser>();
-endpointsBuilder.AddJwtEndpoints();
-
 builder.Services.AddEndpointDefinition<MyEndpointDefinition>(); // <--
 
 var app = builder.Build();

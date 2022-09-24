@@ -11,7 +11,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
 ![swagger_authendpoints](https://i.imgur.com/rqMbFNy.png)
 
 ## Supported endpoints
-- Basic authentication actions:
+- Users API:
   - sign-up
   - email verification
   - user profile (retrieving)

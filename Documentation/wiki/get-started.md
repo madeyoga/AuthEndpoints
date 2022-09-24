@@ -27,11 +27,7 @@ Install-Package AuthEndpoints
 
 ## Quick Start
 
-First, let's install `Microsoft.AspNetCore.Identity.EntityFrameworkCore` and create a DbContext:
-
-```
-dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
-```
+First, let's create a DbContext:
 
 ```cs
 // Data/MyDbContext.cs
@@ -71,10 +67,10 @@ Next, let's add auth endpoints services:
 ```cs
 // Program.cs
 
-// Add basic authentication endpoints
+// Add users api endpoints
 builder.Services
   .AddAuthEndpointsCore<IdentityUser, MyDbContext>() // <-- 
-  .AddBasicAuthenticationEndpoints()
+  .AddUsersApiEndpoints()
   .Add2FAEndpoints();
 
 // Add JWT endpoints
@@ -102,9 +98,9 @@ app.MapEndpoints(); // <--
 app.Run();
 ```
 
-Run it and you should see auth endpoints available on swagger docs!
+Run it and you should see endpoints available on swagger docs!
 
-![authendpoints swagger](https://i.imgur.com/VCuIazI.png "authendpoints swagger")
+![authendpoints swagger](https://i.imgur.com/rqMbFNy.png "authendpoints swagger")
 
 
 ## Full Source Code
@@ -137,10 +133,10 @@ builder.Services
   .AddEntityFrameworkStores<MyDbContext>() // <-- Microsoft.AspNetCore.Identity.EntityFrameworkCore
   .AddDefaultTokenProviders(); // <--
 
-// Add basic authentication
+// Add Users API
 builder.Services
   .AddAuthEndpointsCore<IdentityUser>() // <-- 
-  .AddBasicAuthenticationEndpoints()
+  .AddUsersApiEndpoints()
   .Add2FAEndpoints();
 
 // Add JWT endpoints
@@ -171,6 +167,6 @@ app.Run();
 ## Available Endpoints
 Checkout endpoints definition [docs](endpoints/definitions.md)
 
-- [Basic authentication endpoints](endpoints/basic-authentication.md)
+- [Users endpoints](endpoints/base-endpoints.md)
 - [JWT endpoints](endpoints/jwt.md)
 - [2FA endpoints](endpoints/2fa.md)

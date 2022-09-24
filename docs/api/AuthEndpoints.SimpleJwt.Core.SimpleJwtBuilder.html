@@ -10,7 +10,7 @@
     <meta name="viewport" content="width=device-width">
     <meta name="title" content="Class SimpleJwtBuilder
    | AuthEndpoints ">
-    <meta name="generator" content="docfx 2.59.3.0">
+    <meta name="generator" content="docfx 2.59.4.0">
     <meta name="description" content="An authentication library for ASP.Net 6">
     <link rel="shortcut icon" href="../images/favicon.ico">
     <link rel="stylesheet" href="../styles/docfx.vendor.css">
@@ -314,12 +314,13 @@
   </span>
   <a id="AuthEndpoints_SimpleJwt_Core_SimpleJwtBuilder_AddAccessTokenGenerator_" data-uid="AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.AddAccessTokenGenerator*"></a>
   <h4 id="AuthEndpoints_SimpleJwt_Core_SimpleJwtBuilder_AddAccessTokenGenerator__1" data-uid="AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.AddAccessTokenGenerator``1">AddAccessTokenGenerator&lt;TGenerator&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator-1.html">IAccessTokenGenerator&lt;TUser&gt;</a>.</p>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator.html">IAccessTokenGenerator</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual SimpleJwtBuilder AddAccessTokenGenerator&lt;TGenerator&gt;()
+
     where TGenerator : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -363,12 +364,13 @@
   </span>
   <a id="AuthEndpoints_SimpleJwt_Core_SimpleJwtBuilder_AddClaimsProvider_" data-uid="AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.AddClaimsProvider*"></a>
   <h4 id="AuthEndpoints_SimpleJwt_Core_SimpleJwtBuilder_AddClaimsProvider__1" data-uid="AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.AddClaimsProvider``1">AddClaimsProvider&lt;TProvider&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.SimpleJwt.Core.Services.IClaimsProvider-1.html">IClaimsProvider&lt;TUser&gt;</a>.</p>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.SimpleJwt.Core.Services.IClaimsProvider.html">IClaimsProvider</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual SimpleJwtBuilder AddClaimsProvider&lt;TProvider&gt;()
+
     where TProvider : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -418,6 +420,7 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual SimpleJwtBuilder AddErrorDescriber&lt;TDescriber&gt;()
+
     where TDescriber : IdentityErrorDescriber</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -461,12 +464,13 @@
   </span>
   <a id="AuthEndpoints_SimpleJwt_Core_SimpleJwtBuilder_AddRefreshTokenGenerator_" data-uid="AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.AddRefreshTokenGenerator*"></a>
   <h4 id="AuthEndpoints_SimpleJwt_Core_SimpleJwtBuilder_AddRefreshTokenGenerator__1" data-uid="AuthEndpoints.SimpleJwt.Core.SimpleJwtBuilder.AddRefreshTokenGenerator``1">AddRefreshTokenGenerator&lt;TGenerator&gt;()</h4>
-  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator-1.html">IAccessTokenGenerator&lt;TUser&gt;</a>.</p>
+  <div class="markdown level1 summary"><p>Adds an <a class="xref" href="AuthEndpoints.SimpleJwt.Core.Services.IAccessTokenGenerator.html">IAccessTokenGenerator</a>.</p>
 </div>
   <div class="markdown level1 conceptual"></div>
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual SimpleJwtBuilder AddRefreshTokenGenerator&lt;TGenerator&gt;()
+
     where TGenerator : class</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
@@ -515,6 +519,7 @@
   <h5 class="decalaration">Declaration</h5>
   <div class="codewrapper">
     <pre><code class="lang-csharp hljs">public virtual SimpleJwtBuilder AddRefreshTokenStore&lt;TContext&gt;()
+
     where TContext : DbContext</code></pre>
   </div>
   <h5 class="returns">Returns</h5>
