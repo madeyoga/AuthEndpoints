@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
+using AuthEndpoints.Core;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Models;
 using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -150,8 +150,8 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// <returns></returns>
     public virtual async Task<IResult> TwoStepVerificationConfirm([FromBody] TwoStepVerificationConfirmRequest request,
         UserManager<TUser> userManager,
-        IAuthenticator<TUser> authenticator,
-        ILoginService<TUser> loginService)
+        IUserClaimsPrincipalFactory<TUser> claimsFactory,
+        ILoginService loginService)
     {
         var user = await userManager.FindByEmailAsync(request.Email);
 
@@ -172,7 +172,9 @@ public class TwoFactorEndpointDefinition<TKey, TUser> : IEndpointDefinition
             return Results.BadRequest("Invalid token");
         }
 
-        var response = await loginService.LoginAsync(user);
+        ClaimsPrincipal claimsPrincipal = await claimsFactory.CreateAsync(user);
+
+        var response = await loginService.LoginAsync(claimsPrincipal);
 
         return Results.Ok(response);
     }

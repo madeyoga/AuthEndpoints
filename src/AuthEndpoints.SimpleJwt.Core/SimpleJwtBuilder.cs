@@ -62,33 +62,33 @@ public class SimpleJwtBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IClaimsProvider{TUser}"/>.
+    /// Adds an <see cref="IClaimsProvider"/>.
     /// </summary>
     /// <typeparam name="TProvider">The type of the claims provider.</typeparam>
     /// <returns>The current <see cref="SimpleJwtBuilder"/> instance.</returns>
     public virtual SimpleJwtBuilder AddClaimsProvider<TProvider>() where TProvider : class
     {
-        return AddScoped(typeof(IClaimsProvider<>).MakeGenericType(UserType), typeof(TProvider));
+        return AddScoped(typeof(IClaimsProvider), typeof(TProvider));
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IAccessTokenGenerator"/>.
     /// </summary>
     /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
     /// <returns>The current <see cref="SimpleJwtBuilder"/> instance.</returns>
     public virtual SimpleJwtBuilder AddAccessTokenGenerator<TGenerator>() where TGenerator : class
     {
-        return AddScoped(typeof(IAccessTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
+        return AddScoped(typeof(IAccessTokenGenerator), typeof(TGenerator));
     }
 
     /// <summary>
-    /// Adds an <see cref="IAccessTokenGenerator{TUser}"/>.
+    /// Adds an <see cref="IAccessTokenGenerator"/>.
     /// </summary>
     /// <typeparam name="TGenerator">The type of the access token generator.</typeparam>
     /// <returns>The current <see cref="SimpleJwtBuilder"/> instance.</returns>
     public virtual SimpleJwtBuilder AddRefreshTokenGenerator<TGenerator>() where TGenerator : class
     {
-        return AddScoped(typeof(IRefreshTokenGenerator<>).MakeGenericType(UserType), typeof(TGenerator));
+        return AddScoped(typeof(IRefreshTokenGenerator), typeof(TGenerator));
     }
 
     /// <summary>

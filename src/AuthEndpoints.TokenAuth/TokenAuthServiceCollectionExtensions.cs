@@ -34,7 +34,7 @@ public static class TokenAuthServiceCollectionExtensions
             .AddTokenBearer(builder.UserType, builder.ContextType);
 
         var loginServiceType = typeof(TokenAuthLoginService<,,>).MakeGenericType(builder.KeyType, builder.UserType, builder.ContextType);
-        services.AddScoped(typeof(ILoginService<TUser>), loginServiceType);
+        services.AddScoped(typeof(ILoginService), loginServiceType);
 
         var endpointsType = typeof(TokenAuthEndpoints<,,>).MakeGenericType(builder.KeyType, builder.UserType, builder.ContextType);
         services.AddEndpointDefinition(endpointsType);

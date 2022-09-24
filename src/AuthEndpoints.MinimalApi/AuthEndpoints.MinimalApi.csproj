@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2.1.0</Version>
+    <Version>2.2.0</Version>
     <Description>Contain minimal api endpoint definitions for AuthEndpoints package</Description>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>

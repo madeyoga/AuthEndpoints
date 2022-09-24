@@ -1,5 +1,4 @@
-﻿using AuthEndpoints.Core.Endpoints;
-using AuthEndpoints.Core.Services;
+﻿using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

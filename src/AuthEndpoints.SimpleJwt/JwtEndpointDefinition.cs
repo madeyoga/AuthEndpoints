@@ -1,16 +1,14 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using AuthEndpoints.Core;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Services;
-using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.SimpleJwt;
@@ -37,15 +35,16 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// </summary>
     /// <remarks>Use this endpoint to obtain jwt</remarks>
     public virtual async Task<IResult> Create([FromBody] LoginRequest request,
-        IAuthenticator<TUser> authenticator,
-        JwtLoginService<TUser> jwtLoginService,
-        UserManager<TUser> userManager)
+                                              IAuthenticator<TUser> authenticator,
+                                              JwtLoginService jwtLoginService,
+                                              UserManager<TUser> userManager,
+                                              IUserClaimsPrincipalFactory<TUser> claimsFactory)
     {
         TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
 
         if (user == null)
         {
-            return Results.Unauthorized();
+            return Results.BadRequest();
         }
 
         if (await userManager.GetTwoFactorEnabledAsync(user))
@@ -56,8 +55,9 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
                 TwoStepVerificationRequired = true,
             });
         }
+        ClaimsPrincipal principal = await claimsFactory.CreateAsync(user);
 
-        var response = await jwtLoginService.LoginAsync(user);
+        var response = await jwtLoginService.LoginAsync(principal);
 
         return Results.Ok(response);
     }
@@ -66,9 +66,11 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// Use this endpoint to refresh jwt
     /// </summary>
     public virtual async Task<IResult> Refresh([FromBody] RefreshRequest request,
-        IRefreshTokenValidator tokenValidator,
-        UserManager<TUser> userManager,
-        IAccessTokenGenerator<TUser> tokenGenerator)
+                                               HttpContext context,
+                                               IRefreshTokenValidator tokenValidator,
+                                               UserManager<TUser> userManager,
+                                               IAccessTokenGenerator tokenGenerator,
+                                               IUserClaimsPrincipalFactory<TUser> claimsFactory)
     {
         TokenValidationResult validationResult = await tokenValidator.ValidateRefreshTokenAsync(request.RefreshToken!);
 
@@ -81,7 +83,6 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
         JwtSecurityToken? jwt = validationResult.SecurityToken as JwtSecurityToken;
         string userId = jwt!.Claims.First(claim => claim.Type == "id").Value;
         TUser user = await userManager.FindByIdAsync(userId);
-
         if (user == null)
         {
             return Results.NotFound(new ErrorResponse("User not found."));
@@ -89,7 +90,7 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
 
         return Results.Ok(new
         {
-            AccessToken = tokenGenerator.GenerateAccessToken(user)
+            AccessToken = tokenGenerator.GenerateAccessToken(await claimsFactory.CreateAsync(user))
         });
     }
 

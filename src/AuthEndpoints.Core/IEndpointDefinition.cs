@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace AuthEndpoints.Core.Endpoints;
+namespace AuthEndpoints.Core;
 
 /// <summary>
 /// Implements <see cref="IEndpointDefinition"/> to define your endpoint definition.

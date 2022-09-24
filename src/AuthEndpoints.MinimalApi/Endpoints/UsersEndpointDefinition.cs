@@ -2,7 +2,6 @@
 using System.Web;
 using AuthEndpoints.Core;
 using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Endpoints;
 using AuthEndpoints.Core.Models;
 using AuthEndpoints.Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -14,14 +13,14 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.MinimalApi;
 
-public class BasicAuthEndpointDefinition<TKey, TUser> : IEndpointDefinition, IBasicAuthEndpointDefinition<TKey, TUser> 
+public class UsersEndpointDefinition<TKey, TUser> : IEndpointDefinition
     where TKey : IEquatable<TKey>
     where TUser : IdentityUser<TKey>, new()
 {
     public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/users";
-        string groupName = "Authentication";
+        string groupName = "Users";
         app.MapPost($"{baseUrl}", Register).WithTags(groupName);
         app.MapGet($"{baseUrl}/me", GetMe).WithTags(groupName);
         app.MapGet($"{baseUrl}/verify_email", EmailVerification).WithTags(groupName);

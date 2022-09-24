@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.Core.Services;
+﻿using System.Security.Claims;
+using AuthEndpoints.Core.Services;
 using AuthEndpoints.SimpleJwt.Contracts;
 using AuthEndpoints.SimpleJwt.Core;
 using AuthEndpoints.SimpleJwt.Core.Models;
@@ -10,13 +11,12 @@ namespace AuthEndpoints.SimpleJwt;
 /// Use this class to log a user in.
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
-public class JwtLoginService<TUser> : ILoginService<TUser>
-    where TUser : class
+public class JwtLoginService : ILoginService
 {
-    private readonly ITokenGeneratorService<TUser> tokenGenerator;
+    private readonly ITokenGeneratorService tokenGenerator;
     private readonly IRefreshTokenRepository refreshTokenRepository;
 
-    public JwtLoginService(ITokenGeneratorService<TUser> tokenGenerator,
+    public JwtLoginService(ITokenGeneratorService tokenGenerator,
                            IRefreshTokenRepository refreshTokenRepository)
     {
         this.tokenGenerator = tokenGenerator;
@@ -28,7 +28,7 @@ public class JwtLoginService<TUser> : ILoginService<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns>An instance of <see cref="AuthenticatedUserResponse"/>, containing an access Token and a refresh Token</returns>
-    public async Task<object> LoginAsync(TUser user)
+    public async Task<object> LoginAsync(ClaimsPrincipal user)
     {
         var accessToken = tokenGenerator.GenerateAccessToken(user);
         var refreshToken = tokenGenerator.GenerateRefreshToken(user);

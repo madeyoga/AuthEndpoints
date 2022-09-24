@@ -1,5 +1,7 @@
-﻿namespace AuthEndpoints.SimpleJwt.Core.Services;
-public interface IRefreshTokenGenerator<TUser>
+﻿using System.Security.Claims;
+
+namespace AuthEndpoints.SimpleJwt.Core.Services;
+public interface IRefreshTokenGenerator
 {
-    string GenerateRefreshToken(TUser user);
+    string GenerateRefreshToken(ClaimsPrincipal user);
 }

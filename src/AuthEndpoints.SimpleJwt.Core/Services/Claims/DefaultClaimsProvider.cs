@@ -1,29 +1,22 @@
 ﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.SimpleJwt.Core.Services;
 
 /// <summary>
-/// Use <see cref="DefaultClaimsProvider{TUserKey, TUser}"/> to get access token claims and refresh token claims
+/// Use <see cref="DefaultClaimsProvider"/> to get access token claims and refresh token claims
 /// </summary>
 /// <typeparam name="TUserKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
-public class DefaultClaimsProvider<TUserKey, TUser> : IClaimsProvider<TUser>
-    where TUserKey : IEquatable<TUserKey>
-    where TUser : IdentityUser<TUserKey>
+public class DefaultClaimsProvider : IClaimsProvider
 {
     /// <summary>
     /// Provide claims for access token
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public IList<Claim> ProvideAccessClaims(TUser user)
+    public virtual IEnumerable<Claim> ProvideAccessClaims(ClaimsPrincipal user)
     {
-        return new List<Claim>()
-        {
-            new Claim("id", user.Id.ToString()!),
-            new Claim(ClaimTypes.Name, user.UserName),
-        };
+        return GetUserClaims(user);
     }
 
     /// <summary>
@@ -31,11 +24,21 @@ public class DefaultClaimsProvider<TUserKey, TUser> : IClaimsProvider<TUser>
     /// </summary>
     /// <param name="user"></param>
     /// <returns></returns>
-    public IList<Claim> ProvideRefreshClaims(TUser user)
+    public virtual IEnumerable<Claim> ProvideRefreshClaims(ClaimsPrincipal user)
     {
+        return GetUserClaims(user);
+    }
+
+    private static IEnumerable<Claim> GetUserClaims(ClaimsPrincipal user)
+    {
+        Claim? identitfierClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (identitfierClaim == null)
+        {
+            throw new InvalidOperationException("Null identifier claim");
+        }
         return new List<Claim>()
         {
-            new Claim("id", user.Id.ToString()!),
+            new Claim("id", identitfierClaim.Value),
         };
     }
 }

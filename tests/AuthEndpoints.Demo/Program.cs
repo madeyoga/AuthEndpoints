@@ -1,11 +1,13 @@
 ﻿using System.Reflection;
 using AuthEndpoints.Core;
+using AuthEndpoints.Core.Services;
 using AuthEndpoints.Demo.Data;
+using AuthEndpoints.Demo.Endpoints;
 using AuthEndpoints.Demo.Models;
 using AuthEndpoints.MinimalApi;
 using AuthEndpoints.SimpleJwt;
-using AuthEndpoints.TokenAuth;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -73,10 +75,19 @@ builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser, MyDbContext>(options
         Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
     };
 })
-.AddBasicAuthenticationEndpoints()
+.AddUsersApiEndpoints()
 .Add2FAEndpoints();
 
-builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>();
+builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>(options =>
+{
+    options.UseCookie = false;
+});
+
+// additional services for JwtCookie Api
+builder.Services.AddHttpContextAccessor();
+builder.Services.TryAddScoped<ILoginService, JwtHttpOnlyCookieLoginService>();
+builder.Services.TryAddScoped<JwtHttpOnlyCookieLoginService>();
+builder.Services.AddEndpointDefinition<JwtCookieEndpoints>();
 
 var app = builder.Build();
 
