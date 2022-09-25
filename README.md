@@ -134,7 +134,7 @@ builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>(options =>
 ```
 
 When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite flag set to lax by default. All jwt endpoints will return 204 NoContent
-instead of returning the access and refresh tokens to the client as json (tokens are no longer handled at the client side).
+instead of returning the access and refresh tokens to the client (tokens are no longer handled at the client side).
 
 Keep in mind that storing jwts inside HttpOnly Cookie does not prevent XSS attacks.
 XSS basically means somebody can remotely run malicious code on our site.
