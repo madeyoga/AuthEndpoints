@@ -16,11 +16,11 @@ public class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpointsOptio
     {
         if (options.EmailConfirmationUrl == null)
         {
-            _logger.LogWarning("SimpleJwtOptions.EmailConfirmationUrl is null. Some functionality may not work properly.");
+            _logger.LogWarning("EmailConfirmationUrl is null. Some functionality may not work properly.");
         }
         if (options.PasswordResetUrl == null)
         {
-            _logger.LogWarning("SimpleJwtOptions.PasswordResetUrl is null. Some functionality may not work properly.");
+            _logger.LogWarning("PasswordResetUrl is null. Some functionality may not work properly.");
         }
         if (options.EmailOptions == null)
         {
