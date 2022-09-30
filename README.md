@@ -112,8 +112,7 @@ Jwt endpoints (registered by `AddSimpleJwtEndpoints<,>()`) will return the acces
 During the authentication flow, we save the access and refresh tokens on the client storage, for instance web storage (localStorage / sessionStorage).
 We'll then attach the access token to the HTTP client on every request against the API. 
 This approach does not require any backend for SPA hosting, so the SPA can be standalone. There is no SameSite requirement.
-Another advantage of this approach is its contents cannot be automatically sent anywhere. Therefore, immune to cross-site request forgery (CSRF) attacks.
-In short, token storage and handling are all done on client side.
+Another advantage of this approach is its contents cannot be automatically sent anywhere. Therefore, immune to cross-site request forgery (CSRF) attacks. (Token storage and handling are all done on client side)
 
 On the downside, this default approach often adds a level of complexity with potential security concerns.
 Let's say we store the tokens in web storage.
