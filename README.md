@@ -28,7 +28,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
   - Verify
 
 ## Current limitations
-- Only works with IdentityUser or custom identity user
+- Only works with IdentityUser & EfCore
 - 2fa via email
 
 ## Installing via NuGet
