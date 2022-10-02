@@ -6,7 +6,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/madeyoga/authendpoints/badge)](https://www.codefactor.io/repository/github/madeyoga/authendpoints)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of Web API controllers and minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, create jwt, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
+A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, create jwt, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data).
 
 ![swagger_authendpoints](https://i.imgur.com/rqMbFNy.png)
 
@@ -145,7 +145,6 @@ Make sure to follow best practices against XSS including escaping contents.
 Cookie is considered more secure, but it might be vulnerable to cross-site request forgery (CSRF) attacks.
 Antiforgery is not handled by default and so you might need some custom code to flow a CSRF token between the server and your client application.
 
-### Which approach should you use?
 Most of the times you may want to store JWTs in HttpOnly Cookie. It makes development process easier and considered more secure because tokens are no longer handled at the client side.
 
 ## Documentations
