@@ -59,37 +59,6 @@ public class Endpoints<TKey, TUser> : IEndpointDefinition
                                   new AuthenticationProperties { IsPersistent = true });
 
         return Results.NoContent();
-
-        //bool isValidPassword = await userManager.CheckPasswordAsync(user, requestBody.Password);
-
-        //if (isValidPassword)
-        //{
-        //    var claims = new List<Claim>
-        //    {
-        //        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()!),
-        //        new Claim(ClaimTypes.Name, user.UserName),
-        //        new Claim(ClaimTypes.Email, user.Email),
-        //        //new Claim(ClaimTypes.GivenName, user.FullName),
-
-        //        // Here we set the "LastChanged" claim (with the last updated timestamp, for instance)
-        //        //new Claim(SecurityCookieAuthenticationEvents.LastChangedClaim, user.LastChanged.ToString())
-        //    };
-
-        //    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-        //    await context.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-        //                              new ClaimsPrincipal(claimsIdentity),
-        //                              new AuthenticationProperties { IsPersistent = true });
-
-        //    return Results.NoContent();
-        //}
-
-        //if (await userManager.AccessFailedAsync(user) != IdentityResult.Success)
-        //{
-        //    return Results.StatusCode(StatusCodes.Status423Locked);
-        //}
-
-        //return Results.BadRequest("Invalid username or password");
     }
 
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
