@@ -54,7 +54,8 @@ public class UnitTest_DefaultServices
         };
 
         IList<Claim> claims = new List<Claim>();
-        claims.Add(new Claim(ClaimTypes.NameIdentifier, "1"));
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+        claims.Add(new Claim(ClaimTypes.Name, user.UserName));
         var id = new ClaimsIdentity(claims);
 
         var jwt = tokenGenerator.GenerateAccessToken(new ClaimsPrincipal(id));
@@ -95,7 +96,8 @@ public class UnitTest_DefaultServices
         };
 
         IList<Claim> claims = new List<Claim>();
-        claims.Add(new Claim(ClaimTypes.NameIdentifier, "1"));
+        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+        claims.Add(new Claim(ClaimTypes.Name, user.UserName));
         var id = new ClaimsIdentity(claims);
 
         var jwt = tokenGenerator.GenerateAccessToken(new ClaimsPrincipal(id));
