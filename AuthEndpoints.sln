@@ -32,6 +32,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.SimpleJwt.Cor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Core", "src\AuthEndpoints.TokenAuth.Core\AuthEndpoints.TokenAuth.Core.csproj", "{51E9A2FF-7EAB-4283-8088-595C8060C5C1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Session", "src\AuthEndpoints.SessionAuthentication\AuthEndpoints.Session.csproj", "{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.Session.Tests.Web", "tests\AuthEndpoints.Session.Tests.Web\AuthEndpoints.Session.Tests.Web.csproj", "{30D22904-F3B5-4224-AEEB-504D1259F8AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +90,14 @@ Global
 		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

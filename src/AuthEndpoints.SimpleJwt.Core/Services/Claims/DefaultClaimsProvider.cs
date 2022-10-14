@@ -31,14 +31,16 @@ public class DefaultClaimsProvider : IClaimsProvider
 
     private static IEnumerable<Claim> GetUserClaims(ClaimsPrincipal user)
     {
-        Claim? identitfierClaim = user.FindFirst(ClaimTypes.NameIdentifier);
-        if (identitfierClaim == null)
+        Claim? idClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+        if (idClaim == null)
         {
             throw new InvalidOperationException("Null identifier claim");
         }
         return new List<Claim>()
         {
-            new Claim("id", identitfierClaim.Value),
+            new Claim("id", idClaim.Value),
+            new Claim(ClaimTypes.NameIdentifier, idClaim.Value),
+            new Claim(ClaimTypes.Name, user.Identity!.Name!),
         };
     }
 }
