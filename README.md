@@ -6,7 +6,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/madeyoga/authendpoints/badge)](https://www.codefactor.io/repository/github/madeyoga/authendpoints)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of Web API controllers and minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, create jwt, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data). AuthEndpoints is built with the aim of increasing developer productivity.
+A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, create jwt, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data).
 
 ![swagger_authendpoints](https://i.imgur.com/rqMbFNy.png)
 
@@ -28,7 +28,7 @@ A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provide
   - Verify
 
 ## Current limitations
-- Only works with IdentityUser or custom identity user
+- Only works with IdentityUser & EfCore
 - 2fa via email
 
 ## Installing via NuGet
@@ -112,15 +112,14 @@ Jwt endpoints (registered by `AddSimpleJwtEndpoints<,>()`) will return the acces
 During the authentication flow, we save the access and refresh tokens on the client storage, for instance web storage (localStorage / sessionStorage).
 We'll then attach the access token to the HTTP client on every request against the API. 
 This approach does not require any backend for SPA hosting, so the SPA can be standalone. There is no SameSite requirement.
-Another advantage of this approach is its contents cannot be automatically sent anywhere. Therefore, immune to cross-site request forgery (CSRF) attacks.
-In short, token storage and handling are all done on client side.
+Another advantage of this approach is its contents cannot be automatically sent anywhere. Therefore, immune to [cross-site request forgery (CSRF) attacks](https://owasp.org/www-community/attacks/csrf). (Token storage and handling are all done on client side)
 
 On the downside, this default approach often adds a level of complexity with potential security concerns.
 Let's say we store the tokens in web storage.
 Any JavaScript running on our site will have access to web storage.
-This make the tokens can be easily grabbed via cross-site scripting (XSS) attacks.
+This make the tokens can be easily grabbed via [cross-site scripting (XSS) attacks](https://owasp.org/www-community/attacks/xss/).
 
-To avoid this issue, you might consider storing jwts inside httponly cookie. This adds a layer of protection to the jwts.
+To avoid this issue, you can store the jwts inside httponly cookie instead of web storage. This adds a layer of protection to the jwts.
 HttpOnly flag on cookie mitigate the risk of client side script accessing the protected cookie.
 With this approach, token storage and handling are all done at the backend side.
 
@@ -133,20 +132,17 @@ builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>(options =>
 });
 ```
 
-When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite set to lax by default. All jwt endpoints will return 204 NoContent
-instead of returning the access and refresh tokens to the client as json (tokens are no longer handled at the client side).
+When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite flag set to lax by default. All jwt endpoints will return 204 NoContent
+instead of returning the access and refresh tokens to the client (tokens are no longer handled at the client side).
 
 Keep in mind that storing jwts inside HttpOnly Cookie does not prevent XSS attacks.
-XSS basically means somebody can remotely run js code on our site.
-This has nothing to do with whether the token is stored in web storage or whether its stored in httponly cookie.
 If site is vulnerable to XSS, with httponly cookie, attacker cannot grab the tokens.
 However, attacker can still make a request on of behalf of the user.
-You must always follow best practices against XSS including escaping contents.
+Make sure to follow best practices against XSS including escaping contents.
 
-Cookie is considered more secure, but it might be vulnerable to cross-site request forgery (CSRF) attacks.
+Cookie is considered more secure, but it might be vulnerable to CSRF attacks.
 Antiforgery is not handled by default and so you might need some custom code to flow a CSRF token between the server and your client application.
 
-### Which approach should you use?
 Most of the times you may want to store JWTs in HttpOnly Cookie. It makes development process easier and considered more secure because tokens are no longer handled at the client side.
 
 ## Documentations
@@ -155,4 +151,4 @@ Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https:
 ## Contributing
 Your contributions are always welcome! simply send a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start. If you find a flaw, please open an issue or a PR and let's sort things out.
 
-The documentation is far from perfect so every bit of help is more than welcome.
+The project is far from perfect so every bit of help is more than welcome.
