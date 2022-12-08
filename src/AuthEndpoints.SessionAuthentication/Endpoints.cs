@@ -62,11 +62,8 @@ public class Endpoints<TKey, TUser> : IEndpointDefinition
     }
 
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-    public virtual async Task<IResult> Logout(IHttpContextAccessor contextAccessor)
+    public virtual IResult Logout()
     {
-        var context = contextAccessor.HttpContext!;
-        await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-
-        return Results.NoContent();
+        return Results.SignOut(authenticationSchemes: new[] { CookieAuthenticationDefaults.AuthenticationScheme });
     }
 }
