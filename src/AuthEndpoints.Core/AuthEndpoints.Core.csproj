@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="MailKit" Version="3.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.2" />
   </ItemGroup>
 
   <ItemGroup>
