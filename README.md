@@ -108,43 +108,6 @@ app.MapEndpoints(); // <--
 app.Run();
 ```
 
-Jwt endpoints (registered by `AddSimpleJwtEndpoints<,>()`) will return the access and refresh tokens to the client.
-During the authentication flow, we save the access and refresh tokens on the client storage, for instance web storage (localStorage / sessionStorage).
-We'll then attach the access token to the HTTP client on every request against the API. 
-This approach does not require any backend for SPA hosting, so the SPA can be standalone. There is no SameSite requirement.
-Another advantage of this approach is its contents cannot be automatically sent anywhere. Therefore, immune to [cross-site request forgery (CSRF) attacks](https://owasp.org/www-community/attacks/csrf). (Token storage and handling are all done on client side)
-
-On the downside, this default approach often adds a level of complexity with potential security concerns.
-Let's say we store the tokens in web storage.
-Any JavaScript running on our site will have access to web storage.
-This make the tokens can be easily grabbed via [cross-site scripting (XSS) attacks](https://owasp.org/www-community/attacks/xss/).
-
-To avoid this issue, you can store the jwts inside httponly cookie instead of web storage. This adds a layer of protection to the jwts.
-HttpOnly flag on cookie mitigate the risk of client side script accessing the protected cookie.
-With this approach, token storage and handling are all done at the backend side.
-
-To use this approach, you can simply:
-
-```cs
-builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>(options => 
-{
-  options.UseCookie = true;
-});
-```
-
-When using `UseCookie = true`, jwts will be stored in httponly cookie with samesite flag set to lax by default. All jwt endpoints will return 204 NoContent
-instead of returning the access and refresh tokens to the client (tokens are no longer handled at the client side).
-
-Keep in mind that storing jwts inside HttpOnly Cookie does not prevent XSS attacks.
-If site is vulnerable to XSS, with httponly cookie, attacker cannot grab the tokens.
-However, attacker can still make a request on of behalf of the user.
-Make sure to follow best practices against XSS including escaping contents.
-
-Cookie is considered more secure, but it might be vulnerable to CSRF attacks.
-Antiforgery is not handled by default and so you might need some custom code to flow a CSRF token between the server and your client application.
-
-Most of the times you may want to store JWTs in HttpOnly Cookie. It makes development process easier and considered more secure because tokens are no longer handled at the client side.
-
 ## Documentations
 Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https://madeyoga.github.io/AuthEndpoints/) and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
 
