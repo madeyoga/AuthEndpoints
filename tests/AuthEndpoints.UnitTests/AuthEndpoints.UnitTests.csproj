@@ -15,7 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.SimpleJwt\AuthEndpoints.SimpleJwt.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.Users\AuthEndpoints.Users.csproj" />
   </ItemGroup>
 
 </Project>

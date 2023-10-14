@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.MinimalApi\AuthEndpoints.Users.csproj" />
     <ProjectReference Include="..\..\src\AuthEndpoints.SessionAuthentication\AuthEndpoints.Session.csproj" />
   </ItemGroup>
 

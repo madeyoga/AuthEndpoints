@@ -1,70 +1,47 @@
-﻿using System.Security.Claims;
-using AuthEndpoints.Core;
-using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Services;
-using AuthEndpoints.TokenAuth.Core;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
+﻿namespace AuthEndpoints.TokenAuth;
+
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
-namespace AuthEndpoints.TokenAuth;
-
-public class TokenAuthEndpoints<TKey, TUser, TContext> : IEndpointDefinition
-    where TKey : class, IEquatable<TKey>
-    where TUser : IdentityUser<TKey>
-    where TContext : DbContext
+public class TokenAuthEndpoints<TKey, TUser, TContext>
+    where TUser : class
 {
     public void MapEndpoints(WebApplication app)
     {
         var groupName = "Token Authentication";
         app.MapPost("/token/login", Create).WithTags(groupName);
-        app.MapPost("/token/logout", Destroy).WithTags(groupName);
     }
 
-    public virtual async Task<IResult> Create([FromBody] LoginRequest request,
-        TokenRepository<TKey, TUser, TContext> tokenRepository,
-        IAuthenticator<TUser> authenticator,
-        UserManager<TUser> userManager)
+    public virtual async Task<Results<Ok<LoginResponse>, EmptyHttpResult, ProblemHttpResult>> Create([FromBody] LoginRequest request, [FromServices] SignInManager<TUser> signInManager)
     {
-        TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
-        if (user is null)
+        //signInManager.PrimaryAuthenticationScheme = IdentityConstants.BearerScheme;
+
+        var result = await signInManager.PasswordSignInAsync(request.Email, request.Password, false, lockoutOnFailure: true);
+
+        if (!result.Succeeded)
         {
-            return Results.Unauthorized();
+            return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
         }
 
-        if (await userManager.GetTwoFactorEnabledAsync(user))
-        {
-            return Results.Ok(new
-            {
-                AuthSuccess = false,
-                TwoStepVerificationRequired = true,
-            });
-        }
-
-        var token = await tokenRepository.GetOrCreate(user.Id);
-
-        return Results.Ok(new TokenAuthResponse
-        {
-            AuthToken = token.Key
-        });
+        return TypedResults.Empty;
     }
+}
 
-    [Authorize(AuthenticationSchemes = TokenBearerDefaults.AuthenticationScheme)]
-    public virtual async Task<IResult> Destroy(HttpContext context,
-        TokenRepository<TKey, TUser, TContext> tokenRepository)
-    {
-        string userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+public sealed class LoginRequest
+{
+    public required string Email { get; init; }
 
-        if (userId is null)
-        {
-            return Results.BadRequest();
-        }
+    public required string Password { get; init; }
+}
 
-        await tokenRepository.DeleteTokenAsync(userId);
+public sealed class LoginResponse
+{
+    public string TokenType { get; } = "Bearer";
 
-        return Results.NoContent();
-    }
+    public required string AccessToken { get; init; }
+
+    public required long ExpiresIn { get; init; }
+
+    public required string RefreshToken { get; init; }
 }

@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Version>2.2.0</Version>
@@ -9,10 +9,5 @@
     <PackageTags>token-bearer;authendpoints</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\AuthEndpoints.Core\AuthEndpoints.Core.csproj" />
-    <ProjectReference Include="..\AuthEndpoints.TokenAuth.Core\AuthEndpoints.TokenAuth.Core.csproj" />
-  </ItemGroup>
 
 </Project>

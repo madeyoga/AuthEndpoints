@@ -14,27 +14,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Core", "src\AuthEndpoints.Core\AuthEndpoints.Core.csproj", "{5D37E8F3-7C4A-4461-B16A-EBCDA206F09C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi", "src\AuthEndpoints.MinimalApi\AuthEndpoints.MinimalApi.csproj", "{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Users", "src\AuthEndpoints.Users\AuthEndpoints.Users.csproj", "{32CB2B9E-84F3-4E43-AF0E-6BB6F6BE1161}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.MinimalApi.Tests", "tests\AuthEndpoints.MinimalApi.Tests\AuthEndpoints.MinimalApi.Tests.csproj", "{0AE039A2-B116-4FA1-B30E-91EED71D3854}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Tests", "tests\AuthEndpoints.Users.Tests\AuthEndpoints.Tests.csproj", "{0AE039A2-B116-4FA1-B30E-91EED71D3854}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Demo", "tests\AuthEndpoints.Demo\AuthEndpoints.Demo.csproj", "{529EF27A-876F-4D49-BC45-BAEBEDA882F0}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Tests.Web", "tests\AuthEndpoints.TokenAuth.Tests.Web\AuthEndpoints.TokenAuth.Tests.Web.csproj", "{5245A420-F562-4DED-85F9-0D2B4E912810}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Tests", "tests\AuthEndpoints.TokenAuth.Tests\AuthEndpoints.TokenAuth.Tests.csproj", "{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.SimpleJwt", "src\AuthEndpoints.SimpleJwt\AuthEndpoints.SimpleJwt.csproj", "{9D598EE6-9461-49F5-A6AA-BDCE5DE3F392}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth", "src\AuthEndpoints.TokenAuth\AuthEndpoints.TokenAuth.csproj", "{28B762C2-8BFF-4FF8-B3D7-E6D0F51A3EC4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.SimpleJwt.Core", "src\AuthEndpoints.SimpleJwt.Core\AuthEndpoints.SimpleJwt.Core.csproj", "{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.TokenAuth.Core", "src\AuthEndpoints.TokenAuth.Core\AuthEndpoints.TokenAuth.Core.csproj", "{51E9A2FF-7EAB-4283-8088-595C8060C5C1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthEndpoints.Session", "src\AuthEndpoints.SessionAuthentication\AuthEndpoints.Session.csproj", "{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.Session.Tests.Web", "tests\AuthEndpoints.Session.Tests.Web\AuthEndpoints.Session.Tests.Web.csproj", "{30D22904-F3B5-4224-AEEB-504D1259F8AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,14 +54,6 @@ Global
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{529EF27A-876F-4D49-BC45-BAEBEDA882F0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5245A420-F562-4DED-85F9-0D2B4E912810}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5245A420-F562-4DED-85F9-0D2B4E912810}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5245A420-F562-4DED-85F9-0D2B4E912810}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5245A420-F562-4DED-85F9-0D2B4E912810}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9F11A3CE-77D0-4A6C-A8E3-9AB27D5114F6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9D598EE6-9461-49F5-A6AA-BDCE5DE3F392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9D598EE6-9461-49F5-A6AA-BDCE5DE3F392}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D598EE6-9461-49F5-A6AA-BDCE5DE3F392}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -82,22 +62,6 @@ Global
 		{28B762C2-8BFF-4FF8-B3D7-E6D0F51A3EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28B762C2-8BFF-4FF8-B3D7-E6D0F51A3EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28B762C2-8BFF-4FF8-B3D7-E6D0F51A3EC4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1FCD839A-D90A-42F2-BCBB-456BBDF0D6D7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{51E9A2FF-7EAB-4283-8088-595C8060C5C1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BCEACC6D-DBB8-49D9-972A-4667C90BDFED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30D22904-F3B5-4224-AEEB-504D1259F8AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

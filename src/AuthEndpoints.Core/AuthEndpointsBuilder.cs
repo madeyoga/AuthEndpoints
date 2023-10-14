@@ -1,5 +1,4 @@
-﻿using AuthEndpoints.Core.Services;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Core;
@@ -32,14 +31,6 @@ public class AuthEndpointsBuilder
     /// The <see cref="IServiceCollection"/> services are attached to.
     /// </value>
     public IServiceCollection Services { get; }
-
-    /// <summary>
-    /// Gets the <see cref="AuthEndpointsOptions"/>
-    /// </summary>
-    /// <value>
-    /// Gets the <see cref="AuthEndpointsOptions"/>
-    /// </value>
-    //public AuthEndpointsOptions Options { get; }
 
     /// <summary>
     /// Creates a new instance of <see cref="AuthEndpointsBuilder"/>.
@@ -85,16 +76,6 @@ public class AuthEndpointsBuilder
     }
 
     /// <summary>
-    /// Adds an <see cref="IAuthenticator{TUser}"/>.
-    /// </summary>
-    /// <typeparam name="TAuthenticator">The type of the authenticator.</typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddAuthenticator<TAuthenticator>() where TAuthenticator : class
-    {
-        return AddScoped(typeof(IAuthenticator<>).MakeGenericType(UserType), typeof(TAuthenticator));
-    }
-
-    /// <summary>
     /// Adds an <see cref="IdentityErrorDescriber"/>.
     /// </summary>
     /// <typeparam name="TDescriber">The type of the error describer.</typeparam>
@@ -102,28 +83,6 @@ public class AuthEndpointsBuilder
     public virtual AuthEndpointsBuilder AddErrorDescriber<TDescriber>() where TDescriber : IdentityErrorDescriber
     {
         Services.AddScoped<IdentityErrorDescriber, TDescriber>();
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IEmailFactory"/>
-    /// </summary>
-    /// <typeparam name="TEmailFactory"></typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddEmailFactory<TEmailFactory>() where TEmailFactory : IEmailFactory
-    {
-        Services.AddSingleton(typeof(IEmailFactory), typeof(TEmailFactory));
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an <see cref="IEmailSender"/>
-    /// </summary>
-    /// <typeparam name="TSender"></typeparam>
-    /// <returns>The current <see cref="AuthEndpointsBuilder"/> instance.</returns>
-    public virtual AuthEndpointsBuilder AddEmailSender<TSender>() where TSender : IEmailSender
-    {
-        Services.AddSingleton(typeof(IEmailFactory), typeof(TSender));
         return this;
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using AuthEndpoints.SimpleJwt.Core;
+using AuthEndpoints.SimpleJwt;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,7 +18,7 @@ public class UnitTest_OptionsValidator
         {
             builder.AddConsole();
         });
-        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+        SimpleJwtOptionsValidator validator = new(loggerFactory.CreateLogger<SimpleJwtOptionsValidator>());
 
         var result = validator.Validate("test", new SimpleJwtOptions());
 
@@ -32,7 +32,7 @@ public class UnitTest_OptionsValidator
         {
             builder.AddConsole();
         });
-        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+        SimpleJwtOptionsValidator validator = new(loggerFactory.CreateLogger<SimpleJwtOptionsValidator>());
 
         var result = validator.Validate("test", new SimpleJwtOptions());
 
@@ -46,16 +46,10 @@ public class UnitTest_OptionsValidator
         {
             builder.AddConsole();
         });
-        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+        SimpleJwtOptionsValidator validator = new(loggerFactory.CreateLogger<SimpleJwtOptionsValidator>());
 
         var result = validator.Validate("test", new SimpleJwtOptions()
         {
-            RefreshSigningOptions = new JwtSigningOptions()
-            {
-                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-                Algorithm = SecurityAlgorithms.HmacSha256,
-                ExpirationMinutes = 120
-            },
             Issuer = "webapi",
             Audience = "webapi"
         });
@@ -70,7 +64,7 @@ public class UnitTest_OptionsValidator
         {
             builder.AddConsole();
         });
-        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+        SimpleJwtOptionsValidator validator = new(loggerFactory.CreateLogger<SimpleJwtOptionsValidator>());
 
         var result = validator.Validate("test", new SimpleJwtOptions()
         {
@@ -94,14 +88,14 @@ public class UnitTest_OptionsValidator
         {
             builder.AddConsole();
         });
-        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+        SimpleJwtOptionsValidator validator = new(loggerFactory.CreateLogger<SimpleJwtOptionsValidator>());
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var options = new SimpleJwtOptions()
         {
         };
 
-        OptionsConfigurator configurator = new();
+        SimpleJwtOptionsConfigurator configurator = new();
         configurator.PostConfigure("test", options);
 
         var result = validator.Validate("test", options);
@@ -116,7 +110,7 @@ public class UnitTest_OptionsValidator
         {
             builder.AddConsole();
         });
-        OptionsValidator validator = new(loggerFactory.CreateLogger<OptionsValidator>());
+        SimpleJwtOptionsValidator validator = new(loggerFactory.CreateLogger<SimpleJwtOptionsValidator>());
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
 
@@ -128,19 +122,9 @@ public class UnitTest_OptionsValidator
                 Algorithm = SecurityAlgorithms.HmacSha256,
                 ExpirationMinutes = 120
             },
-            RefreshSigningOptions = new JwtSigningOptions()
-            {
-                SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-                Algorithm = SecurityAlgorithms.HmacSha256,
-                ExpirationMinutes = 120
-            },
             Issuer = "webapi",
             Audience = "webapi",
             AccessValidationParameters = new TokenValidationParameters()
-            {
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
-            },
-            RefreshValidationParameters = new TokenValidationParameters()
             {
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
             },

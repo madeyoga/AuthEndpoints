@@ -1,11 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+﻿using System.Text.Json;
 using AuthEndpoints.Core;
-using AuthEndpoints.Core.Contracts;
-using AuthEndpoints.Core.Services;
-using AuthEndpoints.SimpleJwt.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,48 +13,84 @@ namespace AuthEndpoints.SimpleJwt;
 /// <summary>
 /// Minimal Api definitions for JWT endpoints.
 /// </summary>
-/// <typeparam name="TKey"></typeparam>
 /// <typeparam name="TUser"></typeparam>
-public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
-    where TKey : IEquatable<TKey>
-    where TUser : IdentityUser<TKey>, new()
+public class JwtEndpointDefinition<TUser> : IEndpointDefinition
+    where TUser : class, new()
 {
     public virtual void MapEndpoints(WebApplication app)
     {
         string baseUrl = "/jwt";
-        app.MapPost($"{baseUrl}/create", Create).WithTags("Json Web Token");
-        app.MapPost($"{baseUrl}/refresh", Refresh).WithTags("Json Web Token");
-        app.MapGet($"{baseUrl}/verify", Verify).WithTags("Json Web Token");
+        string tags = "Authentication and Authorization";
+        app.MapPost($"{baseUrl}/create", Create).WithTags(tags);
+        app.MapPost($"{baseUrl}/refresh", Refresh).WithTags(tags);
+        app.MapGet($"{baseUrl}/verify", Verify).WithTags(tags);
     }
 
     /// <summary>
     /// Use this endpoint to obtain jwt
     /// </summary>
     /// <remarks>Use this endpoint to obtain jwt</remarks>
-    public virtual async Task<IResult> Create([FromBody] LoginRequest request,
-                                              IAuthenticator<TUser> authenticator,
-                                              JwtLoginService jwtLoginService,
-                                              UserManager<TUser> userManager,
-                                              IUserClaimsPrincipalFactory<TUser> claimsFactory)
+    public static async Task<IResult> Create([FromBody] SimpleJwtLoginRequest request,
+        IAuthenticator<TUser> authenticator,
+        UserManager<TUser> userManager,
+        IUserClaimsPrincipalFactory<TUser> claimsFactory,
+        IAccessTokenGenerator accessTokenGenerator,
+        IRefreshTokenService refreshTokenGenerator)
     {
-        TUser? user = await authenticator.Authenticate(request.Username!, request.Password!);
-
-        if (user == null)
+        if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
         {
-            return Results.BadRequest();
-        }
-
-        if (await userManager.GetTwoFactorEnabledAsync(user))
-        {
-            return Results.Ok(new
+            return Results.BadRequest(new
             {
-                AuthSuccess = false,
-                TwoStepVerificationRequired = true,
+                error = "invalid_request",
+                error_description = "The request is missing a required body username or password"
             });
         }
-        ClaimsPrincipal principal = await claimsFactory.CreateAsync(user);
 
-        var response = await jwtLoginService.LoginAsync(principal);
+        AuthenticationResult<TUser>? authenticationResult = await authenticator.AuthenticateAsync(request.Username, request.Password);
+
+        if (!authenticationResult.Succeeded)
+        {
+            var error = authenticationResult.Errors.First();
+            return Results.BadRequest(new
+            {
+                error = error.Code,
+                error_description = error.Description,
+            });
+        }
+
+        var user = authenticationResult.User!;
+        if (await userManager.GetTwoFactorEnabledAsync(user))
+        {
+            if (!string.IsNullOrEmpty(request.TwoFactorCode))
+            {
+                bool validToken = await userManager.VerifyTwoFactorTokenAsync(user, userManager.Options.Tokens.AuthenticatorTokenProvider, request.TwoFactorCode);
+                if (!validToken)
+                {
+                    return Results.Problem("Invalid two factor code.", statusCode: StatusCodes.Status401Unauthorized);
+                }
+            }
+            else if (!string.IsNullOrEmpty(request.TwoFactorRecoveryCode))
+            {
+                var result = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, request.TwoFactorRecoveryCode);
+                if (!result.Succeeded)
+                {
+                    return Results.Problem(result.Errors.First().Description, statusCode: StatusCodes.Status401Unauthorized);
+                }
+            }
+            else
+            {
+                return Results.Problem("Requires two factor", statusCode: StatusCodes.Status401Unauthorized);
+            }
+        }
+
+        var claimsPrincipal = await claimsFactory.CreateAsync(user);
+
+        var response = new SimpleJwtTokenResponse()
+        {
+            AccessToken = accessTokenGenerator.GenerateAccessToken(claimsPrincipal),
+            RefreshToken = refreshTokenGenerator.GenerateRefreshToken(claimsPrincipal),
+            TokenType = "Bearer",
+        };
 
         return Results.Ok(response);
     }
@@ -65,32 +98,29 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// <summary>
     /// Use this endpoint to refresh jwt
     /// </summary>
-    public virtual async Task<IResult> Refresh([FromBody] RefreshRequest request,
-                                               HttpContext context,
-                                               IRefreshTokenValidator tokenValidator,
-                                               UserManager<TUser> userManager,
-                                               IAccessTokenGenerator tokenGenerator,
-                                               IUserClaimsPrincipalFactory<TUser> claimsFactory)
+    public static async Task<IResult> Refresh([FromBody] SimpleJwtRefreshTokenRequest request,
+        IRefreshTokenValidator tokenValidator,
+        UserManager<TUser> userManager,
+        IUserClaimsPrincipalFactory<TUser> claimsFactory,
+        IAccessTokenGenerator tokenGenerator,
+        IDataProtectionProvider dataProtectionProvider)
     {
         TokenValidationResult validationResult = await tokenValidator.ValidateRefreshTokenAsync(request.RefreshToken!);
 
         if (!validationResult.IsValid)
         {
             // Token may be expired, invalid, etc.
-            return Results.BadRequest(new ErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
         }
-
-        JwtSecurityToken? jwt = validationResult.SecurityToken as JwtSecurityToken;
-        string userId = jwt!.Claims.First(claim => claim.Type == "id").Value;
-        TUser user = await userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            return Results.NotFound(new ErrorResponse("User not found."));
-        }
+        var _dataProtector = dataProtectionProvider.CreateProtector("authendpoints_simplejwt_refreshtoken");
+        var codeString = _dataProtector.Unprotect(request.RefreshToken!);
+        var data = JsonSerializer.Deserialize<SimpleJwtRefreshTokenData>(codeString);
+        var user = await userManager.FindByIdAsync(data!.NameIdentifier);
+        var claimsPrincipal = await claimsFactory.CreateAsync(user!);
 
         return Results.Ok(new
         {
-            AccessToken = tokenGenerator.GenerateAccessToken(await claimsFactory.CreateAsync(user))
+            AccessToken = tokenGenerator.GenerateAccessToken(claimsPrincipal),
         });
     }
 
@@ -98,7 +128,7 @@ public class JwtEndpointDefinition<TKey, TUser> : IEndpointDefinition
     /// Use this endpoint to verify access jwt
     /// </summary>
     [Authorize(AuthenticationSchemes = "jwt")]
-    public virtual Task<IResult> Verify()
+    public static Task<IResult> Verify()
     {
         return Task.FromResult(Results.NoContent());
     }

@@ -10,7 +10,7 @@ public class JwtAuthController // : JwtController<string, MyCustomIdentityUser>
     //{
     //}
 
-    //public override Task<IActionResult> Create([FromBody] LoginRequest request)
+    //public override Task<IActionResult> Create([FromBody] SimpleJwtLoginRequest request)
     //{
     //    return base.Create(request);
     //}

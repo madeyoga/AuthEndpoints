@@ -1,15 +1,11 @@
 ﻿using System.Reflection;
 using System.Text;
-using AuthEndpoints.Core;
-using AuthEndpoints.Core.Services;
 using AuthEndpoints.Demo.Data;
-using AuthEndpoints.Demo.Endpoints;
 using AuthEndpoints.Demo.Models;
-using AuthEndpoints.MinimalApi;
+using AuthEndpoints.Core;
 using AuthEndpoints.SimpleJwt;
-using AuthEndpoints.SimpleJwt.Core;
+using AuthEndpoints.Users;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -42,7 +38,33 @@ builder.Services.AddSwaggerGen(options =>
 		}
 	});
 
-	var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    // To Enable authorization using Swagger (JWT)
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
 	var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 	options.IncludeXmlComments(xmlPath);
 });
@@ -54,7 +76,12 @@ builder.Services.AddDbContext<MyDbContext>(options =>
         //options.UseSqlite(builder.Configuration.GetConnectionString("DataSQLiteConnection"));
         options.UseInMemoryDatabase(databaseName: "Test");
     }
+
+    options.UseSimpleJwtEntities();
 });
+
+// Populate default identityuser objects.
+builder.Services.AddScoped<UserDataSeeder>();
 
 builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
 {
@@ -65,46 +92,21 @@ builder.Services.AddIdentityCore<MyCustomIdentityUser>(option =>
     option.Password.RequiredLength = 0;
 });
 
-builder.Services.AddAuthEndpointsCore<MyCustomIdentityUser, MyDbContext>(options =>
+builder.Services.AddUsersApiEndpoints<MyCustomIdentityUser, MyDbContext>(options =>
 {
     options.EmailConfirmationUrl = "localhost:3000/account/email/confirm/{uid}/{token}";
     options.PasswordResetUrl = "localhost:3000/account/password/reset/{uid}/{token}";
-    options.EmailOptions = new EmailOptions()
-    {
-        Host = "smtp.gmail.com",
-        From = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
-        Port = 587,
-        User = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_USER")!,
-        Password = Environment.GetEnvironmentVariable("GOOGLE_MAIL_APP_PASSWORD")!,
-    };
-})
-.AddUsersApiEndpoints()
-.Add2FAEndpoints();
+});
 
 builder.Services.AddSimpleJwtEndpoints<MyCustomIdentityUser, MyDbContext>(options =>
 {
-    options.UseCookie = false;
-
     options.AccessSigningOptions = new JwtSigningOptions()
     {
         SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("yn4$#cr=+i@eljzlhhr2xlgf98aud&(3&!po3r60wlm^3*huh#")),
         Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 120,
-    };
-
-    options.RefreshSigningOptions = new JwtSigningOptions()
-    {
-        SigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("e_qmg*)=vr9yxpp^g^#((wkwk7fh#+3qy!zzq+r-hifw2(_u+=")),
-        Algorithm = SecurityAlgorithms.HmacSha256,
-        ExpirationMinutes = 2880,
+        ExpirationMinutes = 90,
     };
 });
-
-// additional services for JwtCookie Api
-builder.Services.AddHttpContextAccessor();
-builder.Services.TryAddScoped<ILoginService, JwtHttpOnlyCookieLoginService>();
-builder.Services.TryAddScoped<JwtHttpOnlyCookieLoginService>();
-builder.Services.AddEndpointDefinition<JwtCookieEndpoints>();
 
 var app = builder.Build();
 
@@ -113,14 +115,29 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
 	app.UseSwaggerUI();
-}
 
-app.UseHttpsRedirection();
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<MyDbContext>();
+        dbContext.Database.EnsureCreated();
+
+        var UserDataSeeder = scope.ServiceProvider.GetRequiredService<UserDataSeeder>();
+        UserDataSeeder.Populate();
+    }
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapEndpoints();
+
+//app.MapGroup("/auth")
+//   .MapSimpleJwtApi<MyCustomIdentityUser>()
+//   .WithTags("Authentication and Authorization");
+
+//app.MapGroup("/account")
+//   .MapUsersApi<MyCustomIdentityUser>()
+//   .WithTags("Users");
 
 app.Run();
