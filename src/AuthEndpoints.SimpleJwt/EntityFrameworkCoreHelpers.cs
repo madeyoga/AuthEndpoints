@@ -27,18 +27,8 @@ public sealed class SimpleJwtEFCoreCustomizer : RelationalModelCustomizer
 
     public override void Customize(ModelBuilder modelBuilder, DbContext context)
     {
-        //ArgumentNullException.ThrowIfNull(modelBuilder, nameof(modelBuilder));
-        //ArgumentNullException.ThrowIfNull(context, nameof(context));
-
-        if (modelBuilder is null)
-        {
-            throw new ArgumentNullException(nameof(modelBuilder));
-        }
-
-        if (context is null)
-        {
-            throw new ArgumentNullException(nameof(context));
-        }
+        ArgumentNullException.ThrowIfNull(modelBuilder, nameof(modelBuilder));
+        ArgumentNullException.ThrowIfNull(context, nameof(context));
 
         modelBuilder.UseSimpleJwtEntities();
 
