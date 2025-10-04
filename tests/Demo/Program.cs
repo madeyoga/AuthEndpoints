@@ -3,6 +3,7 @@ using Demo.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AuthEndpoints.Jwt;
+using AuthEndpoints.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,7 @@ app.MapGroup("account").MapIdentityApi<AppUser>();
 var authGroup = app.MapGroup("auth");
 
 authGroup.MapJwtApi<AppUser>();
-AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions.MapIdentityApi<AppUser>(authGroup);
+authGroup.MapAuthEndpointsIdentityApi<AppUser>();
 
 app.MapGet("createDefaultUser", async (UserManager<AppUser> userManager) =>
 {

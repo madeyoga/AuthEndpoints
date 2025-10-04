@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -86,6 +87,20 @@ public class IdentityApiEndpoints<TUser>
 
         // The signInManager already produced the needed response in the form of a cookie or bearer token.
         return TypedResults.Empty;
+    }
+
+    /// <summary>
+    /// When <c>useCookies=true</c> is passed to the /login endpoint, tokens are stored
+    /// in cookies instead of being returned to the client. This logout endpoint clears those cookies
+    /// by signing out from Identity authentication schemes 
+    /// <see cref="IdentityConstants.ApplicationScheme"/>
+    /// </summary>
+    public static IResult Logout()
+    {
+        return Results.SignOut(authenticationSchemes:
+        [
+            IdentityConstants.ApplicationScheme,
+        ]);
     }
 
     public static async Task<Results<ContentHttpResult, UnauthorizedHttpResult>> ConfirmEmail(
