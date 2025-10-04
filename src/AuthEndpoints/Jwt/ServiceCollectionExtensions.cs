@@ -15,12 +15,10 @@ public static class ServiceCollectionExtensions
         where TUser : class
         where TContext : DbContext
     {
-        var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>));
-        if (identityUserType == null)
-        {
-            throw new InvalidOperationException("Generic type TUser is not IdentityUser");
-        }
-        services.AddSingleton(typeof(IOptions<SimpleJwtOptions>), Options.Create(options));
+        var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>))
+            ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser");
+
+        services.AddSingleton(Options.Create(options));
 
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
@@ -54,6 +52,10 @@ public static class ServiceCollectionExtensions
     {
         var sjOptions = new SimpleJwtOptions();
         setup(sjOptions);
+        
+        var validationResult = new SimpleJwtOptionsValidator().Validate(nameof(SimpleJwtOptions), sjOptions);
+        if (validationResult is { Succeeded: false })
+            throw new OptionsValidationException(nameof(SimpleJwtOptions), typeof(SimpleJwtOptions), validationResult.Failures);
 
         var validationParams = sjOptions.TokenValidationParameters ?? new TokenValidationParameters
         {

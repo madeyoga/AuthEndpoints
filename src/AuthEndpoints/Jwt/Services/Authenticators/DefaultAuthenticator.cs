@@ -3,7 +3,7 @@
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Default authenticator. 
+/// Default authenticator. Authenticate user by username and password.
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
 public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>

@@ -18,8 +18,7 @@ public class AccessTokenGenerator : IAccessTokenGenerator
 
     public string GenerateAccessToken(ClaimsPrincipal user)
     {
-        var signingOptions = _options.SigningOptions;
-        var credentials = signingOptions.ToSigningCredentials();
+        var credentials = _options.SigningOptions.ToSigningCredentials();
         var header = new JwtHeader(credentials);
         var payload = new JwtPayload(
             _options.Issuer,

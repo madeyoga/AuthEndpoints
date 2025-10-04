@@ -13,9 +13,9 @@ public static class JwtApiEndpointRouteBuilderExtensions
 
         var routeGroup = endpoints.MapGroup("").WithTags("Jwt");
 
-        routeGroup.MapPost($"/create", JwtEndpointDefinition<TUser>.Create);
-        routeGroup.MapPost($"/refresh", JwtEndpointDefinition<TUser>.Refresh);
-        routeGroup.MapGet($"/verify", JwtEndpointDefinition<TUser>.Verify);
+        routeGroup.MapPost($"/create", JwtEndpoints<TUser>.Create);
+        routeGroup.MapPost($"/refresh", JwtEndpoints<TUser>.Refresh);
+        routeGroup.MapGet($"/verify", JwtEndpoints<TUser>.Verify);
 
         return routeGroup;
     }

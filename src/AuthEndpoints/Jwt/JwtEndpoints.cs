@@ -11,7 +11,7 @@ namespace AuthEndpoints.Jwt;
 /// Jwt endpoint definitions.
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
-public class JwtEndpointDefinition<TUser>
+public class JwtEndpoints<TUser>
     where TUser : class, new()
 {
     /// <summary>
@@ -28,7 +28,7 @@ public class JwtEndpointDefinition<TUser>
         RefreshTokenCookieWriter refreshTokenCookieWriter,
         HttpContext context)
     {
-        if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
         {
             return Results.BadRequest(new
             {
@@ -37,17 +37,15 @@ public class JwtEndpointDefinition<TUser>
             });
         }
 
-        AuthenticationResult<TUser>? authenticationResult = await authenticator.AuthenticateAsync(request.Username, request.Password);
+        AuthenticationResult<TUser>? authenticationResult = await authenticator.AuthenticateAsync(request.Email, request.Password);
 
-        if (!authenticationResult.Succeeded)
+        var user = authenticationResult.User;
+
+        if (user == null)
         {
-            return Results.BadRequest(new
-            {
-                errors = authenticationResult.Errors,
-            });
+            return Results.Problem("Invalid credentials");
         }
 
-        var user = authenticationResult.User!;
         if (await userManager.GetTwoFactorEnabledAsync(user))
         {
             if (!string.IsNullOrEmpty(request.TwoFactorCode))
@@ -65,10 +63,6 @@ public class JwtEndpointDefinition<TUser>
                 {
                     return Results.Problem(result.Errors.First().Description, statusCode: StatusCodes.Status401Unauthorized);
                 }
-            }
-            else
-            {
-                return Results.Problem("Requires two factor", statusCode: StatusCodes.Status401Unauthorized);
             }
         }
 
