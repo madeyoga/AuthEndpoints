@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -100,6 +101,8 @@ public class IdentityApiEndpoints<TUser>
         return Results.SignOut(authenticationSchemes:
         [
             IdentityConstants.ApplicationScheme,
+            IdentityConstants.ExternalScheme,
+            AuthEndpointsConstants.ReAuthScheme
         ]);
     }
 
@@ -163,6 +166,38 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
+    public static async Task<Results<UnauthorizedHttpResult, Ok>> ConfirmPassword([FromBody] ConfirmPasswordRequest request, UserManager<TUser> userManager, SignInManager<TUser> signInManager, HttpContext context)
+    {
+        var user = await userManager.GetUserAsync(context.User);
+
+        if (user == null)
+        {
+            return TypedResults.Unauthorized();
+        }
+
+        var authProps = new AuthenticationProperties()
+        {
+            IsPersistent = false,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(5)
+        };
+
+        var claims = new[]
+        {
+            new Claim("reauth", "true"),
+            new Claim("reauth_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
+        }
+        .Concat(context.User.Claims)
+        .ToArray();
+
+        var scheme = AuthEndpointsConstants.ReAuthScheme;
+
+        var identity = new ClaimsIdentity(claims, scheme);
+
+        await context.SignInAsync(scheme, new ClaimsPrincipal(identity), authProps);
+
+        return TypedResults.Ok();
+    }
+
     public static async Task<Results<Ok, ValidationProblem>> ForgotPassword
         ([FromBody] ForgotPasswordRequest resetRequest, [FromServices] IServiceProvider sp)
     {
@@ -184,7 +219,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok, ValidationProblem>> ResetPassword
-        ([FromBody] ResetPasswordRequest resetRequest, [FromServices] IServiceProvider sp) 
+        ([FromBody] ResetPasswordRequest resetRequest, [FromServices] IServiceProvider sp)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
 
@@ -216,6 +251,7 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
+    [Authorize(AuthenticationSchemes = AuthEndpointsConstants.ReAuthScheme)]
     public static async Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorRequest tfaRequest, [FromServices] IServiceProvider sp)
     {
         var signInManager = sp.GetRequiredService<SignInManager<TUser>>();

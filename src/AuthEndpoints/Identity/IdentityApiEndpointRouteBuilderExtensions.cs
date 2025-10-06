@@ -21,11 +21,10 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         routeGroup.MapPost("/register", IdentityApiEndpoints<TUser>.Register)
             .WithSummary("Registers a new user account.")
-            .WithDescription("Creates a new user and sends a confirmation email if enabled.");
+            .WithDescription("Creates a new user and sends a confirmation email if configured.");
 
         routeGroup.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
             .WithSummary("Confirms a user's email address.")
-            .WithDescription("Validates the email confirmation token and activates the account.")
             .WithName(IdentityApiEndpoints<TUser>.confirmEmailEndpointName);
 
         routeGroup.MapPost("/resendConfirmationEmail", IdentityApiEndpoints<TUser>.ResendConfirmationEmail)
@@ -60,9 +59,17 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         where TUser : class, new()
     {
         var routeGroup = endpoints.MapGroup("");
-        
+
         routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
             .WithSummary("Clear cookies and logout user")
+            .RequireAuthorization();
+        routeGroup.MapPost("/confirmPassword", IdentityApiEndpoints<TUser>.ConfirmPassword)
+            .WithSummary("Confirm the user's password and issue a short-lived reauthentication cookie.")
+            .WithDescription("""
+            Verifies the current user's password and, if valid, issues a temporary authentication cookie under the reauthentication scheme. 
+            The cookie is valid for 5 minutes and can be used to authorize sensitive actions 
+            (e.g., enabling 2FA, changing password, or updating security settings).
+            """)
             .RequireAuthorization();
         routeGroup.MapIdentityApi<TUser>();
 

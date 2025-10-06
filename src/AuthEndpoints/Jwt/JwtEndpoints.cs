@@ -89,7 +89,8 @@ public class JwtEndpoints<TUser>
         IRefreshTokenService tokenRepo,
         IAccessTokenGenerator tokenGenerator,
         IUserClaimsPrincipalFactory<TUser> claimsFactory,
-        UserManager<TUser> userManager)
+        UserManager<TUser> userManager,
+        RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
         if (!context.Request.Cookies.TryGetValue("AuthEndpoints.Jwt.RefreshToken", out var refreshTokenValue))
         {
@@ -114,13 +115,8 @@ public class JwtEndpoints<TUser>
         }
 
         var newRefreshToken = await tokenRepo.RotateAsync(refreshToken);
-        context.Response.Cookies.Append("AuthEndpoints.Jwt.RefreshToken", newRefreshToken.Token, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Lax,
-            Expires = newRefreshToken.ExpiresAt
-        });
+
+        refreshTokenCookieWriter.Write(context, newRefreshToken);
 
         var claimsPrincipal = await claimsFactory.CreateAsync(user);
 

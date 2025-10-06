@@ -68,7 +68,7 @@ public static class ServiceCollectionExtensions
             IssuerSigningKey = sjOptions.SigningOptions.ToSecurityKey()
         };
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication()
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters = validationParams;
