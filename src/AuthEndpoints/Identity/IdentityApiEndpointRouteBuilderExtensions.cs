@@ -63,12 +63,13 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
             .WithSummary("Clear cookies and logout user")
             .RequireAuthorization();
-        routeGroup.MapPost("/confirmPassword", IdentityApiEndpoints<TUser>.ConfirmPassword)
-            .WithSummary("Confirm the user's password and issue a short-lived reauthentication cookie.")
+        routeGroup.MapPost("/confirmIdentity", IdentityApiEndpoints<TUser>.ConfirmIdentity)
+            .WithSummary("Confirm the user's identity and issue a short-lived reauthentication cookie.")
             .WithDescription("""
-            Verifies the current user's password and, if valid, issues a temporary authentication cookie under the reauthentication scheme. 
-            The cookie is valid for 5 minutes and can be used to authorize sensitive actions 
-            (e.g., enabling 2FA, changing password, or updating security settings).
+            Verifies the current user's identity using either their password or a two-factor authentication (2FA) code. 
+            If successful, the endpoint issues a temporary authentication cookie under the reauthentication scheme.
+            The cookie is valid for 5 minutes and can be used to authorize sensitive actions
+            such as enabling/disabling 2FA, changing the password, or updating other security settings.
             """)
             .RequireAuthorization();
         routeGroup.MapIdentityApi<TUser>();

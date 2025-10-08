@@ -166,7 +166,7 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
-    public static async Task<Results<UnauthorizedHttpResult, Ok>> ConfirmPassword([FromBody] ConfirmPasswordRequest request, UserManager<TUser> userManager, SignInManager<TUser> signInManager, HttpContext context)
+    public static async Task<Results<UnauthorizedHttpResult, Ok>> ConfirmIdentity([FromBody] ConfirmIdentityRequest request, UserManager<TUser> userManager, SignInManager<TUser> signInManager, HttpContext context)
     {
         var user = await userManager.GetUserAsync(context.User);
 
@@ -174,6 +174,23 @@ public class IdentityApiEndpoints<TUser>
         {
             return TypedResults.Unauthorized();
         }
+        
+        var valid = false;
+        var IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user);
+
+        if (IsTwoFactorEnabled && !string.IsNullOrEmpty(request.TwoFactorCode))
+        {
+            var result = await userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultAuthenticatorProvider, request.TwoFactorCode);
+            valid = result;
+        }
+        else if (!string.IsNullOrEmpty(request.Password))
+        {
+            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+            valid = result.Succeeded;
+        }
+
+        if (!valid)
+            return TypedResults.Unauthorized();
 
         var authProps = new AuthenticationProperties()
         {
