@@ -174,7 +174,7 @@ public class IdentityApiEndpoints<TUser>
         {
             return TypedResults.Unauthorized();
         }
-        
+
         var valid = false;
         var IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user);
 
@@ -357,9 +357,9 @@ public class IdentityApiEndpoints<TUser>
             IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
         });
     }
-    
+
     public static async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> ManageInfoPost
-        (ClaimsPrincipal claimsPrincipal, [FromBody] InfoRequest infoRequest, HttpContext context, [FromServices] IServiceProvider sp) 
+        (ClaimsPrincipal claimsPrincipal, [FromBody] InfoRequest infoRequest, HttpContext context, [FromServices] IServiceProvider sp)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
@@ -447,7 +447,7 @@ public class IdentityApiEndpoints<TUser>
         TypedResults.ValidationProblem(new Dictionary<string, string[]> {
             { errorCode, [errorDescription] }
         });
-    
+
     private static ValidationProblem CreateValidationProblem(IdentityResult result)
     {
         // We expect a single error code and description in the normal case.

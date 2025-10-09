@@ -1,6 +1,6 @@
 @Demo_HostAddress = http://localhost:5041
 
-GET {{Demo_HostAddress}}/su
+GET {{Demo_HostAddress}}/createDefaultUser
 
 ### 
 
@@ -28,7 +28,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hc
 
 
 
-@baseUrl = http://localhost:5041/user
+@baseUrl = http://localhost:5041/account
 @contentType = application/json
 
 

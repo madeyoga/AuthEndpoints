@@ -40,12 +40,8 @@ app.UseAuthorization();
 
 app.UseHttpsRedirection();
 
-app.MapGroup("account").MapIdentityApi<AppUser>();
-
-var authGroup = app.MapGroup("auth");
-
-authGroup.MapJwtApi<AppUser>();
-authGroup.MapAuthEndpointsIdentityApi<AppUser>();
+app.MapGroup("account").MapAccountApi<AppUser>();
+app.MapGroup("auth").MapJwtApi<AppUser>();
 
 app.MapGet("createDefaultUser", async (UserManager<AppUser> userManager) =>
 {
