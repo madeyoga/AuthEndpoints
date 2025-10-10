@@ -93,6 +93,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         var accountGroup = routeGroup.MapGroup("/manage").RequireAuthorization();
 
+        accountGroup.MapGet("/2fa", IdentityApiEndpoints<TUser>.TwoFactorStatus)
+            .WithSummary("Get two-factor authentication status.");
         accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
             .WithSummary("Enables or disables two-factor authentication.");
         accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet);

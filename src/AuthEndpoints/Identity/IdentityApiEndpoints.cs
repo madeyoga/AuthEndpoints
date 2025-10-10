@@ -268,6 +268,18 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
+    public static async Task<IResult> TwoFactorStatus(UserManager<TUser> userManager, ClaimsPrincipal user) 
+    {
+        var currentUser = await userManager.GetUserAsync(user);
+        if (currentUser is null)
+            return Results.Unauthorized();
+
+        return Results.Ok(new
+        {
+            IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(currentUser)
+        });
+    }
+
     [Authorize(AuthenticationSchemes = AuthEndpointsConstants.ReAuthScheme)]
     public static async Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorRequest tfaRequest, [FromServices] IServiceProvider sp)
     {
