@@ -6,38 +6,33 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/madeyoga/authendpoints/badge)](https://www.codefactor.io/repository/github/madeyoga/authendpoints)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-A simple jwt authentication library for ASP.Net 6. AuthEndpoints library provides a set of minimal api endpoints to handle basic web & JWT authentication actions such as registration, email verification, reset password, create jwt, etc. It works with [custom identity user model](https://docs.microsoft.com/en-us/aspnet/core/security/authentication/customize-identity-model?view=aspnetcore-6.0#custom-user-data).
+A simple auth library for aspnetcore. AuthEndpoints library provides a set of minimal api endpoints to handle basic & authentication actions such as registration, email verification, reset password, login, logout, etc.
 
-![swagger_authendpoints](https://i.imgur.com/rqMbFNy.png)
+![swagger_authendpoints](https://res.cloudinary.com/dhqbr2d4l/image/upload/v1760597936/chrome_2025-10-16_14-55-57_g5qvtc.jpg)
 
-## Supported endpoints
-- Users API:
+## Endpoints
+- Identity api:
   - sign-up
   - email verification
-  - user profile (retrieving)
+  - account info
   - reset password
-  - change password
+  - forgot password
   - enable 2fa
-  - login 2fa
-- TokenAuth:
-  - Create (login)
-  - Destroy (logout)
+  - login 
+  - logout 
+  - confirm identity
 - Simple JWT:
   - Create (login)
   - Refresh
   - Verify
 
-## Current limitations
-- Only works with IdentityUser & EfCore
-- 2fa via email
-
 ## Installing via NuGet
-The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints.MinimalApi/)
+The easiest way to install AuthEndpoints is via [NuGet](https://www.nuget.org/packages/AuthEndpoints/)
 
-Install the library using the following .net cli command:
+Install the library using the following dotnet cli command:
 
 ```
-dotnet add package AuthEndpoints
+dotnet add package AuthEndpoints --version 3.0.0-alpha.1
 ```
 
 or in Visual Studio's Package Manager Console, enter the following command:
@@ -49,50 +44,13 @@ Install-Package AuthEndpoints
 ## Quick start
 
 ```cs
-// MyDbContext.cs
-
-
-using AuthEndpoints.SimpleJwt.Core.Models;
-
-public class MyDbContext : IdentityDbContext
-{
-  public DbSet<RefreshToken>? RefreshTokens { get; set; } // <--
-  public MyDbContext(DbContextOptions<MyDbContext> options) : base(options) { }
-}
-```
-
-Add migration and apply migration:
-
-```
-// using dotnet cli
-$ dotnet ef migrations add CreateRefreshToken
-$ dotnet ef database update
-
-// or using package manager console in visual studio
-PM> Add-Migration CreateRefreshToken
-PM> Update-Database
-```
-
-Add endpoints and call `app.MapEndpoints()` before `app.Run();`
-
-```cs
 // Program.cs
 
-
-// Required services
-builder.Services.AddIdentityCore<IdentityUser>(); // <--
-
-// Add core services & users api
-builder.Services.AddAuthEndpointsCore<IdentityUser, MyDbContext>() // <--
-                .AddUsersApiEndpoints()
-                .Add2FAEndpoints();
-
-// Add jwt endpoints
-// When no options are provided
-// AuthEndpoints will create a secret key and use a single security key (symmetric encryption)
-// for each access jwt and refresh jwt.
-// Secrets will be created under `keys/` directory.
-builder.Services.AddSimpleJwtEndpoints<IdentityUser, MyDbContext>(); // <--
+builder.Services
+    .AddIdentityApiEndpoints<AppUser>() // <--
+    .AddRoles<AppRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 var app = builder.Build();
 
@@ -103,15 +61,10 @@ app.UseAuthorization(); // <--
 
 ...
 
-app.MapEndpoints(); // <--
+app.MapAuthEndpointsIdentityApi(); // <--
 
 app.Run();
 ```
 
 ## Documentations
 Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https://madeyoga.github.io/AuthEndpoints/) and in [docs](https://github.com/madeyoga/AuthEndpoints/tree/main/docs) directory.
-
-## Contributing
-Your contributions are always welcome! simply send a pull request! The [up-for-grabs](https://github.com/madeyoga/AuthEndpoints/labels/up-for-grabs) label is a great place to start. If you find a flaw, please open an issue or a PR and let's sort things out.
-
-The project is far from perfect so every bit of help is more than welcome.

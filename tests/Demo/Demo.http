@@ -1,0 +1,90 @@
+@Demo_HostAddress = http://localhost:5041
+
+GET {{Demo_HostAddress}}/createDefaultUser
+
+### 
+
+POST {{Demo_HostAddress}}/auth/create
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "admin@authendpoints.id",
+    "password": "T3$ttest"
+}
+
+### 
+
+POST {{Demo_HostAddress}}/auth/refresh
+Accept: application/json
+Cookie: AuthEndpoints.Jwt.RefreshToken=%2FMjemeDVAn8Ji9GynxvPCuxNnn1ZpIcd5iyt5XfpgYGJK1SfKd0PIhyfWhG%2BHdiTt0ex5QFWRpFUVw%2FyRTsnMQ%3D%3D; expires=Fri, 17 Oct 2025 16:04:06 GMT; path=/; secure; samesite=lax; httponly
+
+
+###
+
+GET {{Demo_HostAddress}}/auth/verify
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjA1YWI5ZmRmLWI5NGUtNGQ1Yi04ZTc4LWQyODI0Y2Q4MzE1MSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJhZG1pbkBhdXRoZW5kcG9pbnRzLmlkIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoiYWRtaW5AYXV0aGVuZHBvaW50cy5pZCIsIkFzcE5ldC5JZGVudGl0eS5TZWN1cml0eVN0YW1wIjoiVkdEUlE3TEFZUUc0RjZRREtEWEhSRE43MkQ1R1I3V1oiLCJuYmYiOjE3NTk1MDc4MDYsImV4cCI6MTc1OTUwODcwNiwiaXNzIjoiSnd0IiwiYXVkIjoiSnd0QXVkaWVuY2UifQ.eluwqiRav7F_JTTgOuU0MkHHLGJCX-jrqR3Jrtvm8YI
+
+
+
+@baseUrl = http://localhost:5041/account
+@contentType = application/json
+
+
+### Register a new user
+
+POST {{baseUrl}}/register
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "P@ssw0rd!"
+}
+
+### Login user
+
+POST {{Demo_HostAddress}}/auth/create
+Accept: application/json
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "P@ssw0rd!"
+}
+
+@access_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6ImZkOTdjY2Q4LTk5ODctNGI0NC05MjIwLTRiMWUzOWZiNWIyMCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidGVzdEBleGFtcGxlLmNvbSIsIkFzcE5ldC5JZGVudGl0eS5TZWN1cml0eVN0YW1wIjoiSFYyU1ZJRUhSMk1FRzRGQVc1S1lFWkFJVE5EMzRDUFQiLCJuYmYiOjE3NTk1NTU0NTQsImV4cCI6MTc1OTU1NjM1NCwiaXNzIjoiSnd0IiwiYXVkIjoiSnd0QXVkaWVuY2UifQ.Ea_UyA28nChHUUm2_gJBiyjBMB4z2gysB7HxOawJMOc
+
+### Get user info (requires Authorization header)
+GET {{baseUrl}}/manage/info
+Authorization: Bearer {{access_token}}
+
+### Forgot password
+POST {{baseUrl}}/forgotPassword
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com"
+}
+
+@reset_code = 
+
+### Reset password
+POST {{baseUrl}}/resetPassword
+Content-Type: {{contentType}}
+
+{
+  "email": "test@example.com",
+  "password": "NewP@ssw0rd!",
+  "code": "{{reset_code}}"
+}
+
+### Enable Two-Factor Auth (requires login)
+POST {{baseUrl}}/manage/2fa
+Authorization: Bearer {{access_token}}
+Content-Type: {{contentType}}
+
+{
+  "enable": true
+}
+
