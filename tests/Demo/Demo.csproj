@@ -16,6 +16,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.9" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
 
     <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
   </ItemGroup>

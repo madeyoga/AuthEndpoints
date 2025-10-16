@@ -14,21 +14,25 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     }
 }
 
-// public static class EntityFrameworkCoreHelpers
-// {
-//     public static ModelBuilder UseSimpleJwtEntities(this ModelBuilder builder)
-//     {
-//         builder.Entity<RefreshToken>();
+public static class EntityFrameworkCoreHelpers
+{
+    public static ModelBuilder UseRefreshToken(this ModelBuilder builder)
+    {
+        var entityBuilder = builder.Entity<RefreshToken>();
 
-//         return builder;
-//     }
+        entityBuilder.ToTable("AuthEndpointsRefreshTokens", "AuthEndpoints");
+        entityBuilder.HasKey(e => e.Id);
+        entityBuilder.Property(e => e.Token).IsRequired();
 
-//     public static DbContextOptionsBuilder UseSimpleJwtEntities(this DbContextOptionsBuilder builder)
-//     {
-//         builder.ReplaceService<IModelCustomizer, SimpleJwtEFCoreCustomizer>();
-//         return builder;
-//     }
-// }
+        return builder;
+    }
+
+    // public static DbContextOptionsBuilder UseSimpleJwtEntities(this DbContextOptionsBuilder builder)
+    // {
+    //     builder.ReplaceService<IModelCustomizer, SimpleJwtEFCoreCustomizer>();
+    //     return builder;
+    // }
+}
 
 // public sealed class SimpleJwtEFCoreCustomizer : RelationalModelCustomizer
 // {

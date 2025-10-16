@@ -16,6 +16,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
         base.OnModelCreating(builder);
 
-        builder.ApplyConfiguration(new RefreshTokenConfiguration());
+        // builder.ApplyConfiguration(new RefreshTokenConfiguration());
+        builder.UseRefreshToken();
     }
 }

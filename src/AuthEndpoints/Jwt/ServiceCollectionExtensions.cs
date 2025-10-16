@@ -72,7 +72,7 @@ public static class ServiceCollectionExtensions
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.TokenValidationParameters = validationParams;
-                jwtSetup?.Invoke(options); // optional advanced customization
+                jwtSetup?.Invoke(options);
             });
 
         var builder1 = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);

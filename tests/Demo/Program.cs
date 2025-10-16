@@ -12,6 +12,8 @@ DotNetEnv.Env.Load();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<AppDbContext>(o =>
 {
@@ -33,15 +35,20 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    app.UseHttpsRedirection();
 }
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHttpsRedirection();
-
-app.MapGroup("account").MapAccountApi<AppUser>();
-app.MapGroup("auth").MapJwtApi<AppUser>();
+// app.MapGroup("account").MapAccountApi<AppUser>().WithTags("Account management");
+app.MapGroup("auth").MapJwtApi<AppUser>().WithTags("Jwt");
+app.MapGroup("identity").MapAuthEndpointsIdentityApi<AppUser>().WithTags("Identity");
 
 app.MapGet("createDefaultUser", async (UserManager<AppUser> userManager) =>
 {

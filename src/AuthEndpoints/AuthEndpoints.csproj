@@ -5,14 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <Description>A simple jwt auth library for aspnetcore that provides a set of web api controllers and minimal api endpoints to handle authentication actions</Description>
-    <Version>3.0.0</Version>
-    <Authors>yeogaa02</Authors>
-    <Company>yeogaa02</Company>
+    <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
+    <Version>3.0.0-alpha.1</Version>
+    <Authors>madeyoga</Authors>
+    <Company>madeyoga</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
-    <PackageTags>jwt;json-web-token;endpoints;asp-net-core;2fa</PackageTags>
+    <PackageTags>auth;endpoints;aspnetcore;2fa</PackageTags>
     <PackageReleaseNotes></PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>

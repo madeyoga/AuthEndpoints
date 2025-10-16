@@ -6,12 +6,12 @@ namespace AuthEndpoints.Jwt;
 
 public static class JwtApiEndpointRouteBuilderExtensions
 {
-    public static IEndpointRouteBuilder MapJwtApi<TUser>(this IEndpointRouteBuilder endpoints)
+    public static IEndpointConventionBuilder MapJwtApi<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        var routeGroup = endpoints.MapGroup("").WithTags("Jwt");
+        var routeGroup = endpoints.MapGroup("");
 
         routeGroup.MapPost("/create", JwtEndpoints<TUser>.Create);
         routeGroup.MapPost("/refresh", JwtEndpoints<TUser>.Refresh);

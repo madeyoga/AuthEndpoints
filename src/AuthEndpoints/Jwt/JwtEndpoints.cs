@@ -24,7 +24,7 @@ public class JwtEndpoints<TUser>
         UserManager<TUser> userManager,
         IUserClaimsPrincipalFactory<TUser> claimsFactory,
         IAccessTokenGenerator accessTokenGenerator,
-        IRefreshTokenService refreshTokenRepo,
+        IRefreshTokenService refreshTokenService,
         RefreshTokenCookieWriter refreshTokenCookieWriter,
         HttpContext context)
     {
@@ -74,7 +74,7 @@ public class JwtEndpoints<TUser>
             TokenType = "Bearer",
         };
 
-        var refreshToken = await refreshTokenRepo.CreateAsync(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var refreshToken = await refreshTokenService.CreateAsync(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         refreshTokenCookieWriter.Write(context, refreshToken);
 
@@ -86,7 +86,7 @@ public class JwtEndpoints<TUser>
     /// </summary>
     public static async Task<IResult> Refresh(
         HttpContext context,
-        IRefreshTokenService tokenRepo,
+        IRefreshTokenService refreshTokenService,
         IAccessTokenGenerator tokenGenerator,
         IUserClaimsPrincipalFactory<TUser> claimsFactory,
         UserManager<TUser> userManager,
@@ -97,13 +97,13 @@ public class JwtEndpoints<TUser>
             return Results.BadRequest(new SimpleJwtErrorResponse("Missing refresh token cookie."));
         }
 
-        var refreshToken = await tokenRepo.GetRefreshTokenAsync(refreshTokenValue);
+        var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);
 
         if (refreshToken == null)
         {
             return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
         }
-        if (!tokenRepo.IsValid(refreshToken))
+        if (!refreshTokenService.IsValid(refreshToken))
         {
             return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
         }
@@ -114,7 +114,7 @@ public class JwtEndpoints<TUser>
             return Results.BadRequest(new SimpleJwtErrorResponse("Associated user no longer exists."));
         }
 
-        var newRefreshToken = await tokenRepo.RotateAsync(refreshToken);
+        var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken);
 
         refreshTokenCookieWriter.Write(context, newRefreshToken);
 
