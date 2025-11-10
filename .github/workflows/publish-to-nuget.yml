@@ -21,8 +21,22 @@ jobs:
       - name: Run Tests
         run: dotnet test AuthEndpoints.sln --configuration Release --verbosity minimal
 
+      - name: Clean
+        run: |
+          dotnet clean AuthEndpoints.sln -c Release
+          rm -rf **/bin **/obj nupkgs
+
+      - name: Build
+        run: dotnet build AuthEndpoints.sln -c Release --no-restore
+
+      - name: Create Output Directory
+        run: mkdir nupkgs
+
       - name: Make Nuget Packages
-        run: dotnet pack -c Release
+        run: dotnet pack AuthEndpoints.sln -c Release --no-build --output nupkgs
+      
+      - name: List Generated Packages
+        run: ls -la nupkgs/
 
       - name: Publish To Nuget
         run: dotnet nuget push src/*/bin/Release/*.nupkg --skip-duplicate --api-key $NUGET_AUTH_TOKEN --source https://api.nuget.org/v3/index.json
