@@ -40,7 +40,12 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         routeGroup.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
             .WithSummary("Confirms a user's email address.")
-            .WithName(IdentityApiEndpoints<TUser>.confirmEmailEndpointName);
+            .Add(endpointBuilder =>
+            {
+                var finalPattern = ((RouteEndpointBuilder)endpointBuilder).RoutePattern.RawText;
+                IdentityApiEndpoints<TUser>.ConfirmEmailEndpointName = $"{nameof(MapBearerAuthEndpoints)}-{finalPattern}";
+                endpointBuilder.Metadata.Add(new EndpointNameMetadata(IdentityApiEndpoints<TUser>.ConfirmEmailEndpointName));
+            });
 
         routeGroup.MapPost("/resendConfirmationEmail", IdentityApiEndpoints<TUser>.ResendConfirmationEmail)
             .WithSummary("Resends the confirmation email for an unverified account.");
@@ -101,7 +106,13 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         routeGroup.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
             .WithSummary("Confirms a user's email address.")
-            .WithName(IdentityApiEndpoints<TUser>.confirmEmailEndpointName);
+            // .WithName(IdentityApiEndpoints<TUser>.confirmEmailEndpointName)
+            .Add(endpointBuilder =>
+            {
+                var finalPattern = ((RouteEndpointBuilder)endpointBuilder).RoutePattern.RawText;
+                IdentityApiEndpoints<TUser>.ConfirmEmailEndpointName = $"{nameof(MapCookieAuthEndpoints)}-{finalPattern}";
+                endpointBuilder.Metadata.Add(new EndpointNameMetadata(IdentityApiEndpoints<TUser>.ConfirmEmailEndpointName));
+            });
 
         routeGroup.MapPost("/resendConfirmationEmail", IdentityApiEndpoints<TUser>.ResendConfirmationEmail)
             .WithSummary("Resends the confirmation email for an unverified account.");

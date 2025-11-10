@@ -26,7 +26,7 @@ public class IdentityApiEndpoints<TUser>
     where TUser : class, new()
 {
     private static readonly EmailAddressAttribute _emailAddressAttribute = new();
-    public static readonly string confirmEmailEndpointName = $"{nameof(IdentityApiEndpoints<TUser>)}-/confirmEmail"; // !! not globally unique !!
+    public static string? ConfirmEmailEndpointName { get; set; }
 
     public static async Task<Results<Ok, ValidationProblem>> Register([FromBody] RegisterRequest registration, HttpContext context, [FromServices] IServiceProvider sp)
     {
@@ -136,7 +136,6 @@ public class IdentityApiEndpoints<TUser>
         if (refreshTicket?.Properties?.ExpiresUtc is not { } expiresUtc ||
             timeProvider.GetUtcNow() >= expiresUtc ||
             await signInManager.ValidateSecurityStampAsync(refreshTicket.Principal) is not TUser user)
-
         {
             return TypedResults.Challenge();
         }
@@ -337,7 +336,7 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
-    public static async Task<IResult> TwoFactorStatus(UserManager<TUser> userManager, ClaimsPrincipal user) 
+    public static async Task<IResult> TwoFactorStatus(UserManager<TUser> userManager, ClaimsPrincipal user)
     {
         var currentUser = await userManager.GetUserAsync(user);
         if (currentUser is null)
@@ -494,7 +493,7 @@ public class IdentityApiEndpoints<TUser>
         string email,
         bool isChange = false)
     {
-        if (confirmEmailEndpointName is null)
+        if (ConfirmEmailEndpointName is null)
         {
             throw new NotSupportedException("No email confirmation endpoint was registered!");
         }
@@ -520,8 +519,8 @@ public class IdentityApiEndpoints<TUser>
             routeValues.Add("changedEmail", email);
         }
 
-        var confirmEmailUrl = linkGenerator.GetUriByName(context, confirmEmailEndpointName, routeValues)
-            ?? throw new NotSupportedException($"Could not find endpoint named '{confirmEmailEndpointName}'.");
+        var confirmEmailUrl = linkGenerator.GetUriByName(context, ConfirmEmailEndpointName, routeValues)
+            ?? throw new NotSupportedException($"Could not find endpoint named '{ConfirmEmailEndpointName}'.");
 
         await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));
     }
