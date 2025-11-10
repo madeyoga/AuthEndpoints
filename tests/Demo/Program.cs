@@ -57,6 +57,8 @@ builder.Services.AddJwtEndpoints<AppUser, AppDbContext>();
 
 builder.Services.AddAuthorization();
 
+builder.Services.AddAntiforgery();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -74,9 +76,17 @@ else
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseAntiforgery();
+app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
+
 // app.MapGroup("account").MapAccountApi<AppUser>().WithTags("Account management");
-app.MapGroup("auth").MapJwtApi<AppUser>().WithTags("Jwt");
-app.MapGroup("identity").MapAuthEndpointsIdentityApi<AppUser>().WithTags("Identity");
+app.MapGroup("auth").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
+app.MapGroup("identity").MapCookieAuthEndpoints<AppUser>().WithTags("Identity: Cookie scheme");
+
+app.MapPost("/test/csrf", () =>
+{
+    return Results.Ok();
+}).EnableAntiforgery();
 
 app.MapGet("createDefaultUser", async (UserManager<AppUser> userManager) =>
 {

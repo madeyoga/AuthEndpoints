@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
 
@@ -90,6 +92,59 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Empty;
     }
 
+    public static async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> LoginCookie
+        ([FromBody] LoginRequest login, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp)
+    {
+        var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
+
+        var isPersistent = useSessionCookies == false;
+        signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+
+        var result = await signInManager.PasswordSignInAsync(login.Email, login.Password, isPersistent, lockoutOnFailure: true);
+
+        if (result.RequiresTwoFactor)
+        {
+            if (!string.IsNullOrEmpty(login.TwoFactorCode))
+            {
+                result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
+            }
+            else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
+            {
+                result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
+            }
+        }
+
+        if (!result.Succeeded)
+        {
+            return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        // The signInManager already produced the needed response in the form of a cookie or bearer token.
+        return TypedResults.Empty;
+    }
+
+    public static async Task<Results<Ok<AccessTokenResponse>, UnauthorizedHttpResult, SignInHttpResult, ChallengeHttpResult>> Refresh
+        ([FromBody] RefreshRequest refreshRequest, [FromServices] IServiceProvider sp)
+    {
+        var bearerTokenOptions = sp.GetRequiredService<IOptionsMonitor<BearerTokenOptions>>();
+        var timeProvider = sp.GetRequiredService<TimeProvider>();
+        var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
+        var refreshTokenProtector = bearerTokenOptions.Get(IdentityConstants.BearerScheme).RefreshTokenProtector;
+        var refreshTicket = refreshTokenProtector.Unprotect(refreshRequest.RefreshToken);
+
+        // Reject the /refresh attempt with a 401 if the token expired or the security stamp validation fails
+        if (refreshTicket?.Properties?.ExpiresUtc is not { } expiresUtc ||
+            timeProvider.GetUtcNow() >= expiresUtc ||
+            await signInManager.ValidateSecurityStampAsync(refreshTicket.Principal) is not TUser user)
+
+        {
+            return TypedResults.Challenge();
+        }
+
+        var newPrincipal = await signInManager.CreateUserPrincipalAsync(user);
+        return TypedResults.SignIn(newPrincipal, authenticationScheme: IdentityConstants.BearerScheme);
+    }
+
     /// <summary>
     /// When <c>useCookies=true</c> is passed to the /login endpoint, tokens are stored
     /// in cookies instead of being returned to the client. This logout endpoint clears those cookies
@@ -104,6 +159,20 @@ public class IdentityApiEndpoints<TUser>
             IdentityConstants.ExternalScheme,
             AuthEndpointsConstants.ReAuthScheme
         ]);
+    }
+
+    /// <summary>
+    /// Generates and stores an anti-forgery (CSRF) token for the current HTTP request and returns it to the caller.
+    /// </summary>
+    /// <returns>
+    /// An HTTP 200 OK result containing a JSON object with a single property "CsrfToken" whose value is the request token string.
+    /// Clients can call this endpoint to obtain a token to include in subsequent unsafe requests (POST/PUT/DELETE) for CSRF protection.
+    /// </returns>
+    public static IResult GetAntiforgeryToken(IAntiforgery forgeryService, HttpContext context)
+    {
+        var tokens = forgeryService.GetAndStoreTokens(context);
+
+        return Results.Ok(new { CsrfToken = tokens.RequestToken });
     }
 
     public static async Task<Results<ContentHttpResult, UnauthorizedHttpResult>> ConfirmEmail(
@@ -297,12 +366,14 @@ public class IdentityApiEndpoints<TUser>
                 return CreateValidationProblem("CannotResetSharedKeyAndEnable",
                     "Resetting the 2fa shared key must disable 2fa until a 2fa token based on the new shared key is validated.");
             }
-            else if (string.IsNullOrEmpty(tfaRequest.TwoFactorCode))
+
+            if (string.IsNullOrEmpty(tfaRequest.TwoFactorCode))
             {
                 return CreateValidationProblem("RequiresTwoFactor",
                     "No 2fa token was provided by the request. A valid 2fa token is required to enable 2fa.");
             }
-            else if (!await userManager.VerifyTwoFactorTokenAsync(user, userManager.Options.Tokens.AuthenticatorTokenProvider, tfaRequest.TwoFactorCode))
+
+            if (!await userManager.VerifyTwoFactorTokenAsync(user, userManager.Options.Tokens.AuthenticatorTokenProvider, tfaRequest.TwoFactorCode))
             {
                 return CreateValidationProblem("InvalidTwoFactorCode",
                     "The 2fa token provided by the request was invalid. A valid 2fa token is required to enable 2fa.");

@@ -6,7 +6,7 @@ namespace AuthEndpoints.Jwt;
 
 public static class JwtApiEndpointRouteBuilderExtensions
 {
-    public static IEndpointConventionBuilder MapJwtApi<TUser>(this IEndpointRouteBuilder endpoints)
+    public static IEndpointConventionBuilder MapJwtAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
