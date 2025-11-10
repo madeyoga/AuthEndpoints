@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>3.0.0-alpha.3</Version>
+    <Version>3.0.0-alpha.4</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
