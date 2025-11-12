@@ -92,7 +92,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             .RequireAuthorization()
             .EnableAntiforgery();
 
-        routeGroup.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken);
+        routeGroup.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken).RequireAuthorization();
         routeGroup.MapPost("/confirmIdentity", IdentityApiEndpoints<TUser>.ConfirmIdentity)
             .WithSummary("Confirm the user's identity and issue a short-lived reauthentication cookie.")
             .WithDescription("""
