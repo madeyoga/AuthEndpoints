@@ -156,16 +156,17 @@ public class IdentityApiEndpoints<TUser>
         [
             IdentityConstants.ApplicationScheme,
             IdentityConstants.ExternalScheme,
+            IdentityConstants.TwoFactorUserIdScheme,
+            IdentityConstants.TwoFactorRememberMeScheme,
             AuthEndpointsConstants.ReAuthScheme
         ]);
     }
 
     /// <summary>
-    /// Generates and stores an anti-forgery (CSRF) token for the current HTTP request and returns it to the caller.
+    /// Generates and stores an anti-forgery (CSRF) token for the current HTTP request and returns it.
     /// </summary>
     /// <returns>
-    /// An HTTP 200 OK result containing a JSON object with a single property "CsrfToken" whose value is the request token string.
-    /// Clients can call this endpoint to obtain a token to include in subsequent unsafe requests (POST/PUT/DELETE) for CSRF protection.
+    /// Clients can call this endpoint to obtain csrf token to include in subsequent unsafe requests (POST/PUT/PATCH) for CSRF protection.
     /// </returns>
     public static IResult GetAntiforgeryToken(IAntiforgery forgeryService, HttpContext context)
     {
