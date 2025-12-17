@@ -48,7 +48,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             });
 
         routeGroup.MapPost("/resendConfirmationEmail", IdentityApiEndpoints<TUser>.ResendConfirmationEmail)
-            .WithSummary("Resends the confirmation email for an unverified account.");
+            .WithSummary("Resends the confirmation email for an unverified account.")
+            .RequireAuthorization();
 
         routeGroup.MapPost("/forgotPassword", IdentityApiEndpoints<TUser>.ForgotPassword)
             .WithSummary("Sends a password reset email to the user.");
@@ -90,9 +91,9 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
             .WithSummary("Clear cookies and logout user")
             .RequireAuthorization()
-            .EnableAntiforgery();
+            .RequireAntiforgery();
 
-        routeGroup.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken).RequireAuthorization();
+        routeGroup.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken);
         routeGroup.MapPost("/confirmIdentity", IdentityApiEndpoints<TUser>.ConfirmIdentity)
             .WithSummary("Confirm the user's identity and issue a short-lived reauthentication cookie.")
             .WithDescription("""
@@ -102,7 +103,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             such as enabling/disabling 2FA, changing the password, or updating other security settings.
             """)
             .RequireAuthorization()
-            .EnableAntiforgery();
+            .RequireAntiforgery();
 
         routeGroup.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
             .WithSummary("Confirms a user's email address.")
@@ -115,6 +116,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             });
 
         routeGroup.MapPost("/resendConfirmationEmail", IdentityApiEndpoints<TUser>.ResendConfirmationEmail)
+            .RequireAuthorization()
+            .RequireAntiforgery()
             .WithSummary("Resends the confirmation email for an unverified account.");
 
         routeGroup.MapPost("/forgotPassword", IdentityApiEndpoints<TUser>.ForgotPassword)
@@ -123,15 +126,17 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         routeGroup.MapPost("/resetPassword", IdentityApiEndpoints<TUser>.ResetPassword)
             .WithSummary("Resets the user's password using the provided token.");
 
-        var accountGroup = routeGroup.MapGroup("/manage").RequireAuthorization().EnableAntiforgery();
+        var accountGroup = routeGroup.MapGroup("/manage").RequireAuthorization();
 
         accountGroup.MapGet("/2fa", IdentityApiEndpoints<TUser>.TwoFactorStatus)
             .WithSummary("Get two-factor authentication status.");
         accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
-            .WithSummary("Enables or disables two-factor authentication.");
+            .WithSummary("Enables or disables two-factor authentication.")
+            .RequireAntiforgery();
         accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet);
         accountGroup.MapPost("/info", IdentityApiEndpoints<TUser>.ManageInfoPost)
-            .WithSummary("Updates the current user account information.");
+            .WithSummary("Updates the current user account information.")
+            .RequireAntiforgery();
 
         return routeGroup;
     }
