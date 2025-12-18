@@ -269,8 +269,8 @@ public class IdentityApiEndpoints<TUser>
 
         var claims = new[]
         {
-            new Claim("reauth", "true"),
-            new Claim("reauth_time", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
+            new Claim("Reauth", "true"),
+            new Claim("ReauthTime", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
         }
         .Concat(context.User.Claims)
         .ToArray();
@@ -349,7 +349,6 @@ public class IdentityApiEndpoints<TUser>
         });
     }
 
-    [Authorize(AuthenticationSchemes = AuthEndpointsConstants.ReAuthScheme)]
     public static async Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorRequest tfaRequest, [FromServices] IServiceProvider sp)
     {
         var signInManager = sp.GetRequiredService<SignInManager<TUser>>();

@@ -86,7 +86,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             .WithSummary("Registers a new user account.")
             .WithDescription("Creates a new user and sends a confirmation email if configured.");
 
-        routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.Login);
+        routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
+            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
         
         routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
             .WithSummary("Clear cookies and logout user")
@@ -132,7 +133,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             .WithSummary("Get two-factor authentication status.");
         accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
             .WithSummary("Enables or disables two-factor authentication.")
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .RequireReauth();
         accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet);
         accountGroup.MapPost("/info", IdentityApiEndpoints<TUser>.ManageInfoPost)
             .WithSummary("Updates the current user account information.")

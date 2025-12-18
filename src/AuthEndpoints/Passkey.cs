@@ -13,7 +13,7 @@ namespace AuthEndpoints.Passkey;
 public static class PasskeyEndpointRouteBuilderExtensions
 {
     public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
-        where TUser : IdentityUser, new()
+        where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
@@ -44,7 +44,10 @@ public static class PasskeyEndpointRouteBuilderExtensions
             });
 
             return TypedResults.Content(optionsJson, contentType: "application/json");
-        }).EnableAntiforgery();
+        })
+        .RequireReauth()
+        .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
+        .EnableAntiforgery();
 
         accountGroup.MapPost("/passkeyRequestOptions", async (
             HttpContext context,
@@ -58,7 +61,9 @@ public static class PasskeyEndpointRouteBuilderExtensions
             var user = string.IsNullOrEmpty(username) ? null : await userManager.FindByNameAsync(username);
             var optionsJson = await signInManager.MakePasskeyRequestOptionsAsync(user);
             return TypedResults.Content(optionsJson, contentType: "application/json");
-        });
+        })
+        .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
+        .EnableAntiforgery();
 
         // Register: verify and store passkey
         accountGroup.MapPost("/passkeys", async (
@@ -111,7 +116,11 @@ public static class PasskeyEndpointRouteBuilderExtensions
             {
                 CredentialId = credentialIdBase64Url
             });
-        }).RequireAuthorization().EnableAntiforgery();
+        })
+        .RequireAuthorization()
+        .RequireReauth()
+        .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
+        .EnableAntiforgery();
 
         accountGroup.MapGet("/passkeys", async (ClaimsPrincipal principal, UserManager<TUser> userManager) =>
         {
@@ -225,13 +234,18 @@ public static class PasskeyEndpointRouteBuilderExtensions
             }
 
             return Results.Ok();
-        }).RequireAuthorization().EnableAntiforgery();
+        })
+        .RequireReauth()
+        .RequireAuthorization()
+        .EnableAntiforgery();
 
-        // Register create passkey and a passwordless account
+        // Create passkey and a passwordless account
         accountGroup.MapPost("/passkeys/register", async (
             [FromBody] PasskeyRegisterRequest request, 
             HttpContext context, 
             [FromServices] UserManager<TUser> userManager, 
+            [FromServices] IUserEmailStore<TUser> userEmailStore,
+            [FromServices] IUserStore<TUser> userStore,
             [FromServices] SignInManager<TUser> signInManager,
             [FromServices] IAntiforgery antiforgery) =>
         {
@@ -266,11 +280,9 @@ public static class PasskeyEndpointRouteBuilderExtensions
             var user = await userManager.FindByIdAsync(userEntity.Id);
             if (user is null)
             {
-                user = new TUser()
-                {
-                    UserName = request.Email,
-                    Email = request.Email
-                };
+                user = new TUser();
+                await userStore.SetUserNameAsync(user, request.Email, CancellationToken.None);
+                await userEmailStore.SetEmailAsync(user, request.Email, CancellationToken.None);
                 var createUserResult = await userManager.CreateAsync(user);
                 if (!createUserResult.Succeeded)
                 {
@@ -294,9 +306,11 @@ public static class PasskeyEndpointRouteBuilderExtensions
 
             return Results.Ok(new
             {
-                credentialIdBase64Url
+                CredentialId = credentialIdBase64Url
             });
-        }).EnableAntiforgery();
+        })
+        .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
+        .EnableAntiforgery();
 
         accountGroup.MapPost("/passkeys/login", async (
             HttpContext context,
@@ -329,7 +343,9 @@ public static class PasskeyEndpointRouteBuilderExtensions
             }
 
             return Results.Ok();
-        }).EnableAntiforgery();
+        })
+        .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+        .EnableAntiforgery();
 
         return accountGroup;
     }
