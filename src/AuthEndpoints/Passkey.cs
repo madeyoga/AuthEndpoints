@@ -198,7 +198,7 @@ public static class PasskeyEndpointRouteBuilderExtensions
             return Results.Ok();
         }).RequireAuthorization().EnableAntiforgery();
 
-        accountGroup.MapDelete("/passkeys", async (
+        accountGroup.MapDelete("/passkeys/{credentialIdUrl}", async (
             string credentialIdUrl, 
             HttpContext context, 
             [FromServices] UserManager<TUser> userManager,
