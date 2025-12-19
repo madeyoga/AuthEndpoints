@@ -29,7 +29,12 @@ public static class GithubApiEndpointRouteBuilderExtensions
         /// Using signInManager.GetExternalLoginInfoAsync();
         /// Require GithubAuthenticationOptions.SignInScheme set to IdentityConstants.ExternalScheme
         group.MapGet("/login/github/callback", async
-            ([FromQuery] string returnUrl, HttpContext context, SignInManager<TUser> signInManager, UserManager<TUser> userManager) =>
+            ([FromQuery] string returnUrl, 
+            HttpContext context, 
+            [FromServices] SignInManager<TUser> signInManager, 
+            [FromServices] UserManager<TUser> userManager,
+            [FromServices] IUserEmailStore<TUser> userEmailStore,
+            [FromServices] IUserStore<TUser> userStore) =>
         {
             // Authenticate with IdentityConstants.ExternalScheme and get ExternalLoginInfo (UserLoginInfo with claimsprinciple and extra auth properties)
             var info = await signInManager.GetExternalLoginInfoAsync();
@@ -63,32 +68,31 @@ public static class GithubApiEndpointRouteBuilderExtensions
 
             if (user == null)
             {
-                // user = new AppUser
-                // {
-                //     UserName = email,
-                //     Email = email,
-                //     EmailConfirmed = true,
-                //     DisplayName = principal.FindFirstValue("urn:github:name")
-                //         ?? principal.FindFirstValue(ClaimTypes.Name)
-                //         ?? string.Empty,
-                // };
+                user = new TUser();
+                await userStore.SetUserNameAsync(user, email, CancellationToken.None);
+                await userEmailStore.SetEmailAsync(user, email, CancellationToken.None);
 
-                // var createUserResult = await userManager.CreateAsync(user);
+                var createUserResult = await userManager.CreateAsync(user);
 
-                // if (!createUserResult.Succeeded)
-                // {
-                //     return Results.Problem(string.Join(", ", createUserResult.Errors.Select(x => x.Description)));
-                // }
+                if (!createUserResult.Succeeded)
+                {
+                    return Results.Problem(
+                        detail: "Error: Could not create a new user.",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
 
-                // // Map github login to user
-                // // Save AspNetUserLogin entry to database
-                // var linkAccountResult = await userManager.AddLoginAsync(user, info);
+                // Map github login to user
+                // Save AspNetUserLogin entry to database
+                var linkAccountResult = await userManager.AddLoginAsync(user, info);
 
-                // if (!linkAccountResult.Succeeded)
-                // {
-                //     var errors = string.Join(", ", linkAccountResult.Errors.Select(x => x.Description));
-                //     return Results.Problem($"Unable to link Github account: {errors}");
-                // }
+                if (!linkAccountResult.Succeeded)
+                {
+                    return Results.Problem(
+                        detail: "Error: Unable to link Github account.",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
             }
 
             // Issue cookie
