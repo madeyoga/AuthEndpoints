@@ -34,7 +34,7 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
 {
     private readonly IAntiforgery antiforgery;
 
-    protected EnforceAntiforgeryEndpointFilters(IAntiforgery antiforgery)
+    public EnforceAntiforgeryEndpointFilters(IAntiforgery antiforgery)
     {
         this.antiforgery = antiforgery;
     }
