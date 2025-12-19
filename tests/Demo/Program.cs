@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Identity;
+using AuthEndpoints.Passkey;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,45 +14,25 @@ DotNetEnv.Env.Load();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
-{
-    // Add the "Bearer" security definition
-    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your token.\n\nExample: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    });
-
-    // Apply the definition globally (so every endpoint can use it)
-    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-    {
-        {
-            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-            {
-                Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                {
-                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
 
 builder.Services.AddDbContext<AppDbContext>(o =>
 {
     o.UseSqlite(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")!);
 });
 builder.Services
-    .AddIdentityApiEndpoints<AppUser>()
+    .AddIdentityApiEndpoints<AppUser>(o =>
+    {
+        o.SignIn.RequireConfirmedAccount = true;
+        o.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+    })
     .AddRoles<AppRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+// builder.Services.Configure<IdentityPasskeyOptions>(options =>
+// {
+//     options.ServerDomain = "example.com";
+// });
 
 builder.Services.AddJwtEndpoints<AppUser, AppDbContext>();
 
@@ -82,6 +63,8 @@ app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 // app.MapGroup("account").MapAccountApi<AppUser>().WithTags("Account management");
 app.MapGroup("auth").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
 app.MapGroup("identity").MapCookieAuthEndpoints<AppUser>().WithTags("Identity: Cookie scheme");
+
+app.MapGroup("/account").MapPasskeyEndpoints<AppUser>();
 
 app.MapPost("/test/csrf", () =>
 {
