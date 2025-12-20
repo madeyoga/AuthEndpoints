@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Passkey;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,14 +41,15 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddAntiforgery();
 
+builder.Services.AddCookieAuthEndpoints();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapScalarApiReference();
 }
 else
 {
@@ -64,12 +66,11 @@ app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 app.MapGroup("auth").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
 app.MapGroup("identity").MapCookieAuthEndpoints<AppUser>().WithTags("Identity: Cookie scheme");
 
-app.MapGroup("/account").MapPasskeyEndpoints<AppUser>();
+app.MapGroup("/account").MapPasskeyEndpoints<AppUser>().WithTags("Passkeys");
 
-app.MapPost("/test/csrf", () =>
-{
-    return Results.Ok();
-}).EnableAntiforgery();
+app.MapPost("/test/csrf", () =>  Results.Ok()).EnableAntiforgery();
+
+app.MapGet("/test/reauth", () => Results.Ok()).RequireReauth();
 
 app.MapGet("createDefaultUser", async (UserManager<AppUser> userManager) =>
 {
