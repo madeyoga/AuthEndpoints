@@ -16,7 +16,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.1" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.11.9" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.11.10" />
 
     <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
   </ItemGroup>
