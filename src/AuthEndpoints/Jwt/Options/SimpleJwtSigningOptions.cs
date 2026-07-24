@@ -22,7 +22,11 @@ public class SimpleJwtSigningOptions
 
     public string? AlgorithmOverride { get; set; }
 
-    public string SymmetricKey { get; set; } = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+    /// <summary>
+    /// Symmetric signing key (required when <see cref="Algorithm"/> is <see cref="SigningAlgorithm.Symmetric"/>).
+    /// Must be set explicitly; a random per-process default is not used.
+    /// </summary>
+    public string? SymmetricKey { get; set; }
 
     public RSA? RsaKey { get; set; }
     public ECDsa? EcdsaKey { get; set; }
@@ -33,7 +37,9 @@ public class SimpleJwtSigningOptions
         return Algorithm switch
         {
             SigningAlgorithm.Symmetric =>
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(SymmetricKey)),
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                    SymmetricKey ?? throw new InvalidOperationException(
+                        "SymmetricKey is required. Set SimpleJwtOptions.SigningOptions.SymmetricKey to a stable secret."))),
 
             SigningAlgorithm.Rsa =>
                 new RsaSecurityKey(RsaKey ?? throw new InvalidOperationException("RSA key required")),

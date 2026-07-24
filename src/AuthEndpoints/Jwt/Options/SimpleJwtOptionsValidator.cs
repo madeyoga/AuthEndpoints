@@ -15,8 +15,17 @@ public class SimpleJwtOptionsValidator : IValidateOptions<SimpleJwtOptions>
         if (string.IsNullOrWhiteSpace(signingAlgorithm))
             return ValidateOptionsResult.Fail("Algorithm must be specified.");
 
-        if (signingAlgorithm.StartsWith("HS") && string.IsNullOrWhiteSpace(signingOptions.SymmetricKey))
-            return ValidateOptionsResult.Fail("Symmetric key is required for HMAC algorithms.");
+        if (signingOptions.Algorithm == SimpleJwtSigningOptions.SigningAlgorithm.Symmetric
+            || signingAlgorithm.StartsWith("HS", StringComparison.Ordinal))
+        {
+            if (string.IsNullOrWhiteSpace(signingOptions.SymmetricKey))
+            {
+                return ValidateOptionsResult.Fail(
+                    "SymmetricKey must be set explicitly for HMAC/symmetric signing. " +
+                    "Configure SimpleJwtOptions.SigningOptions.SymmetricKey with a stable secret " +
+                    "(do not rely on a per-process random default).");
+            }
+        }
 
         if (signingAlgorithm.StartsWith("RS") && signingOptions.RsaKey == null && signingOptions.Certificate == null)
             return ValidateOptionsResult.Fail("RSA key or X509 certificate is required for RSA algorithms.");
