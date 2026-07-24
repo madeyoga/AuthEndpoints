@@ -2,9 +2,9 @@ name: .NET
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 jobs:
   build:
@@ -16,10 +16,11 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 9.x
+        dotnet-version: 10.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore AuthEndpoints.sln
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build AuthEndpoints.sln --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      # console logger lists each test by name; MSBuild -v minimal keeps build noise down
+      run: dotnet test AuthEndpoints.sln --no-build -v minimal --logger "console;verbosity=detailed"
