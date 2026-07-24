@@ -15,7 +15,8 @@ A simple auth library for ASP.NET Core. AuthEndpoints provides minimal API endpo
 - **Cookie / Bearer Identity** (`MapCookieAuthEndpoints` / `MapBearerAuthEndpoints`)
   - register, confirm email, login, logout
   - forgot / reset password, account info
-  - 2FA manage, confirm identity (reauth)
+  - 2FA manage
+  - reauth (`confirmIdentity`, `confirmIdentity/passkeyOptions`, `manage/authMethods`)
 - **Simple JWT** (`MapJwtAuthEndpoints`)
   - create (login), refresh, verify
   - when 2FA is enabled, `create` requires `twoFactorCode` or `twoFactorRecoveryCode`
@@ -86,6 +87,16 @@ Sign-in after register/login matches Identity password login:
 CSRF (antiforgery) is required on these endpoints for anonymous and cookie-authenticated clients. Bearer-only authenticated calls (Identity bearer or JWT `Bearer`) may omit the CSRF token on endpoints that use `RequireAntiforgery`. This does **not** issue Simple JWT — call `/auth/create` separately if you use `MapJwtAuthEndpoints`.
 
 For an existing signed-in user (with reauth): `POST /account/passkeys/creationOptions` then `POST /account/passkeys`.
+
+### Reauthentication (step-up)
+
+Mapped automatically with cookie/bearer Identity groups:
+
+1. `GET /identity/manage/authMethods` — which proofs the user can use (`password`, `authenticator`, `recoveryCodes`, `passkeys`)
+2. For passkey step-up: `POST /identity/confirmIdentity/passkeyOptions` → WebAuthn `get` → `POST /identity/confirmIdentity` with `{ "credentialJson": "..." }`
+3. Or confirm with exactly one of: `password`, `twoFactorCode`, `twoFactorRecoveryCode`, `credentialJson`
+
+Success issues a short-lived `AuthEndpoints.ReAuth` cookie (5 minutes) for endpoints that use `RequireReauth()`.
 
 ## Documentations
 

@@ -242,55 +242,6 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
-    public static async Task<Results<UnauthorizedHttpResult, Ok>> ConfirmIdentity([FromBody] ConfirmIdentityRequest request, UserManager<TUser> userManager, SignInManager<TUser> signInManager, HttpContext context)
-    {
-        var user = await userManager.GetUserAsync(context.User);
-
-        if (user == null)
-        {
-            return TypedResults.Unauthorized();
-        }
-
-        var valid = false;
-        var IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user);
-
-        if (IsTwoFactorEnabled && !string.IsNullOrEmpty(request.TwoFactorCode))
-        {
-            var result = await userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultAuthenticatorProvider, request.TwoFactorCode);
-            valid = result;
-        }
-        else if (!string.IsNullOrEmpty(request.Password))
-        {
-            var result = await signInManager.CheckPasswordSignInAsync(user, request.Password, false);
-            valid = result.Succeeded;
-        }
-
-        if (!valid)
-            return TypedResults.Unauthorized();
-
-        var authProps = new AuthenticationProperties()
-        {
-            IsPersistent = false,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(5)
-        };
-
-        var claims = new[]
-        {
-            new Claim("Reauth", "true"),
-            new Claim("ReauthTime", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
-        }
-        .Concat(context.User.Claims)
-        .ToArray();
-
-        var scheme = AuthEndpointsConstants.ReAuthScheme;
-
-        var identity = new ClaimsIdentity(claims, scheme);
-
-        await context.SignInAsync(scheme, new ClaimsPrincipal(identity), authProps);
-
-        return TypedResults.Ok();
-    }
-
     public static async Task<Results<Ok, ValidationProblem>> ForgotPassword
         ([FromBody] ForgotPasswordRequest resetRequest, [FromServices] IServiceProvider sp)
     {

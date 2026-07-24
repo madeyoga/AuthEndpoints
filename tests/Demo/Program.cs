@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Passkey;
+using AuthEndpoints.ReAuth;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,10 +72,9 @@ app.UseRateLimiter();
 app.UseAntiforgery();
 app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 
-app.MapGroup("auth").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
-app.MapGroup("identity").MapCookieAuthEndpoints<AppUser>().WithTags("Identity: Cookie scheme");
-
-app.MapGroup("/account").MapPasskeyEndpoints<AppUser>().WithTags("Passkeys");
+app.MapGroup("/auth/jwt").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
+app.MapGroup("/auth/cookie").MapCookieAuthEndpoints<AppUser>().WithTags("Identity: Cookie scheme");
+app.MapGroup("/auth/passkey").MapPasskeyEndpoints<AppUser>().WithTags("Passkeys");
 
 app.MapPost("/test/csrf", () => Results.Ok()).EnableAntiforgery();
 

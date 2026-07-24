@@ -1,5 +1,6 @@
 using System.Threading.RateLimiting;
 using AuthEndpoints.Identity;
+using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
