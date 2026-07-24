@@ -75,7 +75,15 @@ app.Run();
 
 1. `POST /account/passkeys/register/options` with `{ "email": "..." }` → WebAuthn creation options  
 2. Browser `navigator.credentials.create(...)`  
-3. `POST /account/passkeys/register` with `{ "email": "...", "credentialJson": "..." }` → account + passkey + cookie session  
+3. `POST /account/passkeys/register` with `{ "email": "...", "credentialJson": "..." }` → account + passkey  
+
+Sign-in after register/login matches Identity password login:
+
+- Default (no query flags): Identity **bearer** tokens (`AccessTokenResponse`)
+- `?useCookies=true`: persistent application cookie
+- `?useSessionCookies=true`: session application cookie
+
+CSRF (antiforgery) is required on these endpoints for anonymous and cookie-authenticated clients. Bearer-only authenticated calls (Identity bearer or JWT `Bearer`) may omit the CSRF token on endpoints that use `RequireAntiforgery`. This does **not** issue Simple JWT — call `/auth/create` separately if you use `MapJwtAuthEndpoints`.
 
 For an existing signed-in user (with reauth): `POST /account/passkeys/creationOptions` then `POST /account/passkeys`.
 

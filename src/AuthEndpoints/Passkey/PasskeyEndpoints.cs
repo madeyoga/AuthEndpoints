@@ -1,7 +1,7 @@
 using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using AuthEndpoints.Identity;
+using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -189,10 +189,10 @@ public static class PasskeyEndpoints<TUser>
     {
         if (!userManager.SupportsUserEmail)
         {
-            throw new NotSupportedException($"{nameof(PasskeyEndpoints<TUser>)} requires a user store with email support.");
+            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires a user store with email support.");
         }
 
-        var email = request.Email?.Trim();
+        var email = request.Email.Trim();
         if (string.IsNullOrEmpty(email) || !EmailAddressAttribute.IsValid(email))
         {
             return TypedResults.ValidationProblem(new Dictionary<string, string[]>
@@ -221,18 +221,20 @@ public static class PasskeyEndpoints<TUser>
 
     public static async Task<Results<Ok<PasskeyCredentialResponse>, ValidationProblem, ProblemHttpResult>> Register(
         [FromBody] PasskeyRegisterRequest request,
+        [FromQuery] bool? useCookies,
+        [FromQuery] bool? useSessionCookies,
         UserManager<TUser> userManager,
         IUserStore<TUser> userStore,
         SignInManager<TUser> signInManager)
     {
         if (!userManager.SupportsUserEmail)
         {
-            throw new NotSupportedException($"{nameof(PasskeyEndpoints<TUser>)} requires a user store with email support.");
+            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires a user store with email support.");
         }
 
         if (userStore is not IUserEmailStore<TUser> emailStore)
         {
-            throw new NotSupportedException($"{nameof(PasskeyEndpoints<TUser>)} requires IUserEmailStore<TUser>.");
+            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires IUserEmailStore<TUser>.");
         }
 
         var email = request.Email?.Trim();
@@ -292,16 +294,19 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        // Establish cookie session for passwordless signup (JWT hosts can still call /auth/create separately).
-        signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
-        await signInManager.SignInAsync(user, isPersistent: false);
+        // Same cookie vs Identity bearer semantics as IdentityApiEndpoints.Login / Passkey Login.
+        // Simple JWT hosts can still call /auth/create separately if needed.
+        var isPersistent = ConfigureAuthenticationScheme(signInManager, useCookies, useSessionCookies);
+        await signInManager.SignInAsync(user, isPersistent);
 
         return TypedResults.Ok(new PasskeyCredentialResponse(
             Base64Url.EncodeToString(attestationResult.Passkey.CredentialId)));
     }
 
-    public static async Task<Results<Ok, ProblemHttpResult>> Login(
+    public static async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Login(
         [FromBody] PasskeyLoginRequest request,
+        [FromQuery] bool? useCookies,
+        [FromQuery] bool? useSessionCookies,
         SignInManager<TUser> signInManager)
     {
         if (string.IsNullOrEmpty(request.CredentialJson))
@@ -313,6 +318,8 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
+        var isPersistent = ConfigureAuthenticationScheme(signInManager, useCookies, useSessionCookies);
+
         var signInResult = await signInManager.PasskeySignInAsync(request.CredentialJson);
         if (!signInResult.Succeeded)
         {
@@ -323,6 +330,34 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        return TypedResults.Ok();
+        // PasskeySignInAsync(string) has no isPersistent; upgrade to a persistent cookie when requested.
+        if (isPersistent)
+        {
+            var user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
+            if (user is not null)
+            {
+                await signInManager.SignInAsync(user, isPersistent: true);
+            }
+        }
+
+        // SignInManager already produced the cookie or Identity bearer token response.
+        return TypedResults.Empty;
+    }
+
+    /// <summary>
+    /// Matches IdentityApiEndpoints.Login: cookie flags select ApplicationScheme; otherwise BearerScheme.
+    /// </summary>
+    /// <returns><c>true</c> when a persistent application cookie was requested.</returns>
+    private static bool ConfigureAuthenticationScheme(
+        SignInManager<TUser> signInManager,
+        bool? useCookies,
+        bool? useSessionCookies)
+    {
+        var useCookieScheme = useCookies == true || useSessionCookies == true;
+        var isPersistent = useCookies == true && useSessionCookies != true;
+        signInManager.AuthenticationScheme = useCookieScheme
+            ? IdentityConstants.ApplicationScheme
+            : IdentityConstants.BearerScheme;
+        return isPersistent;
     }
 }

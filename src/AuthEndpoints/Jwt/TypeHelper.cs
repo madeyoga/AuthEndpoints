@@ -22,7 +22,7 @@ public static class TypeHelper
         return null;
     }
 
-    public static Type? FindKeyType(Type userType)
+    public static Type FindKeyType(Type userType)
     {
         var identityUserType = FindGenericBaseType(userType, typeof(IdentityUser<>));
         if (identityUserType == null)

@@ -33,11 +33,23 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         group.MapPost("/register", PasskeyEndpoints<TUser>.Register)
             .WithSummary("Create a passwordless account and store the attested passkey.")
+            .WithDescription("""
+                After registration, signs the user in using the same scheme rules as Identity login:
+                useCookies / useSessionCookies select the application cookie; otherwise Identity bearer tokens are issued.
+                CSRF (antiforgery) is required. Simple JWT is not issued here — call /auth/create separately if needed.
+                """)
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
             .RequireAntiforgery();
 
         group.MapPost("/login", PasskeyEndpoints<TUser>.Login)
             .WithSummary("Sign in with a passkey assertion.")
+            .WithDescription("""
+                Matches IdentityApiEndpoints login scheme selection:
+                ?useCookies=true → persistent application cookie;
+                ?useSessionCookies=true → session application cookie;
+                neither → Identity bearer token (AccessTokenResponse).
+                CSRF (antiforgery) is required for the WebAuthn ceremony.
+                """)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
             .RequireAntiforgery();
 

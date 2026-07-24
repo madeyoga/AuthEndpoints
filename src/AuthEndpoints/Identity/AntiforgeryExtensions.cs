@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 
 namespace AuthEndpoints.Identity;
@@ -42,10 +44,46 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
     public virtual async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context,
         EndpointFilterDelegate next)
     {
+        if (ShouldSkipAntiforgery(context.HttpContext))
+        {
+            return await next(context);
+        }
+
         await antiforgery.ValidateRequestAsync(context.HttpContext);
 
-        var result = await next(context);
+        return await next(context);
+    }
 
-        return result;
+    /// <summary>
+    /// Skip CSRF only when the request is authenticated exclusively via bearer schemes
+    /// (Identity bearer or JWT Bearer). Cookie or anonymous requests still require antiforgery.
+    /// </summary>
+    private static bool ShouldSkipAntiforgery(HttpContext httpContext)
+    {
+        var hasCookieIdentity = false;
+        var hasBearerIdentity = false;
+
+        foreach (var identity in httpContext.User.Identities)
+        {
+            if (!identity.IsAuthenticated)
+            {
+                continue;
+            }
+
+            var scheme = identity.AuthenticationType;
+            if (scheme == IdentityConstants.ApplicationScheme
+                || scheme == IdentityConstants.ExternalScheme
+                || scheme == AuthEndpointsConstants.ReAuthScheme)
+            {
+                hasCookieIdentity = true;
+            }
+            else if (scheme == IdentityConstants.BearerScheme
+                || scheme == JwtBearerDefaults.AuthenticationScheme)
+            {
+                hasBearerIdentity = true;
+            }
+        }
+
+        return hasBearerIdentity && !hasCookieIdentity;
     }
 }
