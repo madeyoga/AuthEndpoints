@@ -64,6 +64,16 @@ public class JwtEndpoints<TUser>
                     return Results.Problem(result.Errors.First().Description, statusCode: StatusCodes.Status401Unauthorized);
                 }
             }
+            else
+            {
+                return Results.Problem(
+                    detail: "Two-factor authentication is required.",
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    extensions: new Dictionary<string, object?>
+                    {
+                        ["requiresTwoFactor"] = true
+                    });
+            }
         }
 
         var claimsPrincipal = await claimsFactory.CreateAsync(user);

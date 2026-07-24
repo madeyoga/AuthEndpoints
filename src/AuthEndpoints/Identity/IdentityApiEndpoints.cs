@@ -26,9 +26,12 @@ public class IdentityApiEndpoints<TUser>
     where TUser : class, new()
 {
     private static readonly EmailAddressAttribute _emailAddressAttribute = new();
-    public static string? ConfirmEmailEndpointName { get; set; }
 
-    public static async Task<Results<Ok, ValidationProblem>> Register([FromBody] RegisterRequest registration, HttpContext context, [FromServices] IServiceProvider sp)
+    public static async Task<Results<Ok, ValidationProblem>> Register(
+        [FromBody] RegisterRequest registration,
+        HttpContext context,
+        [FromServices] IServiceProvider sp,
+        string confirmEmailEndpointName)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
 
@@ -56,7 +59,7 @@ public class IdentityApiEndpoints<TUser>
             return CreateValidationProblem(result);
         }
 
-        await SendConfirmationEmailAsync(user, userManager, context, email);
+        await SendConfirmationEmailAsync(user, userManager, context, email, confirmEmailEndpointName);
         return TypedResults.Ok();
     }
 
@@ -223,7 +226,11 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Text("Thank you for confirming your email.");
     }
 
-    public static async Task<Ok> ResendConfirmationEmail([FromBody] ResendConfirmationEmailRequest resendRequest, HttpContext context, [FromServices] IServiceProvider sp)
+    public static async Task<Ok> ResendConfirmationEmail(
+        [FromBody] ResendConfirmationEmailRequest resendRequest,
+        HttpContext context,
+        [FromServices] IServiceProvider sp,
+        string confirmEmailEndpointName)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.FindByEmailAsync(resendRequest.Email) is not { } user)
@@ -231,7 +238,7 @@ public class IdentityApiEndpoints<TUser>
             return TypedResults.Ok();
         }
 
-        await SendConfirmationEmailAsync(user, userManager, context, resendRequest.Email);
+        await SendConfirmationEmailAsync(user, userManager, context, resendRequest.Email, confirmEmailEndpointName);
         return TypedResults.Ok();
     }
 
@@ -441,7 +448,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> ManageInfoPost
-        (ClaimsPrincipal claimsPrincipal, [FromBody] InfoRequest infoRequest, HttpContext context, [FromServices] IServiceProvider sp)
+        (ClaimsPrincipal claimsPrincipal, [FromBody] InfoRequest infoRequest, HttpContext context, [FromServices] IServiceProvider sp, string confirmEmailEndpointName)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
@@ -475,7 +482,7 @@ public class IdentityApiEndpoints<TUser>
 
             if (email != infoRequest.NewEmail)
             {
-                await SendConfirmationEmailAsync(user, userManager, context, infoRequest.NewEmail, isChange: true);
+                await SendConfirmationEmailAsync(user, userManager, context, infoRequest.NewEmail, confirmEmailEndpointName, isChange: true);
             }
         }
 
@@ -491,12 +498,10 @@ public class IdentityApiEndpoints<TUser>
         UserManager<TUser> userManager,
         HttpContext context,
         string email,
+        string confirmEmailEndpointName,
         bool isChange = false)
     {
-        if (ConfirmEmailEndpointName is null)
-        {
-            throw new NotSupportedException("No email confirmation endpoint was registered!");
-        }
+        ArgumentException.ThrowIfNullOrEmpty(confirmEmailEndpointName);
 
         var emailSender = context.RequestServices.GetRequiredService<IEmailSender<TUser>>();
         var linkGenerator = context.RequestServices.GetRequiredService<LinkGenerator>();
@@ -519,8 +524,8 @@ public class IdentityApiEndpoints<TUser>
             routeValues.Add("changedEmail", email);
         }
 
-        var confirmEmailUrl = linkGenerator.GetUriByName(context, ConfirmEmailEndpointName, routeValues)
-            ?? throw new NotSupportedException($"Could not find endpoint named '{ConfirmEmailEndpointName}'.");
+        var confirmEmailUrl = linkGenerator.GetUriByName(context, confirmEmailEndpointName, routeValues)
+            ?? throw new NotSupportedException($"Could not find endpoint named '{confirmEmailEndpointName}'.");
 
         await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));
     }

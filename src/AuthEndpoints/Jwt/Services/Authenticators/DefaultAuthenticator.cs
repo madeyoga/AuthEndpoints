@@ -24,7 +24,8 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     /// <returns>An instance of TUser if credentials are valid</returns>
     public async Task<AuthenticationResult<TUser>> AuthenticateAsync(string username, string password)
     {
-        var user = await userManager.FindByNameAsync(username);
+        var user = await userManager.FindByEmailAsync(username)
+            ?? await userManager.FindByNameAsync(username);
 
         if (user == null)
         {

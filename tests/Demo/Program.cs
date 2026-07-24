@@ -30,18 +30,26 @@ builder.Services
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// builder.Services.Configure<IdentityPasskeyOptions>(options =>
-// {
-//     options.ServerDomain = "example.com";
-// });
+builder.Services.Configure<IdentityPasskeyOptions>(options =>
+{
+    // Use the host that serves the app in development (adjust for production).
+    options.ServerDomain = "localhost";
+});
 
-builder.Services.AddJwtEndpoints<AppUser, AppDbContext>();
+builder.Services.AddJwtEndpoints<AppUser, AppDbContext>(options =>
+{
+    // Demo-only stable key. Set a secret from configuration/environment in real apps.
+    options.SigningOptions.SymmetricKey =
+        Environment.GetEnvironmentVariable("JWT_SYMMETRIC_KEY")
+        ?? "DemoOnly_ChangeMe_AuthEndpoints_Jwt_SigningKey_32+";
+});
 
 builder.Services.AddAuthorization();
 
 builder.Services.AddAntiforgery();
 
 builder.Services.AddCookieAuthEndpoints();
+builder.Services.AddPasskeyEndpoints();
 
 var app = builder.Build();
 
@@ -58,17 +66,17 @@ else
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.UseAntiforgery();
 app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 
-// app.MapGroup("account").MapAccountApi<AppUser>().WithTags("Account management");
 app.MapGroup("auth").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
 app.MapGroup("identity").MapCookieAuthEndpoints<AppUser>().WithTags("Identity: Cookie scheme");
 
 app.MapGroup("/account").MapPasskeyEndpoints<AppUser>().WithTags("Passkeys");
 
-app.MapPost("/test/csrf", () =>  Results.Ok()).EnableAntiforgery();
+app.MapPost("/test/csrf", () => Results.Ok()).EnableAntiforgery();
 
 app.MapGet("/test/reauth", () => Results.Ok()).RequireReauth();
 
@@ -86,4 +94,3 @@ app.MapGet("createDefaultUser", async (UserManager<AppUser> userManager) =>
 });
 
 app.Run();
-
