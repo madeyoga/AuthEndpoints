@@ -4,7 +4,6 @@ using Demo.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AuthEndpoints;
-using AuthEndpoints.Jwt;
 using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using Scalar.AspNetCore;
@@ -28,17 +27,18 @@ builder.Services
         o.PasskeyPath = "/auth/passkey";
         o.Passkeys.ServerDomain = "localhost";
         o.RequireConfirmedAccount = true;
+        o.Jwt.Enabled = true;
+        o.Jwt.Path = "/auth/jwt";
+        o.Jwt.Configure = jwt =>
+        {
+            jwt.SigningOptions.SymmetricKey =
+                Environment.GetEnvironmentVariable("JWT_SYMMETRIC_KEY")
+                ?? "DemoOnly_ChangeMe_AuthEndpoints_Jwt_SigningKey_32+";
+        };
     })
     .AddRoles<AppRole>();
 
 builder.Services.AddTransient<IEmailSender<AppUser>, ConsoleEmailSender>();
-
-builder.Services.AddJwtEndpoints<AppUser, AppDbContext>(options =>
-{
-    options.SigningOptions.SymmetricKey =
-        Environment.GetEnvironmentVariable("JWT_SYMMETRIC_KEY")
-        ?? "DemoOnly_ChangeMe_AuthEndpoints_Jwt_SigningKey_32+";
-});
 
 var app = builder.Build();
 
@@ -56,7 +56,6 @@ app.UseAuthEndpoints();
 app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 
 app.MapAuthEndpoints<AppUser>();
-app.MapGroup("/auth/jwt").MapJwtAuthEndpoints<AppUser>().WithTags("Jwt");
 
 app.MapPost("/test/csrf", () => Results.Ok()).EnableAntiforgery();
 app.MapGet("/test/reauth", () => Results.Ok()).RequireReauth();

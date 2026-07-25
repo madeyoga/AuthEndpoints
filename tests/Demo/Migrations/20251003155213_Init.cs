@@ -61,7 +61,10 @@ namespace Demo.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "TEXT", nullable: false),
-                    Token = table.Column<string>(type: "TEXT", nullable: false),
+                    TokenHash = table.Column<string>(type: "TEXT", nullable: false),
+                    FamilyId = table.Column<string>(type: "TEXT", nullable: false),
+                    ReplacedByTokenId = table.Column<string>(type: "TEXT", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: false),
                     UserId = table.Column<string>(type: "TEXT", nullable: false),
                     ExpiresAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     RevokedAt = table.Column<DateTime>(type: "TEXT", nullable: true)
@@ -70,6 +73,13 @@ namespace Demo.Migrations
                 {
                     table.PrimaryKey("PK_AuthEndpointsRefreshTokens", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AuthEndpointsRefreshTokens_TokenHash",
+                schema: "AuthEndpoints",
+                table: "AuthEndpointsRefreshTokens",
+                column: "TokenHash",
+                unique: true);
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",

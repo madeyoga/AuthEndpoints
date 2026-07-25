@@ -8,12 +8,28 @@ public class RefreshTokenCookieWriter
 
     public void Write(HttpContext context, RefreshToken refreshToken, CookieOptions? options = null)
     {
-        context.Response.Cookies.Append(CookieName, refreshToken.Token, options ?? new CookieOptions
+        if (string.IsNullOrEmpty(refreshToken.Token))
         {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Lax,
-            Expires = refreshToken.ExpiresAt
-        });
+            throw new InvalidOperationException("Refresh token raw value is missing; cannot write cookie.");
+        }
+
+        context.Response.Cookies.Append(
+            CookieName,
+            refreshToken.Token,
+            options ?? CreateDefaultOptions(context, refreshToken.ExpiresAt));
     }
+
+    public void Delete(HttpContext context)
+    {
+        context.Response.Cookies.Delete(CookieName, CreateDefaultOptions(context, DateTime.UtcNow));
+    }
+
+    private static CookieOptions CreateDefaultOptions(HttpContext context, DateTime expiresAt) => new()
+    {
+        HttpOnly = true,
+        Secure = context.Request.IsHttps,
+        SameSite = SameSiteMode.Strict,
+        Path = "/",
+        Expires = expiresAt
+    };
 }

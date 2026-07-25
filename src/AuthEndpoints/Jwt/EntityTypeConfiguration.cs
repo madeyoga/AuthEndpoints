@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-// using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AuthEndpoints.Jwt;
@@ -10,7 +9,11 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     {
         builder.ToTable("AuthEndpointsRefreshTokens", "AuthEndpoints");
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Token).IsRequired();
+        builder.Property(e => e.TokenHash).IsRequired();
+        builder.HasIndex(e => e.TokenHash).IsUnique();
+        builder.Property(e => e.FamilyId).IsRequired();
+        builder.Property(e => e.SecurityStamp).IsRequired();
+        builder.Ignore(e => e.Token);
     }
 }
 
@@ -22,31 +25,12 @@ public static class EntityFrameworkCoreHelpers
 
         entityBuilder.ToTable("AuthEndpointsRefreshTokens", "AuthEndpoints");
         entityBuilder.HasKey(e => e.Id);
-        entityBuilder.Property(e => e.Token).IsRequired();
+        entityBuilder.Property(e => e.TokenHash).IsRequired();
+        entityBuilder.HasIndex(e => e.TokenHash).IsUnique();
+        entityBuilder.Property(e => e.FamilyId).IsRequired();
+        entityBuilder.Property(e => e.SecurityStamp).IsRequired();
+        entityBuilder.Ignore(e => e.Token);
 
         return builder;
     }
-
-    // public static DbContextOptionsBuilder UseSimpleJwtEntities(this DbContextOptionsBuilder builder)
-    // {
-    //     builder.ReplaceService<IModelCustomizer, SimpleJwtEFCoreCustomizer>();
-    //     return builder;
-    // }
 }
-
-// public sealed class SimpleJwtEFCoreCustomizer : RelationalModelCustomizer
-// {
-//     public SimpleJwtEFCoreCustomizer(ModelCustomizerDependencies dependencies) : base(dependencies)
-//     {
-//     }
-
-//     public override void Customize(ModelBuilder modelBuilder, DbContext context)
-//     {
-//         ArgumentNullException.ThrowIfNull(modelBuilder, nameof(modelBuilder));
-//         ArgumentNullException.ThrowIfNull(context, nameof(context));
-
-//         modelBuilder.UseSimpleJwtEntities();
-
-//         base.Customize(modelBuilder, context);
-//     }
-// }

@@ -36,6 +36,12 @@ internal sealed class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpo
                 "(e.g. options.Passkeys.ServerDomain = \"example.com\").");
         }
 
+        if (options.Jwt.Enabled
+            && (string.IsNullOrWhiteSpace(options.Jwt.Path) || !options.Jwt.Path.StartsWith('/')))
+        {
+            return ValidateOptionsResult.Fail("AuthEndpoints: Jwt.Path must be a rooted path (e.g. \"/auth\").");
+        }
+
         return ValidateOptionsResult.Success;
     }
 }

@@ -63,14 +63,14 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
     }
 
     /// <summary>
-    /// Skip CSRF only when the request is authenticated exclusively via bearer schemes
-    /// (Identity bearer or JWT Bearer). Cookie or anonymous requests still require antiforgery.
+    /// Skip CSRF when the request is authenticated via bearer schemes (Identity bearer or JWT Bearer)
+    /// and not via the application cookie. Cookie sessions still require antiforgery even if a
+    /// ReAuth cookie is also present.
     /// </summary>
     private static async Task<bool> ShouldSkipAntiforgeryAsync(HttpContext httpContext)
     {
         if (await IsAuthenticatedAsync(httpContext, IdentityConstants.ApplicationScheme)
-            || await IsAuthenticatedAsync(httpContext, IdentityConstants.ExternalScheme)
-            || await IsAuthenticatedAsync(httpContext, AuthEndpointsConstants.ReAuthScheme))
+            || await IsAuthenticatedAsync(httpContext, IdentityConstants.ExternalScheme))
         {
             return false;
         }

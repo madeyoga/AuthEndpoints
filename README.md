@@ -7,23 +7,21 @@
 
 A simple auth library for ASP.NET Core. AuthEndpoints provides minimal API endpoints for registration, email verification, password reset, login/logout, 2FA, JWT, and passkeys (WebAuthn).
 
-![swagger_authendpoints](https://res.cloudinary.com/dhqbr2d4l/image/upload/v1760597936/chrome_2025-10-16_14-55-57_g5qvtc.jpg)
-
 ## Endpoints
 
 - **Opinionated bundle** (`AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints`)
-  - Cookie Identity at `/identity` + passkeys at `/account` by default
+  - Identity management + cookie sign-in at `/identity` + passkeys at `/account` by default
+  - Optional JWT via `Jwt.Enabled`
   - Secure Identity defaults, antiforgery, ReAuth, rate limiting
-- **Cookie / Bearer Identity** (`MapCookieAuthEndpoints` / `MapBearerAuthEndpoints`) — advanced composition
-  - register, confirm email, login, logout
-  - forgot / reset password, account info, 2FA, reauth
-- **Simple JWT** (`MapJwtAuthEndpoints`) — advanced composition
-- **Passkeys** (`MapPasskeyEndpoints`) — advanced composition
+- **Identity management** (`MapIdentityManagementApi`) — register, confirm/resend, forgot/reset, manage, ReAuth
+- **Cookie / Bearer sign-in** (`MapCookieAuthEndpoints` / `MapBearerAuthEndpoints`) — login stacks
+- **Simple JWT** (`MapJwtAuthEndpoints`) — create, refresh, verify, logout
+- **Passkeys** (`MapPasskeyEndpoints`)
 
 ## Installing via NuGet
 
 ```
-dotnet add package AuthEndpoints --version 3.0.0-alpha.11
+dotnet add package AuthEndpoints --version 3.0.0-rc.1
 ```
 
 ## Quick start (recommended)
@@ -43,16 +41,33 @@ builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
 var app = builder.Build();
 
 app.UseAuthEndpoints(); // authentication, authorization, rate limiting, antiforgery
-app.MapAuthEndpoints<AppUser>(); // /identity (cookie) + /account (passkeys)
+app.MapAuthEndpoints<AppUser>(); // /identity (management + cookie) + /account (passkeys)
 
 app.Run();
 ```
 
 Use HTTPS in Production. The facade fails startup in Production if `Passkeys.ServerDomain` is missing (when passkeys are enabled) or if no real `IEmailSender<TUser>` is registered.
 
+### Enable JWT (facade opt-in)
+
+```cs
+builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(o =>
+{
+    o.Passkeys.ServerDomain = "example.com";
+    o.Jwt.Enabled = true;
+    o.Jwt.Path = "/auth";
+    o.Jwt.Configure = jwt =>
+    {
+        jwt.Issuer = "https://example.com";
+        jwt.Audience = "https://example.com";
+        jwt.SigningOptions.SymmetricKey = builder.Configuration["Jwt:SymmetricKey"];
+    };
+});
+```
+
 ### Reauthentication (step-up)
 
-Mapped with cookie Identity:
+Mapped with Identity management:
 
 1. `GET /identity/manage/authMethods`
 2. `POST /identity/confirmIdentity` with exactly one of: `password`, `twoFactorCode`, `twoFactorRecoveryCode`, `credentialJson`
@@ -66,7 +81,7 @@ Mapped with cookie Identity:
 
 ## Advanced composition
 
-Compose modules yourself when you need bearer Identity, custom paths, or JWT:
+Compose modules yourself when you need bearer Identity, custom paths, or JWT-only:
 
 ```cs
 builder.Services
@@ -78,10 +93,12 @@ builder.Services
     .AddDefaultTokenProviders();
 
 builder.Services.AddAntiforgery();
-builder.Services.AddCookieAuthEndpoints();
+builder.Services.AddCookieAuthEndpoints(); // rate limits + ReAuth schemes
 builder.Services.AddPasskeyEndpoints();
 builder.Services.AddJwtEndpoints<AppUser, AppDbContext>(o =>
 {
+    o.Issuer = "https://example.com";
+    o.Audience = "https://example.com";
     o.SigningOptions.SymmetricKey = builder.Configuration["Jwt:SymmetricKey"];
 });
 
@@ -91,11 +108,22 @@ app.UseAuthorization();
 app.UseRateLimiter();
 app.UseAntiforgery();
 
+// Cookie SPA
+app.MapGroup("/identity").MapIdentityManagementApi<AppUser>();
 app.MapGroup("/identity").MapCookieAuthEndpoints<AppUser>();
-app.MapGroup("/identity/bearer").MapBearerAuthEndpoints<AppUser>();
+
+// Or Identity bearer
+// app.MapGroup("/identity").MapIdentityManagementApi<AppUser>();
+// app.MapGroup("/identity").MapBearerAuthEndpoints<AppUser>();
+
+// Or JWT-only (no cookie login)
+// app.MapGroup("/account").MapIdentityManagementApi<AppUser>();
+// app.MapGroup("/auth").MapJwtAuthEndpoints<AppUser>();
+
 app.MapGroup("/account").MapPasskeyEndpoints<AppUser>();
-app.MapGroup("/auth").MapJwtAuthEndpoints<AppUser>();
 ```
+
+Map management **once** in production hosts. Refresh-token storage uses hashed values with family reuse detection; recreate the `AuthEndpointsRefreshTokens` table if upgrading from plaintext storage.
 
 ## Documentations
 

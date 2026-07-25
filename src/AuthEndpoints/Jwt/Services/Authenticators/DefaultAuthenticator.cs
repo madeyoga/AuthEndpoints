@@ -3,48 +3,44 @@
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Default authenticator. Authenticate user by username and password.
+/// Default authenticator. Verifies email/username + password with lockout and confirmed-account checks.
 /// </summary>
 /// <typeparam name="TUser"></typeparam>
 public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
-    private readonly UserManager<TUser> userManager;
+    private readonly UserManager<TUser> _userManager;
+    private readonly SignInManager<TUser> _signInManager;
 
-    public DefaultAuthenticator(UserManager<TUser> userManager)
+    public DefaultAuthenticator(UserManager<TUser> userManager, SignInManager<TUser> signInManager)
     {
-        this.userManager = userManager;
+        _userManager = userManager;
+        _signInManager = signInManager;
     }
 
     /// <summary>
-    /// Use this method to verify a set of credentials. It takes credentials as argument, username and password for the default case.
+    /// Verifies credentials. Failed results use a generic invalid-credentials error (no enumeration).
     /// </summary>
-    /// <param name="username"></param>
-    /// <param name="password"></param>
-    /// <returns>An instance of TUser if credentials are valid</returns>
     public async Task<AuthenticationResult<TUser>> AuthenticateAsync(string username, string password)
     {
-        var user = await userManager.FindByEmailAsync(username)
-            ?? await userManager.FindByNameAsync(username);
+        var invalid = AuthenticationResult<TUser>.Failed(new AuthenticationError
+        {
+            Code = "invalid_credentials",
+            Description = "Invalid credentials.",
+        });
+
+        var user = await _userManager.FindByEmailAsync(username)
+            ?? await _userManager.FindByNameAsync(username);
 
         if (user == null)
         {
-            return AuthenticationResult<TUser>.Failed(new AuthenticationError()
-            {
-                Code = "invalid_credentials",
-                Description = "Invalid credentials username or password.",
-            });
+            return invalid;
         }
 
-        var correctPassword = await userManager.CheckPasswordAsync(user, password);
-
-        if (!correctPassword)
+        var result = await _signInManager.CheckPasswordSignInAsync(user, password, lockoutOnFailure: true);
+        if (!result.Succeeded)
         {
-            return AuthenticationResult<TUser>.Failed(new AuthenticationError()
-            {
-                Code = "invalid_credentials",
-                Description = "Invalid credentials username or password.",
-            });
+            return invalid;
         }
 
         return AuthenticationResult<TUser>.Success(user);

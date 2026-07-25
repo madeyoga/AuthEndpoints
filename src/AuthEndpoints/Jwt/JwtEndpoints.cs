@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -17,7 +18,6 @@ public class JwtEndpoints<TUser>
     /// <summary>
     /// Use this endpoint to obtain jwt
     /// </summary>
-    /// <remarks>Use this endpoint to obtain jwt</remarks>
     public static async Task<IResult> Create(
         [FromBody] SimpleJwtLoginRequest request,
         IAuthenticator<TUser> authenticator,
@@ -37,20 +37,24 @@ public class JwtEndpoints<TUser>
             });
         }
 
-        AuthenticationResult<TUser>? authenticationResult = await authenticator.AuthenticateAsync(request.Email, request.Password);
-
+        var authenticationResult = await authenticator.AuthenticateAsync(request.Email, request.Password);
         var user = authenticationResult.User;
 
         if (user == null)
         {
-            return Results.Problem("Invalid credentials");
+            return Results.Problem(
+                detail: "Invalid credentials.",
+                statusCode: StatusCodes.Status401Unauthorized);
         }
 
         if (await userManager.GetTwoFactorEnabledAsync(user))
         {
             if (!string.IsNullOrEmpty(request.TwoFactorCode))
             {
-                bool validToken = await userManager.VerifyTwoFactorTokenAsync(user, userManager.Options.Tokens.AuthenticatorTokenProvider, request.TwoFactorCode);
+                bool validToken = await userManager.VerifyTwoFactorTokenAsync(
+                    user,
+                    userManager.Options.Tokens.AuthenticatorTokenProvider,
+                    request.TwoFactorCode);
                 if (!validToken)
                 {
                     return Results.Problem("Invalid two factor code.", statusCode: StatusCodes.Status401Unauthorized);
@@ -77,15 +81,16 @@ public class JwtEndpoints<TUser>
         }
 
         var claimsPrincipal = await claimsFactory.CreateAsync(user);
+        var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var securityStamp = await userManager.GetSecurityStampAsync(user);
 
-        var response = new SimpleJwtTokenResponse()
+        var response = new SimpleJwtTokenResponse
         {
             AccessToken = accessTokenGenerator.GenerateAccessToken(claimsPrincipal),
             TokenType = "Bearer",
         };
 
-        var refreshToken = await refreshTokenService.CreateAsync(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)!);
-
+        var refreshToken = await refreshTokenService.CreateAsync(userId, securityStamp);
         refreshTokenCookieWriter.Write(context, refreshToken);
 
         return Results.Ok(response);
@@ -102,7 +107,8 @@ public class JwtEndpoints<TUser>
         UserManager<TUser> userManager,
         RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
-        if (!context.Request.Cookies.TryGetValue("AuthEndpoints.Jwt.RefreshToken", out var refreshTokenValue))
+        if (!context.Request.Cookies.TryGetValue(RefreshTokenCookieWriter.CookieName, out var refreshTokenValue)
+            || string.IsNullOrEmpty(refreshTokenValue))
         {
             return Results.BadRequest(new SimpleJwtErrorResponse("Missing refresh token cookie."));
         }
@@ -113,6 +119,18 @@ public class JwtEndpoints<TUser>
         {
             return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
         }
+
+        if (refreshToken.RevokedAt != null)
+        {
+            if (refreshToken.ReplacedByTokenId != null)
+            {
+                await refreshTokenService.RevokeFamilyAsync(refreshToken.FamilyId);
+            }
+
+            refreshTokenCookieWriter.Delete(context);
+            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+        }
+
         if (!refreshTokenService.IsValid(refreshToken))
         {
             return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
@@ -121,11 +139,20 @@ public class JwtEndpoints<TUser>
         var user = await userManager.FindByIdAsync(refreshToken.UserId);
         if (user == null)
         {
+            await refreshTokenService.RevokeAsync(refreshToken);
+            refreshTokenCookieWriter.Delete(context);
             return Results.BadRequest(new SimpleJwtErrorResponse("Associated user no longer exists."));
         }
 
-        var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken);
+        var currentStamp = await userManager.GetSecurityStampAsync(user);
+        if (!string.Equals(refreshToken.SecurityStamp, currentStamp, StringComparison.Ordinal))
+        {
+            await refreshTokenService.RevokeFamilyAsync(refreshToken.FamilyId);
+            refreshTokenCookieWriter.Delete(context);
+            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+        }
 
+        var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp);
         refreshTokenCookieWriter.Write(context, newRefreshToken);
 
         var claimsPrincipal = await claimsFactory.CreateAsync(user);
@@ -137,6 +164,28 @@ public class JwtEndpoints<TUser>
     }
 
     /// <summary>
+    /// Clears the refresh cookie and revokes the current token family.
+    /// </summary>
+    public static async Task<IResult> Logout(
+        HttpContext context,
+        IRefreshTokenService refreshTokenService,
+        RefreshTokenCookieWriter refreshTokenCookieWriter)
+    {
+        if (context.Request.Cookies.TryGetValue(RefreshTokenCookieWriter.CookieName, out var refreshTokenValue)
+            && !string.IsNullOrEmpty(refreshTokenValue))
+        {
+            var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);
+            if (refreshToken != null)
+            {
+                await refreshTokenService.RevokeFamilyAsync(refreshToken.FamilyId);
+            }
+        }
+
+        refreshTokenCookieWriter.Delete(context);
+        return Results.Ok();
+    }
+
+    /// <summary>
     /// Use this endpoint to verify access jwt
     /// </summary>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -144,4 +193,12 @@ public class JwtEndpoints<TUser>
     {
         return Results.NoContent();
     }
+
+    /// <summary>
+    /// Returns an antiforgery token for cookie-backed JWT refresh/logout.
+    /// </summary>
+    public static IResult GetAntiforgeryToken(
+        Microsoft.AspNetCore.Antiforgery.IAntiforgery forgeryService,
+        HttpContext context)
+        => IdentityApiEndpoints<TUser>.GetAntiforgeryToken(forgeryService, context);
 }

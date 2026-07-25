@@ -28,10 +28,21 @@ namespace Demo.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FamilyId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReplacedByTokenId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("RevokedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Token")
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -40,6 +51,9 @@ namespace Demo.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
 
                     b.ToTable("AuthEndpointsRefreshTokens", "AuthEndpoints");
                 });
