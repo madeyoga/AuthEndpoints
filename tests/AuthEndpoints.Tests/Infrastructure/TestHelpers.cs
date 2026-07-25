@@ -1,10 +1,13 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Tests;
 
@@ -83,7 +86,8 @@ internal static class TestHelpers
     public static async Task<HttpResponseMessage> PostWithCsrfAsync(
         HttpClient client,
         string url,
-        object? body)
+        object? body,
+        string? reauthToken = null)
     {
         var csrf = await GetCsrfTokenAsync(client);
         using var request = new HttpRequestMessage(HttpMethod.Post, url)
@@ -91,7 +95,50 @@ internal static class TestHelpers
             Content = body is null ? null : JsonContent.Create(body)
         };
         request.Headers.Add("RequestVerificationToken", csrf);
+        if (!string.IsNullOrEmpty(reauthToken))
+        {
+            request.Headers.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
+        }
+
         return await client.SendAsync(request);
+    }
+
+    public static async Task<string> ConfirmIdentityAsync(
+        HttpClient client,
+        object proof,
+        bool useCsrf = true)
+    {
+        HttpResponseMessage response;
+        if (useCsrf)
+        {
+            response = await PostWithCsrfAsync(client, "/identity/confirmIdentity", proof);
+        }
+        else
+        {
+            response = await client.PostAsJsonAsync("/identity/confirmIdentity", proof);
+        }
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var token = TryGetString(doc.RootElement, "reauthToken", "ReauthToken");
+        Assert.False(string.IsNullOrWhiteSpace(token), "Expected reauthToken in ConfirmIdentity response.");
+        return token!;
+    }
+
+    public static async Task<string> ConfirmIdentityBearerAsync(HttpClient client, object proof)
+    {
+        var response = await client.PostAsJsonAsync("/identity/bearer/confirmIdentity", proof);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var token = TryGetString(doc.RootElement, "reauthToken", "ReauthToken");
+        Assert.False(string.IsNullOrWhiteSpace(token), "Expected reauthToken in ConfirmIdentity response.");
+        return token!;
+    }
+
+    public static void SetReauthToken(HttpClient client, string reauthToken)
+    {
+        client.DefaultRequestHeaders.Remove(AuthEndpointsConstants.ReAuthHeaderName);
+        client.DefaultRequestHeaders.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
     }
 
     public static async Task<(string AccessToken, string RefreshToken)> LoginBearerAsync(

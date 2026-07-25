@@ -30,6 +30,25 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
+    public async Task ManageInfoPost_WithoutReAuth_IsUnauthorized()
+    {
+        var email = $"pwd-noreauth-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+
+        var response = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/info", new
+        {
+            oldPassword = TestHelpers.DefaultPassword,
+            newPassword = "ChangedPass1!"
+        });
+
+        Assert.True(
+            response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
+            $"Expected 401/403 without ReAuth, got {(int)response.StatusCode}");
+    }
+
+    [Fact]
     public async Task ManageInfoPost_ChangePassword_Succeeds()
     {
         var email = $"pwd-{Guid.NewGuid():N}@test.local";
@@ -37,6 +56,7 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
         const string newPassword = "ChangedPass1!";
         using var client = TestHelpers.CreateClientWithCookies(_factory);
         await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
 
         var response = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/info", new
         {
@@ -56,6 +76,7 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
         await TestHelpers.SeedUserAsync(_factory, email);
         using var client = TestHelpers.CreateClientWithCookies(_factory);
         await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
 
         var response = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/info", new
         {
@@ -110,14 +131,9 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
         var user = await TestHelpers.SeedUserAsync(_factory, email);
         using var client = TestHelpers.CreateClientWithCookies(_factory);
         await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
 
-        var confirm = await TestHelpers.PostWithCsrfAsync(client, "/identity/confirmIdentity", new
-        {
-            password = TestHelpers.DefaultPassword
-        });
-        Assert.Equal(HttpStatusCode.OK, confirm.StatusCode);
-
-        // Probe manage/2fa to ensure a shared key exists (handler mints one when missing).
+        // Probe manage/2fa to mint a shared key when missing (exposed because key was just created).
         var probe = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new { });
         Assert.Equal(HttpStatusCode.OK, probe.StatusCode);
 
@@ -125,12 +141,7 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
         var sharedKey = TestHelpers.TryGetString(probeDoc.RootElement, "sharedKey", "SharedKey");
         Assert.False(string.IsNullOrWhiteSpace(sharedKey));
 
-        // Re-confirm in case the previous manage call consumed anything unexpected; ReAuth cookie is 5 minutes.
-        var confirmAgain = await TestHelpers.PostWithCsrfAsync(client, "/identity/confirmIdentity", new
-        {
-            password = TestHelpers.DefaultPassword
-        });
-        Assert.Equal(HttpStatusCode.OK, confirmAgain.StatusCode);
+        await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
 
         var code = TotpHelper.GenerateCode(sharedKey!);
         var enable = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new

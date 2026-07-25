@@ -45,7 +45,7 @@ public class IdentityCookieEndpointsTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
-    public async Task Register_DuplicateEmail_ReturnsValidationProblem()
+    public async Task Register_DuplicateEmail_ReturnsOkWithoutCreatingSecondUser()
     {
         var email = $"dup-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(_factory, email);
@@ -57,7 +57,9 @@ public class IdentityCookieEndpointsTests : IClassFixture<TestWebApplicationFact
             password = TestHelpers.DefaultPassword
         });
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var user = await TestHelpers.FindUserByEmailAsync(_factory, email);
+        Assert.NotNull(user);
     }
 
     [Fact]
@@ -80,7 +82,7 @@ public class IdentityCookieEndpointsTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
-    public async Task Login_WrongPassword_ReturnsUnauthorized()
+    public async Task Login_WrongPassword_ReturnsGenericUnauthorized()
     {
         var email = $"login-bad-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(_factory, email);
@@ -93,6 +95,9 @@ public class IdentityCookieEndpointsTests : IClassFixture<TestWebApplicationFact
         });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Invalid credentials", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("LockedOut", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -111,6 +116,7 @@ public class IdentityCookieEndpointsTests : IClassFixture<TestWebApplicationFact
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("RequiresTwoFactor", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("LockedOut", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
