@@ -5,12 +5,12 @@
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-AuthEndpoints is an ASP.NET Core library that gives you ready-made auth API endpoints on top of ASP.NET Core Identity. 
-It is a good fit for a single-backend API serving a SPA or frontend app with first-party email/password, cookies, JWT, and/or passkeys - not for running a full OAuth/OIDC identity provider. 
-Instead of wiring registration, login, password reset, 2FA, and session/token flows yourself, you map a small set of composable endpoints (or use the opinionated facade) and ship.
+AuthEndpoints is an ASP.NET Core library that gives you ready-made auth API endpoints on top of ASP.NET Core Identity.
+It is a good fit for a single-backend API serving a SPA or frontend app with first-party email/password, cookies, JWT, and/or passkeys.
 
 It provides a number of features that make it easy to build first-party auth fast, keep defaults safer for production, and compose only what you need, including:
 
+- **Ready-made endpoints** - instead of wiring registration, login, password reset, 2FA, and session/token flows yourself, map a small set of composable endpoints (or use the opinionated facade) and ship
 - **Opinionated quick start** - `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` for cookie Identity + passkeys with secure defaults
 - **Account lifecycle** - register, email confirm/resend, forgot/reset password, manage info and 2FA, step-up ReAuth
 - **Sign-in stacks you choose** - cookie sessions, Identity bearer tokens, or simple JWT (create / refresh / verify / logout)
