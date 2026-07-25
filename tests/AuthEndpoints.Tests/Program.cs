@@ -54,6 +54,7 @@ app.UseAntiforgery();
 
 app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>();
 app.MapGroup("/identity").MapCookieAuthEndpoints<TestAppUser>();
+app.MapGroup("/identity/bearer").MapBearerAuthEndpoints<TestAppUser>();
 app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
 
 // --- Test-only endpoints (not part of the AuthEndpoints library surface) ---
