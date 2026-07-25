@@ -19,6 +19,7 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var group = endpoints.MapGroup("");
+        var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
 
         var confirm = group.MapPost("/confirmIdentity", ReAuthEndpoints<TUser>.ConfirmIdentity)
             .WithSummary("Confirm the user's identity and issue short-lived reauthentication credentials.")
@@ -27,13 +28,13 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
                 On success, issues a temporary AuthEndpoints.ReAuth cookie (5 minutes) and a reauthToken
                 for the X-AuthEndpoints-Reauth header on sensitive API actions.
                 """)
-            .RequireAuthorization()
+            .RequireAuthorization(authorize)
             .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);
 
         var passkeyOptions = group.MapPost("/confirmIdentity/passkeyOptions", ReAuthEndpoints<TUser>.PasskeyOptions)
             .WithSummary("Generate WebAuthn request options for reauthentication with a passkey.")
             .WithDescription("Scoped to the currently signed-in user (no username query).")
-            .RequireAuthorization()
+            .RequireAuthorization(authorize)
             .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);
 
         if (requireAntiforgery)
@@ -42,7 +43,7 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
             passkeyOptions.RequireAntiforgery();
         }
 
-        var manage = group.MapGroup("/manage").RequireAuthorization();
+        var manage = group.MapGroup("/manage").RequireAuthorization(authorize);
         manage.MapGet("/authMethods", ReAuthEndpoints<TUser>.AuthMethods)
             .WithSummary("List available step-up / reauthentication methods for the current user.");
 

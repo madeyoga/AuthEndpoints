@@ -1,4 +1,5 @@
 ﻿using AuthEndpoints.Identity;
+using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,14 @@ public static class AuthEndpointsServiceCollectionExtensions
                 }
 
                 bootstrap.ConfigurePasskeys?.Invoke(passkeys);
+            });
+        }
+
+        if (bootstrap.Jwt.Enabled)
+        {
+            services.AddJwtEndpoints<TUser, TContext>(jwt =>
+            {
+                bootstrap.Jwt.Configure?.Invoke(jwt);
             });
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -114,6 +115,50 @@ public class AuthEndpointsFacadeTests
         Assert.True(options.RequireConfirmedAccount);
         Assert.True(options.Passkeys.Enabled);
         Assert.True(options.RequireEmailSenderInProduction);
+        Assert.False(options.Jwt.Enabled);
+        Assert.Equal("/auth", options.Jwt.Path);
+    }
+
+    [Fact]
+    public async Task Facade_JwtEnabled_MapsCreateEndpoint()
+    {
+        await using var host = await StartFacadeHostAsync(o =>
+        {
+            o.Passkeys.ServerDomain = "localhost";
+            o.ConfigureIdentity = identity =>
+            {
+                identity.SignIn.RequireConfirmedAccount = false;
+                identity.Password.RequireDigit = false;
+                identity.Password.RequireLowercase = false;
+                identity.Password.RequireUppercase = false;
+                identity.Password.RequireNonAlphanumeric = false;
+                identity.Password.RequiredLength = 6;
+            };
+            o.Jwt.Enabled = true;
+            o.Jwt.Path = "/auth";
+            o.Jwt.Configure = jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            };
+        });
+
+        var server = host.GetTestServer();
+        using var http = server.CreateClient();
+
+        var email = $"facade-jwt-{Guid.NewGuid():N}@test.local";
+        var register = await http.PostAsJsonAsync("/identity/register", new
+        {
+            email,
+            password = TestHelpers.DefaultPassword
+        });
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+
+        var create = await http.PostAsJsonAsync("/auth/create", new
+        {
+            email,
+            password = TestHelpers.DefaultPassword
+        });
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
     }
 
     private static async Task<WebApplication> StartFacadeHostAsync(Action<AuthEndpointsOptions>? configure = null)

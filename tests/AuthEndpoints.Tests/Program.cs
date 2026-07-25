@@ -53,8 +53,16 @@ app.UseRateLimiter();
 app.UseAntiforgery();
 
 app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>();
-app.MapGroup("/identity").MapCookieAuthEndpoints<TestAppUser>();
-app.MapGroup("/identity/bearer").MapBearerAuthEndpoints<TestAppUser>();
+
+var identity = app.MapGroup("/identity");
+identity.MapIdentityManagementApi<TestAppUser>();
+identity.MapCookieAuthEndpoints<TestAppUser>();
+
+var identityBearer = app.MapGroup("/identity/bearer");
+identityBearer.MapIdentityManagementApi<TestAppUser>(
+    $"MapIdentityManagementApi-bearer-{nameof(TestAppUser)}-confirmEmail");
+identityBearer.MapBearerAuthEndpoints<TestAppUser>();
+
 app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
 
 // --- Test-only endpoints (not part of the AuthEndpoints library surface) ---

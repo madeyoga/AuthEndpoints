@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,18 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser");
 
         services.AddSingleton(Options.Create(options));
+        services.AddOptions<SimpleJwtOptions>()
+            .Configure(o =>
+            {
+                o.Issuer = options.Issuer;
+                o.Audience = options.Audience;
+                o.AccessTokenLifetime = options.AccessTokenLifetime;
+                o.SigningOptions = options.SigningOptions;
+                o.TokenValidationParameters = options.TokenValidationParameters;
+            })
+            .ValidateOnStart();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IValidateOptions<SimpleJwtOptions>, SimpleJwtOptionsValidator>());
 
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
@@ -27,15 +40,14 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
+        services.AddIdentityEndpointRateLimiting();
+
         return new SimpleJwtBuilder(identityUserType, typeof(TUser), services, options);
     }
 
     /// <summary>
     /// Adds the Jwt default system
     /// </summary>
-    /// <typeparam name="TUser"></typeparam>
-    /// <param name="services"></param>
-    /// <returns>An <see cref="JwtBuilder"/> for creating and configuring the Jwt system.</returns>
     public static SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this IServiceCollection services)
         where TUser : class
         where TContext : DbContext
@@ -52,7 +64,7 @@ public static class ServiceCollectionExtensions
     {
         var sjOptions = new SimpleJwtOptions();
         setup(sjOptions);
-        
+
         var validationResult = new SimpleJwtOptionsValidator().Validate(nameof(SimpleJwtOptions), sjOptions);
         if (validationResult is { Succeeded: false })
             throw new OptionsValidationException(nameof(SimpleJwtOptions), typeof(SimpleJwtOptions), validationResult.Failures);
@@ -75,8 +87,6 @@ public static class ServiceCollectionExtensions
                 jwtSetup?.Invoke(options);
             });
 
-        var builder1 = AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
-
-        return builder1;
+        return AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
     }
 }

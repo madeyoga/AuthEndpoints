@@ -60,9 +60,9 @@ internal static class TestHelpers
         });
     }
 
-    public static async Task<string> GetCsrfTokenAsync(HttpClient client)
+    public static async Task<string> GetCsrfTokenAsync(HttpClient client, string path = "/identity/csrfToken")
     {
-        var response = await client.GetAsync("/identity/csrfToken");
+        var response = await client.GetAsync(path);
         response.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         if (doc.RootElement.TryGetProperty("csrfToken", out var camel))
@@ -87,20 +87,43 @@ internal static class TestHelpers
         HttpClient client,
         string url,
         object? body,
-        string? reauthToken = null)
+        string? reauthToken = null,
+        string csrfPath = "/identity/csrfToken")
     {
-        var csrf = await GetCsrfTokenAsync(client);
-        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            var csrf = await GetCsrfTokenAsync(client, csrfPath);
+            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = body is null ? null : JsonContent.Create(body)
+            };
+            request.Headers.Add("RequestVerificationToken", csrf);
+            if (!string.IsNullOrEmpty(reauthToken))
+            {
+                request.Headers.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
+            }
+
+            var response = await client.SendAsync(request);
+            if (response.StatusCode != HttpStatusCode.TooManyRequests)
+            {
+                return response;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+
+        var csrfFinal = await GetCsrfTokenAsync(client, csrfPath);
+        using var finalRequest = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = body is null ? null : JsonContent.Create(body)
         };
-        request.Headers.Add("RequestVerificationToken", csrf);
+        finalRequest.Headers.Add("RequestVerificationToken", csrfFinal);
         if (!string.IsNullOrEmpty(reauthToken))
         {
-            request.Headers.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
+            finalRequest.Headers.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
         }
 
-        return await client.SendAsync(request);
+        return await client.SendAsync(finalRequest);
     }
 
     public static async Task<string> ConfirmIdentityAsync(
@@ -165,8 +188,19 @@ internal static class TestHelpers
 
     public static async Task<string> CreateJwtAsync(HttpClient client, string email, string password)
     {
-        var response = await client.PostAsJsonAsync("/auth/create", new { email, password });
-        response.EnsureSuccessStatusCode();
+        HttpResponseMessage? response = null;
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            response = await client.PostAsJsonAsync("/auth/create", new { email, password });
+            if (response.StatusCode != HttpStatusCode.TooManyRequests)
+            {
+                break;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+
+        response!.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return ReadToken(doc.RootElement, "accessToken", "AccessToken");
     }
