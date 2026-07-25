@@ -1,10 +1,10 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace AuthEndpoints.Tests;
 
@@ -16,7 +16,8 @@ internal static class TestHelpers
         TestWebApplicationFactory factory,
         string email = "user@test.local",
         string password = DefaultPassword,
-        bool twoFactorEnabled = false)
+        bool twoFactorEnabled = false,
+        bool emailConfirmed = true)
     {
         using var scope = factory.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
@@ -31,7 +32,7 @@ internal static class TestHelpers
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = true
+            EmailConfirmed = emailConfirmed
         };
 
         var create = await userManager.CreateAsync(user, password);
@@ -79,21 +80,182 @@ internal static class TestHelpers
             $"Login failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
     }
 
+    public static async Task<HttpResponseMessage> PostWithCsrfAsync(
+        HttpClient client,
+        string url,
+        object? body)
+    {
+        var csrf = await GetCsrfTokenAsync(client);
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = body is null ? null : JsonContent.Create(body)
+        };
+        request.Headers.Add("RequestVerificationToken", csrf);
+        return await client.SendAsync(request);
+    }
+
+    public static async Task<(string AccessToken, string RefreshToken)> LoginBearerAsync(
+        HttpClient client,
+        string email,
+        string password,
+        string? twoFactorCode = null,
+        string? twoFactorRecoveryCode = null)
+    {
+        var response = await client.PostAsJsonAsync(
+            "/identity/bearer/login",
+            new
+            {
+                email,
+                password,
+                twoFactorCode,
+                twoFactorRecoveryCode
+            });
+        response.EnsureSuccessStatusCode();
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return (ReadToken(doc.RootElement, "accessToken", "AccessToken"),
+            ReadToken(doc.RootElement, "refreshToken", "RefreshToken"));
+    }
+
     public static async Task<string> CreateJwtAsync(HttpClient client, string email, string password)
     {
         var response = await client.PostAsJsonAsync("/auth/create", new { email, password });
         response.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        if (doc.RootElement.TryGetProperty("accessToken", out var camel))
-        {
-            return camel.GetString()!;
-        }
-
-        return doc.RootElement.GetProperty("AccessToken").GetString()!;
+        return ReadToken(doc.RootElement, "accessToken", "AccessToken");
     }
 
     public static void SetBearer(HttpClient client, string accessToken)
     {
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    }
+
+    public static async Task<string> GenerateEmailConfirmationCodeAsync(
+        TestWebApplicationFactory factory,
+        TestAppUser user)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id)
+            ?? throw new InvalidOperationException($"User {user.Id} not found.");
+        var code = await userManager.GenerateEmailConfirmationTokenAsync(tracked);
+        return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+    }
+
+    public static async Task<string> GeneratePasswordResetCodeAsync(
+        TestWebApplicationFactory factory,
+        TestAppUser user)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id)
+            ?? throw new InvalidOperationException($"User {user.Id} not found.");
+        var code = await userManager.GeneratePasswordResetTokenAsync(tracked);
+        return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+    }
+
+    public static async Task EnsureAuthenticatorKeyAsync(
+        TestWebApplicationFactory factory,
+        TestAppUser user)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id)
+            ?? throw new InvalidOperationException($"User {user.Id} not found.");
+        var key = await userManager.GetAuthenticatorKeyAsync(tracked);
+        if (string.IsNullOrEmpty(key))
+        {
+            await userManager.ResetAuthenticatorKeyAsync(tracked);
+        }
+    }
+
+    public static async Task<string> GetAuthenticatorKeyAsync(
+        TestWebApplicationFactory factory,
+        TestAppUser user)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id)
+            ?? throw new InvalidOperationException($"User {user.Id} not found.");
+
+        var key = await userManager.GetAuthenticatorKeyAsync(tracked);
+        if (string.IsNullOrEmpty(key))
+        {
+            await userManager.ResetAuthenticatorKeyAsync(tracked);
+            key = await userManager.GetAuthenticatorKeyAsync(tracked);
+        }
+
+        Assert.False(string.IsNullOrEmpty(key), "Expected an authenticator shared key.");
+        return key!;
+    }
+
+    public static async Task<string> GenerateAuthenticatorCodeAsync(
+        TestWebApplicationFactory factory,
+        TestAppUser user)
+    {
+        var key = await GetAuthenticatorKeyAsync(factory, user);
+        return TotpHelper.GenerateCode(key);
+    }
+
+    public static async Task<string[]> GenerateRecoveryCodesAsync(
+        TestWebApplicationFactory factory,
+        TestAppUser user,
+        int count = 10)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id)
+            ?? throw new InvalidOperationException($"User {user.Id} not found.");
+        var codes = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(tracked, count);
+        Assert.NotNull(codes);
+        return codes.ToArray();
+    }
+
+    public static async Task<TestAppUser?> FindUserByEmailAsync(
+        TestWebApplicationFactory factory,
+        string email)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        return await userManager.FindByEmailAsync(email);
+    }
+
+    public static bool TryGetBool(JsonElement root, string camel, string pascal, out bool value)
+    {
+        if (root.TryGetProperty(camel, out var camelProp))
+        {
+            value = camelProp.GetBoolean();
+            return true;
+        }
+
+        if (root.TryGetProperty(pascal, out var pascalProp))
+        {
+            value = pascalProp.GetBoolean();
+            return true;
+        }
+
+        value = false;
+        return false;
+    }
+
+    public static string? TryGetString(JsonElement root, string camel, string pascal)
+    {
+        if (root.TryGetProperty(camel, out var camelProp))
+        {
+            return camelProp.GetString();
+        }
+
+        if (root.TryGetProperty(pascal, out var pascalProp))
+        {
+            return pascalProp.GetString();
+        }
+
+        return null;
+    }
+
+    private static string ReadToken(JsonElement root, string camel, string pascal)
+    {
+        var token = TryGetString(root, camel, pascal);
+        Assert.False(string.IsNullOrWhiteSpace(token), $"Missing token property {camel}/{pascal}.");
+        return token!;
     }
 }
