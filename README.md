@@ -5,26 +5,29 @@
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-A simple auth library for ASP.NET Core. AuthEndpoints provides minimal API endpoints for registration, email verification, password reset, login/logout, 2FA, JWT, and passkeys (WebAuthn).
+AuthEndpoints is an ASP.NET Core library that gives you ready-made auth API endpoints on top of ASP.NET Core Identity. 
+It is a good fit for a single-backend API serving a SPA or frontend app with first-party email/password, cookies, JWT, and/or passkeys - not for running a full OAuth/OIDC identity provider. 
+Instead of wiring registration, login, password reset, 2FA, and session/token flows yourself, you map a small set of composable endpoints (or use the opinionated facade) and ship.
 
-## Endpoints
+It provides a number of features that make it easy to build first-party auth fast, keep defaults safer for production, and compose only what you need, including:
 
-- **Opinionated bundle** (`AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints`)
-  - Identity management + cookie sign-in at `/identity` + passkeys at `/account` by default
-  - Optional JWT via `Jwt.Enabled`
-  - Secure Identity defaults, antiforgery, ReAuth, rate limiting
-- **Identity management** (`MapIdentityManagementApi`) — register, confirm/resend, forgot/reset, manage, ReAuth
-- **Cookie / Bearer sign-in** (`MapCookieAuthEndpoints` / `MapBearerAuthEndpoints`) — login stacks
-- **Simple JWT** (`MapJwtAuthEndpoints`) — create, refresh, verify, logout
-- **Passkeys** (`MapPasskeyEndpoints`)
+- **Opinionated quick start** - `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` for cookie Identity + passkeys with secure defaults
+- **Account lifecycle** - register, email confirm/resend, forgot/reset password, manage info and 2FA, step-up ReAuth
+- **Sign-in stacks you choose** - cookie sessions, Identity bearer tokens, or simple JWT (create / refresh / verify / logout)
+- **Passkeys (WebAuthn)** - passwordless register and login endpoints
+- **Built-in hardening** - rate limiting, antiforgery for cookie flows, lockout-aware login, hashed JWT refresh tokens with reuse detection
 
 ## Installing via NuGet
 
 ```
-dotnet add package AuthEndpoints --version 3.0.0-rc.1
+dotnet add package AuthEndpoints --version 3.0.0-rc.2
 ```
 
+**Requirements:** .NET 10, ASP.NET Core Identity, and EF Core for the user store.
+
 ## Quick start (recommended)
+
+Your frontend is a separate SPA that calls these routes on the ASP.NET Core API.
 
 ```cs
 // Program.cs
@@ -46,7 +49,25 @@ app.MapAuthEndpoints<AppUser>(); // /identity (management + cookie) + /account (
 app.Run();
 ```
 
-Use HTTPS in Production. The facade fails startup in Production if `Passkeys.ServerDomain` is missing (when passkeys are enabled) or if no real `IEmailSender<TUser>` is registered.
+### Default routes (facade)
+
+| Area | Path prefix | Main routes |
+| --- | --- | --- |
+| Management + cookie | `/identity` | `register`, `login`, `logout`, `csrfToken`, confirm/forgot/reset, `manage/*`, `confirmIdentity` |
+| Passkeys | `/account` | passkeys register/login options + complete |
+| JWT (if enabled) | `/auth` | `create`, `refresh`, `verify`, `logout`, `csrfToken` |
+
+### SPA usage notes
+
+**Cookie stack**
+
+- Send cookies with credentials (`credentials: "include"` / Axios `withCredentials`).
+- Call `GET /identity/csrfToken`, then send the token as `RequestVerificationToken` on unsafe methods (`POST` / `PUT` / `PATCH` / `DELETE`).
+
+**JWT stack** (when enabled)
+
+- `POST /auth/create` returns an access token; send it as `Authorization: Bearer …`.
+- Refresh token is an HttpOnly cookie; `POST /auth/refresh` and `POST /auth/logout` need CSRF (`GET /auth/csrfToken` + `RequestVerificationToken`).
 
 ### Enable JWT (facade opt-in)
 
@@ -67,7 +88,7 @@ builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(o =>
 
 ### Reauthentication (step-up)
 
-Mapped with Identity management:
+Mapped with Identity management under `/identity`:
 
 1. `GET /identity/manage/authMethods`
 2. `POST /identity/confirmIdentity` with exactly one of: `password`, `twoFactorCode`, `twoFactorRecoveryCode`, `credentialJson`
@@ -81,7 +102,7 @@ Mapped with Identity management:
 
 ## Advanced composition
 
-Compose modules yourself when you need bearer Identity, custom paths, or JWT-only:
+Compose modules yourself when you need bearer Identity, custom paths, or JWT-only. Map management **once** in production hosts.
 
 ```cs
 builder.Services
@@ -123,8 +144,10 @@ app.MapGroup("/identity").MapCookieAuthEndpoints<AppUser>();
 app.MapGroup("/account").MapPasskeyEndpoints<AppUser>();
 ```
 
-Map management **once** in production hosts. Refresh-token storage uses hashed values with family reuse detection; recreate the `AuthEndpointsRefreshTokens` table if upgrading from plaintext storage.
+## Production checklist
 
-## Documentations
-
-Documentation is available at [https://madeyoga.github.io/AuthEndpoints/](https://madeyoga.github.io/AuthEndpoints/).
+- Use **HTTPS**
+- Register a real **`IEmailSender<TUser>`** (Identity's no-op sender is rejected in Production)
+- Set **`Passkeys.ServerDomain`** when passkeys are enabled
+- For JWT: non-default **issuer/audience** and a symmetric key of at least **256 bits** (32 UTF-8 bytes) in Production
+- Recreate the **`AuthEndpointsRefreshTokens`** table if upgrading from plaintext refresh-token storage (tokens are stored hashed with family reuse detection)
