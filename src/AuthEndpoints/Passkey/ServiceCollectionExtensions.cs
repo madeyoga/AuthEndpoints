@@ -11,13 +11,14 @@ internal sealed class PasskeyRateLimitMarker;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers ReAuth, login rate limiting, and passkey rate-limit policies.
-    /// Hosts should also configure <c>IdentityPasskeyOptions</c> (ServerDomain, origins, etc.).
+    /// Registers ReAuth, Identity rate limiting, and passkey rate-limit policies.
+    /// Hosts must call <c>UseRateLimiter()</c>, serve over HTTPS, and configure
+    /// <c>IdentityPasskeyOptions</c> (<c>ServerDomain</c>, allowed origins, etc.).
     /// </summary>
     public static IServiceCollection AddPasskeyEndpoints(this IServiceCollection services)
     {
         services.AddReAuthScheme();
-        services.AddLoginRateLimiting();
+        services.AddIdentityEndpointRateLimiting();
 
         if (services.Any(d => d.ServiceType == typeof(PasskeyRateLimitMarker)))
         {

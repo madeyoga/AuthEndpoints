@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using AuthEndpoints.Identity;
 
 namespace AuthEndpoints.Tests;
 
@@ -123,7 +124,31 @@ public class IdentityBearerEndpointsTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
-    public async Task ManageInfoPost_WithBearer_SucceedsWithoutCsrf()
+    public async Task ManageInfoPost_WithoutReauth_ReturnsUnauthorized()
+    {
+        var email = $"bearer-info-noreauth-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+        using var client = _factory.CreateClient();
+
+        var (accessToken, _) = await TestHelpers.LoginBearerAsync(
+            client,
+            email,
+            TestHelpers.DefaultPassword);
+        TestHelpers.SetBearer(client, accessToken);
+
+        var response = await client.PostAsJsonAsync("/identity/bearer/manage/info", new
+        {
+            oldPassword = TestHelpers.DefaultPassword,
+            newPassword = "BearerChanged1!"
+        });
+
+        Assert.True(
+            response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
+            $"Expected 401/403, got {(int)response.StatusCode}");
+    }
+
+    [Fact]
+    public async Task ManageInfoPost_WithReauthHeader_SucceedsWithoutCsrf()
     {
         var email = $"bearer-info-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(_factory, email);
@@ -136,6 +161,11 @@ public class IdentityBearerEndpointsTests : IClassFixture<TestWebApplicationFact
             TestHelpers.DefaultPassword);
         TestHelpers.SetBearer(client, accessToken);
 
+        var reauthToken = await TestHelpers.ConfirmIdentityBearerAsync(
+            client,
+            new { password = TestHelpers.DefaultPassword });
+        TestHelpers.SetReauthToken(client, reauthToken);
+
         var response = await client.PostAsJsonAsync("/identity/bearer/manage/info", new
         {
             oldPassword = TestHelpers.DefaultPassword,
@@ -144,7 +174,32 @@ public class IdentityBearerEndpointsTests : IClassFixture<TestWebApplicationFact
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         client.DefaultRequestHeaders.Authorization = null;
+        client.DefaultRequestHeaders.Remove(AuthEndpointsConstants.ReAuthHeaderName);
         var (newAccess, _) = await TestHelpers.LoginBearerAsync(client, email, newPassword);
         Assert.False(string.IsNullOrWhiteSpace(newAccess));
+    }
+
+    [Fact]
+    public async Task ManageTwoFactor_WithoutReauth_ReturnsUnauthorized()
+    {
+        var email = $"bearer-2fa-noreauth-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+        using var client = _factory.CreateClient();
+
+        var (accessToken, _) = await TestHelpers.LoginBearerAsync(
+            client,
+            email,
+            TestHelpers.DefaultPassword);
+        TestHelpers.SetBearer(client, accessToken);
+
+        var response = await client.PostAsJsonAsync("/identity/bearer/manage/2fa", new
+        {
+            enable = true,
+            twoFactorCode = "000000"
+        });
+
+        Assert.True(
+            response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden,
+            $"Expected 401/403, got {(int)response.StatusCode}");
     }
 }

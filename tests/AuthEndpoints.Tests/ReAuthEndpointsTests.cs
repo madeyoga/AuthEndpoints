@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Tests;
 
@@ -115,5 +116,42 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
 
         var reauthResponse = await client.GetAsync("/test/reauth");
         Assert.Equal(HttpStatusCode.OK, reauthResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task ConfirmIdentity_WrongPassword_IncrementsAccessFailedCount()
+    {
+        var email = $"reauth-lockout-{Guid.NewGuid():N}@test.local";
+        var user = await TestHelpers.SeedUserAsync(_factory, email);
+
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+
+        var confirmResponse = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/identity/confirmIdentity",
+            new { password = "WrongPass1!" });
+        Assert.Equal(HttpStatusCode.Unauthorized, confirmResponse.StatusCode);
+
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id);
+        Assert.NotNull(tracked);
+        Assert.True(await userManager.GetAccessFailedCountAsync(tracked) > 0);
+    }
+
+    [Fact]
+    public async Task ConfirmIdentity_ReturnsReauthToken()
+    {
+        var email = $"reauth-token-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+
+        var token = await TestHelpers.ConfirmIdentityAsync(
+            client,
+            new { password = TestHelpers.DefaultPassword });
+        Assert.False(string.IsNullOrWhiteSpace(token));
     }
 }

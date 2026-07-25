@@ -201,13 +201,7 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
-        if (await userManager.FindByEmailAsync(email) is not null)
-        {
-            return TypedResults.Problem(
-                detail: "An account with this email already exists.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
+        // Always return creation options (even if the email exists) to avoid account enumeration.
         var userId = UserIdHelper.CreateUserIdString(typeof(TUser));
         var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new()
         {
@@ -256,7 +250,7 @@ public static class PasskeyEndpoints<TUser>
         if (await userManager.FindByEmailAsync(email) is not null)
         {
             return TypedResults.Problem(
-                detail: "An account with this email already exists.",
+                detail: "Unable to complete registration.",
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
@@ -264,7 +258,7 @@ public static class PasskeyEndpoints<TUser>
         if (!attestationResult.Succeeded)
         {
             return TypedResults.Problem(
-                detail: $"Could not add the passkey: {attestationResult.Failure.Message}",
+                detail: "Unable to complete registration.",
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
@@ -281,7 +275,7 @@ public static class PasskeyEndpoints<TUser>
             if (!createUserResult.Succeeded)
             {
                 return TypedResults.Problem(
-                    detail: string.Join(" ", createUserResult.Errors.Select(e => e.Description)),
+                    detail: "Unable to complete registration.",
                     statusCode: StatusCodes.Status400BadRequest);
             }
         }

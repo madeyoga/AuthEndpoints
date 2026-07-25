@@ -54,6 +54,13 @@ public class IdentityApiEndpoints<TUser>
 
         if (!result.Succeeded)
         {
+            // Avoid email enumeration: duplicate accounts look like a successful registration.
+            if (result.Errors.Any(e =>
+                    e.Code is "DuplicateUserName" or "DuplicateEmail"))
+            {
+                return TypedResults.Ok();
+            }
+
             return CreateValidationProblem(result);
         }
 
@@ -86,7 +93,7 @@ public class IdentityApiEndpoints<TUser>
 
         if (!result.Succeeded)
         {
-            return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
+            return CreateLoginFailureResult(result);
         }
 
         // The signInManager already produced the needed response in the form of a cookie or bearer token.
@@ -117,7 +124,7 @@ public class IdentityApiEndpoints<TUser>
 
         if (!result.Succeeded)
         {
-            return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
+            return CreateLoginFailureResult(result);
         }
 
         // The signInManager already produced the needed response in the form of a cookie or bearer token.
@@ -226,17 +233,26 @@ public class IdentityApiEndpoints<TUser>
 
     public static async Task<Ok> ResendConfirmationEmail(
         [FromBody] ResendConfirmationEmailRequest resendRequest,
+        ClaimsPrincipal claimsPrincipal,
         HttpContext context,
         [FromServices] IServiceProvider sp,
         string confirmEmailEndpointName)
     {
+        // Ignore the request body email — only resend for the signed-in user.
+        _ = resendRequest;
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
-        if (await userManager.FindByEmailAsync(resendRequest.Email) is not { } user)
+        if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
         {
             return TypedResults.Ok();
         }
 
-        await SendConfirmationEmailAsync(user, userManager, context, resendRequest.Email, confirmEmailEndpointName);
+        var email = await userManager.GetEmailAsync(user);
+        if (string.IsNullOrEmpty(email))
+        {
+            return TypedResults.Ok();
+        }
+
+        await SendConfirmationEmailAsync(user, userManager, context, email, confirmEmailEndpointName);
         return TypedResults.Ok();
     }
 
@@ -359,7 +375,8 @@ public class IdentityApiEndpoints<TUser>
         }
 
         var key = await userManager.GetAuthenticatorKeyAsync(user);
-        if (string.IsNullOrEmpty(key))
+        var keyWasMissing = string.IsNullOrEmpty(key);
+        if (keyWasMissing)
         {
             await userManager.ResetAuthenticatorKeyAsync(user);
             key = await userManager.GetAuthenticatorKeyAsync(user);
@@ -370,9 +387,12 @@ public class IdentityApiEndpoints<TUser>
             }
         }
 
+        // Only expose the shared key when it was just (re)generated or 2FA is being enabled.
+        var exposeSharedKey = tfaRequest.ResetSharedKey || keyWasMissing || tfaRequest.Enable == true;
+
         return TypedResults.Ok(new TwoFactorResponse
         {
-            SharedKey = key,
+            SharedKey = exposeSharedKey ? key! : string.Empty,
             RecoveryCodes = recoveryCodes,
             RecoveryCodesLeft = recoveryCodes?.Length ?? await userManager.CountRecoveryCodesAsync(user),
             IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(user),
@@ -477,6 +497,22 @@ public class IdentityApiEndpoints<TUser>
             ?? throw new NotSupportedException($"Could not find endpoint named '{confirmEmailEndpointName}'.");
 
         await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));
+    }
+
+    private static ProblemHttpResult CreateLoginFailureResult(Microsoft.AspNetCore.Identity.SignInResult result)
+    {
+        if (result.RequiresTwoFactor)
+        {
+            return TypedResults.Problem(
+                title: "RequiresTwoFactor",
+                detail: "Two-factor authentication is required.",
+                statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        return TypedResults.Problem(
+            title: "Unauthorized",
+            detail: "Invalid credentials.",
+            statusCode: StatusCodes.Status401Unauthorized);
     }
 
     private static ValidationProblem CreateValidationProblem(string errorCode, string errorDescription) =>

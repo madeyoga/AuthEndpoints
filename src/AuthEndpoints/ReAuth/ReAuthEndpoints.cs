@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.ReAuth;
 
@@ -48,12 +49,13 @@ public static class ReAuthEndpoints<TUser>
         return TypedResults.Content(optionsJson, contentType: "application/json");
     }
 
-    public static async Task<Results<Ok, UnauthorizedHttpResult, BadRequest<string>, ProblemHttpResult>> ConfirmIdentity(
+    public static async Task<Results<Ok<ConfirmIdentityResponse>, UnauthorizedHttpResult, BadRequest<string>, ProblemHttpResult>> ConfirmIdentity(
         [FromBody] ConfirmIdentityRequest request,
         UserManager<TUser> userManager,
         SignInManager<TUser> signInManager,
         HttpContext context)
     {
+        var tokenService = context.RequestServices.GetRequiredService<ReAuthTokenService>();
         var user = await userManager.GetUserAsync(context.User);
         if (user is null)
         {
@@ -118,7 +120,7 @@ public static class ReAuthEndpoints<TUser>
         }
         else if (!string.IsNullOrEmpty(request.Password))
         {
-            var passwordResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: false);
+            var passwordResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
             valid = passwordResult.Succeeded;
         }
 
@@ -145,6 +147,7 @@ public static class ReAuthEndpoints<TUser>
         var identity = new ClaimsIdentity(claims, scheme);
         await context.SignInAsync(scheme, new ClaimsPrincipal(identity), authProps);
 
-        return TypedResults.Ok();
+        var reauthToken = tokenService.CreateToken(claims);
+        return TypedResults.Ok(new ConfirmIdentityResponse { ReauthToken = reauthToken });
     }
 }

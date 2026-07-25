@@ -9,9 +9,8 @@ namespace AuthEndpoints.Identity;
 public static class IdentityApiEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Maps AuthEndpoints version of <c>MapIdentityApi</c>.
-    /// This method copy parts of the built-in IdentityApiEndpoints
-    /// and add more features to it.
+    /// Maps AuthEndpoints version of <c>MapIdentityApi</c> for bearer-token clients.
+    /// Call <see cref="ServiceCollectionExtensions.AddBearerAuthEndpoints"/> and <c>UseRateLimiter()</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapBearerAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -24,9 +23,11 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
             .WithSummary("Registers a new user account.")
-            .WithDescription("Creates a new user and sends a confirmation email if configured.");
+            .WithDescription("Creates a new user and sends a confirmation email if configured.")
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
-        routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.Login);
+        routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
+            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
         routeGroup.MapPost("/refresh", IdentityApiEndpoints<TUser>.Refresh);
 
         routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
@@ -41,38 +42,43 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         routeGroup.MapPost("/resendConfirmationEmail", (
             ResendConfirmationEmailRequest resendRequest,
+            System.Security.Claims.ClaimsPrincipal claimsPrincipal,
             HttpContext context,
-            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ResendConfirmationEmail(resendRequest, context, sp, confirmEmailEndpointName))
-            .WithSummary("Resends the confirmation email for an unverified account.")
-            .RequireAuthorization();
+            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ResendConfirmationEmail(resendRequest, claimsPrincipal, context, sp, confirmEmailEndpointName))
+            .WithSummary("Resends the confirmation email for the signed-in account.")
+            .RequireAuthorization()
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
         routeGroup.MapPost("/forgotPassword", IdentityApiEndpoints<TUser>.ForgotPassword)
-            .WithSummary("Sends a password reset email to the user.");
+            .WithSummary("Sends a password reset email to the user.")
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
         routeGroup.MapPost("/resetPassword", IdentityApiEndpoints<TUser>.ResetPassword)
-            .WithSummary("Resets the user's password using the provided token.");
+            .WithSummary("Resets the user's password using the provided token.")
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
         var accountGroup = routeGroup.MapGroup("/manage").RequireAuthorization();
 
         accountGroup.MapGet("/2fa", IdentityApiEndpoints<TUser>.TwoFactorStatus)
             .WithSummary("Get two-factor authentication status.");
         accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
-            .WithSummary("Enables or disables two-factor authentication.");
+            .WithSummary("Enables or disables two-factor authentication.")
+            .RequireReauth();
         accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet);
         accountGroup.MapPost("/info", (
             System.Security.Claims.ClaimsPrincipal claimsPrincipal,
             InfoRequest infoRequest,
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageInfoPost(claimsPrincipal, infoRequest, context, sp, confirmEmailEndpointName))
-            .WithSummary("Updates the current user account information.");
+            .WithSummary("Updates the current user account information.")
+            .RequireReauth();
 
         return routeGroup;
     }
 
     /// <summary>
-    /// Maps AuthEndpoints version of <c>MapIdentityApi</c>.
-    /// This method copy parts of the built-in IdentityApiEndpoints
-    /// and add more features to it.
+    /// Maps AuthEndpoints version of <c>MapIdentityApi</c> for cookie clients.
+    /// Call <see cref="ServiceCollectionExtensions.AddCookieAuthEndpoints"/> and <c>UseRateLimiter()</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapCookieAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -85,7 +91,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
             .WithSummary("Registers a new user account.")
-            .WithDescription("Creates a new user and sends a confirmation email if configured.");
+            .WithDescription("Creates a new user and sends a confirmation email if configured.")
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
         routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.LoginCookie)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
@@ -105,17 +112,21 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         routeGroup.MapPost("/resendConfirmationEmail", (
             ResendConfirmationEmailRequest resendRequest,
+            System.Security.Claims.ClaimsPrincipal claimsPrincipal,
             HttpContext context,
-            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ResendConfirmationEmail(resendRequest, context, sp, confirmEmailEndpointName))
+            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ResendConfirmationEmail(resendRequest, claimsPrincipal, context, sp, confirmEmailEndpointName))
             .RequireAuthorization()
             .RequireAntiforgery()
-            .WithSummary("Resends the confirmation email for an unverified account.");
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .WithSummary("Resends the confirmation email for the signed-in account.");
 
         routeGroup.MapPost("/forgotPassword", IdentityApiEndpoints<TUser>.ForgotPassword)
-            .WithSummary("Sends a password reset email to the user.");
+            .WithSummary("Sends a password reset email to the user.")
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
         routeGroup.MapPost("/resetPassword", IdentityApiEndpoints<TUser>.ResetPassword)
-            .WithSummary("Resets the user's password using the provided token.");
+            .WithSummary("Resets the user's password using the provided token.")
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
 
         var accountGroup = routeGroup.MapGroup("/manage").RequireAuthorization();
 
@@ -132,7 +143,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageInfoPost(claimsPrincipal, infoRequest, context, sp, confirmEmailEndpointName))
             .WithSummary("Updates the current user account information.")
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .RequireReauth();
 
         return routeGroup;
     }
