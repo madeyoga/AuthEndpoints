@@ -14,6 +14,11 @@ export default defineNuxtConfig({
     enabled: true
   },
 
+  app: {
+    // CI sets NUXT_APP_BASE_URL=/AuthEndpoints/ for GitHub Pages project site.
+    baseURL: process.env.NUXT_APP_BASE_URL || '/'
+  },
+
   css: ['~/assets/css/main.css'],
 
   content: {
@@ -55,6 +60,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-06-30',
 
   nitro: {
+    preset: 'github-pages',
     prerender: {
       routes: [
         '/'
@@ -73,7 +79,7 @@ export default defineNuxtConfig({
   },
 
   llms: {
-    domain: 'https://authendpoints.dev/',
+    domain: 'https://madeyoga.github.io/AuthEndpoints',
     title: 'AuthEndpoints',
     description: 'ASP.NET Core library of ready-made Identity auth endpoints for SPA backends — cookies, JWT, passkeys, and composable modules.',
     full: {

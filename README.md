@@ -43,8 +43,7 @@ app.Run();
 
 ## Documentation
 
-For more configuration and production guidance, take a look at the [AuthEndpoints documentation](Documentation/). It's a great resource for learning more about the library.
-It covers everything from getting started to advanced topics.
+For configuration, composable modules, route tables, and production guidance, see the [AuthEndpoints documentation](https://madeyoga.github.io/AuthEndpoints/).
 
 ## Contribute
 
