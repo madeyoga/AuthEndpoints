@@ -6,6 +6,8 @@ Nuxt Content site for the [AuthEndpoints](https://github.com/madeyoga/AuthEndpoi
 
 Content lives under [`content/`](content/). The site is built with [Nuxt](https://nuxt.com), [Nuxt UI](https://ui.nuxt.com), and [Nuxt Content](https://content.nuxt.com). GitHub Actions deploys from `main` via [`.github/workflows/docs.yml`](../.github/workflows/docs.yml).
 
+When cutting a NuGet release, add a note under [`content/versions/<tag>.md`](content/versions/) so it appears on the [Changelog](https://madeyoga.github.io/AuthEndpoints/changelog) page.
+
 ## Setup
 
 ```bash

@@ -63,7 +63,8 @@ export default defineNuxtConfig({
     preset: 'github-pages',
     prerender: {
       routes: [
-        '/'
+        '/',
+        '/changelog'
       ],
       crawlLinks: true
     }
@@ -107,6 +108,11 @@ export default defineNuxtConfig({
         contentFilters: [
           { field: 'path', operator: 'LIKE', value: '/modules%' }
         ]
+      },
+      {
+        title: 'Changelog',
+        contentCollection: 'versions',
+        contentFilters: []
       }
     ]
   },
