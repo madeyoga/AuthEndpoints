@@ -25,6 +25,11 @@ export default defineAppConfig({
     search: true,
     colorMode: true,
     links: [{
+      'label': 'Changelog',
+      'icon': 'i-lucide-scroll-text',
+      'to': '/changelog',
+      'aria-label': 'Changelog'
+    }, {
       'icon': 'i-simple-icons-github',
       'to': 'https://github.com/madeyoga/AuthEndpoints',
       'target': '_blank',
