@@ -8,13 +8,6 @@ on:
       - 'tests/AuthEndpoints.Tests/**'
       - 'AuthEndpoints.sln'
       - '.github/workflows/dotnet.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'src/AuthEndpoints/**'
-      - 'tests/AuthEndpoints.Tests/**'
-      - 'AuthEndpoints.sln'
-      - '.github/workflows/dotnet.yml'
 
 jobs:
   build:
