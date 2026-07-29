@@ -1,9 +1,12 @@
-using Demo.Data;
+﻿using Demo.Data;
 using Demo.Infrastructure;
 using Demo.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AuthEndpoints;
+using AuthEndpoints.External;
+using AuthEndpoints.External.GitHub;
+using AuthEndpoints.External.Google;
 using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using Scalar.AspNetCore;
@@ -38,6 +41,30 @@ builder.Services
     })
     .AddRoles<AppRole>();
 
+var githubClientId = Environment.GetEnvironmentVariable("GITHUB_CLIENT_ID");
+var githubClientSecret = Environment.GetEnvironmentVariable("GITHUB_CLIENT_SECRET");
+var googleClientId = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_ID");
+var googleClientSecret = Environment.GetEnvironmentVariable("GOOGLE_CLIENT_SECRET");
+
+var externalAuth = builder.Services.AddExternalAuthEndpoints<AppUser>();
+if (!string.IsNullOrEmpty(githubClientId) && !string.IsNullOrEmpty(githubClientSecret))
+{
+    externalAuth.AddGitHub(o =>
+    {
+        o.ClientId = githubClientId;
+        o.ClientSecret = githubClientSecret;
+    });
+}
+
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    externalAuth.AddGoogle(o =>
+    {
+        o.ClientId = googleClientId;
+        o.ClientSecret = googleClientSecret;
+    });
+}
+
 builder.Services.AddTransient<IEmailSender<AppUser>, ConsoleEmailSender>();
 
 var app = builder.Build();
@@ -56,6 +83,17 @@ app.UseAuthEndpoints();
 app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 
 app.MapAuthEndpoints<AppUser>();
+
+var external = app.MapGroup("/auth/external").WithTags("External");
+if (!string.IsNullOrEmpty(githubClientId) && !string.IsNullOrEmpty(githubClientSecret))
+{
+    external.MapGitHubAuthEndpoints<AppUser>();
+}
+
+if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
+{
+    external.MapGoogleAuthEndpoints<AppUser>();
+}
 
 app.MapPost("/test/csrf", () => Results.Ok()).EnableAntiforgery();
 app.MapGet("/test/reauth", () => Results.Ok()).RequireReauth();
