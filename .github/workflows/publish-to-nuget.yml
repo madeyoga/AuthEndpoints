@@ -7,6 +7,10 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for NuGet trusted publishing (OIDC)
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -34,11 +38,20 @@ jobs:
 
       - name: Make Nuget Packages
         run: dotnet pack AuthEndpoints.sln -c Release --no-build --output nupkgs
-      
+
       - name: List Generated Packages
         run: ls -la nupkgs/
 
+      - name: NuGet login (OIDC)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          # nuget.org profile username (NOT email)
+          user: ${{ secrets.NUGET_USER }}
+
       - name: Publish To Nuget
-        run: dotnet nuget push nupkgs/*.nupkg --skip-duplicate --api-key $NUGET_AUTH_TOKEN --source https://api.nuget.org/v3/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }}
+        run: >
+          dotnet nuget push nupkgs/*.nupkg
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
