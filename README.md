@@ -21,7 +21,7 @@ AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top
 Requires .NET 10, ASP.NET Core Identity, and EF Core.
 
 ```bash
-dotnet add package AuthEndpoints --version 3.0.0-rc.2
+dotnet add package AuthEndpoints --version 3.0.0-rc.3
 ```
 
 ```cs
