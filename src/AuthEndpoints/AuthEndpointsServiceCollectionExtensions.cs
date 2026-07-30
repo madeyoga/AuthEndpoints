@@ -18,10 +18,43 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// <see cref="AuthEndpointsEndpointRouteBuilderExtensions.MapAuthEndpoints{TUser}"/>, and in Production
     /// provide a real <c>IEmailSender&lt;TUser&gt;</c> plus <c>Passkeys.ServerDomain</c>.
     /// </summary>
-    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining (e.g. <c>AddRoles</c>).</returns>
+    /// <remarks>
+    /// For roles, prefer <see cref="AddAuthEndpoints{TUser, TRole, TContext}"/> so
+    /// <c>IRoleStore</c> is registered. Do not chain bare <c>AddRoles</c> after this overload
+    /// without calling <c>AddEntityFrameworkStores</c> again.
+    /// </remarks>
+    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
         this IServiceCollection services,
         Action<AuthEndpointsOptions>? configure = null)
+        where TUser : class, new()
+        where TContext : DbContext
+    {
+        return AddAuthEndpointsCore<TUser, TContext>(services, configure, addRoles: null);
+    }
+
+    /// <summary>
+    /// Same as <see cref="AddAuthEndpoints{TUser, TContext}"/>, and registers Identity roles
+    /// (<typeparamref name="TRole"/>) before EF stores so <c>IRoleStore</c> is available.
+    /// </summary>
+    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
+    public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
+        this IServiceCollection services,
+        Action<AuthEndpointsOptions>? configure = null)
+        where TUser : class, new()
+        where TRole : class
+        where TContext : DbContext
+    {
+        return AddAuthEndpointsCore<TUser, TContext>(
+            services,
+            configure,
+            builder => builder.AddRoles<TRole>());
+    }
+
+    private static IdentityBuilder AddAuthEndpointsCore<TUser, TContext>(
+        IServiceCollection services,
+        Action<AuthEndpointsOptions>? configure,
+        Func<IdentityBuilder, IdentityBuilder>? addRoles)
         where TUser : class, new()
         where TContext : DbContext
     {
@@ -48,7 +81,15 @@ public static class AuthEndpointsServiceCollectionExtensions
                 // Version3 is required for passkey credential storage.
                 identity.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
                 bootstrap.ConfigureIdentity?.Invoke(identity);
-            })
+            });
+
+        // Roles must be configured before AddEntityFrameworkStores so IRoleStore is registered.
+        if (addRoles is not null)
+        {
+            identityBuilder = addRoles(identityBuilder);
+        }
+
+        identityBuilder = identityBuilder
             .AddEntityFrameworkStores<TContext>()
             .AddDefaultTokenProviders();
 

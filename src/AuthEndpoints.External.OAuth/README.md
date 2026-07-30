@@ -16,7 +16,7 @@ This package references **both** GitHub and Google OAuth handler packages. Split
 dotnet add package AuthEndpoints.External.OAuth --version 3.0.0-preview.2
 ```
 
-Requires [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) (Identity host). Does not use Identity management HTTP APIs.
+Requires [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) **3.0.0-rc.3 or later** (Identity host). Does not use Identity management HTTP APIs.
 
 ## Usage
 

@@ -161,6 +161,31 @@ public class AuthEndpointsFacadeTests
         Assert.Equal(HttpStatusCode.OK, create.StatusCode);
     }
 
+    [Fact]
+    public void Facade_WithRoles_ResolvesRoleStore()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development
+        });
+        builder.WebHost.UseTestServer();
+        builder.Services.AddDbContext<TestRolesDbContext>(o =>
+            o.UseInMemoryDatabase("FacadeRoles_" + Guid.NewGuid().ToString("N")));
+        builder.Services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o =>
+        {
+            o.Passkeys.ServerDomain = "localhost";
+            o.RequireEmailSenderInProduction = false;
+        });
+        builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
+
+        using var app = builder.Build();
+        using var scope = app.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+
+        Assert.NotNull(sp.GetRequiredService<IRoleStore<IdentityRole>>());
+        Assert.NotNull(sp.GetRequiredService<RoleManager<IdentityRole>>());
+    }
+
     private static async Task<WebApplication> StartFacadeHostAsync(Action<AuthEndpointsOptions>? configure = null)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
