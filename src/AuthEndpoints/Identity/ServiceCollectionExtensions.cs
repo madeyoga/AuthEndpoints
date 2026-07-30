@@ -35,7 +35,11 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddIdentityEndpointRateLimiting(this IServiceCollection services)
+    /// <summary>
+    /// Registers Identity endpoint rate-limit policies (login, account abuse, confirm identity).
+    /// Hosts must also call <c>UseRateLimiter()</c> in the pipeline for policies to take effect.
+    /// </summary>
+    public static IServiceCollection AddIdentityEndpointRateLimiting(this IServiceCollection services)
     {
         services.AddLoginRateLimiting();
         services.AddAccountAbuseRateLimiting();
@@ -43,7 +47,11 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddLoginRateLimiting(this IServiceCollection services)
+    /// <summary>
+    /// Registers the login rate-limit policy (<see cref="AuthEndpointsConstants.LoginPolicy"/>).
+    /// Safe to call multiple times. Hosts must call <c>UseRateLimiter()</c> for the policy to apply.
+    /// </summary>
+    public static IServiceCollection AddLoginRateLimiting(this IServiceCollection services)
     {
         if (services.Any(d => d.ServiceType == typeof(LoginRateLimitMarker)))
         {

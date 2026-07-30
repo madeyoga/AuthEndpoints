@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "tests\Demo\Demo.csp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.External", "src\AuthEndpoints.External\AuthEndpoints.External.csproj", "{C3A36988-D9A2-4FED-893A-D4559ED2E0C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.External.OAuth", "src\AuthEndpoints.External.OAuth\AuthEndpoints.External.OAuth.csproj", "{C3A36988-D9A2-4FED-893A-D4559ED2E0C6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.Tests", "tests\AuthEndpoints.Tests\AuthEndpoints.Tests.csproj", "{39086641-B031-45D2-9743-F1BD445C5B20}"
 EndProject
