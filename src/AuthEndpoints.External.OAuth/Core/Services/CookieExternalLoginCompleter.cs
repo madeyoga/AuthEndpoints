@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.External;
+namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
 /// Completes external login by signing into the Identity application cookie (or configured scheme).
@@ -35,7 +36,14 @@ public sealed class CookieExternalLoginCompleter<TUser> : IExternalLoginComplete
 
         await _signInManager.SignInAsync(user, isPersistent: _options.IsPersistent);
 
-        var redirectUrl = ExternalAuthReturnUrl.Resolve(httpContext, returnUrl, _options.DefaultReturnUrl);
+        // Clear the temporary external cookie used during the OAuth dance.
+        await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+        var redirectUrl = ExternalAuthReturnUrl.Resolve(
+            returnUrl,
+            _options.DefaultReturnUrl,
+            _options.AllowedReturnUrlOrigins.ToList());
+
         return Results.Redirect(redirectUrl);
     }
 }

@@ -1,12 +1,15 @@
 using Microsoft.AspNetCore.Http;
 
-namespace AuthEndpoints.External;
+namespace AuthEndpoints.External.OAuth;
 
 internal static class ExternalAuthReturnUrl
 {
-    public static string Resolve(HttpContext httpContext, string? returnUrl, string defaultReturnUrl)
+    public static string Resolve(
+        string? returnUrl,
+        string defaultReturnUrl,
+        IReadOnlyList<string> allowedOrigins)
     {
-        if (!string.IsNullOrEmpty(returnUrl) && IsLocalUrl(httpContext, returnUrl))
+        if (!string.IsNullOrEmpty(returnUrl) && IsAllowedReturnUrl(returnUrl, allowedOrigins))
         {
             return returnUrl;
         }
@@ -14,16 +17,41 @@ internal static class ExternalAuthReturnUrl
         return string.IsNullOrEmpty(defaultReturnUrl) ? "/" : defaultReturnUrl;
     }
 
-    private static bool IsLocalUrl(HttpContext httpContext, string url)
+    public static bool IsAllowedReturnUrl(string url, IReadOnlyList<string> allowedOrigins)
     {
-        // Absolute URLs to this host are treated as local for OAuth returnUrl convenience.
-        if (Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+        if (IsRelativeLocalUrl(url))
         {
-            return string.Equals(absolute.Host, httpContext.Request.Host.Host, StringComparison.OrdinalIgnoreCase);
+            return true;
         }
 
-        // Same rules as ASP.NET Core's UrlHelper.IsLocalUrl for relative paths.
+        if (allowedOrigins.Count == 0)
+        {
+            return false;
+        }
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var absolute))
+        {
+            return false;
+        }
+
+        var origin = absolute.GetLeftPart(UriPartial.Authority);
+        return allowedOrigins.Any(allowed =>
+            string.Equals(allowed.TrimEnd('/'), origin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(allowed.TrimEnd('/'), absolute.GetLeftPart(UriPartial.Path).TrimEnd('/'), StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Relative local path only (same rules as ASP.NET Core IsLocalUrl for relative URLs). Absolute URLs are rejected here.
+    /// </summary>
+    public static bool IsRelativeLocalUrl(string? url)
+    {
         if (string.IsNullOrEmpty(url))
+        {
+            return false;
+        }
+
+        // Reject absolute URLs and protocol-relative URLs.
+        if (Uri.TryCreate(url, UriKind.Absolute, out _))
         {
             return false;
         }

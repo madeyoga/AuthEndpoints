@@ -2,7 +2,7 @@ using AspNet.Security.OAuth.GitHub;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
-namespace AuthEndpoints.External.GitHub;
+namespace AuthEndpoints.External.OAuth.GitHub;
 
 /// <summary>
 /// Maps GitHub external auth login and callback endpoints.

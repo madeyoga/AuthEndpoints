@@ -4,9 +4,9 @@ using Demo.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using AuthEndpoints;
-using AuthEndpoints.External;
-using AuthEndpoints.External.GitHub;
-using AuthEndpoints.External.Google;
+using AuthEndpoints.External.OAuth;
+using AuthEndpoints.External.OAuth.GitHub;
+using AuthEndpoints.External.OAuth.Google;
 using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using Scalar.AspNetCore;
@@ -85,14 +85,22 @@ app.UseMiddleware<AntiforgeryEnforcementMiddleware>();
 app.MapAuthEndpoints<AppUser>();
 
 var external = app.MapGroup("/auth/external").WithTags("External");
+var mappedExternalProvider = false;
 if (!string.IsNullOrEmpty(githubClientId) && !string.IsNullOrEmpty(githubClientSecret))
 {
     external.MapGitHubAuthEndpoints<AppUser>();
+    mappedExternalProvider = true;
 }
 
 if (!string.IsNullOrEmpty(googleClientId) && !string.IsNullOrEmpty(googleClientSecret))
 {
     external.MapGoogleAuthEndpoints<AppUser>();
+    mappedExternalProvider = true;
+}
+
+if (mappedExternalProvider)
+{
+    external.MapExternalAccountEndpoints<AppUser>();
 }
 
 app.MapPost("/test/csrf", () => Results.Ok()).EnableAntiforgery();

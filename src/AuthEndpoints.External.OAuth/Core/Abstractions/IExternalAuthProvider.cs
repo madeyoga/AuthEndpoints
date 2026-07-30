@@ -1,4 +1,4 @@
-namespace AuthEndpoints.External;
+namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
 /// Describes a registered external OAuth provider and its app-level login routes.

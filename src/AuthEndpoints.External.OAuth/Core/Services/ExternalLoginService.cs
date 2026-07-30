@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.External;
+namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
 /// Resolves or creates a local user from external login info and links the provider login.
@@ -13,15 +13,18 @@ public sealed class ExternalLoginService<TUser>
     private readonly SignInManager<TUser> _signInManager;
     private readonly UserManager<TUser> _userManager;
     private readonly IUserStore<TUser> _userStore;
+    private readonly ExternalAuthOptions _options;
 
     public ExternalLoginService(
         SignInManager<TUser> signInManager,
         UserManager<TUser> userManager,
-        IUserStore<TUser> userStore)
+        IUserStore<TUser> userStore,
+        IOptions<ExternalAuthOptions> options)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _userStore = userStore;
+        _options = options.Value;
     }
 
     public async Task<ExternalLoginProvisionResult<TUser>> ProvisionAsync(
@@ -31,21 +34,30 @@ public sealed class ExternalLoginService<TUser>
         if (info is null)
         {
             return ExternalLoginProvisionResult<TUser>.Failed(
-                Results.Problem(
-                    detail: "External login information was not found. Complete the OAuth challenge first.",
-                    statusCode: StatusCodes.Status400BadRequest));
+                "external_login_info_missing",
+                "External login information was not found. Complete the OAuth challenge first.",
+                StatusCodes.Status400BadRequest);
         }
 
         var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
         if (user is null)
         {
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var email = ExternalEmailClaims.GetEmail(info.Principal);
             if (string.IsNullOrEmpty(email))
             {
                 return ExternalLoginProvisionResult<TUser>.Failed(
-                    Results.Problem(
-                        detail: "The external provider did not return an email claim.",
-                        statusCode: StatusCodes.Status400BadRequest));
+                    "email_missing",
+                    "The external provider did not return an email claim.",
+                    StatusCodes.Status400BadRequest);
+            }
+
+            var emailVerified = ExternalEmailClaims.IsEmailVerified(info.Principal);
+            if (_options.RequireVerifiedEmail && !emailVerified)
+            {
+                return ExternalLoginProvisionResult<TUser>.Failed(
+                    "email_unverified",
+                    "The external provider did not return a verified email.",
+                    StatusCodes.Status400BadRequest);
             }
 
             user = await _userManager.FindByEmailAsync(email);
@@ -57,17 +69,34 @@ public sealed class ExternalLoginService<TUser>
                 if (_userStore is IUserEmailStore<TUser> emailStore)
                 {
                     await emailStore.SetEmailAsync(user, email, cancellationToken);
-                    // Trust verified email from the OAuth provider so RequireConfirmedAccount hosts can sign in.
-                    await emailStore.SetEmailConfirmedAsync(user, true, cancellationToken);
+                    await emailStore.SetEmailConfirmedAsync(user, emailVerified, cancellationToken);
                 }
 
                 var createResult = await _userManager.CreateAsync(user);
                 if (!createResult.Succeeded)
                 {
                     return ExternalLoginProvisionResult<TUser>.Failed(
-                        Results.Problem(
-                            detail: string.Join(" ", createResult.Errors.Select(e => e.Description)),
-                            statusCode: StatusCodes.Status400BadRequest));
+                        "user_create_failed",
+                        string.Join(" ", createResult.Errors.Select(e => e.Description)),
+                        StatusCodes.Status400BadRequest);
+                }
+            }
+            else
+            {
+                if (!_options.AutoLinkByEmail)
+                {
+                    return ExternalLoginProvisionResult<TUser>.Failed(
+                        "auto_link_disabled",
+                        "A local account with this email already exists. Sign in and link the provider from account settings.",
+                        StatusCodes.Status400BadRequest);
+                }
+
+                if (_options.RequireVerifiedEmail && !emailVerified)
+                {
+                    return ExternalLoginProvisionResult<TUser>.Failed(
+                        "email_unverified",
+                        "Cannot link to an existing account without a verified email from the provider.",
+                        StatusCodes.Status400BadRequest);
                 }
             }
 
@@ -75,22 +104,26 @@ public sealed class ExternalLoginService<TUser>
             if (!linkResult.Succeeded)
             {
                 return ExternalLoginProvisionResult<TUser>.Failed(
-                    Results.Problem(
-                        detail: string.Join(" ", linkResult.Errors.Select(e => e.Description)),
-                        statusCode: StatusCodes.Status400BadRequest));
+                    "login_link_failed",
+                    string.Join(" ", linkResult.Errors.Select(e => e.Description)),
+                    StatusCodes.Status400BadRequest);
             }
         }
 
         if (await _userManager.IsLockedOutAsync(user))
         {
             return ExternalLoginProvisionResult<TUser>.Failed(
-                Results.Problem(detail: "User is locked out.", statusCode: StatusCodes.Status401Unauthorized));
+                "user_locked_out",
+                "User is locked out.",
+                StatusCodes.Status401Unauthorized);
         }
 
         if (!await _signInManager.CanSignInAsync(user))
         {
             return ExternalLoginProvisionResult<TUser>.Failed(
-                Results.Problem(detail: "User is not allowed to sign in.", statusCode: StatusCodes.Status401Unauthorized));
+                "user_not_allowed",
+                "User is not allowed to sign in.",
+                StatusCodes.Status401Unauthorized);
         }
 
         return ExternalLoginProvisionResult<TUser>.Success(user, info);
@@ -106,7 +139,9 @@ public sealed class ExternalLoginProvisionResult<TUser>
     public bool Succeeded { get; private init; }
     public TUser? User { get; private init; }
     public ExternalLoginInfo? Info { get; private init; }
-    public IResult? ErrorResult { get; private init; }
+    public string? Error { get; private init; }
+    public string? ErrorDescription { get; private init; }
+    public int StatusCode { get; private init; }
 
     public static ExternalLoginProvisionResult<TUser> Success(TUser user, ExternalLoginInfo info) => new()
     {
@@ -115,9 +150,11 @@ public sealed class ExternalLoginProvisionResult<TUser>
         Info = info,
     };
 
-    public static ExternalLoginProvisionResult<TUser> Failed(IResult error) => new()
+    public static ExternalLoginProvisionResult<TUser> Failed(string error, string description, int statusCode) => new()
     {
         Succeeded = false,
-        ErrorResult = error,
+        Error = error,
+        ErrorDescription = description,
+        StatusCode = statusCode,
     };
 }

@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.External;
+namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
 /// Shared external auth endpoint handlers used by all provider modules.
@@ -36,15 +37,35 @@ public static class ExternalAuthEndpoints<TUser>
 
     public static async Task<IResult> Callback(
         [FromQuery] string? returnUrl,
+        [FromQuery] string? error,
+        [FromQuery] string? error_description,
         ExternalLoginService<TUser> loginService,
         IExternalLoginCompleter<TUser> completer,
+        IOptions<ExternalAuthOptions> options,
         HttpContext httpContext,
         CancellationToken cancellationToken)
     {
+        var opts = options.Value;
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            return ExternalAuthErrorResults.Create(
+                httpContext,
+                opts,
+                error,
+                error_description ?? "The external provider returned an error.",
+                StatusCodes.Status400BadRequest);
+        }
+
         var provision = await loginService.ProvisionAsync(cancellationToken);
         if (!provision.Succeeded)
         {
-            return provision.ErrorResult!;
+            return ExternalAuthErrorResults.Create(
+                httpContext,
+                opts,
+                provision.Error!,
+                provision.ErrorDescription!,
+                provision.StatusCode);
         }
 
         return await completer.CompleteAsync(

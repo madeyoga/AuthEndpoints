@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Google;
 
-namespace AuthEndpoints.External.Google;
+namespace AuthEndpoints.External.OAuth.Google;
 
 /// <summary>
 /// Google provider route metadata for external auth endpoints.

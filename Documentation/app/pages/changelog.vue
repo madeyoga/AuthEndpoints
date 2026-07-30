@@ -22,7 +22,7 @@ function badgeProps(badge?: string) {
 
   const color = badge === 'Latest'
     ? 'primary'
-    : badge === 'RC'
+    : badge === 'RC' || badge === 'Preview'
       ? 'warning'
       : 'neutral'
 

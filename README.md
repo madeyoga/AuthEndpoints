@@ -14,6 +14,7 @@ AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top
 - Sign-in stacks you choose: cookie sessions, Identity bearer tokens, or Simple JWT
 - Passkeys (WebAuthn) for passwordless register and login
 - Built-in hardening: rate limiting, antiforgery, lockout-aware login, hashed JWT refresh tokens with reuse detection
+- Optional package [`AuthEndpoints.External.OAuth`](https://madeyoga.github.io/AuthEndpoints/modules/external-oauth) for GitHub/Google OAuth
 
 ## Getting started
 

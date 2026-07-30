@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
-namespace AuthEndpoints.External;
+namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
 /// Completes sign-in after an external login has been resolved to a local user.

@@ -4,11 +4,25 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Description>Provides a set of minimal api endpoints to handle external authentication</Description>
-    <Version>3.0.0-alpha</Version>
+    <PackageId>AuthEndpoints.External.OAuth</PackageId>
+    <Description>Minimal API endpoints for external OAuth authentication (GitHub, Google) with ASP.NET Core Identity</Description>
+    <Version>3.0.0-preview.2</Version>
+    <Authors>madeyoga</Authors>
+    <Company>madeyoga</Company>
+    <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
-    <IsPackable>False</IsPackable>
+    <PackageTags>auth;endpoints;aspnetcore;oauth;github;google;identity</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>True</IsPackable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

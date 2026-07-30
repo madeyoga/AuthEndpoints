@@ -1,60 +1,63 @@
-[WIP] AuthEndpoints.External
+# AuthEndpoints.External.OAuth
 
-Modular external OAuth endpoints (cookie completion by default).
+Preview package: modular external OAuth endpoints for AuthEndpoints (cookie completion by default; pluggable JWT completer).
 
 ## Layout
 
-- `Core/` — shared options, provisioning, pluggable completer, shared handlers
+- `Core/` — shared options, provisioning, completers, login/link handlers
 - `GitHub/` — `AddGitHub` / `MapGitHubAuthEndpoints`
 - `Google/` — `AddGoogle` / `MapGoogleAuthEndpoints`
+
+This package references **both** GitHub and Google OAuth handler packages. Splitting into per-provider NuGets may come in a later release.
+
+## Install
+
+```bash
+dotnet add package AuthEndpoints.External.OAuth --version 3.0.0-preview.2
+```
+
+Requires [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) (Identity host). Does not use Identity management HTTP APIs.
 
 ## Usage
 
 ```csharp
-using AuthEndpoints.External;
-using AuthEndpoints.External.GitHub;
-using AuthEndpoints.External.Google;
+using AuthEndpoints.External.OAuth;
+using AuthEndpoints.External.OAuth.GitHub;
+using AuthEndpoints.External.OAuth.Google;
 
-builder.Services.AddExternalAuthEndpoints<AppUser>()
-    .AddGitHub(o =>
-    {
-        o.ClientId = builder.Configuration["Authentication:GitHub:ClientId"]!;
-        o.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"]!;
-    })
-    .AddGoogle(o =>
-    {
-        o.ClientId = builder.Configuration["Authentication:Google:ClientId"]!;
-        o.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"]!;
-    });
+builder.Services.AddExternalAuthEndpoints<AppUser>(o =>
+{
+    o.RequireVerifiedEmail = true;
+    o.AutoLinkByEmail = true;
+    o.ErrorPath = "/auth/external/error";
+})
+.AddGitHub(o =>
+{
+    o.ClientId = "...";
+    o.ClientSecret = "...";
+})
+.AddGoogle(o =>
+{
+    o.ClientId = "...";
+    o.ClientSecret = "...";
+});
 
-// Map individually:
+// JWT completion (requires AddJwtEndpoints):
+// .AddCompleter<JwtExternalLoginCompleter<AppUser>>()
+
 var external = app.MapGroup("/auth/external").WithTags("External");
 external.MapGitHubAuthEndpoints<AppUser>();
 external.MapGoogleAuthEndpoints<AppUser>();
-
-// Or map every registered provider:
-// app.MapGroup("/auth/external").MapExternalAuthEndpoints<AppUser>();
+external.MapExternalAccountEndpoints<AppUser>();
 ```
 
-Routes (under your group prefix):
+## Completers
 
-| Provider | Login | Callback |
-|----------|-------|----------|
-| GitHub | `GET .../login/github` | `GET .../login/github/callback` |
-| Google | `GET .../login/google` | `GET .../login/google/callback` |
+| Type | Behavior |
+|------|----------|
+| `CookieExternalLoginCompleter<TUser>` (default) | Identity cookie + clear External scheme + redirect |
+| `JwtExternalLoginCompleter<TUser>` | Refresh cookie + clear External + redirect (SPA uses JWT refresh for access token) |
 
-OAuth middleware callbacks remain `/signin-github` and `/signin-google` (register those URLs with the IdP).
+## Docs
 
-## Completer
-
-Default: Identity application cookie via `CookieExternalLoginCompleter<TUser>`.
-
-Replace later for JWT (or other) completion:
-
-```csharp
-builder.Services.AddExternalAuthEndpoints<AppUser>()
-    .AddCompleter<MyJwtExternalLoginCompleter<AppUser>>()
-    .AddGitHub(...);
-```
-
-Optional `ExternalAuthOptions.SignInScheme` overrides the cookie completer scheme; leave null to use SignInManager's default (`Identity.Application`).
+See [External OAuth](https://madeyoga.github.io/AuthEndpoints/modules/external-oauth).

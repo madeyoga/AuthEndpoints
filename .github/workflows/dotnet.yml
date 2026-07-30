@@ -5,6 +5,7 @@ on:
     branches: [ main ]
     paths:
       - 'src/AuthEndpoints/**'
+      - 'src/AuthEndpoints.External.OAuth/**'
       - 'tests/AuthEndpoints.Tests/**'
       - 'AuthEndpoints.sln'
       - '.github/workflows/dotnet.yml'
