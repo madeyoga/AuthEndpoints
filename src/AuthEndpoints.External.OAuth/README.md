@@ -13,10 +13,10 @@ This package references **both** GitHub and Google OAuth handler packages. Split
 ## Install
 
 ```bash
-dotnet add package AuthEndpoints.External.OAuth --version 3.0.0-preview.2
+dotnet add package AuthEndpoints.External.OAuth --prerelease
 ```
 
-Requires [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) **3.0.0-rc.3 or later** (Identity host). Does not use Identity management HTTP APIs.
+Use `--prerelease` while this package publishes preview builds. Requires a compatible [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) **3.0 RC or later** (Identity host) — see the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for minimum core versions. Does not use Identity management HTTP APIs.
 
 ## Usage
 
@@ -56,7 +56,7 @@ external.MapExternalAccountEndpoints<AppUser>();
 | Type | Behavior |
 |------|----------|
 | `CookieExternalLoginCompleter<TUser>` (default) | Identity cookie + clear External scheme + redirect |
-| `JwtExternalLoginCompleter<TUser>` | Refresh cookie + clear External + redirect (SPA uses JWT refresh for access token) |
+| `JwtExternalLoginCompleter<TUser>` | Refresh cookie + clear External + redirect (client uses JWT refresh for access token) |
 
 ## Docs
 
