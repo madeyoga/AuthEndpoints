@@ -3,6 +3,7 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AuthEndpoints.Passkey;
 
@@ -14,6 +15,8 @@ public static class ServiceCollectionExtensions
     /// Registers ReAuth, Identity rate limiting, and passkey rate-limit policies.
     /// Hosts must call <c>UseRateLimiter()</c>, serve over HTTPS, and configure
     /// <c>IdentityPasskeyOptions</c> (<c>ServerDomain</c>, allowed origins, etc.).
+    /// Does not register <see cref="IPasskeySignInCompleter{TUser}"/> — prefer
+    /// <see cref="AddPasskeyEndpoints{TUser}"/> for compose hosts.
     /// </summary>
     public static IServiceCollection AddPasskeyEndpoints(this IServiceCollection services)
     {
@@ -50,6 +53,30 @@ public static class ServiceCollectionExtensions
                     }));
         });
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers passkey infrastructure and the default
+    /// <see cref="IdentityPasskeySignInCompleter{TUser}"/>.
+    /// </summary>
+    public static IServiceCollection AddPasskeyEndpoints<TUser>(this IServiceCollection services)
+        where TUser : class
+    {
+        services.AddPasskeyEndpoints();
+        services.TryAddScoped<IPasskeySignInCompleter<TUser>, IdentityPasskeySignInCompleter<TUser>>();
+        return services;
+    }
+
+    /// <summary>
+    /// Replaces the default <see cref="IPasskeySignInCompleter{TUser}"/> (e.g. with
+    /// <c>JwtPasskeySignInCompleter&lt;TUser&gt;</c>).
+    /// </summary>
+    public static IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this IServiceCollection services)
+        where TUser : class
+        where TCompleter : class, IPasskeySignInCompleter<TUser>
+    {
+        services.AddScoped<IPasskeySignInCompleter<TUser>, TCompleter>();
         return services;
     }
 }

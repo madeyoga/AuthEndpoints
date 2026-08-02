@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registers the ReAuth schemes and rate-limit policies used by cookie Identity endpoints.
     /// Hosts must also call <c>UseRateLimiter()</c> in the pipeline for policies to take effect.
-    /// For passkeys, also call <c>AddPasskeyEndpoints</c> (or call only that if you need both).
+    /// For passkeys, also call <c>AddPasskeyEndpoints&lt;TUser&gt;</c> (or call only that if you need both).
     /// </summary>
     public static IServiceCollection AddCookieAuthEndpoints(this IServiceCollection services)
     {
