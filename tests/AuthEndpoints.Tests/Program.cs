@@ -37,7 +37,7 @@ builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddAntiforgery();
 builder.Services.AddCookieAuthEndpoints();
-builder.Services.AddPasskeyEndpoints();
+builder.Services.AddPasskeyEndpoints<TestAppUser>();
 
 var app = builder.Build();
 

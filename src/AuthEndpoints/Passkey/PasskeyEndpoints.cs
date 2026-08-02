@@ -1,7 +1,6 @@
 using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -213,13 +212,16 @@ public static class PasskeyEndpoints<TUser>
         return TypedResults.Content(optionsJson, contentType: "application/json");
     }
 
-    public static async Task<Results<Ok<PasskeyCredentialResponse>, ValidationProblem, ProblemHttpResult>> Register(
+    public static async Task<IResult> Register(
         [FromBody] PasskeyRegisterRequest request,
         [FromQuery] bool? useCookies,
         [FromQuery] bool? useSessionCookies,
+        HttpContext httpContext,
         UserManager<TUser> userManager,
         IUserStore<TUser> userStore,
-        SignInManager<TUser> signInManager)
+        SignInManager<TUser> signInManager,
+        IPasskeySignInCompleter<TUser> completer,
+        CancellationToken cancellationToken)
     {
         if (!userManager.SupportsUserEmail)
         {
@@ -288,20 +290,28 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        // Same cookie vs Identity bearer semantics as IdentityApiEndpoints.Login / Passkey Login.
-        // Simple JWT hosts can still call /auth/create separately if needed.
-        var isPersistent = ConfigureAuthenticationScheme(signInManager, useCookies, useSessionCookies);
-        await signInManager.SignInAsync(user, isPersistent);
-
-        return TypedResults.Ok(new PasskeyCredentialResponse(
-            Base64Url.EncodeToString(attestationResult.Passkey.CredentialId)));
+        return await completer.CompleteAsync(
+            httpContext,
+            user,
+            new PasskeySignInCompletionContext
+            {
+                Kind = PasskeySignInKind.Register,
+                UseCookies = useCookies,
+                UseSessionCookies = useSessionCookies,
+                CredentialId = attestationResult.Passkey.CredentialId
+            },
+            cancellationToken);
     }
 
-    public static async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Login(
+    public static async Task<IResult> Login(
         [FromBody] PasskeyLoginRequest request,
         [FromQuery] bool? useCookies,
         [FromQuery] bool? useSessionCookies,
-        SignInManager<TUser> signInManager)
+        HttpContext httpContext,
+        UserManager<TUser> userManager,
+        SignInManager<TUser> signInManager,
+        IPasskeySignInCompleter<TUser> completer,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(request.CredentialJson))
         {
@@ -312,10 +322,8 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var isPersistent = ConfigureAuthenticationScheme(signInManager, useCookies, useSessionCookies);
-
-        var signInResult = await signInManager.PasskeySignInAsync(request.CredentialJson);
-        if (!signInResult.Succeeded)
+        var assertionResult = await signInManager.PerformPasskeyAssertionAsync(request.CredentialJson);
+        if (!assertionResult.Succeeded || assertionResult.User is null)
         {
             return TypedResults.Problem(
                 type: "Bad Request",
@@ -324,34 +332,25 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        // PasskeySignInAsync(string) has no isPersistent; upgrade to a persistent cookie when requested.
-        if (isPersistent)
+        var updateResult = await userManager.AddOrUpdatePasskeyAsync(assertionResult.User, assertionResult.Passkey);
+        if (!updateResult.Succeeded)
         {
-            var user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
-            if (user is not null)
-            {
-                await signInManager.SignInAsync(user, isPersistent: true);
-            }
+            return TypedResults.Problem(
+                type: "Bad Request",
+                title: "Invalid Credential",
+                detail: "Could not sign in with the provided credential.",
+                statusCode: StatusCodes.Status400BadRequest);
         }
 
-        // SignInManager already produced the cookie or Identity bearer token response.
-        return TypedResults.Empty;
-    }
-
-    /// <summary>
-    /// Matches IdentityApiEndpoints.Login: cookie flags select ApplicationScheme; otherwise BearerScheme.
-    /// </summary>
-    /// <returns><c>true</c> when a persistent application cookie was requested.</returns>
-    private static bool ConfigureAuthenticationScheme(
-        SignInManager<TUser> signInManager,
-        bool? useCookies,
-        bool? useSessionCookies)
-    {
-        var useCookieScheme = useCookies == true || useSessionCookies == true;
-        var isPersistent = useCookies == true && useSessionCookies != true;
-        signInManager.AuthenticationScheme = useCookieScheme
-            ? IdentityConstants.ApplicationScheme
-            : IdentityConstants.BearerScheme;
-        return isPersistent;
+        return await completer.CompleteAsync(
+            httpContext,
+            assertionResult.User,
+            new PasskeySignInCompletionContext
+            {
+                Kind = PasskeySignInKind.Login,
+                UseCookies = useCookies,
+                UseSessionCookies = useSessionCookies
+            },
+            cancellationToken);
     }
 }

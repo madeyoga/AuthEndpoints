@@ -99,7 +99,7 @@ public static class AuthEndpointsServiceCollectionExtensions
 
         if (bootstrap.Passkeys.Enabled)
         {
-            services.AddPasskeyEndpoints();
+            services.AddPasskeyEndpoints<TUser>();
             services.Configure<IdentityPasskeyOptions>(passkeys =>
             {
                 if (!string.IsNullOrWhiteSpace(bootstrap.Passkeys.ServerDomain))
