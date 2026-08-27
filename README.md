@@ -1,6 +1,6 @@
 # AuthEndpoints
 
-[![nuget](https://img.shields.io/nuget/vpre/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
+[![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![issues](https://img.shields.io/github/issues/madeyoga/AuthEndpoints?color=blue&logo=github&style=flat-square)](https://github.com/madeyoga/AuthEndpoints/issues)
 [![downloads](https://img.shields.io/nuget/dt/AuthEndpoints?color=blue&style=flat-square&logo=nuget)](https://www.nuget.org/packages/AuthEndpoints/)
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
@@ -21,7 +21,7 @@ AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top
 Requires .NET 10, ASP.NET Core Identity, and EF Core.
 
 ```bash
-dotnet add package AuthEndpoints --prerelease
+dotnet add package AuthEndpoints
 ```
 
 ```cs

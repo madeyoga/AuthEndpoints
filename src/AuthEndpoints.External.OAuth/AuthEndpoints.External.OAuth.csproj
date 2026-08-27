@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>AuthEndpoints.External.OAuth</PackageId>
     <Description>Minimal API endpoints for external OAuth authentication (GitHub, Google) with ASP.NET Core Identity</Description>
-    <Version>3.0.0-preview.2</Version>
+    <Version>3.0.0-preview.3</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
