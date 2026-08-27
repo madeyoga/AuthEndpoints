@@ -14,7 +14,7 @@ This repo publishes two NuGet packages with **independent versions**:
 
 | Package | Typical GitHub tag | Notes |
 | --- | --- | --- |
-| `AuthEndpoints` | `v3.0.0-rc.x` | Core library |
+| `AuthEndpoints` | `v3.0.0` | Core library |
 | `AuthEndpoints.External.OAuth` | `external-oauth-v3.0.0-preview.x` | Preview OAuth module |
 
 - Set `<Version>` only on the package(s) you intend to ship. The publish workflow packs the solution and uses `--skip-duplicate`.

@@ -16,7 +16,7 @@ This package references **both** GitHub and Google OAuth handler packages. Split
 dotnet add package AuthEndpoints.External.OAuth --prerelease
 ```
 
-Use `--prerelease` while this package publishes preview builds. Requires a compatible [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) **3.0 RC or later** (Identity host) — see the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for minimum core versions. Does not use Identity management HTTP APIs.
+Use `--prerelease` while this package publishes preview builds. Requires [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) **3.0.0 or later** (Identity host) — see the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for minimum core versions. Does not use Identity management HTTP APIs.
 
 ## Usage
 
