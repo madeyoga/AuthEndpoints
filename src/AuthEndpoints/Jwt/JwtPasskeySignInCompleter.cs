@@ -14,6 +14,7 @@ public sealed class JwtPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<T
     where TUser : class
 {
     private readonly UserManager<TUser> _userManager;
+    private readonly SignInManager<TUser> _signInManager;
     private readonly IUserClaimsPrincipalFactory<TUser> _claimsFactory;
     private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IRefreshTokenService _refreshTokenService;
@@ -21,12 +22,14 @@ public sealed class JwtPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<T
 
     public JwtPasskeySignInCompleter(
         UserManager<TUser> userManager,
+        SignInManager<TUser> signInManager,
         IUserClaimsPrincipalFactory<TUser> claimsFactory,
         IAccessTokenGenerator accessTokenGenerator,
         IRefreshTokenService refreshTokenService,
         RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
         _userManager = userManager;
+        _signInManager = signInManager;
         _claimsFactory = claimsFactory;
         _accessTokenGenerator = accessTokenGenerator;
         _refreshTokenService = refreshTokenService;
@@ -39,6 +42,20 @@ public sealed class JwtPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<T
         PasskeySignInCompletionContext context,
         CancellationToken cancellationToken = default)
     {
+        if (await _userManager.IsLockedOutAsync(user)
+            || !await _signInManager.CanSignInAsync(user))
+        {
+            if (context.Kind == PasskeySignInKind.Register)
+            {
+                return Results.Ok();
+            }
+
+            return TypedResults.Problem(
+                title: "Unauthorized",
+                detail: "Invalid credentials.",
+                statusCode: StatusCodes.Status401Unauthorized);
+        }
+
         var claimsPrincipal = await _claimsFactory.CreateAsync(user);
         var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
