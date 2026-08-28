@@ -52,22 +52,22 @@ export function useSoftwareJsonLd() {
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
         '@type': ['SoftwareApplication', 'SoftwareSourceCode'],
-        name: SITE_NAME,
-        alternateName: SITE_TITLE,
-        description: SITE_DESCRIPTION,
-        url: toCanonicalUrl('/'),
-        applicationCategory: 'DeveloperApplication',
-        operatingSystem: 'ASP.NET Core',
-        programmingLanguage: 'C#',
-        runtimePlatform: '.NET 10',
-        license: 'https://opensource.org/licenses/MIT',
-        codeRepository: 'https://github.com/madeyoga/AuthEndpoints',
-        downloadUrl: 'https://www.nuget.org/packages/AuthEndpoints/',
-        isAccessibleForFree: true,
-        author: {
+        'name': SITE_NAME,
+        'alternateName': SITE_TITLE,
+        'description': SITE_DESCRIPTION,
+        'url': toCanonicalUrl('/'),
+        'applicationCategory': 'DeveloperApplication',
+        'operatingSystem': 'ASP.NET Core',
+        'programmingLanguage': 'C#',
+        'runtimePlatform': '.NET 10',
+        'license': 'https://opensource.org/licenses/MIT',
+        'codeRepository': 'https://github.com/madeyoga/AuthEndpoints',
+        'downloadUrl': 'https://www.nuget.org/packages/AuthEndpoints/',
+        'isAccessibleForFree': true,
+        'author': {
           '@type': 'Person',
-          name: 'madeyoga',
-          url: 'https://github.com/madeyoga'
+          'name': 'madeyoga',
+          'url': 'https://github.com/madeyoga'
         }
       })
     }]
@@ -86,24 +86,24 @@ export function useTechArticleJsonLd(input: { title: string, description?: strin
         innerHTML: JSON.stringify({
           '@context': 'https://schema.org',
           '@type': 'TechArticle',
-          headline: input.title,
-          description: input.description,
+          'headline': input.title,
+          'description': input.description,
           url,
-          mainEntityOfPage: url,
-          inLanguage: 'en',
-          isPartOf: {
+          'mainEntityOfPage': url,
+          'inLanguage': 'en',
+          'isPartOf': {
             '@type': 'WebSite',
-            name: SITE_NAME,
-            url: toCanonicalUrl('/')
+            'name': SITE_NAME,
+            'url': toCanonicalUrl('/')
           },
-          about: {
+          'about': {
             '@type': 'SoftwareApplication',
-            name: SITE_NAME,
-            url: toCanonicalUrl('/'),
-            downloadUrl: 'https://www.nuget.org/packages/AuthEndpoints/',
-            license: 'https://opensource.org/licenses/MIT'
+            'name': SITE_NAME,
+            'url': toCanonicalUrl('/'),
+            'downloadUrl': 'https://www.nuget.org/packages/AuthEndpoints/',
+            'license': 'https://opensource.org/licenses/MIT'
           },
-          license: 'https://opensource.org/licenses/MIT'
+          'license': 'https://opensource.org/licenses/MIT'
         })
       }]
     }

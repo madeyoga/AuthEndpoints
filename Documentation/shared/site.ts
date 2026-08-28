@@ -118,9 +118,23 @@ export function applyTrailingSlashToNav<T extends { path?: string, to?: unknown,
   })
 }
 
+export function isPublicDocsPath(path: string | undefined | null): boolean {
+  if (!path) {
+    return false
+  }
+  const pathname = stripDocsBasePath(path)
+  if (pathname === '/404' || pathname === '/404.html') {
+    return false
+  }
+  return !pathname.split('/').some(segment => segment.startsWith('.'))
+}
+
 export function sitemapLocs(paths: Iterable<string>): string[] {
   const unique = new Set<string>()
   for (const path of paths) {
+    if (!isPublicDocsPath(path)) {
+      continue
+    }
     unique.add(toCanonicalUrl(path).split('#')[0]!)
   }
   return [...unique].sort((a, b) => a.localeCompare(b))

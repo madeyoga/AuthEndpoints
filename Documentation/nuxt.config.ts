@@ -22,14 +22,15 @@ export default defineNuxtConfig({
     baseURL: process.env.NUXT_APP_BASE_URL || '/'
   },
 
+  css: ['~/assets/css/main.css'],
+
   site: {
-    url: 'https://madeyoga.github.io/AuthEndpoints',
+    // Origin only — nuxt-site-config / og-image append app.baseURL (/AuthEndpoints/).
+    url: 'https://madeyoga.github.io',
     name: 'AuthEndpoints',
     trailingSlash: true,
     indexable: true
   },
-
-  css: ['~/assets/css/main.css'],
 
   content: {
     build: {
@@ -79,11 +80,12 @@ export default defineNuxtConfig({
     }
   },
 
+  routeRules: {
+    '/sitemap.xml': { prerender: true }
+  },
+
   experimental: {
     asyncContext: true,
-    // Server-render error.vue into 404.html so GitHub Pages keeps HTTP 404
-    // without shipping an empty SPA shell.
-    prerenderErrorPages: true,
     defaults: {
       nuxtLink: {
         trailingSlash: 'append'
@@ -99,14 +101,25 @@ export default defineNuxtConfig({
       routes: [
         '/',
         '/changelog',
-        '/sitemap.xml'
+        '/sitemap.xml',
+        '/404'
       ],
       crawlLinks: true
     }
   },
 
-  routeRules: {
-    '/sitemap.xml': { prerender: true }
+  hooks: {
+    'nitro:init'(nitro) {
+      nitro.hooks.hook('prerender:done', async () => {
+        const { copyFile, rm } = await import('node:fs/promises')
+        const { join } = await import('node:path')
+        const publicDir = nitro.options.output.publicDir
+        // github-pages emits an empty SPA 404.html; replace it with the prerendered error page
+        // and drop /404/ so that path is also a real HTTP 404 on Pages.
+        await copyFile(join(publicDir, '404/index.html'), join(publicDir, '404.html'))
+        await rm(join(publicDir, '404'), { recursive: true, force: true })
+      })
+    }
   },
 
   eslint: {

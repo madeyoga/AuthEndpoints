@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useClipboard } from '@vueuse/core'
+import { DOCS_SITE_URL } from '#shared/site'
 
 const route = useRoute()
 const toast = useToast()
 const { copy, copied } = useClipboard()
-const site = useSiteConfig()
 
-const mdPath = computed(() => `${String(site.url || '').replace(/\/$/, '')}/raw${route.path}.md`)
+const mdPath = computed(() => `${DOCS_SITE_URL}/raw${route.path}.md`)
 
 const items = [
   {
@@ -25,7 +25,7 @@ const items = [
     icon: 'i-simple-icons:markdown',
     target: '_blank',
     to: `/raw${route.path}.md`,
-    trailingSlash: 'remove'
+    trailingSlash: 'remove' as const
   },
   {
     label: 'Open in ChatGPT',

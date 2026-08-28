@@ -1,12 +1,12 @@
 import { queryCollection } from '@nuxt/content/server'
-import { sitemapLocs } from '#shared/site'
+import { sitemapLocs, isPublicDocsPath } from '#shared/site'
 
 export default defineEventHandler(async (event) => {
   const docs = await queryCollection(event, 'docs').select('path').all()
   const locs = sitemapLocs([
     '/',
     '/changelog',
-    ...docs.map(page => page.path).filter((path): path is string => Boolean(path))
+    ...docs.map(page => page.path).filter((path): path is string => Boolean(path) && isPublicDocsPath(path))
   ])
 
   const body = [
