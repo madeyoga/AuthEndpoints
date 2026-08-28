@@ -78,6 +78,13 @@ export function toRawMarkdownPath(path: string | undefined | null): string {
   return `/raw${toContentPath(path)}.md`
 }
 
+/** Resolve a raw markdown URL against the Pages base (`/AuthEndpoints/`). `.md` hrefs skip NuxtLink baseURL. */
+export function toRawMarkdownHref(path: string | undefined | null, baseURL = '/'): string {
+  const raw = toRawMarkdownPath(path).replace(/^\//, '')
+  const base = baseURL.endsWith('/') ? baseURL : `${baseURL}/`
+  return `${base}${raw}`
+}
+
 function isFilePath(path: string): boolean {
   const last = path.split('/').pop() || ''
   return last.includes('.')

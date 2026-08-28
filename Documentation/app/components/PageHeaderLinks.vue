@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useClipboard } from '@vueuse/core'
-import { DOCS_SITE_URL, toRawMarkdownPath } from '#shared/site'
+import { DOCS_SITE_URL, toRawMarkdownHref, toRawMarkdownPath } from '#shared/site'
 
 const route = useRoute()
 const toast = useToast()
 const { copy, copied } = useClipboard()
+const { app } = useRuntimeConfig()
 
 const rawPath = computed(() => toRawMarkdownPath(route.path))
+const rawHref = computed(() => toRawMarkdownHref(route.path, app.baseURL))
 const mdPath = computed(() => `${DOCS_SITE_URL}${rawPath.value}`)
 
 const items = computed(() => [
@@ -25,7 +27,8 @@ const items = computed(() => [
     label: 'View as Markdown',
     icon: 'i-simple-icons:markdown',
     target: '_blank',
-    to: rawPath.value,
+    external: true,
+    to: rawHref.value,
     trailingSlash: 'remove' as const
   },
   {
@@ -43,7 +46,7 @@ const items = computed(() => [
 ])
 
 async function copyPage() {
-  copy(await $fetch<string>(rawPath.value))
+  copy(await $fetch<string>(rawHref.value))
 }
 </script>
 
