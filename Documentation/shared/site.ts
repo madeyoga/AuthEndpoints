@@ -56,6 +56,28 @@ export function stripDocsBasePath(path: string): string {
   return pathname.startsWith('/') ? pathname : `/${pathname}`
 }
 
+/**
+ * Nuxt Content stores page paths without a trailing slash (`/getting-started`).
+ * Public URLs keep a slash (`/getting-started/`) via NuxtLink trailingSlash append,
+ * so Vue Router's route.path cannot be passed straight into collection queries.
+ */
+export function toContentPath(path: string | undefined | null): string {
+  const pathname = stripDocsBasePath(path || '/')
+  if (pathname === '/') {
+    return '/'
+  }
+  return pathname.replace(/\/+$/, '') || '/'
+}
+
+/**
+ * App-relative raw markdown URL. Must be built from the slashless content path;
+ * interpolating `/raw${route.path}.md` becomes `/raw/getting-started/.md`, which
+ * no longer ends in `/` so NuxtLink trailingSlash remove cannot repair it.
+ */
+export function toRawMarkdownPath(path: string | undefined | null): string {
+  return `/raw${toContentPath(path)}.md`
+}
+
 function isFilePath(path: string): boolean {
   const last = path.split('/').pop() || ''
   return last.includes('.')
@@ -122,7 +144,7 @@ export function isPublicDocsPath(path: string | undefined | null): boolean {
   if (!path) {
     return false
   }
-  const pathname = stripDocsBasePath(path)
+  const pathname = toContentPath(path)
   if (pathname === '/404' || pathname === '/404.html') {
     return false
   }

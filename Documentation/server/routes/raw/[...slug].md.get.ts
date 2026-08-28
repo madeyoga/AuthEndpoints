@@ -2,6 +2,7 @@ import { withLeadingSlash } from 'ufo'
 import { stringify } from 'minimark/stringify'
 import { queryCollection } from '@nuxt/content/server'
 import type { Collections } from '@nuxt/content'
+import { toContentPath } from '#shared/site'
 
 export default eventHandler(async (event) => {
   const slug = getRouterParams(event)['slug.md']
@@ -9,7 +10,7 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
   }
 
-  const path = withLeadingSlash(slug.replace('.md', ''))
+  const path = toContentPath(withLeadingSlash(slug.replace(/\.md$/i, '')))
 
   const page = await queryCollection(event, 'docs' as keyof Collections).path(path).first()
   if (!page) {

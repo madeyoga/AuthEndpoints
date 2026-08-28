@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useClipboard } from '@vueuse/core'
-import { DOCS_SITE_URL } from '#shared/site'
+import { DOCS_SITE_URL, toRawMarkdownPath } from '#shared/site'
 
 const route = useRoute()
 const toast = useToast()
 const { copy, copied } = useClipboard()
 
-const mdPath = computed(() => `${DOCS_SITE_URL}/raw${route.path}.md`)
+const rawPath = computed(() => toRawMarkdownPath(route.path))
+const mdPath = computed(() => `${DOCS_SITE_URL}${rawPath.value}`)
 
-const items = [
+const items = computed(() => [
   {
     label: 'Copy Markdown link',
     icon: 'i-lucide-link',
@@ -24,7 +25,7 @@ const items = [
     label: 'View as Markdown',
     icon: 'i-simple-icons:markdown',
     target: '_blank',
-    to: `/raw${route.path}.md`,
+    to: rawPath.value,
     trailingSlash: 'remove' as const
   },
   {
@@ -39,10 +40,10 @@ const items = [
     target: '_blank',
     to: `https://claude.ai/new?q=${encodeURIComponent(`Read ${mdPath.value} so I can ask questions about it.`)}`
   }
-]
+])
 
 async function copyPage() {
-  copy(await $fetch<string>(`/raw${route.path}.md`))
+  copy(await $fetch<string>(rawPath.value))
 }
 </script>
 
