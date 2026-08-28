@@ -1,4 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import rehypeOwnPropertyLinks from './rehype/own-property-links'
+import { isOwnPropertyHref } from './shared/site'
+
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
@@ -17,6 +20,13 @@ export default defineNuxtConfig({
   app: {
     // CI sets NUXT_APP_BASE_URL=/AuthEndpoints/ for GitHub Pages project site.
     baseURL: process.env.NUXT_APP_BASE_URL || '/'
+  },
+
+  site: {
+    url: 'https://madeyoga.github.io/AuthEndpoints',
+    name: 'AuthEndpoints',
+    trailingSlash: true,
+    indexable: true
   },
 
   css: ['~/assets/css/main.css'],
@@ -45,6 +55,22 @@ export default defineNuxtConfig({
             'csharp',
             'cs'
           ]
+        },
+        rehypePlugins: {
+          'rehype-external-links': {
+            options: {
+              rel(node: { properties?: { href?: unknown } }) {
+                const href = typeof node.properties?.href === 'string' ? node.properties.href : ''
+                if (isOwnPropertyHref(href)) {
+                  return []
+                }
+                return ['nofollow']
+              }
+            }
+          },
+          'rehype-own-property-links': {
+            instance: rehypeOwnPropertyLinks
+          }
         }
       }
     },
@@ -54,7 +80,15 @@ export default defineNuxtConfig({
   },
 
   experimental: {
-    asyncContext: true
+    asyncContext: true,
+    // Server-render error.vue into 404.html so GitHub Pages keeps HTTP 404
+    // without shipping an empty SPA shell.
+    prerenderErrorPages: true,
+    defaults: {
+      nuxtLink: {
+        trailingSlash: 'append'
+      }
+    }
   },
 
   compatibilityDate: '2026-06-30',
@@ -64,10 +98,15 @@ export default defineNuxtConfig({
     prerender: {
       routes: [
         '/',
-        '/changelog'
+        '/changelog',
+        '/sitemap.xml'
       ],
       crawlLinks: true
     }
+  },
+
+  routeRules: {
+    '/sitemap.xml': { prerender: true }
   },
 
   eslint: {

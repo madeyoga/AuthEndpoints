@@ -15,4 +15,4 @@ tag: external-oauth-v3.0.0-preview.3
 
 - [GitHub release](https://github.com/madeyoga/AuthEndpoints/releases/tag/external-oauth-v3.0.0-preview.3)
 - [Compare](https://github.com/madeyoga/AuthEndpoints/compare/external-oauth-v3.0.0-preview.2...external-oauth-v3.0.0-preview.3)
-- [External OAuth docs](https://madeyoga.github.io/AuthEndpoints/modules/external-oauth)
+- [External OAuth docs](/modules/external-oauth/)

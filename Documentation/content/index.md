@@ -1,6 +1,6 @@
 ---
 seo:
-  title: AuthEndpoints
+  title: AuthEndpoints — ASP.NET Core Identity auth library
   description: Ready-made ASP.NET Core Identity auth endpoints for web and mobile clients — cookies, JWT, passkeys, and composable modules.
 ---
 

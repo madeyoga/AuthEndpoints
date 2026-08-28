@@ -6,7 +6,7 @@ const toast = useToast()
 const { copy, copied } = useClipboard()
 const site = useSiteConfig()
 
-const mdPath = computed(() => `${site.url}/raw${route.path}.md`)
+const mdPath = computed(() => `${String(site.url || '').replace(/\/$/, '')}/raw${route.path}.md`)
 
 const items = [
   {
@@ -24,7 +24,8 @@ const items = [
     label: 'View as Markdown',
     icon: 'i-simple-icons:markdown',
     target: '_blank',
-    to: `/raw${route.path}.md`
+    to: `/raw${route.path}.md`,
+    trailingSlash: 'remove'
   },
   {
     label: 'Open in ChatGPT',

@@ -3,12 +3,24 @@ const { data: versions } = await useAsyncData('changelog-versions', () =>
   queryCollection('versions').order('date', 'DESC').all()
 )
 
+const title = 'Changelog'
+const description = 'Release notes for AuthEndpoints — Identity auth endpoints for ASP.NET Core.'
+
 useSeoMeta({
-  title: 'Changelog',
-  description: 'Release notes for AuthEndpoints — Identity auth endpoints for ASP.NET Core.',
+  title,
+  description,
   ogTitle: 'Changelog - AuthEndpoints',
-  ogDescription: 'Release notes for AuthEndpoints — Identity auth endpoints for ASP.NET Core.'
+  ogDescription: description,
+  ogType: 'article'
 })
+
+defineOgImage('Docs', {
+  title,
+  description,
+  headline: 'Releases'
+})
+
+useTechArticleJsonLd({ title, description })
 
 function releaseUrl(version: { tag?: string, title?: string }) {
   const tag = version.tag || version.title
@@ -49,7 +61,7 @@ function badgeProps(badge?: string) {
         size: 'lg'
       }, {
         label: 'Get started',
-        to: '/getting-started',
+        to: '/getting-started/',
         trailingIcon: 'i-lucide-arrow-right',
         size: 'lg'
       }]"

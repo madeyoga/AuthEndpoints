@@ -28,8 +28,11 @@ useSeoMeta({
   title,
   ogTitle: title,
   description,
-  ogDescription: description
+  ogDescription: description,
+  ogType: 'article'
 })
+
+useTechArticleJsonLd({ title, description })
 
 const headline = computed(() => findPageHeadline(navigation?.value, page.value?.path))
 
