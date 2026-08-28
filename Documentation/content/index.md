@@ -1,7 +1,7 @@
 ---
 seo:
   title: AuthEndpoints — ASP.NET Core Identity auth library
-  description: Ready-made ASP.NET Core Identity auth endpoints for web and mobile clients — cookies, JWT, passkeys, and composable modules.
+  description: Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.
 ---
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
@@ -15,7 +15,7 @@ orientation: horizontal
 [AuthEndpoints]{.text-primary}
 
 #description
-Ready-made ASP.NET Core Identity auth endpoints for web and mobile clients. Map cookie, JWT, and passkey flows — or compose only what you need.
+Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.
 
 #links
   :::u-button

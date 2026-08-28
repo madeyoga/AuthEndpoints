@@ -5,7 +5,7 @@ export const DOCS_SITE_URL = `${DOCS_ORIGIN}${DOCS_BASE_PATH}`
 
 export const SITE_NAME = 'AuthEndpoints'
 export const SITE_TITLE = 'AuthEndpoints — ASP.NET Core Identity auth library'
-export const SITE_DESCRIPTION = 'Ready-made ASP.NET Core Identity auth endpoints for web and mobile clients — cookies, JWT, passkeys, and composable modules.'
+export const SITE_DESCRIPTION = 'Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.'
 
 const OWN_URL_PREFIXES = [
   DOCS_SITE_URL,

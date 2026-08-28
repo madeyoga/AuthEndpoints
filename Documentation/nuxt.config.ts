@@ -134,7 +134,7 @@ export default defineNuxtConfig({
   llms: {
     domain: 'https://madeyoga.github.io/AuthEndpoints',
     title: 'AuthEndpoints',
-    description: 'ASP.NET Core library of ready-made Identity auth endpoints for web and mobile clients — cookies, JWT, passkeys, and composable modules.',
+    description: 'Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.',
     full: {
       title: 'AuthEndpoints - Full Documentation',
       description: 'Complete documentation for AuthEndpoints: getting started, composable endpoints, and module reference.'
