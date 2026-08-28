@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { useClipboard } from '@vueuse/core'
+import { DOCS_SITE_URL, toRawMarkdownHref, toRawMarkdownPath } from '#shared/site'
 
 const route = useRoute()
 const toast = useToast()
 const { copy, copied } = useClipboard()
-const site = useSiteConfig()
+const { app } = useRuntimeConfig()
 
-const mdPath = computed(() => `${site.url}/raw${route.path}.md`)
+const rawPath = computed(() => toRawMarkdownPath(route.path))
+const rawHref = computed(() => toRawMarkdownHref(route.path, app.baseURL))
+const mdPath = computed(() => `${DOCS_SITE_URL}${rawPath.value}`)
 
-const items = [
+const items = computed(() => [
   {
     label: 'Copy Markdown link',
     icon: 'i-lucide-link',
@@ -24,7 +27,9 @@ const items = [
     label: 'View as Markdown',
     icon: 'i-simple-icons:markdown',
     target: '_blank',
-    to: `/raw${route.path}.md`
+    external: true,
+    to: rawHref.value,
+    trailingSlash: 'remove' as const
   },
   {
     label: 'Open in ChatGPT',
@@ -38,10 +43,10 @@ const items = [
     target: '_blank',
     to: `https://claude.ai/new?q=${encodeURIComponent(`Read ${mdPath.value} so I can ask questions about it.`)}`
   }
-]
+])
 
 async function copyPage() {
-  copy(await $fetch<string>(`/raw${route.path}.md`))
+  copy(await $fetch<string>(rawHref.value))
 }
 </script>
 

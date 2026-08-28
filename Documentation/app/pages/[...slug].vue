@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ContentNavigationItem } from '@nuxt/content'
 import { findPageHeadline } from '@nuxt/content/utils'
+import { toContentPath } from '#shared/site'
 
 definePageMeta({
   layout: 'docs'
@@ -10,16 +11,22 @@ const route = useRoute()
 const { toc } = useAppConfig()
 const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
-const { data: page } = await useAsyncData(route.path, () => queryCollection('docs').path(route.path).first())
+const contentPath = computed(() => toContentPath(route.path))
+
+const { data: page } = await useAsyncData(
+  () => contentPath.value,
+  () => queryCollection('docs').path(contentPath.value).first()
+)
 if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
 }
 
-const { data: surround } = await useAsyncData(`${route.path}-surround`, () => {
-  return queryCollectionItemSurroundings('docs', route.path, {
+const { data: surround } = await useAsyncData(
+  () => `${contentPath.value}-surround`,
+  () => queryCollectionItemSurroundings('docs', contentPath.value, {
     fields: ['description']
   })
-})
+)
 
 const title = page.value.seo?.title || page.value.title
 const description = page.value.seo?.description || page.value.description
@@ -28,8 +35,11 @@ useSeoMeta({
   title,
   ogTitle: title,
   description,
-  ogDescription: description
+  ogDescription: description,
+  ogType: 'article'
 })
+
+useTechArticleJsonLd({ title, description })
 
 const headline = computed(() => findPageHeadline(navigation?.value, page.value?.path))
 

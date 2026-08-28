@@ -1,0 +1,170 @@
+/** Public GitHub Pages origin for the library docs (project site under /AuthEndpoints/). */
+export const DOCS_ORIGIN = 'https://madeyoga.github.io'
+export const DOCS_BASE_PATH = '/AuthEndpoints'
+export const DOCS_SITE_URL = `${DOCS_ORIGIN}${DOCS_BASE_PATH}`
+
+export const SITE_NAME = 'AuthEndpoints'
+export const SITE_TITLE = 'AuthEndpoints — ASP.NET Core Identity auth library'
+export const SITE_DESCRIPTION = 'Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.'
+
+const OWN_URL_PREFIXES = [
+  DOCS_SITE_URL,
+  `${DOCS_ORIGIN}${DOCS_BASE_PATH}/`,
+  'https://github.com/madeyoga/AuthEndpoints',
+  'https://www.nuget.org/packages/AuthEndpoints',
+  'https://nuget.org/packages/AuthEndpoints'
+] as const
+
+/**
+ * Links that should not get rel=nofollow: this docs site, the GitHub repo/releases,
+ * and the NuGet package page. Unrelated externals can keep nofollow.
+ */
+export function isOwnPropertyHref(href: string | undefined | null): boolean {
+  if (!href) {
+    return false
+  }
+
+  const trimmed = href.trim()
+  if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('mailto:') || trimmed.startsWith('tel:')) {
+    return true
+  }
+
+  // In-app paths (including the Pages base URL) are first-party.
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return true
+  }
+
+  return OWN_URL_PREFIXES.some((prefix) => {
+    const normalized = prefix.replace(/\/$/, '')
+    return trimmed === normalized
+      || trimmed === `${normalized}/`
+      || trimmed.startsWith(`${normalized}/`)
+      || trimmed.startsWith(`${normalized}?`)
+      || trimmed.startsWith(`${normalized}#`)
+  })
+}
+
+/** Drop a leading /AuthEndpoints prefix so canonicals can be built from route.path or request URLs. */
+export function stripDocsBasePath(path: string): string {
+  const pathname = path.split('?')[0]?.split('#')[0] || '/'
+  if (pathname === DOCS_BASE_PATH || pathname === `${DOCS_BASE_PATH}/`) {
+    return '/'
+  }
+  if (pathname.startsWith(`${DOCS_BASE_PATH}/`)) {
+    return pathname.slice(DOCS_BASE_PATH.length) || '/'
+  }
+  return pathname.startsWith('/') ? pathname : `/${pathname}`
+}
+
+/**
+ * Nuxt Content stores page paths without a trailing slash (`/getting-started`).
+ * Public URLs keep a slash (`/getting-started/`) via NuxtLink trailingSlash append,
+ * so Vue Router's route.path cannot be passed straight into collection queries.
+ */
+export function toContentPath(path: string | undefined | null): string {
+  const pathname = stripDocsBasePath(path || '/')
+  if (pathname === '/') {
+    return '/'
+  }
+  return pathname.replace(/\/+$/, '') || '/'
+}
+
+/**
+ * App-relative raw markdown URL. Must be built from the slashless content path;
+ * interpolating `/raw${route.path}.md` becomes `/raw/getting-started/.md`, which
+ * no longer ends in `/` so NuxtLink trailingSlash remove cannot repair it.
+ */
+export function toRawMarkdownPath(path: string | undefined | null): string {
+  return `/raw${toContentPath(path)}.md`
+}
+
+/** Resolve a raw markdown URL against the Pages base (`/AuthEndpoints/`). `.md` hrefs skip NuxtLink baseURL. */
+export function toRawMarkdownHref(path: string | undefined | null, baseURL = '/'): string {
+  const raw = toRawMarkdownPath(path).replace(/^\//, '')
+  const base = baseURL.endsWith('/') ? baseURL : `${baseURL}/`
+  return `${base}${raw}`
+}
+
+function isFilePath(path: string): boolean {
+  const last = path.split('/').pop() || ''
+  return last.includes('.')
+}
+
+/** Absolute trailing-slash URL on the public docs host. */
+export function toCanonicalUrl(path: string): string {
+  const hashIndex = path.indexOf('#')
+  const hash = hashIndex >= 0 ? path.slice(hashIndex) : ''
+  const withoutHash = hashIndex >= 0 ? path.slice(0, hashIndex) : path
+  const pathname = stripDocsBasePath(withoutHash.split('?')[0] || '/')
+
+  if (pathname === '/' || pathname === '') {
+    return `${DOCS_SITE_URL}/${hash}`
+  }
+
+  if (isFilePath(pathname)) {
+    return `${DOCS_SITE_URL}${pathname}${hash}`
+  }
+
+  const withSlash = pathname.endsWith('/') ? pathname : `${pathname}/`
+  return `${DOCS_SITE_URL}${withSlash}${hash}`
+}
+
+export function withNavTrailingSlash(path: string | undefined | null): string | undefined {
+  if (!path) {
+    return path ?? undefined
+  }
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('mailto:') || path.startsWith('#')) {
+    return path
+  }
+  const hashIndex = path.indexOf('#')
+  const hash = hashIndex >= 0 ? path.slice(hashIndex) : ''
+  const pathname = hashIndex >= 0 ? path.slice(0, hashIndex) : path
+  if (isFilePath(pathname) || pathname === '/') {
+    return `${pathname}${hash}`
+  }
+  return `${pathname.endsWith('/') ? pathname : `${pathname}/`}${hash}`
+}
+
+export function applyTrailingSlashToNav<T extends { path?: string, to?: unknown, children?: T[] }>(
+  items: T[] | undefined | null
+): T[] {
+  if (!items?.length) {
+    return []
+  }
+
+  return items.map((item) => {
+    const next = { ...item }
+    if (typeof next.path === 'string') {
+      next.path = withNavTrailingSlash(next.path)
+    }
+    if (typeof next.to === 'string') {
+      next.to = withNavTrailingSlash(next.to)
+    }
+    if (next.children?.length) {
+      next.children = applyTrailingSlashToNav(next.children)
+    }
+    return next
+  })
+}
+
+export function isPublicDocsPath(path: string | undefined | null): boolean {
+  if (!path) {
+    return false
+  }
+  const pathname = toContentPath(path)
+  if (pathname === '/404' || pathname === '/404.html') {
+    return false
+  }
+  return !pathname.split('/').some(segment => segment.startsWith('.'))
+}
+
+export function sitemapLocs(paths: Iterable<string>): string[] {
+  const unique = new Set<string>()
+  for (const path of paths) {
+    if (!isPublicDocsPath(path)) {
+      continue
+    }
+    unique.add(toCanonicalUrl(path).split('#')[0]!)
+  }
+  return [...unique].sort((a, b) => a.localeCompare(b))
+}

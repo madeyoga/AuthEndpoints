@@ -1,25 +1,41 @@
 <script setup lang="ts">
 import type { NuxtError } from '#app'
+import { joinURL } from 'ufo'
 
-defineProps<{
+const props = defineProps<{
   error: NuxtError
 }>()
+
+const { app } = useRuntimeConfig()
 
 useHead({
   htmlAttrs: {
     lang: 'en'
-  }
+  },
+  titleTemplate: '%s',
+  link: [
+    { rel: 'icon', href: joinURL(app.baseURL, 'favicon.svg'), type: 'image/svg+xml' }
+  ]
 })
 
 useSeoMeta({
   title: 'Page not found',
-  description: 'We are sorry but this page could not be found.'
+  description: 'This documentation page does not exist.',
+  robots: 'noindex, nofollow'
 })
 
 const { data: navigation } = await useAsyncData('navigation', () => queryCollectionNavigation('docs'))
 const { data: files } = useLazyAsyncData('search', () => queryCollectionSearchSections('docs'), {
   server: false
 })
+
+const displayError = computed(() => ({
+  statusCode: props.error?.statusCode || 404,
+  statusMessage: props.error?.statusMessage || 'Page not found',
+  message: props.error?.message && props.error.message !== props.error.statusMessage
+    ? props.error.message
+    : 'This documentation page does not exist.'
+}))
 
 provide('navigation', navigation)
 </script>
@@ -28,7 +44,11 @@ provide('navigation', navigation)
   <UApp>
     <AppHeader />
 
-    <UError :error="error" />
+    <UError
+      :error="displayError"
+      redirect="/"
+      :clear="{ label: 'Docs home', size: 'lg' }"
+    />
 
     <AppFooter />
 

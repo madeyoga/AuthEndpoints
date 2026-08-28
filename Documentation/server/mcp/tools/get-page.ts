@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { queryCollection } from '@nuxt/content/server'
+import { toContentPath, toRawMarkdownPath } from '#shared/site'
 
 export default defineMcpTool({
   description: `Retrieves the full content and details of a specific documentation page.
@@ -21,10 +22,11 @@ WORKFLOW: This tool returns the complete page content including title, descripti
     const event = useEvent()
     const url = getRequestURL(event)
     const siteUrl = import.meta.dev ? `${url.protocol}//${url.hostname}:${url.port}` : url.origin
+    const contentPath = toContentPath(path)
 
     try {
       const page = await queryCollection(event, 'docs')
-        .where('path', '=', path)
+        .where('path', '=', contentPath)
         .select('title', 'path', 'description')
         .first()
 
@@ -35,7 +37,7 @@ WORKFLOW: This tool returns the complete page content including title, descripti
         }
       }
 
-      const content = await $fetch<string>(`/raw${path}.md`, {
+      const content = await $fetch<string>(toRawMarkdownPath(contentPath), {
         baseURL: siteUrl
       })
 

@@ -17,4 +17,4 @@ tag: external-oauth-v3.0.0-preview.1
 ### Links
 
 - [GitHub release](https://github.com/madeyoga/AuthEndpoints/releases/tag/external-oauth-v3.0.0-preview.1)
-- [External OAuth docs](https://madeyoga.github.io/AuthEndpoints/modules/external-oauth)
+- [External OAuth docs](/modules/external-oauth/)

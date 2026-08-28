@@ -27,7 +27,7 @@ export default defineAppConfig({
     links: [{
       'label': 'Changelog',
       'icon': 'i-lucide-scroll-text',
-      'to': '/changelog',
+      'to': '/changelog/',
       'aria-label': 'Changelog'
     }, {
       'icon': 'i-simple-icons-github',
