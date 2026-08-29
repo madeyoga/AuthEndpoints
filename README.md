@@ -46,6 +46,16 @@ app.Run();
 
 For configuration, composable modules, route tables, and production guidance, see the [AuthEndpoints documentation](https://madeyoga.github.io/AuthEndpoints/).
 
+## AI agents
+
+Install the AuthEndpoints agent skill (vercel-labs/skills CLI):
+
+```bash
+npx skills add madeyoga/AuthEndpoints
+```
+
+Cursor also loads `.cursor/skills/authendpoints` when this repo is the workspace.
+
 ## Contribute
 
 Issues and pull requests are welcome. Open an issue at [madeyoga/AuthEndpoints](https://github.com/madeyoga/AuthEndpoints/issues) to report bugs or propose changes.
