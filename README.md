@@ -48,21 +48,13 @@ For configuration, composable modules, route tables, and production guidance, se
 
 ## AI agents
 
-There is **no MCP server**. The skill is a playbook; public docs remain at [https://madeyoga.github.io/AuthEndpoints](https://madeyoga.github.io/AuthEndpoints).
-
-### Install into your app
+Install the AuthEndpoints agent skill (vercel-labs/skills CLI):
 
 ```bash
 npx skills add madeyoga/AuthEndpoints
 ```
 
-Optionally pass `--agent cursor`. The vercel-labs/skills CLI copies from **`skills/authendpoints`**, not from `.cursor/skills`. In your project that typically lands at `.agents/skills/authendpoints` or `.cursor/skills/authendpoints`.
-
-In Cursor you can also use Customize → Rules → Remote Rule (GitHub) with `https://github.com/madeyoga/AuthEndpoints` ([Cursor rules](https://cursor.com/docs/context/rules)).
-
-### Working on this repo
-
-`.cursor/skills/authendpoints` is already in the tree. Cursor and Cloud Agents auto-load `.cursor/skills/` when AuthEndpoints is the workspace; they do **not** auto-load root `skills/`. Keep both `SKILL.md` files identical (`skills/authendpoints` is the source of truth).
+Cursor also loads `.cursor/skills/authendpoints` when this repo is the workspace.
 
 ## Contribute
 
