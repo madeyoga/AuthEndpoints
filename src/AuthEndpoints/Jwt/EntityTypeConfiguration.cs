@@ -19,18 +19,13 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
 
 public static class EntityFrameworkCoreHelpers
 {
+    /// <summary>
+    /// Maps the JWT refresh-token entity (<c>AuthEndpoints.AuthEndpointsRefreshTokens</c>).
+    /// Call from your <c>DbContext.OnModelCreating</c> when using <c>AddJwtEndpoints</c> / <c>MapJwtAuthEndpoints</c>.
+    /// </summary>
     public static ModelBuilder UseRefreshToken(this ModelBuilder builder)
     {
-        var entityBuilder = builder.Entity<RefreshToken>();
-
-        entityBuilder.ToTable("AuthEndpointsRefreshTokens", "AuthEndpoints");
-        entityBuilder.HasKey(e => e.Id);
-        entityBuilder.Property(e => e.TokenHash).IsRequired();
-        entityBuilder.HasIndex(e => e.TokenHash).IsUnique();
-        entityBuilder.Property(e => e.FamilyId).IsRequired();
-        entityBuilder.Property(e => e.SecurityStamp).IsRequired();
-        entityBuilder.Ignore(e => e.Token);
-
+        builder.ApplyConfiguration(new RefreshTokenConfiguration());
         return builder;
     }
 }
