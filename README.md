@@ -48,13 +48,13 @@ For configuration, composable modules, route tables, and production guidance, se
 
 ## AI agents
 
+Add the coding-agent skill from this repository:
+
 ```bash
 npx skills add madeyoga/AuthEndpoints
 ```
 
-That installs the skill from `skills/authendpoints/` in this repository. Agents copy it into the project, usually `.agents/skills` or `.cursor/skills`. It does not add the NuGet package. Use `dotnet add package AuthEndpoints` (3.0.1) for that. Docs stay at https://madeyoga.github.io/AuthEndpoints. There is no MCP server.
-
-If you have this repository open in Cursor, `.cursor/skills/authendpoints/` loads automatically. Cursor does not load the root `skills/` folder. Optional: Customize → Rules → Remote Rule (GitHub), repo URL `https://github.com/madeyoga/AuthEndpoints`.
+This does not install the NuGet package. Add that with `dotnet add package AuthEndpoints`. See [AI agents](https://madeyoga.github.io/AuthEndpoints/getting-started/ai-agents/).
 
 ## Contribute
 
