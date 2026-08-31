@@ -1,4 +1,4 @@
-using AuthEndpoints.Identity;
+﻿using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Builder;
@@ -19,17 +19,16 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
     /// For advanced composition use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
     /// <c>MapBearerAuthEndpoints</c>, <c>MapPasskeyEndpoints</c>, or <c>MapJwtAuthEndpoints</c>.
     /// </summary>
-    public static IEndpointRouteBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+    public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var options = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
 
-        var identity = endpoints.MapGroup(options.IdentityPath);
+        var identity = endpoints.MapGroup(options.IdentityPath).WithTags("Identity");
         identity.MapIdentityManagementApi<TUser>();
-        identity.MapCookieAuthEndpoints<TUser>()
-            .WithTags("Identity");
+        identity.MapCookieAuthEndpoints<TUser>();
 
         if (options.Passkeys.Enabled)
         {
@@ -45,6 +44,6 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
                 .WithTags("Jwt");
         }
 
-        return endpoints;
+        return identity;
     }
 }
