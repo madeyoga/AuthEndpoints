@@ -191,7 +191,7 @@ PY
 wait_ready() {
   local i
   for i in $(seq 1 60); do
-    if curl -sS -o /dev/null -w "%{http_code}" "${AE_BASE_URL}/identity/csrfToken" | grep -q '^200$'; then
+    if curl -sS -o /dev/null -w "%{http_code}" --max-time 1 "${AE_BASE_URL}/identity/csrfToken" 2>/dev/null | grep -q '^200$'; then
       return 0
     fi
     sleep 0.5
