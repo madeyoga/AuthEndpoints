@@ -1,0 +1,11 @@
+{
+  "name": "AuthEndpoints (.NET 10)",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "demo-api",
+      "command": "export DOTNET_ROOT=\"$HOME/.dotnet\"; export PATH=\"$HOME/.dotnet:$PATH\"; export ASPNETCORE_ENVIRONMENT=Development; dotnet run --project tests/AuthEndpoints.Tests --urls http://0.0.0.0:5080"
+    }
+  ],
+  "ports": [5080]
+}
