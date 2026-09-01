@@ -4,12 +4,25 @@ using Microsoft.AspNetCore.Identity;
 namespace AuthEndpoints;
 
 /// <summary>
-/// Options for the opinionated <c>AddAuthEndpoints</c> / <c>UseAuthEndpoints</c> / <c>MapAuthEndpoints</c> facade.
+/// Options for the opinionated cookie and Identity bearer facades
+/// (<c>AddAuthEndpoints</c> / <c>MapAuthEndpoints</c> and
+/// <c>AddAuthEndpointsBearer</c> / <c>MapAuthEndpointsBearer</c>).
 /// </summary>
 public sealed class AuthEndpointsOptions
 {
-    /// <summary>Route prefix for Identity management + cookie sign-in. Default: <c>/identity</c>.</summary>
+    /// <summary>
+    /// Route prefix for Identity management plus the configured sign-in stack.
+    /// Default: <c>/identity</c>.
+    /// </summary>
     public string IdentityPath { get; set; } = "/identity";
+
+    /// <summary>
+    /// Sign-in module mapped under <see cref="IdentityPath"/>.
+    /// Default: <see cref="AuthEndpointsSignIn.Cookie"/>.
+    /// <see cref="AuthEndpointsServiceCollectionExtensions.AddAuthEndpointsBearer{TUser, TContext}"/>
+    /// sets this to <see cref="AuthEndpointsSignIn.IdentityBearer"/>.
+    /// </summary>
+    public AuthEndpointsSignIn SignIn { get; set; } = AuthEndpointsSignIn.Cookie;
 
     /// <summary>Route prefix for passkey endpoints. Default: <c>/account</c>.</summary>
     public string PasskeyPath { get; set; } = "/account";
