@@ -14,7 +14,7 @@ public enum AuthEndpointsSignIn
 
     /// <summary>
     /// Identity bearer tokens via <c>MapBearerAuthEndpoints</c> (<c>Login</c>).
-    /// Used by <c>AddAuthEndpointsBearer</c> / <c>MapAuthEndpointsBearer</c>.
+    /// Set <see cref="AuthEndpointsOptions.SignIn"/> or pass this value to <c>AddAuthEndpoints</c>.
     /// </summary>
     IdentityBearer = 1,
 }

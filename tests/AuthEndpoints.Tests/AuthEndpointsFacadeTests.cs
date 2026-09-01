@@ -217,13 +217,14 @@ public class AuthEndpointsFacadeTests
     }
 
     [Fact]
-    public async Task Facade_AddBearer_MapAuthEndpoints_FollowsSignInOption()
+    public async Task Facade_SignInOption_MapsBearerLogin()
     {
         await using var host = await StartFacadeHostAsync(o =>
         {
             o.Passkeys.ServerDomain = "localhost";
             o.ConfigureIdentity = RelaxIdentityForTests;
-        }, bearer: true, mapBearerExplicitly: false);
+            o.SignIn = AuthEndpointsSignIn.IdentityBearer;
+        });
 
         var server = host.GetTestServer();
         using var http = server.CreateClient();
@@ -257,11 +258,13 @@ public class AuthEndpointsFacadeTests
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestRolesDbContext>(o =>
             o.UseInMemoryDatabase("FacadeBearerRoles_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddAuthEndpointsBearer<TestAppUser, IdentityRole, TestRolesDbContext>(o =>
-        {
-            o.Passkeys.ServerDomain = "localhost";
-            o.RequireEmailSenderInProduction = false;
-        });
+        builder.Services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(
+            AuthEndpointsSignIn.IdentityBearer,
+            o =>
+            {
+                o.Passkeys.ServerDomain = "localhost";
+                o.RequireEmailSenderInProduction = false;
+            });
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
 
         using var app = builder.Build();
@@ -354,8 +357,7 @@ public class AuthEndpointsFacadeTests
 
     private static async Task<WebApplication> StartFacadeHostAsync(
         Action<AuthEndpointsOptions>? configure = null,
-        bool bearer = false,
-        bool mapBearerExplicitly = true)
+        bool bearer = false)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -367,11 +369,13 @@ public class AuthEndpointsFacadeTests
         builder.Services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase(dbName));
         if (bearer)
         {
-            builder.Services.AddAuthEndpointsBearer<TestAppUser, TestDbContext>(o =>
-            {
-                o.Passkeys.ServerDomain = "localhost";
-                configure?.Invoke(o);
-            });
+            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(
+                AuthEndpointsSignIn.IdentityBearer,
+                o =>
+                {
+                    o.Passkeys.ServerDomain = "localhost";
+                    configure?.Invoke(o);
+                });
         }
         else
         {
@@ -392,15 +396,7 @@ public class AuthEndpointsFacadeTests
         }
 
         app.UseAuthEndpoints();
-        if (bearer && mapBearerExplicitly)
-        {
-            app.MapAuthEndpointsBearer<TestAppUser>();
-        }
-        else
-        {
-            app.MapAuthEndpoints<TestAppUser>();
-        }
-
+        app.MapAuthEndpoints<TestAppUser>();
         await app.StartAsync();
         return app;
     }

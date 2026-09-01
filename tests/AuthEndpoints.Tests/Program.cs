@@ -20,17 +20,19 @@ builder.Services.AddDbContext<TestDbContext>(options =>
 
 if (useBearerFacade)
 {
-    builder.Services.AddAuthEndpointsBearer<TestAppUser, TestDbContext>(o =>
-    {
-        o.RequireConfirmedAccount = false;
-        o.Passkeys.ServerDomain = "localhost";
-        o.ConfigureIdentity = ConfigureTestIdentity;
-        o.Jwt.Enabled = true;
-        o.Jwt.Configure = jwt =>
+    builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(
+        AuthEndpointsSignIn.IdentityBearer,
+        o =>
         {
-            jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-        };
-    });
+            o.RequireConfirmedAccount = false;
+            o.Passkeys.ServerDomain = "localhost";
+            o.ConfigureIdentity = ConfigureTestIdentity;
+            o.Jwt.Enabled = true;
+            o.Jwt.Configure = jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            };
+        });
 }
 else
 {
@@ -61,7 +63,7 @@ using (var scope = app.Services.CreateScope())
 if (useBearerFacade)
 {
     app.UseAuthEndpoints();
-    app.MapAuthEndpointsBearer<TestAppUser>();
+    app.MapAuthEndpoints<TestAppUser>();
 }
 else
 {

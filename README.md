@@ -9,7 +9,7 @@
 AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top of Identity. It fits a first-party auth API for web and mobile clients (React, Next.js, Vue, Nuxt, Svelte, native apps, and similar) with email/password, cookies, JWT, and/or passkeys.
 
 - Ready-made endpoints for registration, login, password reset, 2FA, and session/token flows
-- Opinionated quick start with `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` (cookie) or `AddAuthEndpointsBearer` / `MapAuthEndpointsBearer` (Identity bearer)
+- Opinionated quick start with `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` (cookie by default, Identity bearer via `AuthEndpointsSignIn.IdentityBearer`)
 - Account lifecycle: register, confirm email, forgot/reset password, manage info and 2FA, step-up ReAuth
 - Sign-in stacks you choose: cookie sessions, Identity bearer tokens, or Simple JWT
 - Passkeys (WebAuthn) for passwordless register and login

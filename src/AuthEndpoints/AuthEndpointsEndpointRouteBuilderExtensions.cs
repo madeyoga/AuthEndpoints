@@ -12,13 +12,13 @@ namespace AuthEndpoints;
 public static class AuthEndpointsEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Maps the cookie facade: Identity management plus cookie sign-in at
+    /// Maps the opinionated auth surface: Identity management plus the configured sign-in stack at
     /// <see cref="AuthEndpointsOptions.IdentityPath"/>, passkeys at
     /// <see cref="AuthEndpointsOptions.PasskeyPath"/> when enabled, and JWT when
     /// <see cref="AuthEndpointsJwtOptions.Enabled"/> is true.
-    /// When <see cref="AuthEndpointsOptions.SignIn"/> is
-    /// <see cref="AuthEndpointsSignIn.IdentityBearer"/>, this maps bearer login instead.
-    /// For advanced composition use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
+    /// Sign-in is <see cref="AuthEndpointsSignIn.Cookie"/> (<c>LoginCookie</c>) or
+    /// <see cref="AuthEndpointsSignIn.IdentityBearer"/> (Identity <c>Login</c>).
+    /// For a single module use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
     /// <c>MapBearerAuthEndpoints</c>, <c>MapPasskeyEndpoints</c>, or <c>MapJwtAuthEndpoints</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -28,22 +28,6 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
 
         var options = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
         return MapAuthEndpointsCore<TUser>(endpoints, options, options.SignIn);
-    }
-
-    /// <summary>
-    /// Maps the Identity bearer facade: Identity management plus bearer sign-in at
-    /// <see cref="AuthEndpointsOptions.IdentityPath"/>, passkeys at
-    /// <see cref="AuthEndpointsOptions.PasskeyPath"/> when enabled, and JWT when
-    /// <see cref="AuthEndpointsJwtOptions.Enabled"/> is true.
-    /// Pair with <see cref="AuthEndpointsServiceCollectionExtensions.AddAuthEndpointsBearer{TUser, TContext}"/>.
-    /// </summary>
-    public static IEndpointConventionBuilder MapAuthEndpointsBearer<TUser>(this IEndpointRouteBuilder endpoints)
-        where TUser : class, new()
-    {
-        ArgumentNullException.ThrowIfNull(endpoints);
-
-        var options = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
-        return MapAuthEndpointsCore<TUser>(endpoints, options, AuthEndpointsSignIn.IdentityBearer);
     }
 
     private static IEndpointConventionBuilder MapAuthEndpointsCore<TUser>(

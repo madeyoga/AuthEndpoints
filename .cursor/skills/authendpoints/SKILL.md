@@ -1,6 +1,6 @@
 ---
 name: authendpoints
-description: Use this when composing ASP.NET Core Identity auth with AuthEndpoints 3.x — cookie sessions, Identity bearer tokens, Simple JWT, passkeys, or 2FA. Also use when adding the AuthEndpoints NuGet package, wiring AddAuthEndpoints / MapAuthEndpoints or AddAuthEndpointsBearer / MapAuthEndpointsBearer, mapping cookie vs bearer login query flags, or configuring CSRF, RequireConfirmedAccount, and passkeys.
+description: Use this when composing ASP.NET Core Identity auth with AuthEndpoints 3.x — cookie sessions, Identity bearer tokens, Simple JWT, passkeys, or 2FA. Also use when adding the AuthEndpoints NuGet package, wiring AddAuthEndpoints / UseAuthEndpoints / MapAuthEndpoints, AuthEndpointsSignIn, mapping cookie vs bearer login query flags, or configuring CSRF, RequireConfirmedAccount, and passkeys.
 license: MIT
 ---
 
@@ -12,7 +12,7 @@ Canonical docs: https://madeyoga.github.io/AuthEndpoints (also `Documentation/` 
 
 ## Hard rules
 
-- Prefer a facade for the common stacks. Cookie web uses `AddAuthEndpoints` / `MapAuthEndpoints`. Native and mobile use `AddAuthEndpointsBearer` / `MapAuthEndpointsBearer`. Compose only for JWT-only hosts, custom prefixes, or a mix the facades do not cover.
+- Prefer the facade for the common stacks. Cookie web uses `AddAuthEndpoints` / `MapAuthEndpoints`. Native and mobile pass `AuthEndpointsSignIn.IdentityBearer` to the same methods. Compose only for JWT-only hosts, custom prefixes, or a mix the facade does not cover.
 - Cookie vs Identity bearer vs Simple JWT is a **product choice**. Document how to select; do not treat one stack as the only way.
 - Login query flags **differ by mapped handler**. Facade cookie login is not Identity `Login`.
 - Do not skip `CanSignInAsync`, confirmed-account policy, CSRF on cookie sessions, or lockout-aware login.
@@ -36,9 +36,9 @@ dotnet add package AuthEndpoints.External.OAuth --prerelease
 
 Current OAuth preview: `3.0.0-preview.3` (independent versioning; needs core 3.0.0+). Docs: https://madeyoga.github.io/AuthEndpoints/modules/external-oauth
 
-## Prefer a facade
+## Prefer the facade
 
-Two one-call compositions share the same options and pipeline (`UseAuthEndpoints`).
+One Add / Use / Map triad. Cookie is the default sign-in. Identity bearer is `AuthEndpointsSignIn.IdentityBearer`.
 
 ### Cookie web
 
@@ -64,10 +64,10 @@ app.Run();
 
 ### Identity bearer (native / mobile)
 
-Same DI and pipeline. Maps Identity `Login` (JSON access and refresh tokens) instead of `LoginCookie`.
+Same methods and pipeline. Maps Identity `Login` (JSON access and refresh tokens) instead of `LoginCookie`.
 
 ```cs
-builder.Services.AddAuthEndpointsBearer<AppUser, AppDbContext>(o =>
+builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(AuthEndpointsSignIn.IdentityBearer, o =>
 {
     o.Passkeys.ServerDomain = "example.com";
 });
@@ -77,11 +77,11 @@ builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
 var app = builder.Build();
 
 app.UseAuthEndpoints();
-app.MapAuthEndpointsBearer<AppUser>(); // /identity (management + bearer login/refresh) + /account (passkeys)
+app.MapAuthEndpoints<AppUser>(); // /identity (management + bearer login/refresh) + /account (passkeys)
 app.Run();
 ```
 
-`AddAuthEndpoints` and `AddAuthEndpointsBearer` return `IdentityBuilder` for optional chaining. They register Identity API endpoints, EF stores, `IdentitySchemaVersions.Version3` (required for passkey credential storage), antiforgery, cookie or bearer auth helpers, ReAuth, and rate limits.
+`AddAuthEndpoints` returns `IdentityBuilder` for optional chaining. It registers Identity API endpoints, EF stores, `IdentitySchemaVersions.Version3` (required for passkey credential storage), antiforgery, cookie or bearer auth helpers, ReAuth, and rate limits.
 
 `UseAuthEndpoints` must run after exception-handling middleware. Hosts enable HTTPS in Production separately. Safe to call once; a second call is a no-op.
 
@@ -105,7 +105,7 @@ builder.Services.AddAuthEndpoints<AppUser, AppRole, AppDbContext>(o =>
 | Property | Default | Notes |
 | --- | --- | --- |
 | `IdentityPath` | `/identity` | Management + the configured sign-in stack |
-| `SignIn` | `Cookie` | `Cookie` or `IdentityBearer`. `AddAuthEndpointsBearer` forces `IdentityBearer`. |
+| `SignIn` | `Cookie` | `Cookie` or `IdentityBearer`. Pass `IdentityBearer` to `AddAuthEndpoints`, or set `o.SignIn`. |
 | `PasskeyPath` | `/account` | Passkey routes |
 | `RequireConfirmedAccount` | `true` | Identity requires a confirmed account before sign-in |
 | `Passkeys.Enabled` | `true` | When false, passkey DI and mapping are skipped |
@@ -192,7 +192,7 @@ Module: https://madeyoga.github.io/AuthEndpoints/modules/passkeys
 | Stack | Typical client | How to select |
 | --- | --- | --- |
 | **Cookie** | First-party browser / SPA | `AddAuthEndpoints` + `MapAuthEndpoints`, or compose `AddCookieAuthEndpoints` + `MapCookieAuthEndpoints` |
-| **Identity bearer** | Native / mobile (tokens in JSON, no cookie jar) | `AddAuthEndpointsBearer` + `MapAuthEndpointsBearer`, or compose `AddBearerAuthEndpoints` + `MapBearerAuthEndpoints` |
+| **Identity bearer** | Native / mobile (tokens in JSON, no cookie jar) | `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` + `MapAuthEndpoints`, or compose `AddBearerAuthEndpoints` + `MapBearerAuthEndpoints` |
 | **Simple JWT** | Browser that wants a Bearer access token + HttpOnly refresh cookie | Facade `o.Jwt.Enabled = true` and `modelBuilder.UseRefreshToken()`, or compose `AddJwtEndpoints` / `MapJwtAuthEndpoints` |
 
 Mixed web + native: map **separate** sign-in groups (or hosts) per client type.

@@ -1,6 +1,6 @@
 # Identity bearer facade
 
-A native or mobile client uses the one-call Identity bearer facade. Management and password login share `/identity`. Login returns JSON access and refresh tokens. Passkeys stay on `/account`.
+A native or mobile client uses `AddAuthEndpoints` with `AuthEndpointsSignIn.IdentityBearer` and `MapAuthEndpoints`. Management and password login share `/identity`. Login returns JSON access and refresh tokens. Passkeys stay on `/account`.
 
 ## Sub-features
 

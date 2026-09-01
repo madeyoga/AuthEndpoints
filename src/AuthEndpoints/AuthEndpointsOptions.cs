@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Identity;
 namespace AuthEndpoints;
 
 /// <summary>
-/// Options for the opinionated cookie and Identity bearer facades
-/// (<c>AddAuthEndpoints</c> / <c>MapAuthEndpoints</c> and
-/// <c>AddAuthEndpointsBearer</c> / <c>MapAuthEndpointsBearer</c>).
+/// Options for the opinionated <c>AddAuthEndpoints</c> / <c>UseAuthEndpoints</c> / <c>MapAuthEndpoints</c> facade.
 /// </summary>
 public sealed class AuthEndpointsOptions
 {
@@ -19,8 +17,8 @@ public sealed class AuthEndpointsOptions
     /// <summary>
     /// Sign-in module mapped under <see cref="IdentityPath"/>.
     /// Default: <see cref="AuthEndpointsSignIn.Cookie"/>.
-    /// <see cref="AuthEndpointsServiceCollectionExtensions.AddAuthEndpointsBearer{TUser, TContext}"/>
-    /// sets this to <see cref="AuthEndpointsSignIn.IdentityBearer"/>.
+    /// Pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> to
+    /// <c>AddAuthEndpoints</c> to map Identity bearer login instead of cookie login.
     /// </summary>
     public AuthEndpointsSignIn SignIn { get; set; } = AuthEndpointsSignIn.Cookie;
 

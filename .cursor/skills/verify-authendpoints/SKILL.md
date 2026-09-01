@@ -49,7 +49,7 @@ Default `AE_HOST_MODE=compose`:
 | `/account` | Passkey routes |
 | `/test/*` | **Test-only** probes (`/test/csrf`, `/test/reauth`, `/test/csrf-auth`). Not library surface. Use them only as extra observation, never as the sole proof of a library feature. |
 
-`AE_HOST_MODE=bearer-facade` uses `AddAuthEndpointsBearer` / `MapAuthEndpointsBearer` instead of the compose maps:
+`AE_HOST_MODE=bearer-facade` uses `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` / `MapAuthEndpoints` instead of the compose maps:
 
 | Prefix | Mapped surface |
 | --- | --- |
