@@ -34,7 +34,7 @@ Preconditions:
 
 ## Gotchas
 
-- Facade cookie login (`/identity/login`) is a different handler. `useCookies` only applies to **this** Identity `Login` mapping.
+- Facade cookie login (`/identity/login` on the compose host) is a different handler. `useCookies` only applies to **this** Identity `Login` mapping, and to the Identity bearer facade at `/identity/login` when `AE_HOST_MODE=bearer-facade`.
 - Do not map cookie and bearer login on the same path in a real host. The test host uses `/identity` vs `/identity/bearer`.
 - Unset `AE_BEARER` before proving the cookie-flag path.
 - `/identity/bearer` also maps management. Info lives under `/identity/bearer/manage/info`, not `/identity/manage/info`, when you signed in on the bearer prefix with cookies.
