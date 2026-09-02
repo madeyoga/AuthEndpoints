@@ -16,8 +16,3 @@ tag: external-oauth-v3.0.0-preview.2
 - `AddLoginRateLimiting` registered from `AddExternalAuthEndpoints`
 - `JwtExternalLoginCompleter` for JWT refresh-cookie completion
 - `MapExternalAccountEndpoints` for list / link / unlink while signed in
-
-### Links
-
-- [GitHub release](https://github.com/madeyoga/AuthEndpoints/releases/tag/external-oauth-v3.0.0-preview.2)
-- [External OAuth docs](/modules/external-oauth/)

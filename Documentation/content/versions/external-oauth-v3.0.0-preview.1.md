@@ -13,8 +13,3 @@ tag: external-oauth-v3.0.0-preview.1
 - GitHub and Google provider modules (`AddGitHub` / `MapGitHubAuthEndpoints`, `AddGoogle` / `MapGoogleAuthEndpoints`)
 - Default completion issues an Identity application cookie; `AddCompleter<T>` for future JWT (or other) modes
 - Compose-only — not wired into the `AddAuthEndpoints` facade
-
-### Links
-
-- [GitHub release](https://github.com/madeyoga/AuthEndpoints/releases/tag/external-oauth-v3.0.0-preview.1)
-- [External OAuth docs](/modules/external-oauth/)

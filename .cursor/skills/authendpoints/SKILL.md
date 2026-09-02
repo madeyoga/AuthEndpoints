@@ -6,7 +6,9 @@ license: MIT
 
 # AuthEndpoints 3.x
 
-Ready-made Identity auth API endpoints for first-party web and mobile clients. Current stable NuGet: **AuthEndpoints 3.0.1**.
+Ready-made Identity auth API endpoints for first-party web and mobile clients.
+
+[![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 
 Canonical docs: https://madeyoga.github.io/AuthEndpoints (also `Documentation/` in this repo). Point agents at those pages; do not paste the whole site.
 
@@ -34,7 +36,9 @@ External OAuth (GitHub/Google) is a **separate preview** package, not included i
 dotnet add package AuthEndpoints.External.OAuth --prerelease
 ```
 
-Current OAuth preview: `3.0.0-preview.3` (independent versioning; needs core 3.0.0+). Docs: https://madeyoga.github.io/AuthEndpoints/modules/external-oauth
+[![nuget](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
+
+Independent versioning from core. Docs: https://madeyoga.github.io/AuthEndpoints/modules/external-oauth
 
 ## Prefer the facade
 
@@ -160,7 +164,7 @@ The library calls `AddAntiforgery()` with no header override. ASP.NET Core's def
 
 The `RequireAntiforgery` filter **skips** CSRF when the request is authenticated via Identity bearer or JWT Bearer **and not** via the application/external cookie. Cookie sessions still require CSRF even if a bearer token is also present.
 
-## Confirmed account and `CanSignInAsync` (3.0.1)
+## Confirmed account and `CanSignInAsync`
 
 `RequireConfirmedAccount` defaults **true**. Password cookie/bearer login uses `PasswordSignInAsync` (Identity `CanSignInAsync`). JWT `/create` uses `CheckPasswordSignInAsync` (same policy).
 
