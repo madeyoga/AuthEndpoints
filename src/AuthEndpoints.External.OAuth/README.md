@@ -12,11 +12,14 @@ This package references **both** GitHub and Google OAuth handler packages. Split
 
 ## Install
 
+[![nuget](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
+[![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
+
 ```bash
 dotnet add package AuthEndpoints.External.OAuth --prerelease
 ```
 
-Use `--prerelease` while this package publishes preview builds. Requires [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) **3.0.0 or later** (Identity host) — see the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for minimum core versions. Does not use Identity management HTTP APIs.
+Use `--prerelease` while this package publishes preview builds. It needs a published [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) Identity host. See the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for the core version this preview targets. Does not use Identity management HTTP APIs.
 
 ## Usage
 

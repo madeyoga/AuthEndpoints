@@ -12,7 +12,7 @@ namespace AuthEndpoints;
 public static class AuthEndpointsServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers a auth stack: Identity API endpoints, EF stores, antiforgery,
+    /// Registers the cookie Identity facade: Identity API endpoints, EF stores, antiforgery,
     /// ReAuth, rate limiting, and (by default) passkey support.
     /// Hosts must still register <see cref="DbContext"/>, call <see cref="AuthEndpointsApplicationBuilderExtensions.UseAuthEndpoints"/>,
     /// <see cref="AuthEndpointsEndpointRouteBuilderExtensions.MapAuthEndpoints{TUser}"/>, and in Production
@@ -22,6 +22,8 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// For roles, prefer <see cref="AddAuthEndpoints{TUser, TRole, TContext}"/> so
     /// <c>IRoleStore</c> is registered. Do not chain bare <c>AddRoles</c> after this overload
     /// without calling <c>AddEntityFrameworkStores</c> again.
+    /// For Identity bearer tokens, pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> or set
+    /// <see cref="AuthEndpointsOptions.SignIn"/>.
     /// </remarks>
     /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
@@ -34,8 +36,26 @@ public static class AuthEndpointsServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Same as <see cref="AddAuthEndpoints{TUser, TContext}"/>, and registers Identity roles
-    /// (<typeparamref name="TRole"/>) before EF stores so <c>IRoleStore</c> is available.
+    /// Same as <see cref="AddAuthEndpoints{TUser, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
+    /// with <see cref="AuthEndpointsOptions.SignIn"/> forced to <paramref name="signIn"/>.
+    /// </summary>
+    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
+    public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
+        this IServiceCollection services,
+        AuthEndpointsSignIn signIn,
+        Action<AuthEndpointsOptions>? configure = null)
+        where TUser : class, new()
+        where TContext : DbContext
+    {
+        return AddAuthEndpointsCore<TUser, TContext>(
+            services,
+            WrapSignIn(signIn, configure),
+            addRoles: null);
+    }
+
+    /// <summary>
+    /// Same as <see cref="AddAuthEndpoints{TUser, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
+    /// and registers Identity roles (<typeparamref name="TRole"/>) before EF stores so <c>IRoleStore</c> is available.
     /// </summary>
     /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
@@ -49,6 +69,36 @@ public static class AuthEndpointsServiceCollectionExtensions
             services,
             configure,
             builder => builder.AddRoles<TRole>());
+    }
+
+    /// <summary>
+    /// Same as <see cref="AddAuthEndpoints{TUser, TRole, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
+    /// with <see cref="AuthEndpointsOptions.SignIn"/> forced to <paramref name="signIn"/>.
+    /// </summary>
+    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
+    public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
+        this IServiceCollection services,
+        AuthEndpointsSignIn signIn,
+        Action<AuthEndpointsOptions>? configure = null)
+        where TUser : class, new()
+        where TRole : class
+        where TContext : DbContext
+    {
+        return AddAuthEndpointsCore<TUser, TContext>(
+            services,
+            WrapSignIn(signIn, configure),
+            builder => builder.AddRoles<TRole>());
+    }
+
+    private static Action<AuthEndpointsOptions> WrapSignIn(
+        AuthEndpointsSignIn signIn,
+        Action<AuthEndpointsOptions>? configure)
+    {
+        return o =>
+        {
+            configure?.Invoke(o);
+            o.SignIn = signIn;
+        };
     }
 
     private static IdentityBuilder AddAuthEndpointsCore<TUser, TContext>(
@@ -96,6 +146,10 @@ public static class AuthEndpointsServiceCollectionExtensions
         services.AddAuthorization();
         services.AddAntiforgery();
         services.AddCookieAuthEndpoints();
+        if (bootstrap.SignIn == AuthEndpointsSignIn.IdentityBearer)
+        {
+            services.AddBearerAuthEndpoints();
+        }
 
         if (bootstrap.Passkeys.Enabled)
         {

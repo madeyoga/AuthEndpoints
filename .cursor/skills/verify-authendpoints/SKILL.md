@@ -31,11 +31,15 @@ chmod +x "$HARNESS"
 "$HARNESS" doctor
 ```
 
-Ready signal: `GET {AE_BASE_URL}/identity/csrfToken` returns **200** and JSON with `csrfToken` (Pascal `CsrfToken` is also accepted). The helper polls that URL after start.
+Ready signal for the default **compose** host: `GET {AE_BASE_URL}/identity/csrfToken` returns **200** and JSON with `csrfToken` (Pascal `CsrfToken` is also accepted). The helper polls that URL after start.
+
+Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready signal is `GET /identity/manage/info` returning **401**. Doctor prints `mode=bearer-facade`. See [bearer-facade.md](features/bearer-facade.md).
 
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.
 
 What the host actually is (`tests/AuthEndpoints.Tests/Program.cs`):
+
+Default `AE_HOST_MODE=compose`:
 
 | Prefix | Mapped surface |
 | --- | --- |
@@ -44,6 +48,15 @@ What the host actually is (`tests/AuthEndpoints.Tests/Program.cs`):
 | `/auth` | Simple JWT (`/create`, `/refresh`, `/verify`, `/logout`, `/csrfToken`) |
 | `/account` | Passkey routes |
 | `/test/*` | **Test-only** probes (`/test/csrf`, `/test/reauth`, `/test/csrf-auth`). Not library surface. Use them only as extra observation, never as the sole proof of a library feature. |
+
+`AE_HOST_MODE=bearer-facade` uses `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` / `MapAuthEndpoints` instead of the compose maps:
+
+| Prefix | Mapped surface |
+| --- | --- |
+| `/identity` | Identity management + **Identity bearer** login (`Login`) + `/refresh` (no `/csrfToken`) |
+| `/auth` | Simple JWT (facade JWT opt-in is on for this host) |
+| `/account` | Passkey routes |
+| `/test/*` | Same test-only probes |
 
 Host defaults that **differ from production library defaults**:
 
@@ -60,7 +73,7 @@ Run `"$HARNESS" doctor` before the first drive, after any failed drive, and when
 
 1. `$AE_RUN_DIR/host.pid` exists and that PID is alive.
 2. `AE_BASE_URL` accepts connections (the port we chose).
-3. `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`.
+3. Compose host: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade host: `GET /identity/manage/info` is 401.
 
 If doctor fails, `stop` (if we started the process) and `launch` again. Do not keep driving a surprising instance.
 
@@ -141,8 +154,8 @@ Never `pkill -f AuthEndpoints` or similar.
 
 | Command | What it does |
 | --- | --- |
-| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until `/identity/csrfToken` is 200 |
-| `doctor` | PID + port + csrfToken |
+| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until `/identity/csrfToken` is 200 (or `/identity/manage/info` is 401 when `AE_HOST_MODE=bearer-facade`) |
+| `doctor` | PID + port + ready signal for the current `AE_HOST_MODE` |
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |
 | `post [--csrf] <path> [json] [--out N]` | POST JSON; `--csrf` fetches a token first (JWT paths use `/auth/csrfToken`) |

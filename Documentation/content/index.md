@@ -85,7 +85,7 @@ Ship registration, sign-in, and account management without wiring every Identity
   Opinionated quick start
 
   #description
-  `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` give you cookie Identity and passkeys with secure defaults.
+  `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` give you cookie Identity and passkeys with secure defaults. Native and mobile hosts pass `AuthEndpointsSignIn.IdentityBearer` for Identity bearer tokens.
   :::
 
   :::u-page-feature

@@ -42,6 +42,7 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 
 - [Cookie session](./cookie-session.md) covers register, cookie login, session info, and logout.
 - [CSRF on cookie mutations](./csrf.md) covers token issue and the requirement on cookie logout.
-- [Identity bearer](./identity-bearer.md) covers token login, refresh, and the `useCookies` query flag.
+- [Identity bearer](./identity-bearer.md) covers token login, refresh, and the `useCookies` query flag on the compose host prefix `/identity/bearer`.
+- [Identity bearer facade](./bearer-facade.md) covers `MapAuthEndpoints` with `AuthEndpointsSignIn.IdentityBearer` (`AE_HOST_MODE=bearer-facade`) at `/identity/login`.
 - [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, and refresh-cookie refresh.
 - [ReAuth step-up](./reauth.md) covers `confirmIdentity` and a protected manage mutation.

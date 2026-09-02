@@ -12,11 +12,13 @@ namespace AuthEndpoints;
 public static class AuthEndpointsEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Maps the opinionated auth surface: Identity management + cookie sign-in at
+    /// Maps the opinionated auth surface: Identity management plus the configured sign-in stack at
     /// <see cref="AuthEndpointsOptions.IdentityPath"/>, passkeys at
     /// <see cref="AuthEndpointsOptions.PasskeyPath"/> when enabled, and JWT when
     /// <see cref="AuthEndpointsJwtOptions.Enabled"/> is true.
-    /// For advanced composition use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
+    /// Sign-in is <see cref="AuthEndpointsSignIn.Cookie"/> (<c>LoginCookie</c>) or
+    /// <see cref="AuthEndpointsSignIn.IdentityBearer"/> (Identity <c>Login</c>).
+    /// For a single module use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
     /// <c>MapBearerAuthEndpoints</c>, <c>MapPasskeyEndpoints</c>, or <c>MapJwtAuthEndpoints</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -25,10 +27,26 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var options = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
+        return MapAuthEndpointsCore<TUser>(endpoints, options, options.SignIn);
+    }
 
+    private static IEndpointConventionBuilder MapAuthEndpointsCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        AuthEndpointsOptions options,
+        AuthEndpointsSignIn signIn)
+        where TUser : class, new()
+    {
         var identity = endpoints.MapGroup(options.IdentityPath).WithTags("Identity");
         identity.MapIdentityManagementApi<TUser>();
-        identity.MapCookieAuthEndpoints<TUser>();
+
+        if (signIn == AuthEndpointsSignIn.IdentityBearer)
+        {
+            identity.MapBearerAuthEndpoints<TUser>();
+        }
+        else
+        {
+            identity.MapCookieAuthEndpoints<TUser>();
+        }
 
         if (options.Passkeys.Enabled)
         {

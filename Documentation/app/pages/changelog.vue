@@ -68,6 +68,28 @@ function badgeProps(badge?: string) {
     />
 
     <UContainer>
+      <div class="flex flex-wrap items-center gap-3 pb-8">
+        <a
+          href="https://www.nuget.org/packages/AuthEndpoints/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            alt="AuthEndpoints on NuGet"
+            src="https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square"
+          >
+        </a>
+        <a
+          href="https://www.nuget.org/packages/AuthEndpoints.External.OAuth/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            alt="AuthEndpoints.External.OAuth on NuGet"
+            src="https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square"
+          >
+        </a>
+      </div>
       <UPageBody class="pb-24">
         <UChangelogVersions v-if="versions?.length">
           <UChangelogVersion

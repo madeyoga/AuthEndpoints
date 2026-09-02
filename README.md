@@ -1,6 +1,7 @@
 # AuthEndpoints
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
+[![oauth](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
 [![issues](https://img.shields.io/github/issues/madeyoga/AuthEndpoints?color=blue&logo=github&style=flat-square)](https://github.com/madeyoga/AuthEndpoints/issues)
 [![downloads](https://img.shields.io/nuget/dt/AuthEndpoints?color=blue&style=flat-square&logo=nuget)](https://www.nuget.org/packages/AuthEndpoints/)
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
@@ -9,7 +10,7 @@
 AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top of Identity. It fits a first-party auth API for web and mobile clients (React, Next.js, Vue, Nuxt, Svelte, native apps, and similar) with email/password, cookies, JWT, and/or passkeys.
 
 - Ready-made endpoints for registration, login, password reset, 2FA, and session/token flows
-- Opinionated quick start with `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints`
+- Opinionated quick start with `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` (cookie by default, Identity bearer via `AuthEndpointsSignIn.IdentityBearer`)
 - Account lifecycle: register, confirm email, forgot/reset password, manage info and 2FA, step-up ReAuth
 - Sign-in stacks you choose: cookie sessions, Identity bearer tokens, or Simple JWT
 - Passkeys (WebAuthn) for passwordless register and login

@@ -8,8 +8,19 @@ namespace AuthEndpoints;
 /// </summary>
 public sealed class AuthEndpointsOptions
 {
-    /// <summary>Route prefix for Identity management + cookie sign-in. Default: <c>/identity</c>.</summary>
+    /// <summary>
+    /// Route prefix for Identity management plus the configured sign-in stack.
+    /// Default: <c>/identity</c>.
+    /// </summary>
     public string IdentityPath { get; set; } = "/identity";
+
+    /// <summary>
+    /// Sign-in module mapped under <see cref="IdentityPath"/>.
+    /// Default: <see cref="AuthEndpointsSignIn.Cookie"/>.
+    /// Pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> to
+    /// <c>AddAuthEndpoints</c> to map Identity bearer login instead of cookie login.
+    /// </summary>
+    public AuthEndpointsSignIn SignIn { get; set; } = AuthEndpointsSignIn.Cookie;
 
     /// <summary>Route prefix for passkey endpoints. Default: <c>/account</c>.</summary>
     public string PasskeyPath { get; set; } = "/account";
