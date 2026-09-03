@@ -55,7 +55,7 @@ Add the coding-agent skill from this repository:
 npx skills add madeyoga/AuthEndpoints
 ```
 
-This does not install the NuGet package. Add that with `dotnet add package AuthEndpoints`. See [AI agents](https://madeyoga.github.io/AuthEndpoints/getting-started/ai-agents/).
+See [AI agents](https://madeyoga.github.io/AuthEndpoints/getting-started/ai-agents/).
 
 ## Contribute
 
