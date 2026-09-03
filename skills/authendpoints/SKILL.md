@@ -102,6 +102,16 @@ Mixed web + native: map **separate** sign-in groups (or hosts) per client type. 
 
 Recipes: https://madeyoga.github.io/AuthEndpoints/composables/recipes
 
+Paths below use `IdentityPath` (default `/identity`). Hosts that change `o.IdentityPath` must use that prefix instead.
+
+| Method | Path | Contract |
+| --- | --- | --- |
+| `POST` | `{IdentityPath}/register` | `{ email, password }`. No session. Duplicate email returns `200`. |
+| `POST` | `{IdentityPath}/login` | `LoginRequest`: `{ email, password, twoFactorCode?, twoFactorRecoveryCode? }`. Cookie: empty body + `Set-Cookie`. Bearer: `{ accessToken, refreshToken }`. No CSRF. |
+| `GET` | `{IdentityPath}/csrfToken` | `{ csrfToken }`. Send as header `RequestVerificationToken` unless the host renamed it. |
+| `POST` | `{IdentityPath}/logout` | CSRF when the application cookie is in use. |
+| `POST` | `{IdentityPath}/refresh` | Identity bearer only. JSON refresh; returns `{ accessToken, refreshToken }`. |
+
 ## Login query flags
 
 **Which handler is mapped decides which query flags work.** Cookie facade / `MapCookieAuthEndpoints` maps `LoginCookie`. Bearer facade / `MapBearerAuthEndpoints` maps Identity `Login`. `useCookies` on the cookie-facade login URL does nothing.
@@ -115,11 +125,11 @@ Always the application cookie. Only `useSessionCookies` is read. **`useCookies` 
 | omitted or `useSessionCookies=true` | session cookie (`isPersistent = false`) |
 | `useSessionCookies=false` | persistent cookie |
 
-Body is Identity `LoginRequest` (`email`, `password`, optional `twoFactorCode` / `twoFactorRecoveryCode`). `POST /login` does not need CSRF. Lockout on failure. Rate-limited.
+Body is Identity `LoginRequest` (`email`, `password`, optional `twoFactorCode` / `twoFactorRecoveryCode`). `POST {IdentityPath}/login` (default `/identity/login`) does not need CSRF. Lockout on failure. Rate-limited.
 
 ### Bearer facade → Identity `Login`
 
-Cookie iff `useCookies==true || useSessionCookies==true`. Persistent iff `useCookies==true && useSessionCookies!=true`. Neither flag → Identity bearer tokens (`AccessTokenResponse`).
+Cookie iff `useCookies==true || useSessionCookies==true`. Persistent iff `useCookies==true && useSessionCookies!=true`. Neither flag → Identity bearer tokens (`accessToken`, `refreshToken`).
 
 | Query | Result |
 | --- | --- |
@@ -133,7 +143,7 @@ Default passkey completer (`IdentityPasskeySignInCompleter`) uses **these Identi
 
 Cookie sessions and the JWT refresh cookie need antiforgery on unsafe methods (`POST` / `PUT` / `PATCH` / `DELETE`). Login does not.
 
-1. `GET {prefix}/csrfToken` (cookie facade: `/identity/csrfToken`; JWT: `/auth/csrfToken`) → JSON `csrfToken`.
+1. `GET {IdentityPath}/csrfToken` (default `/identity/csrfToken`; JWT: `{Jwt.Path}/csrfToken`, default `/auth/csrfToken`) → JSON `csrfToken`.
 2. Send the token in the antiforgery **header**.
 3. Send cookies (`credentials: "include"` / Axios `withCredentials`).
 
@@ -160,7 +170,7 @@ CSRF is skipped when the request is authenticated via Identity bearer or JWT Bea
 
 Full table: https://madeyoga.github.io/AuthEndpoints/getting-started/configuration
 
-Password `/register` does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**; passkey register still stores the credential but does not create a session.
+`POST {IdentityPath}/register` (default `/identity/register`) does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**; passkey register still stores the credential but does not create a session.
 
 ## Passkeys
 
