@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using AuthEndpoints.Passkey;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
 
 namespace AuthEndpoints.Tests;
@@ -48,7 +49,11 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
         });
 
         var email = $"passkey-factory-{Guid.NewGuid():N}@test.local";
-        using var client = TestHelpers.CreateClientWithCookies(factory);
+        using var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false,
+            HandleCookies = true
+        });
 
         var csrf = await TestHelpers.GetCsrfTokenAsync(client);
         using var request = new HttpRequestMessage(HttpMethod.Post, "/account/passkeys/register/options")
