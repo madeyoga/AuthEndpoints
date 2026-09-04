@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddReAuthScheme();
         services.AddIdentityEndpointRateLimiting();
+        services.TryAddSingleton<IPasskeyUserIdFactory, DefaultPasskeyUserIdFactory>();
 
         if (services.Any(d => d.ServiceType == typeof(PasskeyRateLimitMarker)))
         {
@@ -78,5 +79,32 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IPasskeySignInCompleter<TUser>, TCompleter>();
         return services;
+    }
+
+    /// <summary>
+    /// Replaces the default <see cref="IPasskeyUserIdFactory"/> used when minting
+    /// a user id during passwordless passkey registration.
+    /// </summary>
+    public static IServiceCollection AddPasskeyUserIdFactory<TFactory>(this IServiceCollection services)
+        where TFactory : class, IPasskeyUserIdFactory
+    {
+        services.AddSingleton<IPasskeyUserIdFactory, TFactory>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registers a callback as the <see cref="IPasskeyUserIdFactory"/> used when minting
+    /// a user id during passwordless passkey registration.
+    /// </summary>
+    public static IServiceCollection AddPasskeyUserIdFactory(this IServiceCollection services, Func<string> createUserId)
+    {
+        ArgumentNullException.ThrowIfNull(createUserId);
+        services.AddSingleton<IPasskeyUserIdFactory>(new DelegatePasskeyUserIdFactory(createUserId));
+        return services;
+    }
+
+    private sealed class DelegatePasskeyUserIdFactory(Func<string> createUserId) : IPasskeyUserIdFactory
+    {
+        public string CreateUserId() => createUserId();
     }
 }

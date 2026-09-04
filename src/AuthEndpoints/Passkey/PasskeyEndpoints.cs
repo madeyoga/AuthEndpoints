@@ -184,7 +184,8 @@ public static class PasskeyEndpoints<TUser>
     public static async Task<Results<ContentHttpResult, ValidationProblem, ProblemHttpResult>> RegisterOptions(
         [FromBody] PasskeyRegisterOptionsRequest request,
         UserManager<TUser> userManager,
-        SignInManager<TUser> signInManager)
+        SignInManager<TUser> signInManager,
+        IPasskeyUserIdFactory userIdFactory)
     {
         if (!userManager.SupportsUserEmail)
         {
@@ -201,7 +202,7 @@ public static class PasskeyEndpoints<TUser>
         }
 
         // Always return creation options (even if the email exists) to avoid account enumeration.
-        var userId = UserIdHelper.CreateUserIdString(typeof(TUser));
+        var userId = UserIdHelper.CreateUserIdString(typeof(TUser), userIdFactory);
         var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new()
         {
             Id = userId,
