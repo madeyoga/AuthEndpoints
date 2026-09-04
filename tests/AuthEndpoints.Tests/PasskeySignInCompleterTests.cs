@@ -50,6 +50,37 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
+    public void AddPasskeyEndpoints_RegistersDefaultPasskeyUserIdFactory()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var factory = scope.ServiceProvider.GetRequiredService<IPasskeyUserIdFactory>();
+        Assert.IsType<DefaultPasskeyUserIdFactory>(factory);
+        Assert.True(Guid.TryParse(factory.CreateUserId(), out _), "Default factory should mint a Guid-shaped id.");
+    }
+
+    [Fact]
+    public void AddPasskeyUserIdFactory_ReplacesDefaultFactory()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDbContext<TestDbContext>(o =>
+            o.UseInMemoryDatabase("PasskeyUserIdFactoryReplace_" + Guid.NewGuid().ToString("N")));
+        services
+            .AddIdentityApiEndpoints<TestAppUser>(o =>
+            {
+                o.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+            })
+            .AddEntityFrameworkStores<TestDbContext>()
+            .AddDefaultTokenProviders();
+        services.AddPasskeyEndpoints<TestAppUser>();
+        services.AddPasskeyUserIdFactory(() => "replaced-user-id");
+
+        using var sp = services.BuildServiceProvider();
+        var factory = sp.GetRequiredService<IPasskeyUserIdFactory>();
+        Assert.Equal("replaced-user-id", factory.CreateUserId());
+    }
+
+    [Fact]
     public void AddPasskeySignInCompleter_ReplacesDefaultWithJwtCompleter()
     {
         var services = new ServiceCollection();

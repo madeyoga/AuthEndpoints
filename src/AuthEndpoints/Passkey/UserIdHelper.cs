@@ -6,14 +6,14 @@ namespace AuthEndpoints.Passkey;
 
 internal static class UserIdHelper
 {
-    public static string CreateUserIdString(Type userType)
+    public static string CreateUserIdString(Type userType, IPasskeyUserIdFactory? factory = null)
     {
         var keyType = TypeHelper.FindKeyType(userType)
             ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser.");
 
         if (keyType == typeof(string) || keyType == typeof(Guid))
         {
-            return Guid.NewGuid().ToString();
+            return factory?.CreateUserId() ?? Guid.NewGuid().ToString();
         }
 
         throw new NotSupportedException(

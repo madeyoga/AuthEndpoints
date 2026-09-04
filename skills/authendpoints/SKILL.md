@@ -10,7 +10,7 @@ Ready-made Identity auth API endpoints for first-party web and mobile clients. T
 
 Canonical docs: https://madeyoga.github.io/AuthEndpoints — follow those pages; do not invent APIs.
 
-Requires **.NET 10**, ASP.NET Core Identity, and EF Core. The host `DbContext` is typically `IdentityDbContext<TUser>` (or with roles). `TUser` may use any Identity key type (`string`, `Guid`, `long`, …). Passwordless passkey **account register** needs a `string` or `Guid` key.
+Requires **.NET 10**, ASP.NET Core Identity, and EF Core. The host `DbContext` is typically `IdentityDbContext<TUser>` (or with roles). `TUser` may use any Identity key type (`string`, `Guid`, `long`, …). Passwordless passkey **account register** needs a `string` or `Guid` key. The minted user id defaults to `Guid.NewGuid()` (UUID v4); register `IPasskeyUserIdFactory` to choose a different id.
 
 ## Install
 
@@ -176,7 +176,7 @@ Full table: https://madeyoga.github.io/AuthEndpoints/getting-started/configurati
 
 Enabled by default. In Production set `Passkeys.ServerDomain`, or disable with `o.Passkeys.Enabled = false`.
 
-Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). CSRF is required for WebAuthn ceremonies. Add/rename/delete/`creationOptions` also require ReAuth.
+Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). CSRF is required for WebAuthn ceremonies. Add/rename/delete/`creationOptions` also require ReAuth. Passwordless register mints `Guid.NewGuid()` (UUID v4) unless the host registers `IPasskeyUserIdFactory`.
 
 Facade JWT opt-in does **not** auto-select `JwtPasskeySignInCompleter`. Register it explicitly when passkey register/login should issue Simple JWT (access token + refresh cookie); that completer ignores cookie query flags.
 
