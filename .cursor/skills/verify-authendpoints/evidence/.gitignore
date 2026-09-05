@@ -1,0 +1,4 @@
+# Captured harness dumps (status/body/headers/transcripts, cookie jars, run dirs).
+# Keep this file so the directory stays tracked; ignore everything else.
+*
+!.gitignore

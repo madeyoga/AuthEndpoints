@@ -26,7 +26,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         var routeGroup = endpoints.MapGroup("");
         var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
-        confirmEmailEndpointName ??= $"{nameof(MapIdentityManagementApi)}-{typeof(TUser).Name}-confirmEmail";
+        confirmEmailEndpointName ??= DefaultConfirmEmailEndpointName<TUser>();
 
         routeGroup.MapPost("/register", (
             RegisterRequest registration,
@@ -80,6 +80,9 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         return routeGroup;
     }
+
+    internal static string DefaultConfirmEmailEndpointName<TUser>() where TUser : class
+        => $"{nameof(MapIdentityManagementApi)}-{typeof(TUser).Name}-confirmEmail";
 
     /// <summary>
     /// Maps Identity bearer sign-in endpoints (login, refresh, logout).
