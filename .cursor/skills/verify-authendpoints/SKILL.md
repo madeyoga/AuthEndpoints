@@ -60,10 +60,12 @@ Default `AE_HOST_MODE=compose`:
 
 Host defaults that **differ from production library defaults**:
 
-- `SignIn.RequireConfirmedAccount = false` (library facade default is **true**).
+- `SignIn.RequireConfirmedAccount = false` (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in.
 - Password rules are relaxed (`RequiredLength = 6`, no digit/case/symbol requirements). Use `Passw0rd!`.
 - EF Core **in-memory** database; all users vanish when the process exits.
 - JWT signing key is the test-only value in `Program.cs`. Never treat it as a production secret.
+- `IEmailSender<TUser>` is a capturing sender. `GET /test/mailbox` lists `{email,kind,body}` (confirmation links are HTML-encoded). This is a **test-only** probe.
+- Software WebAuthn: `POST /test/webauthn/attestation` and `POST /test/webauthn/assertion` turn options JSON into `credentialJson`. These are **test-only** probes. The library still verifies attestation/assertion on `/account/passkeys/register` and `/login`.
 
 Isolation: two hosts may run on **different ports**. Refuse to drive a port that was already listening when `launch` ran. Never kill by process name (`pkill`, `killall`).
 
@@ -169,7 +171,7 @@ Index: `.cursor/skills/verify-authendpoints/features/README.md`
 
 Start with those files. Automated `dotnet test AuthEndpoints.sln` is allowed **in addition** after a live drive, not instead of it.
 
-Passkeys (`/account/passkeys`) need a WebAuthn authenticator for a full ceremony. Do not claim passkey register/login verified from HTTP options JSON alone. Use the xUnit passkey tests for that path.
+Passkeys (`/account/passkeys`) need a WebAuthn authenticator for a full ceremony. Do not claim passkey register/login verified from HTTP options JSON alone. Use the software authenticator at `/test/webauthn/attestation` and `/test/webauthn/assertion` (see [Passkeys](features/passkeys.md)), then POST the returned `credentialJson` to the library routes. xUnit in `tests/AuthEndpoints.Tests` covers the same ceremony.
 
 ## Maintenance
 
