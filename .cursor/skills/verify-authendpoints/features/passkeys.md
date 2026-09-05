@@ -60,3 +60,4 @@ POST that JSON to `/test/webauthn/attestation` (`--out pk-attest`). Build the re
 - Passkey register is rate-limited (3 / minute). Use a fresh email rather than retrying the same ceremony in a tight loop.
 - Default test host allows unconfirmed sign-in. Confirmation-gate proof requires `AE_REQUIRE_CONFIRMED_ACCOUNT=true` on **launch**.
 - Completer cookie flags follow Identity bearer login: `?useCookies=true` on `/account/passkeys/register` and `/login`, not `POST /identity/login`.
+- The test host stores Identity data in SQLite. EF in-memory does not round-trip passkey `Data`, so login after register would fail on that provider.

@@ -15,9 +15,10 @@ var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
 var requireConfirmedAccount = IsTruthy(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"]);
+var dbPath = Path.Combine(Path.GetTempPath(), $"AuthEndpointsTests-{dbName}.sqlite");
 
 builder.Services.AddDbContext<TestDbContext>(options =>
-    options.UseInMemoryDatabase(dbName));
+    options.UseSqlite($"Data Source={dbPath}"));
 
 builder.Services.AddSingleton<CapturingEmailSender>();
 builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());

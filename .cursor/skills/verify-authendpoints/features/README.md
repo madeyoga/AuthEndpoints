@@ -18,7 +18,7 @@ This directory is the maintained source for verifying the HTTP API the library e
 - Send JSON as `application/json`. Use `--csrf` only on unsafe cookie or JWT-cookie mutations that the map marks as CSRF-protected.
 - Login cookie route ignores `useCookies`. Bearer login does not.
 - On 429, let the helper retry. Do not hammer `/identity/login` or `/auth/create`.
-- Restore nothing in the database (in-memory). Start a new email or a new host if state is dirty.
+- Restore nothing in the database. Start a new email or a new host if state is dirty. The host uses a SQLite file named from `TestDbName`.
 - Do not delete proof files during cleanup.
 
 ## Proof and skip reporting

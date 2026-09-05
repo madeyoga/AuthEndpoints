@@ -1,0 +1,19 @@
+# Before fix: RequireConfirmedAccount=true
+AE_REQUIRE_CONFIRMED_ACCOUNT=true AE_PORT=5088
+
+## POST /identity/register
+status=200
+
+## GET /test/mailbox (after password register)
+[{"email":"pw-before-fix-249-2859@test.local","kind":"confirm","body":"http://127.0.0.1:5088/identity/confirmEmail?userId=[redacted]&amp;code=[redacted]"}]
+## POST /account/passkeys/register?useCookies=true
+status=200
+
+body={"credentialId":"07gLcuK7tKYMJ9dtPd3451YlaAAlIu6NtBaSdJqdREg","displayName":null}
+set-cookie:
+Set-Cookie: Identity.TwoFactorUserId=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; samesite=lax; httponly
+## GET /identity/manage/info
+status=401
+
+## GET /test/mailbox (after passkey register)
+[{"email":"pw-before-fix-249-2859@test.local","kind":"confirm","body":"http://127.0.0.1:5088/identity/confirmEmail?userId=[redacted]&amp;code=[redacted]"}]
