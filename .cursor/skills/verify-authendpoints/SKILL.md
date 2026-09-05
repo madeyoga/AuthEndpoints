@@ -121,6 +121,8 @@ export AE_REAUTH='...'    # reauthToken from confirmIdentity
 
 Default location: `$AE_EVIDENCE_DIR` (default `/tmp/authendpoints-verify-$AE_RUN_ID/evidence`). `stop` must leave this directory in place.
 
+Do not commit captured dumps. If a run writes under `.cursor/skills/verify-authendpoints/evidence/`, gitignore keeps status/body/headers/transcripts, cookie jars, and run dirs out of the repo. Feature maps under `features/` are tracked.
+
 Each drive step that uses `--out NAME` writes:
 
 - `NAME.request` — method, URL, body
