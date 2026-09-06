@@ -2,6 +2,7 @@
 using System.Text;
 using System.Text.Json;
 using AuthEndpoints.Passkey;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -91,6 +92,69 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
         Assert.DoesNotContain("already exists", body, StringComparison.OrdinalIgnoreCase);
         using var doc = JsonDocument.Parse(body);
         Assert.Equal(JsonValueKind.Object, doc.RootElement.ValueKind);
+    }
+
+    [Fact]
+    public async Task Register_ExistingUserId_ReturnsGenericBadRequestWithoutAttachingPasskey()
+    {
+        var existingUserId = Guid.NewGuid().ToString();
+        var existingEmail = $"passkey-existing-id-{Guid.NewGuid():N}@test.local";
+        var freeEmail = $"passkey-free-{Guid.NewGuid():N}@test.local";
+
+        using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddPasskeyUserIdFactory(() => existingUserId);
+            });
+        });
+
+        int passkeyCountBefore;
+        using (var seedScope = factory.Services.CreateScope())
+        {
+            var userManager = seedScope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var seeded = new TestAppUser
+            {
+                Id = existingUserId,
+                UserName = existingEmail,
+                Email = existingEmail,
+                EmailConfirmed = true
+            };
+            var create = await userManager.CreateAsync(seeded, TestHelpers.DefaultPassword);
+            Assert.True(create.Succeeded, string.Join("; ", create.Errors.Select(e => e.Description)));
+            passkeyCountBefore = (await userManager.GetPasskeysAsync(seeded)).Count;
+        }
+
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        var origin = client.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
+
+        var optionsResponse = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register/options",
+            new { email = freeEmail });
+        Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
+        var optionsJson = await optionsResponse.Content.ReadAsStringAsync();
+        Assert.Equal(existingUserId, ReadCreationOptionsUserId(optionsJson));
+
+        var credentialJson = authenticator.CreateAttestation(optionsJson, origin);
+        var register = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register",
+            new { email = freeEmail, credentialJson });
+        Assert.Equal(HttpStatusCode.BadRequest, register.StatusCode);
+
+        var body = await register.Content.ReadAsStringAsync();
+        Assert.Contains("Unable to complete registration", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("already exists", body, StringComparison.OrdinalIgnoreCase);
+
+        using var afterScope = factory.Services.CreateScope();
+        var afterUserManager = afterScope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var existing = await afterUserManager.FindByIdAsync(existingUserId);
+        Assert.NotNull(existing);
+        Assert.Equal(existingEmail, await afterUserManager.GetEmailAsync(existing));
+        Assert.Equal(passkeyCountBefore, (await afterUserManager.GetPasskeysAsync(existing)).Count);
+        Assert.Null(await afterUserManager.FindByEmailAsync(freeEmail));
     }
 
     [Fact]

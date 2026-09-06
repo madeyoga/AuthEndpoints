@@ -268,24 +268,24 @@ public static class PasskeyEndpoints<TUser>
         }
 
         var userEntity = attestationResult.UserEntity;
-        var user = await userManager.FindByIdAsync(userEntity.Id);
-        var createdUser = false;
-        if (user is null)
+        if (await userManager.FindByIdAsync(userEntity.Id) is not null)
         {
-            user = new TUser();
-            UserIdHelper.SetUserId(user, userEntity.Id);
-            await userStore.SetUserNameAsync(user, email, CancellationToken.None);
-            await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+            return TypedResults.Problem(
+                detail: "Unable to complete registration.",
+                statusCode: StatusCodes.Status400BadRequest);
+        }
 
-            var createUserResult = await userManager.CreateAsync(user);
-            if (!createUserResult.Succeeded)
-            {
-                return TypedResults.Problem(
-                    detail: "Unable to complete registration.",
-                    statusCode: StatusCodes.Status400BadRequest);
-            }
+        var user = new TUser();
+        UserIdHelper.SetUserId(user, userEntity.Id);
+        await userStore.SetUserNameAsync(user, email, CancellationToken.None);
+        await emailStore.SetEmailAsync(user, email, CancellationToken.None);
 
-            createdUser = true;
+        var createUserResult = await userManager.CreateAsync(user);
+        if (!createUserResult.Succeeded)
+        {
+            return TypedResults.Problem(
+                detail: "Unable to complete registration.",
+                statusCode: StatusCodes.Status400BadRequest);
         }
 
         var addPasskeyResult = await userManager.AddOrUpdatePasskeyAsync(user, attestationResult.Passkey);
@@ -296,15 +296,12 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        if (createdUser)
-        {
-            await IdentityApiEndpoints<TUser>.SendConfirmationEmailAsync(
-                user,
-                userManager,
-                httpContext,
-                email,
-                confirmEmailEndpointName);
-        }
+        await IdentityApiEndpoints<TUser>.SendConfirmationEmailAsync(
+            user,
+            userManager,
+            httpContext,
+            email,
+            confirmEmailEndpointName);
 
         return await completer.CompleteAsync(
             httpContext,

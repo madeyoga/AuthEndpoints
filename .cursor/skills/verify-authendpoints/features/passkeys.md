@@ -8,6 +8,7 @@ Passwordless passkey register and login on `/account/passkeys`. Register creates
 - `register-create` creates an unconfirmed user, stores the passkey, and sends a confirmation email.
 - `register-unconfirmed-no-session` returns 200 with `credentialId` and no application cookie when `RequireConfirmedAccount` is true.
 - `register-duplicate` returns 400 `Unable to complete registration` for an existing email and does not send mail.
+- `register-existing-id` returns 400 `Unable to complete registration` when attestation `userEntity.Id` already exists and does not attach a passkey. Add credentials on an existing account with authenticated `creationOptions` + `POST /passkeys/`.
 - `confirm-then-login` confirms the emailed link, then passkey login with `?useCookies=true` establishes a session.
 
 ## How to get to it (user POV)
