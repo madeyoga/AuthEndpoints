@@ -9,7 +9,7 @@ This directory is the maintained source for verifying the HTTP API the library e
 - Cookie jar is empty at the start of a feature unless that feature’s preconditions say otherwise.
 - Password for new users is `Passw0rd!`. Emails must be unique per run (`verify-<id>@test.local`).
 - Never drive a host this run did not start.
-- This host has `RequireConfirmedAccount = false`. That is a **test-host** setting, not the library facade default.
+- This host has `RequireConfirmedAccount = false` unless you set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch`. That is a **test-host** setting, not the library facade default.
 
 ## Driving conventions
 
@@ -18,7 +18,7 @@ This directory is the maintained source for verifying the HTTP API the library e
 - Send JSON as `application/json`. Use `--csrf` only on unsafe cookie or JWT-cookie mutations that the map marks as CSRF-protected.
 - Login cookie route ignores `useCookies`. Bearer login does not.
 - On 429, let the helper retry. Do not hammer `/identity/login` or `/auth/create`.
-- Restore nothing in the database (in-memory). Start a new email or a new host if state is dirty.
+- Restore nothing in the database. Start a new email or a new host if state is dirty. The host uses a SQLite file named from `TestDbName`.
 - Do not delete proof files during cleanup.
 
 ## Proof and skip reporting
@@ -46,3 +46,4 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Identity bearer facade](./bearer-facade.md) covers `MapAuthEndpoints` with `AuthEndpointsSignIn.IdentityBearer` (`AE_HOST_MODE=bearer-facade`) at `/identity/login`.
 - [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, and refresh-cookie refresh.
 - [ReAuth step-up](./reauth.md) covers `confirmIdentity` and a protected manage mutation.
+- [Passkeys](./passkeys.md) covers passwordless register/login, confirmation mail under `AE_REQUIRE_CONFIRMED_ACCOUNT=true`, and the test-only WebAuthn helper.

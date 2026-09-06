@@ -1,6 +1,7 @@
 using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -214,14 +215,15 @@ public static class PasskeyEndpoints<TUser>
     }
 
     public static async Task<IResult> Register(
-        [FromBody] PasskeyRegisterRequest request,
-        [FromQuery] bool? useCookies,
-        [FromQuery] bool? useSessionCookies,
+        PasskeyRegisterRequest request,
+        bool? useCookies,
+        bool? useSessionCookies,
         HttpContext httpContext,
         UserManager<TUser> userManager,
         IUserStore<TUser> userStore,
         SignInManager<TUser> signInManager,
         IPasskeySignInCompleter<TUser> completer,
+        string confirmEmailEndpointName,
         CancellationToken cancellationToken)
     {
         if (!userManager.SupportsUserEmail)
@@ -267,6 +269,7 @@ public static class PasskeyEndpoints<TUser>
 
         var userEntity = attestationResult.UserEntity;
         var user = await userManager.FindByIdAsync(userEntity.Id);
+        var createdUser = false;
         if (user is null)
         {
             user = new TUser();
@@ -281,6 +284,8 @@ public static class PasskeyEndpoints<TUser>
                     detail: "Unable to complete registration.",
                     statusCode: StatusCodes.Status400BadRequest);
             }
+
+            createdUser = true;
         }
 
         var addPasskeyResult = await userManager.AddOrUpdatePasskeyAsync(user, attestationResult.Passkey);
@@ -289,6 +294,16 @@ public static class PasskeyEndpoints<TUser>
             return TypedResults.Problem(
                 detail: "The passkey could not be added to your account.",
                 statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        if (createdUser)
+        {
+            await IdentityApiEndpoints<TUser>.SendConfirmationEmailAsync(
+                user,
+                userManager,
+                httpContext,
+                email,
+                confirmEmailEndpointName);
         }
 
         return await completer.CompleteAsync(

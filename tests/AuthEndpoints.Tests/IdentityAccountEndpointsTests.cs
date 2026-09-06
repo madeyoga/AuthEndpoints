@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Tests;
 
@@ -9,6 +10,24 @@ public class IdentityAccountEndpointsTests : IClassFixture<TestWebApplicationFac
     public IdentityAccountEndpointsTests(TestWebApplicationFactory factory)
     {
         _factory = factory;
+    }
+
+    [Fact]
+    public async Task Register_SendsConfirmationEmail()
+    {
+        var email = $"register-mail-{Guid.NewGuid():N}@test.local";
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+
+        var response = await client.PostAsJsonAsync("/identity/register", new
+        {
+            email,
+            password = TestHelpers.DefaultPassword
+        });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var mailbox = _factory.Services.GetRequiredService<CapturingEmailSender>();
+        var mail = Assert.Single(mailbox.Snapshot(), item => item.Email == email && item.Kind == "confirm");
+        Assert.Contains("/identity/confirmEmail", mail.Body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

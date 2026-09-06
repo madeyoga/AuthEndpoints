@@ -14,7 +14,8 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["TestDbName"] = _dbName
+                ["TestDbName"] = _dbName,
+                ["AE_REQUIRE_CONFIRMED_ACCOUNT"] = "false"
             });
         });
     }

@@ -24,6 +24,8 @@ Environment:
   AE_COOKIE_JAR    curl cookie jar (default: $AE_RUN_DIR/cookies.txt)
   AE_REPO_ROOT     Repository root (default: git root or cwd)
   AE_HOST_MODE     Test host mapping: compose (default) or bearer-facade
+  AE_REQUIRE_CONFIRMED_ACCOUNT  When true, the test host sets SignIn.RequireConfirmedAccount.
+                                Library default is true; this host defaults to false.
 
 Examples:
   AE_RUN_ID=demo ./ae-http.sh launch
@@ -83,6 +85,7 @@ http() {
   if [[ -n "$body" ]]; then
     args+=(-H "Content-Type: application/json" --data "$body")
   fi
+  args+=(-H "Origin: ${AE_BASE_URL}")
   if [[ -n "$csrf" ]]; then
     args+=(-H "RequestVerificationToken: $csrf")
   fi
@@ -253,6 +256,7 @@ cmd_launch() {
       TestDbName="AuthEndpointsVerify_${AE_RUN_ID}" \
       DOTNET_ENVIRONMENT=Development \
       AE_HOST_MODE="$AE_HOST_MODE" \
+      AE_REQUIRE_CONFIRMED_ACCOUNT="${AE_REQUIRE_CONFIRMED_ACCOUNT:-}" \
       dotnet "$AE_DLL"
   ) >"$AE_LOG_FILE" 2>&1 &
   echo $! > "$AE_PID_FILE"

@@ -14,9 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
+var requireConfirmedAccount = IsTruthy(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"]);
+var dbPath = Path.Combine(Path.GetTempPath(), $"AuthEndpointsTests-{dbName}.sqlite");
 
 builder.Services.AddDbContext<TestDbContext>(options =>
-    options.UseInMemoryDatabase(dbName));
+    options.UseSqlite($"Data Source={dbPath}"));
+
+builder.Services.AddSingleton<CapturingEmailSender>();
+builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
+builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
 if (useBearerFacade)
 {
@@ -24,9 +30,9 @@ if (useBearerFacade)
         AuthEndpointsSignIn.IdentityBearer,
         o =>
         {
-            o.RequireConfirmedAccount = false;
+            o.RequireConfirmedAccount = requireConfirmedAccount;
             o.Passkeys.ServerDomain = "localhost";
-            o.ConfigureIdentity = ConfigureTestIdentity;
+            o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, requireConfirmedAccount);
             o.Jwt.Enabled = true;
             o.Jwt.Configure = jwt =>
             {
@@ -37,7 +43,7 @@ if (useBearerFacade)
 else
 {
     builder.Services
-        .AddIdentityApiEndpoints<TestAppUser>(ConfigureTestIdentity)
+        .AddIdentityApiEndpoints<TestAppUser>(identity => ConfigureTestIdentity(identity, requireConfirmedAccount))
         .AddEntityFrameworkStores<TestDbContext>()
         .AddDefaultTokenProviders();
 
@@ -90,9 +96,13 @@ MapTestOnlyEndpoints(app);
 
 app.Run();
 
-static void ConfigureTestIdentity(IdentityOptions options)
+static bool IsTruthy(string? value) =>
+    string.Equals(value, "true", StringComparison.OrdinalIgnoreCase)
+    || string.Equals(value, "1", StringComparison.OrdinalIgnoreCase);
+
+static void ConfigureTestIdentity(IdentityOptions options, bool requireConfirmedAccount)
 {
-    options.SignIn.RequireConfirmedAccount = false;
+    options.SignIn.RequireConfirmedAccount = requireConfirmedAccount;
     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
@@ -113,6 +123,35 @@ static void MapTestOnlyEndpoints(WebApplication app)
             AuthenticationSchemes = $"{JwtBearerDefaults.AuthenticationScheme},{IdentityConstants.ApplicationScheme}"
         })
         .RequireAntiforgery();
+
+    app.MapGet("/test/mailbox", (CapturingEmailSender mailbox) => Results.Ok(mailbox.Snapshot()));
+
+    app.MapPost("/test/webauthn/attestation", (
+        TestWebAuthnRequest body,
+        HttpContext context,
+        SoftwareWebAuthnAuthenticator authenticator) =>
+    {
+        var origin = ResolveOrigin(body.Origin, context);
+        var credentialJson = authenticator.CreateAttestation(body.OptionsJson, origin);
+        return Results.Ok(new { credentialJson });
+    });
+
+    app.MapPost("/test/webauthn/assertion", (
+        TestWebAuthnRequest body,
+        HttpContext context,
+        SoftwareWebAuthnAuthenticator authenticator) =>
+    {
+        var origin = ResolveOrigin(body.Origin, context);
+        var credentialJson = authenticator.CreateAssertion(body.OptionsJson, origin, body.CredentialId);
+        return Results.Ok(new { credentialJson });
+    });
 }
+
+static string ResolveOrigin(string? origin, HttpContext context) =>
+    string.IsNullOrWhiteSpace(origin)
+        ? $"{context.Request.Scheme}://{context.Request.Host}"
+        : origin;
+
+internal sealed record TestWebAuthnRequest(string OptionsJson, string? Origin, string? CredentialId);
 
 public partial class Program;

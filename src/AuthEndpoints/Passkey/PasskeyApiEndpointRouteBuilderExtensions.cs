@@ -2,17 +2,31 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace AuthEndpoints.Passkey;
 
 public static class PasskeyApiEndpointRouteBuilderExtensions
 {
-    public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+    /// <summary>
+    /// Maps passkey register, login, and credential management endpoints under <c>/passkeys</c>.
+    /// </summary>
+    /// <param name="confirmEmailEndpointName">
+    /// Optional unique endpoint name for confirm-email link generation after passwordless register.
+    /// Defaults to the same name as <c>MapIdentityManagementApi</c>. Required when that map
+    /// used a custom name.
+    /// </param>
+    public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
+        confirmEmailEndpointName ??= AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions
+            .DefaultConfirmEmailEndpointName<TUser>();
         var group = endpoints.MapGroup("/passkeys");
 
         group.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
@@ -32,10 +46,30 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
             .RequireAntiforgery();
 
-        group.MapPost("/register", PasskeyEndpoints<TUser>.Register)
+        group.MapPost("/register", (
+            [FromBody] PasskeyRegisterRequest request,
+            [FromQuery] bool? useCookies,
+            [FromQuery] bool? useSessionCookies,
+            HttpContext httpContext,
+            UserManager<TUser> userManager,
+            IUserStore<TUser> userStore,
+            SignInManager<TUser> signInManager,
+            IPasskeySignInCompleter<TUser> completer,
+            CancellationToken cancellationToken) => PasskeyEndpoints<TUser>.Register(
+                request,
+                useCookies,
+                useSessionCookies,
+                httpContext,
+                userManager,
+                userStore,
+                signInManager,
+                completer,
+                confirmEmailEndpointName,
+                cancellationToken))
             .WithSummary("Create a passwordless account and store the attested passkey.")
             .WithDescription("""
-                After registration, sign-in is completed by IPasskeySignInCompleter.
+                After a successful user create, sends the same confirmation email as password register.
+                Sign-in is completed by IPasskeySignInCompleter.
                 Default IdentityPasskeySignInCompleter: useCookies / useSessionCookies select the application cookie;
                 otherwise Identity bearer tokens are issued. Register JwtPasskeySignInCompleter for Simple JWT
                 (access token + refresh cookie). CSRF (antiforgery) is required.

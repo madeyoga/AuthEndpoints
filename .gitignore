@@ -364,3 +364,10 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# verify-authendpoints harness dumps (status/body/headers/transcripts, cookie jars, run dirs)
+**/verify-authendpoints/evidence/**
+!**/verify-authendpoints/evidence/.gitignore
+!**/verify-authendpoints/evidence/README
+!**/verify-authendpoints/evidence/README.md
+

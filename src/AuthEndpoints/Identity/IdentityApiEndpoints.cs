@@ -462,7 +462,7 @@ public class IdentityApiEndpoints<TUser>
         });
     }
 
-    private static async Task SendConfirmationEmailAsync(
+    internal static async Task SendConfirmationEmailAsync(
         TUser user,
         UserManager<TUser> userManager,
         HttpContext context,

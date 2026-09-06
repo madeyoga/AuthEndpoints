@@ -170,7 +170,7 @@ CSRF is skipped when the request is authenticated via Identity bearer or JWT Bea
 
 Full table: https://madeyoga.github.io/AuthEndpoints/getting-started/configuration
 
-`POST {IdentityPath}/register` (default `/identity/register`) does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**; passkey register still stores the credential but does not create a session.
+`POST {IdentityPath}/register` (default `/identity/register`) does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**. Passwordless passkey register that **creates** a user sends the same confirmation email; the completer still skips a session until the account can sign in.
 
 ## Passkeys
 

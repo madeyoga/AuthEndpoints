@@ -51,13 +51,27 @@ internal static class TestHelpers
         return user;
     }
 
-    public static HttpClient CreateClientWithCookies(TestWebApplicationFactory factory)
+    public static HttpClient CreateClientWithCookies(WebApplicationFactory<Program> factory)
     {
-        return factory.CreateClient(new WebApplicationFactoryClientOptions
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false,
             HandleCookies = true
         });
+        AttachWebAuthnOrigin(client);
+        return client;
+    }
+
+    public static void AttachWebAuthnOrigin(HttpClient client)
+    {
+        if (client.BaseAddress is null)
+        {
+            return;
+        }
+
+        var origin = client.BaseAddress.GetLeftPart(UriPartial.Authority);
+        client.DefaultRequestHeaders.Remove("Origin");
+        client.DefaultRequestHeaders.TryAddWithoutValidation("Origin", origin);
     }
 
     public static async Task<string> GetCsrfTokenAsync(HttpClient client, string path = "/identity/csrfToken")
@@ -103,6 +117,7 @@ internal static class TestHelpers
                 request.Headers.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
             }
 
+            EnsureWebAuthnOrigin(client, request);
             var response = await client.SendAsync(request);
             if (response.StatusCode != HttpStatusCode.TooManyRequests)
             {
@@ -123,7 +138,20 @@ internal static class TestHelpers
             finalRequest.Headers.Add(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
         }
 
+        EnsureWebAuthnOrigin(client, finalRequest);
         return await client.SendAsync(finalRequest);
+    }
+
+    private static void EnsureWebAuthnOrigin(HttpClient client, HttpRequestMessage request)
+    {
+        if (request.Headers.Contains("Origin") || client.BaseAddress is null)
+        {
+            return;
+        }
+
+        request.Headers.TryAddWithoutValidation(
+            "Origin",
+            client.BaseAddress.GetLeftPart(UriPartial.Authority));
     }
 
     public static async Task<string> ConfirmIdentityAsync(
