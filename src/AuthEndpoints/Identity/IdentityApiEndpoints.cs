@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
+using AuthEndpoints;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
@@ -183,17 +185,21 @@ public class IdentityApiEndpoints<TUser>
         return Results.Ok(new { CsrfToken = tokens.RequestToken });
     }
 
-    public static async Task<Results<ContentHttpResult, UnauthorizedHttpResult>> ConfirmEmail(
+    public static async Task<Results<ContentHttpResult, UnauthorizedHttpResult, RedirectHttpResult>> ConfirmEmail(
         [FromQuery] string userId,
         [FromQuery] string code,
         [FromQuery] string? changedEmail,
+        HttpContext context,
         [FromServices] IServiceProvider sp)
     {
+        string? redirect = TryResolveConfirmEmailRedirect(sp, context);
+        bool isChangeEmail = !string.IsNullOrEmpty(changedEmail);
+
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.FindByIdAsync(userId) is not { } user)
         {
             // We could respond with a 404 instead of a 401 like Identity UI, but that feels like unnecessary information.
-            return TypedResults.Unauthorized();
+            return ConfirmEmailFailure(redirect, isChangeEmail);
         }
 
         try
@@ -202,7 +208,7 @@ public class IdentityApiEndpoints<TUser>
         }
         catch (FormatException)
         {
-            return TypedResults.Unauthorized();
+            return ConfirmEmailFailure(redirect, isChangeEmail);
         }
 
         IdentityResult result;
@@ -225,10 +231,44 @@ public class IdentityApiEndpoints<TUser>
 
         if (!result.Succeeded)
         {
-            return TypedResults.Unauthorized();
+            return ConfirmEmailFailure(redirect, isChangeEmail);
+        }
+
+        if (redirect is not null)
+        {
+            return TypedResults.Redirect(ConfirmEmailRedirect.WithQuery(redirect, succeeded: true, isChangeEmail));
         }
 
         return TypedResults.Text("Thank you for confirming your email.");
+    }
+
+    private static string? TryResolveConfirmEmailRedirect(IServiceProvider sp, HttpContext context)
+    {
+        AuthEndpointsOptions? options = sp.GetService<IOptions<AuthEndpointsOptions>>()?.Value;
+        if (options is null)
+        {
+            return null;
+        }
+
+        bool allowHttp = sp.GetService<IHostEnvironment>()?.IsDevelopment() == true;
+        return ConfirmEmailRedirect.TryResolve(
+            options.EmailConfirmation.ConfirmEmailRedirectUri,
+            ConfirmEmailRedirect.AsReadOnlyOrigins(options.EmailConfirmation.AllowedRedirectOrigins),
+            allowHttp,
+            context.Request.Scheme,
+            context.Request.Host);
+    }
+
+    private static Results<ContentHttpResult, UnauthorizedHttpResult, RedirectHttpResult> ConfirmEmailFailure(
+        string? redirect,
+        bool isChangeEmail)
+    {
+        if (redirect is not null)
+        {
+            return TypedResults.Redirect(ConfirmEmailRedirect.WithQuery(redirect, succeeded: false, isChangeEmail));
+        }
+
+        return TypedResults.Unauthorized();
     }
 
     public static async Task<Ok> ResendConfirmationEmail(

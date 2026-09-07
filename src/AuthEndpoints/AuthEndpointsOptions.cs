@@ -31,6 +31,9 @@ public sealed class AuthEndpointsOptions
     /// <summary>Passkey (WebAuthn) settings for the default bundle.</summary>
     public AuthEndpointsPasskeyOptions Passkeys { get; set; } = new();
 
+    /// <summary>SPA redirect after browser GET confirm-email.</summary>
+    public AuthEndpointsEmailConfirmationOptions EmailConfirmation { get; set; } = new();
+
     /// <summary>Optional JWT settings. Disabled by default; enable for facade JWT mapping.</summary>
     public AuthEndpointsJwtOptions Jwt { get; set; } = new();
 
@@ -58,6 +61,22 @@ public sealed class AuthEndpointsPasskeyOptions
     /// Required in Production when <see cref="Enabled"/> is true.
     /// </summary>
     public string? ServerDomain { get; set; }
+}
+
+/// <summary>Email confirmation redirect settings for SPA hosts.</summary>
+public sealed class AuthEndpointsEmailConfirmationOptions
+{
+    /// <summary>
+    /// Frontend URI after <c>GET</c> confirm-email (absolute <c>https://</c>, or a rooted path).
+    /// Empty or null keeps the plain-text / 401 response.
+    /// </summary>
+    public string? ConfirmEmailRedirectUri { get; set; }
+
+    /// <summary>
+    /// Origins such as <c>https://app.example.com</c> allowed for an absolute <see cref="ConfirmEmailRedirectUri"/>.
+    /// A rooted path does not need an entry.
+    /// </summary>
+    public IList<string> AllowedRedirectOrigins { get; set; } = new List<string>();
 }
 
 /// <summary>JWT-related options for the opinionated facade.</summary>

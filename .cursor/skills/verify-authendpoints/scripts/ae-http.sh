@@ -26,6 +26,8 @@ Environment:
   AE_HOST_MODE     Test host mapping: compose (default) or bearer-facade
   AE_REQUIRE_CONFIRMED_ACCOUNT  When true, the test host sets SignIn.RequireConfirmedAccount.
                                 Library default is true; this host defaults to false.
+  AE_CONFIRM_EMAIL_REDIRECT_URI  Maps to AuthEndpointsOptions.EmailConfirmation.ConfirmEmailRedirectUri.
+  AE_CONFIRM_EMAIL_ALLOWED_ORIGINS  Comma-separated AllowedRedirectOrigins.
 
 Examples:
   AE_RUN_ID=demo ./ae-http.sh launch
@@ -257,6 +259,8 @@ cmd_launch() {
       DOTNET_ENVIRONMENT=Development \
       AE_HOST_MODE="$AE_HOST_MODE" \
       AE_REQUIRE_CONFIRMED_ACCOUNT="${AE_REQUIRE_CONFIRMED_ACCOUNT:-}" \
+      AE_CONFIRM_EMAIL_REDIRECT_URI="${AE_CONFIRM_EMAIL_REDIRECT_URI:-}" \
+      AE_CONFIRM_EMAIL_ALLOWED_ORIGINS="${AE_CONFIRM_EMAIL_ALLOWED_ORIGINS:-}" \
       dotnet "$AE_DLL"
   ) >"$AE_LOG_FILE" 2>&1 &
   echo $! > "$AE_PID_FILE"

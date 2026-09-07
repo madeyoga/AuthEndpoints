@@ -15,6 +15,8 @@ var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
 var requireConfirmedAccount = IsTruthy(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"]);
+var confirmEmailRedirectUri = builder.Configuration["AE_CONFIRM_EMAIL_REDIRECT_URI"];
+var confirmEmailAllowedOrigins = SplitCommaSeparated(builder.Configuration["AE_CONFIRM_EMAIL_ALLOWED_ORIGINS"]);
 var dbPath = Path.Combine(Path.GetTempPath(), $"AuthEndpointsTests-{dbName}.sqlite");
 
 builder.Services.AddDbContext<TestDbContext>(options =>
@@ -38,6 +40,7 @@ if (useBearerFacade)
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             };
+            ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins);
         });
 }
 else
@@ -56,6 +59,8 @@ else
     builder.Services.AddAntiforgery();
     builder.Services.AddCookieAuthEndpoints();
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
+    builder.Services.AddOptions<AuthEndpointsOptions>()
+        .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
 }
 
 var app = builder.Build();
@@ -101,6 +106,32 @@ app.Run();
 static bool IsTruthy(string? value) =>
     string.Equals(value, "true", StringComparison.OrdinalIgnoreCase)
     || string.Equals(value, "1", StringComparison.OrdinalIgnoreCase);
+
+static void ApplyEmailConfirmation(
+    AuthEndpointsOptions options,
+    string? redirectUri,
+    IReadOnlyList<string> allowedOrigins)
+{
+    if (!string.IsNullOrWhiteSpace(redirectUri))
+    {
+        options.EmailConfirmation.ConfirmEmailRedirectUri = redirectUri;
+    }
+
+    if (allowedOrigins.Count > 0)
+    {
+        options.EmailConfirmation.AllowedRedirectOrigins = allowedOrigins.ToList();
+    }
+}
+
+static List<string> SplitCommaSeparated(string? value)
+{
+    if (string.IsNullOrWhiteSpace(value))
+    {
+        return [];
+    }
+
+    return [.. value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+}
 
 static void ConfigureTestIdentity(IdentityOptions options, bool requireConfirmedAccount)
 {

@@ -1,3 +1,4 @@
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,6 +41,52 @@ internal sealed class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpo
             && (string.IsNullOrWhiteSpace(options.Jwt.Path) || !options.Jwt.Path.StartsWith('/')))
         {
             return ValidateOptionsResult.Fail("AuthEndpoints: Jwt.Path must be a rooted path (e.g. \"/auth\").");
+        }
+
+        ValidateOptionsResult emailConfirmation = ValidateEmailConfirmation(options.EmailConfirmation);
+        if (emailConfirmation.Failed)
+        {
+            return emailConfirmation;
+        }
+
+        return ValidateOptionsResult.Success;
+    }
+
+    private ValidateOptionsResult ValidateEmailConfirmation(AuthEndpointsEmailConfirmationOptions emailConfirmation)
+    {
+        if (ConfirmEmailRedirect.IsIllegal(emailConfirmation.ConfirmEmailRedirectUri))
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailConfirmation.ConfirmEmailRedirectUri must be a rooted path or an absolute http(s) URI.");
+        }
+
+        if (!ConfirmEmailRedirect.TryGetAbsolute(emailConfirmation.ConfirmEmailRedirectUri, out Uri absolute))
+        {
+            return ValidateOptionsResult.Success;
+        }
+
+        if (!_environment.IsProduction())
+        {
+            return ValidateOptionsResult.Success;
+        }
+
+        if (string.Equals(absolute.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailConfirmation.ConfirmEmailRedirectUri must use https in Production.");
+        }
+
+        IReadOnlyList<string> allowed = ConfirmEmailRedirect.AsReadOnlyOrigins(emailConfirmation.AllowedRedirectOrigins);
+        if (allowed.Count == 0)
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailConfirmation.AllowedRedirectOrigins must be set in Production when ConfirmEmailRedirectUri is an absolute URI.");
+        }
+
+        if (!ConfirmEmailRedirect.IsOriginAllowlisted(absolute, allowed))
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailConfirmation.ConfirmEmailRedirectUri origin must match an AllowedRedirectOrigins entry.");
         }
 
         return ValidateOptionsResult.Success;
