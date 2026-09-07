@@ -63,6 +63,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+    // Unique TestDbName per factory; still wipe if a prior crashed run left the file.
+    await db.Database.EnsureDeletedAsync();
     await db.Database.EnsureCreatedAsync();
 }
 

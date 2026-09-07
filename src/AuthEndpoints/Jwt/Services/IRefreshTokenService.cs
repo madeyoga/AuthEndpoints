@@ -16,9 +16,10 @@ public interface IRefreshTokenService
     Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null);
 
     /// <summary>
-    /// Revokes <paramref name="refreshToken"/> and issues a successor in the same family.
+    /// Atomically revokes <paramref name="refreshToken"/> and issues a single successor in the same family.
+    /// Returns <c>null</c> when another request already rotated the token (compare-and-swap lost).
     /// </summary>
-    Task<RefreshToken> RotateAsync(RefreshToken refreshToken, string securityStamp);
+    Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp);
 
     bool IsValid(RefreshToken refreshToken);
 }

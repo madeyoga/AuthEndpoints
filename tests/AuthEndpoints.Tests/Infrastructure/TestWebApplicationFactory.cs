@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AuthEndpoints.Tests;
 
@@ -10,6 +10,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("Development");
         builder.UseContentRoot(AppContext.BaseDirectory);
+        // UseSetting is applied early enough for WebApplication.CreateBuilder config reads.
+        builder.UseSetting("TestDbName", _dbName);
+        builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "false");
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>

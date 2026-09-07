@@ -109,8 +109,10 @@ public class JwtEndpointsTests : IClassFixture<TestWebApplicationFactory>
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-        var tokens = await db.Set<RefreshToken>().ToListAsync();
-        var revoked = tokens.FirstOrDefault(t => t.RevokedAt != null && t.ReplacedByTokenId != null);
+        var revoked = await db.Set<RefreshToken>()
+            .Where(t => t.RevokedAt != null && t.ReplacedByTokenId != null)
+            .OrderByDescending(t => t.RevokedAt)
+            .FirstOrDefaultAsync();
         Assert.NotNull(revoked);
 
         var familyId = revoked.FamilyId;

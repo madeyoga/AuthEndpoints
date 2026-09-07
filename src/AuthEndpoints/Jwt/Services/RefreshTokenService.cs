@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,15 +23,49 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
         return _db.Set<RefreshToken>().Where(t => t.TokenHash == hash).FirstOrDefaultAsync();
     }
 
-    public async Task<RefreshToken> RotateAsync(RefreshToken refreshToken, string securityStamp)
+    public async Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp)
     {
-        var successor = await CreateAsync(refreshToken.UserId, securityStamp, refreshToken.FamilyId);
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var successor = new RefreshToken
+        {
+            TokenHash = HashToken(rawToken),
+            FamilyId = refreshToken.FamilyId,
+            SecurityStamp = securityStamp,
+            UserId = refreshToken.UserId,
+            ExpiresAt = DateTime.UtcNow.AddDays(14),
+            Token = rawToken
+        };
 
-        refreshToken.RevokedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+
+        // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
+        var affected = await _db.Set<RefreshToken>()
+            .Where(t => t.Id == refreshToken.Id && t.RevokedAt == null)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(t => t.RevokedAt, now)
+                .SetProperty(t => t.ReplacedByTokenId, successor.Id));
+
+        if (affected == 0)
+        {
+            await transaction.RollbackAsync();
+            return null;
+        }
+
+        // ExecuteUpdate bypasses the change tracker. Align (or detach) the presented
+        // entity so the upcoming SaveChanges cannot write RevokedAt=null back over the CAS.
+        refreshToken.RevokedAt = now;
         refreshToken.ReplacedByTokenId = successor.Id;
-        _db.Update(refreshToken);
-        await _db.SaveChangesAsync();
+        var entry = _db.Entry(refreshToken);
+        if (entry.State != EntityState.Detached)
+        {
+            entry.State = EntityState.Detached;
+        }
 
+        _db.Add(successor);
+        await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
         return successor;
     }
 

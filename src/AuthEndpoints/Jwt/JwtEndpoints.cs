@@ -153,6 +153,13 @@ public class JwtEndpoints<TUser>
         }
 
         var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp);
+        if (newRefreshToken is null)
+        {
+            // Lost concurrent rotation race — do not issue a second live cookie.
+            refreshTokenCookieWriter.Delete(context);
+            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+        }
+
         refreshTokenCookieWriter.Write(context, newRefreshToken);
 
         var claimsPrincipal = await claimsFactory.CreateAsync(user);
