@@ -13,12 +13,16 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         // UseSetting is applied early enough for WebApplication.CreateBuilder config reads.
         builder.UseSetting("TestDbName", _dbName);
         builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "false");
+        builder.UseSetting("AE_CONFIRM_EMAIL_REDIRECT_URI", "");
+        builder.UseSetting("AE_CONFIRM_EMAIL_ALLOWED_ORIGINS", "");
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["TestDbName"] = _dbName,
-                ["AE_REQUIRE_CONFIRMED_ACCOUNT"] = "false"
+                ["AE_REQUIRE_CONFIRMED_ACCOUNT"] = "false",
+                ["AE_CONFIRM_EMAIL_REDIRECT_URI"] = "",
+                ["AE_CONFIRM_EMAIL_ALLOWED_ORIGINS"] = ""
             });
         });
     }

@@ -61,6 +61,7 @@ Default `AE_HOST_MODE=compose`:
 Host defaults that **differ from production library defaults**:
 
 - `SignIn.RequireConfirmedAccount = false` (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in.
+- Confirm-email SPA redirect is unset. Set `AE_CONFIRM_EMAIL_REDIRECT_URI` (and `AE_CONFIRM_EMAIL_ALLOWED_ORIGINS` for an absolute URI) before `launch`. The launch whitelist passes both through `exec env`.
 - Password rules are relaxed (`RequiredLength = 6`, no digit/case/symbol requirements). Use `Passw0rd!`.
 - EF Core **SQLite** file under the temp directory (`TestDbName`). All users vanish when that file is removed; a new `AE_RUN_ID` uses a new file.
 - JWT signing key is the test-only value in `Program.cs`. Never treat it as a production secret.

@@ -110,6 +110,33 @@ public class AuthEndpointsFacadeTests
     }
 
     [Fact]
+    public void Facade_Production_AbsoluteConfirmEmailRedirectWithoutAllowlist_FailsValidation()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Production
+        });
+        builder.WebHost.UseTestServer();
+        builder.Services.AddDbContext<TestDbContext>(o =>
+            o.UseInMemoryDatabase("FacadeProdConfirmRedirect_" + Guid.NewGuid().ToString("N")));
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+        {
+            o.Passkeys.ServerDomain = "example.com";
+            o.RequireEmailSenderInProduction = false;
+            o.EmailConfirmation.ConfirmEmailRedirectUri = "https://spa.example.com/confirmed";
+        });
+        builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
+
+        using var app = builder.Build();
+
+        var ex = Assert.ThrowsAny<Exception>(() =>
+        {
+            _ = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
+        });
+        Assert.Contains("AllowedRedirectOrigins", ex.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Facade_Options_DefaultPaths()
     {
         var options = new AuthEndpointsOptions();
@@ -121,6 +148,8 @@ public class AuthEndpointsFacadeTests
         Assert.False(options.Jwt.Enabled);
         Assert.Equal("/auth", options.Jwt.Path);
         Assert.Equal(AuthEndpointsSignIn.Cookie, options.SignIn);
+        Assert.Null(options.EmailConfirmation.ConfirmEmailRedirectUri);
+        Assert.Empty(options.EmailConfirmation.AllowedRedirectOrigins);
     }
 
     [Fact]

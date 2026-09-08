@@ -16,7 +16,7 @@ internal static class TestHelpers
     public const string DefaultPassword = "Passw0rd!";
 
     public static async Task<TestAppUser> SeedUserAsync(
-        TestWebApplicationFactory factory,
+        WebApplicationFactory<Program> factory,
         string email = "user@test.local",
         string password = DefaultPassword,
         bool twoFactorEnabled = false,
@@ -239,7 +239,7 @@ internal static class TestHelpers
     }
 
     public static async Task<string> GenerateEmailConfirmationCodeAsync(
-        TestWebApplicationFactory factory,
+        WebApplicationFactory<Program> factory,
         TestAppUser user)
     {
         using var scope = factory.Services.CreateScope();
@@ -247,6 +247,19 @@ internal static class TestHelpers
         var tracked = await userManager.FindByIdAsync(user.Id)
             ?? throw new InvalidOperationException($"User {user.Id} not found.");
         var code = await userManager.GenerateEmailConfirmationTokenAsync(tracked);
+        return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+    }
+
+    public static async Task<string> GenerateChangeEmailCodeAsync(
+        WebApplicationFactory<Program> factory,
+        TestAppUser user,
+        string newEmail)
+    {
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var tracked = await userManager.FindByIdAsync(user.Id)
+            ?? throw new InvalidOperationException($"User {user.Id} not found.");
+        var code = await userManager.GenerateChangeEmailTokenAsync(tracked, newEmail);
         return WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
     }
 
@@ -320,7 +333,7 @@ internal static class TestHelpers
     }
 
     public static async Task<TestAppUser?> FindUserByEmailAsync(
-        TestWebApplicationFactory factory,
+        WebApplicationFactory<Program> factory,
         string email)
     {
         using var scope = factory.Services.CreateScope();

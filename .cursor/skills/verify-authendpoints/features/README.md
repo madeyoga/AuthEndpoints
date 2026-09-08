@@ -47,3 +47,4 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, and refresh-cookie refresh.
 - [ReAuth step-up](./reauth.md) covers `confirmIdentity` and a protected manage mutation.
 - [Passkeys](./passkeys.md) covers passwordless register/login, confirmation mail under `AE_REQUIRE_CONFIRMED_ACCOUNT=true`, and the test-only WebAuthn helper.
+- [Confirm email](./confirm-email.md) covers `GET /identity/confirmEmail` thank-you / 401 and the optional SPA redirect (`AE_CONFIRM_EMAIL_REDIRECT_URI`).
