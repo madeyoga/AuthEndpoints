@@ -48,4 +48,5 @@ overrides:
   socket.io-parser: 4.2.7
   svgo: 4.1.0
   tar: 7.5.22
+  vue: 3.5.42
   ws: 8.21.3
