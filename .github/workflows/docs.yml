@@ -33,7 +33,7 @@ jobs:
           # defaults.run.working-directory does not apply to uses: steps;
           # packageManager is in Documentation/package.json, not repo root
           package_json_file: Documentation/package.json
-          version: 11.13.1
+          version: 12.3.4
 
       - name: Setup Node
         uses: actions/setup-node@v6
