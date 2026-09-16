@@ -135,6 +135,7 @@ POST {{CookieBasics_HostAddress}}/identity/logout
 RequestVerificationToken: {{csrfAfterLoginToken}}
 
 ### Login with 2FA code
+# {{twoFactorCode}} must be a fresh 6-digit TOTP. Do not reuse the code used for enable (enable consumes that window).
 POST {{CookieBasics_HostAddress}}/identity/login
 Content-Type: application/json
 
