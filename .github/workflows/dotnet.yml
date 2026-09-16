@@ -7,6 +7,7 @@ on:
       - 'src/AuthEndpoints/**'
       - 'src/AuthEndpoints.External.OAuth/**'
       - 'tests/AuthEndpoints.Tests/**'
+      - 'samples/**'
       - 'AuthEndpoints.sln'
       - '.github/workflows/dotnet.yml'
 

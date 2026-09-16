@@ -1,0 +1,153 @@
+@CookieBasics_HostAddress = http://localhost:5288
+@email = cookie-basics@example.com
+@password = Passw0rd!
+@newPassword = Passw0rd!2
+
+# Paste these from the console after register / forgotPassword.
+@userId =
+@confirmCode =
+@resetCode =
+
+# Paste sharedKey from POST /identity/manage/2fa (empty body), then a TOTP from an authenticator.
+@sharedKey =
+@twoFactorCode =
+
+### CSRF token (cookie jar is kept for later unsafe POSTs)
+# @name csrf
+GET {{CookieBasics_HostAddress}}/identity/csrfToken
+Accept: application/json
+
+###
+@csrfToken = {{csrf.response.body.$.csrfToken}}
+
+############################################################
+# 1. Register a confirmed account
+# Facade default path is /identity (same as docs Examples).
+############################################################
+
+### Register (stays logged out; confirmation link prints to the console)
+POST {{CookieBasics_HostAddress}}/identity/register
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Confirm email (GET /identity/confirmEmail?userId=…&code=… from the console link)
+GET {{CookieBasics_HostAddress}}/identity/confirmEmail?userId={{userId}}&code={{confirmCode}}
+
+############################################################
+# 2. Login (cookie session)
+############################################################
+
+### Login — sets .AspNetCore.Identity.Application (no CSRF)
+POST {{CookieBasics_HostAddress}}/identity/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### Session info
+GET {{CookieBasics_HostAddress}}/identity/manage/info
+Accept: application/json
+
+############################################################
+# 3. Reset a forgotten password
+# Mail is sent only for a confirmed account. Forgot always returns 200.
+############################################################
+
+### Forgot password (reset code prints to the console)
+POST {{CookieBasics_HostAddress}}/identity/forgotPassword
+Content-Type: application/json
+
+{
+  "email": "{{email}}"
+}
+
+### Reset password
+POST {{CookieBasics_HostAddress}}/identity/resetPassword
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "resetCode": "{{resetCode}}",
+  "newPassword": "{{newPassword}}"
+}
+
+### Login with the new password
+POST {{CookieBasics_HostAddress}}/identity/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{newPassword}}"
+}
+
+############################################################
+# 4. Two-factor authentication
+# POST /identity/manage/2fa requires CSRF + ReAuth.
+############################################################
+
+### Refresh CSRF after login
+# @name csrfAfterLogin
+GET {{CookieBasics_HostAddress}}/identity/csrfToken
+Accept: application/json
+
+###
+@csrfAfterLoginToken = {{csrfAfterLogin.response.body.$.csrfToken}}
+
+### 2FA status
+GET {{CookieBasics_HostAddress}}/identity/manage/2fa
+Accept: application/json
+
+### ReAuth with password (sets AuthEndpoints.ReAuth cookie, 5 minutes)
+POST {{CookieBasics_HostAddress}}/identity/confirmIdentity
+Content-Type: application/json
+RequestVerificationToken: {{csrfAfterLoginToken}}
+
+{
+  "password": "{{newPassword}}"
+}
+
+### Mint authenticator sharedKey (empty body)
+POST {{CookieBasics_HostAddress}}/identity/manage/2fa
+Content-Type: application/json
+RequestVerificationToken: {{csrfAfterLoginToken}}
+
+{}
+
+### ReAuth again before enable (cookie is 5 minutes; refresh CSRF if needed)
+POST {{CookieBasics_HostAddress}}/identity/confirmIdentity
+Content-Type: application/json
+RequestVerificationToken: {{csrfAfterLoginToken}}
+
+{
+  "password": "{{newPassword}}"
+}
+
+### Enable 2FA (paste a 6-digit TOTP from the sharedKey)
+POST {{CookieBasics_HostAddress}}/identity/manage/2fa
+Content-Type: application/json
+RequestVerificationToken: {{csrfAfterLoginToken}}
+
+{
+  "enable": true,
+  "twoFactorCode": "{{twoFactorCode}}"
+}
+
+### Logout (CSRF required)
+POST {{CookieBasics_HostAddress}}/identity/logout
+RequestVerificationToken: {{csrfAfterLoginToken}}
+
+### Login with 2FA code
+POST {{CookieBasics_HostAddress}}/identity/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{newPassword}}",
+  "twoFactorCode": "{{twoFactorCode}}"
+}
