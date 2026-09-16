@@ -12,14 +12,6 @@
 @sharedKey =
 @twoFactorCode =
 
-### CSRF token (cookie jar is kept for later unsafe POSTs)
-# @name csrf
-GET {{CookieBasics_HostAddress}}/identity/csrfToken
-Accept: application/json
-
-###
-@csrfToken = {{csrf.response.body.$.csrfToken}}
-
 ############################################################
 # 1. Register a confirmed account
 # Facade default path is /identity (same as docs Examples).
