@@ -1,5 +1,8 @@
 namespace AuthEndpoints.Passkey;
 
-public record PasskeyCredentialResponse(string CredentialId, string? DisplayName = null);
+public record PasskeyCredentialResponse(
+    string CredentialId,
+    string? DisplayName = null,
+    DateTimeOffset? CreatedAt = null);
 
 public record PasskeyListResponse(IReadOnlyList<PasskeyCredentialResponse> Passkeys);
