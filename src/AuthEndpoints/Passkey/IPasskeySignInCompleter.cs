@@ -4,6 +4,7 @@ namespace AuthEndpoints.Passkey;
 
 /// <summary>
 /// Completes sign-in after a passkey register or login ceremony has been validated.
+/// The library invokes this only after lockout and <c>SignInManager.CanSignInAsync</c> allow sign-in.
 /// Default implementation issues Identity cookie or bearer tokens; replace for Simple JWT.
 /// </summary>
 public interface IPasskeySignInCompleter<TUser>

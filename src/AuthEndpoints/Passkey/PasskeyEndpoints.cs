@@ -316,7 +316,9 @@ public static class PasskeyEndpoints<TUser>
             email,
             confirmEmailEndpointName);
 
-        return await completer.CompleteAsync(
+        return await PasskeySignInGate.CompleteIfAllowedAsync(
+            signInManager,
+            completer,
             httpContext,
             user,
             new PasskeySignInCompletionContext
@@ -374,7 +376,9 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        return await completer.CompleteAsync(
+        return await PasskeySignInGate.CompleteIfAllowedAsync(
+            signInManager,
+            completer,
             httpContext,
             assertionResult.User,
             new PasskeySignInCompletionContext

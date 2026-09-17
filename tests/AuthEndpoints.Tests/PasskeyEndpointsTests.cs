@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AuthEndpoints.Tests;
 
@@ -513,5 +514,79 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
             "/account/passkeys/register",
             new { email, credentialJson = "{}" });
         await TestHelpers.AssertValidationErrorAsync(register, PasskeyHttp.InvalidPasskeyState);
+    }
+
+    [Fact]
+    public async Task UnconfirmedRegisterAndLogin_DoesNotInvokeCompleterOrIssueSession()
+    {
+        var recorder = new RecordingAlwaysSignInCompleter<TestAppUser>();
+        using var factory = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "true");
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<IPasskeySignInCompleter<TestAppUser>>();
+                services.AddSingleton<IPasskeySignInCompleter<TestAppUser>>(recorder);
+            });
+        });
+
+        var email = $"pk-gate-{Guid.NewGuid():N}@test.local";
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        var origin = client.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
+
+        var optionsResponse = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register/options",
+            new { email });
+        Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
+        var credentialJson = authenticator.CreateAttestation(
+            await optionsResponse.Content.ReadAsStringAsync(),
+            origin);
+
+        var register = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register?useCookies=true",
+            new { email, credentialJson });
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+        Assert.Equal(0, recorder.CompleteCalls);
+        if (register.Headers.TryGetValues("Set-Cookie", out var registerCookies))
+        {
+            Assert.DoesNotContain(
+                registerCookies,
+                static c => c.Contains(".AspNetCore.Identity.Application", StringComparison.Ordinal));
+        }
+
+        using var registerDoc = JsonDocument.Parse(await register.Content.ReadAsStringAsync());
+        Assert.False(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(registerDoc.RootElement, "credentialId", "CredentialId")));
+
+        var info = await client.GetAsync("/identity/manage/info");
+        Assert.Equal(HttpStatusCode.Unauthorized, info.StatusCode);
+
+        var requestOptions = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/requestOptions",
+            new { });
+        Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
+        var assertionJson = authenticator.CreateAssertion(
+            await requestOptions.Content.ReadAsStringAsync(),
+            origin);
+
+        var login = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/login?useCookies=true",
+            new { credentialJson = assertionJson });
+        Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
+        Assert.Equal(0, recorder.CompleteCalls);
+        if (login.Headers.TryGetValues("Set-Cookie", out var loginCookies))
+        {
+            Assert.DoesNotContain(
+                loginCookies,
+                static c => c.Contains(".AspNetCore.Identity.Application", StringComparison.Ordinal));
+        }
+
+        var stillSignedOut = await client.GetAsync("/identity/manage/info");
+        Assert.Equal(HttpStatusCode.Unauthorized, stillSignedOut.StatusCode);
     }
 }
