@@ -97,8 +97,17 @@ internal static class TestHelpers
             $"Login failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
     }
 
-    public static async Task<HttpResponseMessage> PostWithCsrfAsync(
+    public static Task<HttpResponseMessage> PostWithCsrfAsync(
         HttpClient client,
+        string url,
+        object? body,
+        string? reauthToken = null,
+        string csrfPath = "/identity/csrfToken")
+        => SendWithCsrfAsync(client, HttpMethod.Post, url, body, reauthToken, csrfPath);
+
+    public static async Task<HttpResponseMessage> SendWithCsrfAsync(
+        HttpClient client,
+        HttpMethod method,
         string url,
         object? body,
         string? reauthToken = null,
@@ -107,7 +116,7 @@ internal static class TestHelpers
         for (var attempt = 0; attempt < 6; attempt++)
         {
             var csrf = await GetCsrfTokenAsync(client, csrfPath);
-            using var request = new HttpRequestMessage(HttpMethod.Post, url)
+            using var request = new HttpRequestMessage(method, url)
             {
                 Content = body is null ? null : JsonContent.Create(body)
             };
@@ -128,7 +137,7 @@ internal static class TestHelpers
         }
 
         var csrfFinal = await GetCsrfTokenAsync(client, csrfPath);
-        using var finalRequest = new HttpRequestMessage(HttpMethod.Post, url)
+        using var finalRequest = new HttpRequestMessage(method, url)
         {
             Content = body is null ? null : JsonContent.Create(body)
         };
@@ -379,5 +388,44 @@ internal static class TestHelpers
         var token = TryGetString(root, camel, pascal);
         Assert.False(string.IsNullOrWhiteSpace(token), $"Missing token property {camel}/{pascal}.");
         return token!;
+    }
+
+    public static async Task AssertValidationErrorAsync(HttpResponseMessage response, string errorKey)
+    {
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(body);
+        Assert.True(
+            doc.RootElement.TryGetProperty("errors", out var errors)
+            || doc.RootElement.TryGetProperty("Errors", out errors),
+            $"Expected ValidationProblem errors. Body: {body}");
+        Assert.True(
+            errors.TryGetProperty(errorKey, out var messages) && messages.ValueKind == JsonValueKind.Array && messages.GetArrayLength() > 0,
+            $"Expected errors.{errorKey}. Body: {body}");
+    }
+
+    public static DateTimeOffset? TryGetDateTimeOffset(JsonElement root, string camel, string pascal)
+    {
+        if (!root.TryGetProperty(camel, out var prop) && !root.TryGetProperty(pascal, out prop))
+        {
+            return null;
+        }
+
+        if (prop.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        if (prop.TryGetDateTimeOffset(out var value))
+        {
+            return value;
+        }
+
+        if (prop.ValueKind == JsonValueKind.String && DateTimeOffset.TryParse(prop.GetString(), out value))
+        {
+            return value;
+        }
+
+        return null;
     }
 }

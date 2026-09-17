@@ -306,4 +306,212 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
             return id;
         }
     }
+
+    [Fact]
+    public async Task AddPasskey_UserEntityMismatch_ReturnsUserMismatchAndDoesNotStore()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var email = $"pk-mismatch-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        var origin = client.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
+
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        var reauth = await TestHelpers.ConfirmIdentityAsync(
+            client,
+            new { password = TestHelpers.DefaultPassword });
+
+        var optionsResponse = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register/options",
+            new { email = $"pk-other-{Guid.NewGuid():N}@test.local" });
+        Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
+        var optionsJson = await optionsResponse.Content.ReadAsStringAsync();
+        var credentialJson = authenticator.CreateAttestation(optionsJson, origin);
+
+        var add = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/",
+            new { credentialJson, name = "ShouldNotStore" },
+            reauth);
+        await TestHelpers.AssertValidationErrorAsync(add, PasskeyHttp.UserMismatch);
+
+        using var scope = factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = await userManager.FindByEmailAsync(email);
+        Assert.NotNull(user);
+        Assert.Empty(await userManager.GetPasskeysAsync(user));
+    }
+
+    [Fact]
+    public async Task AddPasskey_WithName_ListShowsDisplayNameAndCreatedAt_ThenDeleteAndRenameMiss()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var email = $"pk-manage-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        var origin = client.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
+
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        var reauth = await TestHelpers.ConfirmIdentityAsync(
+            client,
+            new { password = TestHelpers.DefaultPassword });
+
+        var optionsResponse = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/creationOptions",
+            new { },
+            reauth);
+        Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
+        var credentialJson = authenticator.CreateAttestation(
+            await optionsResponse.Content.ReadAsStringAsync(),
+            origin);
+
+        var beforeAdd = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var add = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/",
+            new { credentialJson, name = "  Laptop  " },
+            reauth);
+        Assert.Equal(HttpStatusCode.OK, add.StatusCode);
+        using var addDoc = JsonDocument.Parse(await add.Content.ReadAsStringAsync());
+        Assert.Equal("Laptop", TestHelpers.TryGetString(addDoc.RootElement, "displayName", "DisplayName"));
+        var addCreatedAt = TestHelpers.TryGetDateTimeOffset(addDoc.RootElement, "createdAt", "CreatedAt");
+        Assert.NotNull(addCreatedAt);
+        Assert.InRange(addCreatedAt.Value, beforeAdd, DateTimeOffset.UtcNow.AddMinutes(1));
+        var credentialId = TestHelpers.TryGetString(addDoc.RootElement, "credentialId", "CredentialId");
+        Assert.False(string.IsNullOrEmpty(credentialId));
+
+        var list = await client.GetAsync("/account/passkeys/");
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
+        using var listDoc = JsonDocument.Parse(await list.Content.ReadAsStringAsync());
+        var passkeys = listDoc.RootElement.TryGetProperty("passkeys", out var p)
+            ? p
+            : listDoc.RootElement.GetProperty("Passkeys");
+        Assert.Equal(1, passkeys.GetArrayLength());
+        var listed = passkeys[0];
+        Assert.Equal(credentialId, TestHelpers.TryGetString(listed, "credentialId", "CredentialId"));
+        Assert.Equal("Laptop", TestHelpers.TryGetString(listed, "displayName", "DisplayName"));
+        Assert.NotNull(TestHelpers.TryGetDateTimeOffset(listed, "createdAt", "CreatedAt"));
+
+        var unknownId = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes("missing-passkey-id"));
+        var deleteMiss = await TestHelpers.SendWithCsrfAsync(
+            client,
+            HttpMethod.Delete,
+            $"/account/passkeys/{unknownId}",
+            body: null,
+            reauth);
+        Assert.Equal(HttpStatusCode.NotFound, deleteMiss.StatusCode);
+
+        var deleteGarbage = await TestHelpers.SendWithCsrfAsync(
+            client,
+            HttpMethod.Delete,
+            "/account/passkeys/not-valid!!!",
+            body: null,
+            reauth);
+        await TestHelpers.AssertValidationErrorAsync(deleteGarbage, PasskeyHttp.InvalidCredentialId);
+
+        var renameMiss = await TestHelpers.SendWithCsrfAsync(
+            client,
+            HttpMethod.Patch,
+            "/account/passkeys/",
+            new { id = unknownId, newName = "Phone" },
+            reauth);
+        Assert.Equal(HttpStatusCode.NotFound, renameMiss.StatusCode);
+
+        var renameGarbage = await TestHelpers.SendWithCsrfAsync(
+            client,
+            HttpMethod.Patch,
+            "/account/passkeys/",
+            new { id = "%%%", newName = "Phone" },
+            reauth);
+        await TestHelpers.AssertValidationErrorAsync(renameGarbage, PasskeyHttp.InvalidCredentialId);
+
+        var deleteOk = await TestHelpers.SendWithCsrfAsync(
+            client,
+            HttpMethod.Delete,
+            $"/account/passkeys/{credentialId}",
+            body: null,
+            reauth);
+        Assert.Equal(HttpStatusCode.OK, deleteOk.StatusCode);
+
+        var listAfter = await client.GetAsync("/account/passkeys/");
+        Assert.Equal(HttpStatusCode.OK, listAfter.StatusCode);
+        using var listAfterDoc = JsonDocument.Parse(await listAfter.Content.ReadAsStringAsync());
+        var passkeysAfter = listAfterDoc.RootElement.TryGetProperty("passkeys", out var after)
+            ? after
+            : listAfterDoc.RootElement.GetProperty("Passkeys");
+        Assert.Equal(0, passkeysAfter.GetArrayLength());
+    }
+
+    [Fact]
+    public async Task AddPasskey_NameTooLong_ReturnsValidationProblemOnName()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var email = $"pk-namelong-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        var reauth = await TestHelpers.ConfirmIdentityAsync(
+            client,
+            new { password = TestHelpers.DefaultPassword });
+
+        var add = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/",
+            new { credentialJson = "{}", name = new string('a', PasskeyHttp.NameMaxLength + 1) },
+            reauth);
+        await TestHelpers.AssertValidationErrorAsync(add, "Name");
+    }
+
+    [Fact]
+    public async Task Login_WithoutRequestOptions_ReturnsInvalidPasskeyState()
+    {
+        using var factory = new TestWebApplicationFactory();
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+
+        var login = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/login",
+            new { credentialJson = "{}" });
+        await TestHelpers.AssertValidationErrorAsync(login, PasskeyHttp.InvalidPasskeyState);
+    }
+
+    [Fact]
+    public async Task AddPasskey_WithoutCreationOptions_ReturnsInvalidPasskeyState()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var email = $"pk-nostate-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        var reauth = await TestHelpers.ConfirmIdentityAsync(
+            client,
+            new { password = TestHelpers.DefaultPassword });
+
+        var add = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/",
+            new { credentialJson = "{}" },
+            reauth);
+        await TestHelpers.AssertValidationErrorAsync(add, PasskeyHttp.InvalidPasskeyState);
+    }
+
+    [Fact]
+    public async Task Register_WithoutCreationOptions_ReturnsInvalidPasskeyState()
+    {
+        using var factory = new TestWebApplicationFactory();
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        var email = $"pk-reg-nostate-{Guid.NewGuid():N}@test.local";
+
+        var register = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register",
+            new { email, credentialJson = "{}" });
+        await TestHelpers.AssertValidationErrorAsync(register, PasskeyHttp.InvalidPasskeyState);
+    }
 }
