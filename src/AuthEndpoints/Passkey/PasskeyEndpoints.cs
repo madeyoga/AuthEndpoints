@@ -1,4 +1,3 @@
-using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using AuthEndpoints.Identity;
@@ -48,7 +47,7 @@ public static class PasskeyEndpoints<TUser>
         return TypedResults.Content(optionsJson, contentType: "application/json");
     }
 
-    public static async Task<Results<Ok<PasskeyCredentialResponse>, NotFound, ProblemHttpResult>> AddPasskey(
+    public static async Task<Results<Ok<PasskeyCredentialResponse>, NotFound, ValidationProblem, ProblemHttpResult>> AddPasskey(
         [FromBody] PasskeyVerifyAndStoreRequest request,
         HttpContext context,
         UserManager<TUser> userManager,
@@ -67,15 +66,36 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var attestationResult = await signInManager.PerformPasskeyAttestationAsync(request.CredentialJson);
-        if (!attestationResult.Succeeded)
+        var name = PasskeyHttp.NormalizeName(request.Name, out var nameProblem);
+        if (nameProblem is not null)
+        {
+            return nameProblem;
+        }
+
+        var (attestationResult, ceremonyProblem) = await PasskeyHttp.TryPerformAsync(
+            () => signInManager.PerformPasskeyAttestationAsync(request.CredentialJson));
+        if (ceremonyProblem is not null)
+        {
+            return ceremonyProblem;
+        }
+
+        if (!attestationResult!.Succeeded)
         {
             return TypedResults.Problem(
                 detail: $"Could not add the passkey: {attestationResult.Failure.Message}",
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var addPasskeyResult = await userManager.AddOrUpdatePasskeyAsync(user, attestationResult.Passkey);
+        var signedInUserId = await userManager.GetUserIdAsync(user);
+        if (attestationResult.UserEntity is null
+            || !string.Equals(attestationResult.UserEntity.Id, signedInUserId, StringComparison.Ordinal))
+        {
+            return PasskeyHttp.UserMismatchProblem();
+        }
+
+        var passkey = attestationResult.Passkey;
+        passkey.Name = name;
+        var addPasskeyResult = await userManager.AddOrUpdatePasskeyAsync(user, passkey);
         if (!addPasskeyResult.Succeeded)
         {
             return TypedResults.Problem(
@@ -83,8 +103,7 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        return TypedResults.Ok(new PasskeyCredentialResponse(
-            Base64Url.EncodeToString(attestationResult.Passkey.CredentialId)));
+        return TypedResults.Ok(PasskeyHttp.ToCredentialResponse(passkey));
     }
 
     public static async Task<Results<Ok<PasskeyListResponse>, NotFound>> ListPasskeys(
@@ -98,14 +117,12 @@ public static class PasskeyEndpoints<TUser>
         }
 
         var passkeys = await userManager.GetPasskeysAsync(user);
-        var response = passkeys.Select(passkey => new PasskeyCredentialResponse(
-            Base64Url.EncodeToString(passkey.CredentialId),
-            passkey.Name)).ToList();
+        var response = passkeys.Select(PasskeyHttp.ToCredentialResponse).ToList();
 
         return TypedResults.Ok(new PasskeyListResponse(response));
     }
 
-    public static async Task<Results<Ok, NotFound, ProblemHttpResult>> RenamePasskey(
+    public static async Task<Results<Ok, NotFound, ValidationProblem, ProblemHttpResult>> RenamePasskey(
         [FromBody] PasskeyRenameRequest request,
         HttpContext context,
         UserManager<TUser> userManager)
@@ -116,24 +133,15 @@ public static class PasskeyEndpoints<TUser>
             return TypedResults.NotFound();
         }
 
-        byte[] credentialId;
-        try
+        if (!PasskeyHttp.TryDecodeCredentialId(request.Id, out var credentialId))
         {
-            credentialId = Base64Url.DecodeFromChars(request.Id);
-        }
-        catch (FormatException)
-        {
-            return TypedResults.Problem(
-                detail: "The specified passkey ID had an invalid format.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return PasskeyHttp.InvalidCredentialIdProblem();
         }
 
         var passkey = await userManager.GetPasskeyAsync(user, credentialId);
         if (passkey is null)
         {
-            return TypedResults.Problem(
-                detail: "The specified passkey could not be found.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return TypedResults.NotFound();
         }
 
         passkey.Name = request.NewName;
@@ -148,7 +156,7 @@ public static class PasskeyEndpoints<TUser>
         return TypedResults.Ok();
     }
 
-    public static async Task<Results<Ok, NotFound, ProblemHttpResult>> DeletePasskey(
+    public static async Task<Results<Ok, NotFound, ValidationProblem, ProblemHttpResult>> DeletePasskey(
         string credentialIdUrl,
         HttpContext context,
         UserManager<TUser> userManager)
@@ -159,16 +167,15 @@ public static class PasskeyEndpoints<TUser>
             return TypedResults.NotFound();
         }
 
-        byte[] credentialId;
-        try
+        if (!PasskeyHttp.TryDecodeCredentialId(credentialIdUrl, out var credentialId))
         {
-            credentialId = Base64Url.DecodeFromChars(credentialIdUrl);
+            return PasskeyHttp.InvalidCredentialIdProblem();
         }
-        catch (FormatException)
+
+        var passkey = await userManager.GetPasskeyAsync(user, credentialId);
+        if (passkey is null)
         {
-            return TypedResults.Problem(
-                detail: "The specified passkey ID had an invalid format.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return TypedResults.NotFound();
         }
 
         var result = await userManager.RemovePasskeyAsync(user, credentialId);
@@ -259,8 +266,14 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var attestationResult = await signInManager.PerformPasskeyAttestationAsync(request.CredentialJson);
-        if (!attestationResult.Succeeded)
+        var (attestationResult, ceremonyProblem) = await PasskeyHttp.TryPerformAsync(
+            () => signInManager.PerformPasskeyAttestationAsync(request.CredentialJson));
+        if (ceremonyProblem is not null)
+        {
+            return ceremonyProblem;
+        }
+
+        if (!attestationResult!.Succeeded)
         {
             return TypedResults.Problem(
                 detail: "Unable to complete registration.",
@@ -303,7 +316,9 @@ public static class PasskeyEndpoints<TUser>
             email,
             confirmEmailEndpointName);
 
-        return await completer.CompleteAsync(
+        return await PasskeySignInGate.CompleteIfAllowedAsync(
+            signInManager,
+            completer,
             httpContext,
             user,
             new PasskeySignInCompletionContext
@@ -335,8 +350,14 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        var assertionResult = await signInManager.PerformPasskeyAssertionAsync(request.CredentialJson);
-        if (!assertionResult.Succeeded || assertionResult.User is null)
+        var (assertionResult, ceremonyProblem) = await PasskeyHttp.TryPerformAsync(
+            () => signInManager.PerformPasskeyAssertionAsync(request.CredentialJson));
+        if (ceremonyProblem is not null)
+        {
+            return ceremonyProblem;
+        }
+
+        if (!assertionResult!.Succeeded || assertionResult.User is null)
         {
             return TypedResults.Problem(
                 type: "Bad Request",
@@ -355,7 +376,9 @@ public static class PasskeyEndpoints<TUser>
                 statusCode: StatusCodes.Status400BadRequest);
         }
 
-        return await completer.CompleteAsync(
+        return await PasskeySignInGate.CompleteIfAllowedAsync(
+            signInManager,
+            completer,
             httpContext,
             assertionResult.User,
             new PasskeySignInCompletionContext

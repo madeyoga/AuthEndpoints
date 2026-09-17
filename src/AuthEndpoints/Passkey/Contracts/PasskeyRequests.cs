@@ -1,6 +1,6 @@
 namespace AuthEndpoints.Passkey;
 
-public record PasskeyVerifyAndStoreRequest(string CredentialJson);
+public record PasskeyVerifyAndStoreRequest(string CredentialJson, string? Name = null);
 
 public record PasskeyRenameRequest(string Id, string NewName);
 
