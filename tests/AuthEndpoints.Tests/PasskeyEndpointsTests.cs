@@ -238,11 +238,14 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
         var requestOptions = await TestHelpers.PostWithCsrfAsync(
             client,
             "/account/passkeys/requestOptions",
-            new { });
+            new { email });
         Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
-        var assertionJson = authenticator.CreateAssertion(
-            await requestOptions.Content.ReadAsStringAsync(),
-            origin);
+        var requestOptionsJson = await requestOptions.Content.ReadAsStringAsync();
+        AssertRequestOptionsJson(requestOptionsJson);
+        Assert.True(
+            AllowCredentialsCount(requestOptionsJson) > 0,
+            "Identifier-first request options should list the registered passkey.");
+        var assertionJson = authenticator.CreateAssertion(requestOptionsJson, origin);
 
         var login = await TestHelpers.PostWithCsrfAsync(
             client,
@@ -279,6 +282,34 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
 
         var mailbox = _factory.Services.GetRequiredService<CapturingEmailSender>();
         Assert.DoesNotContain(mailbox.Snapshot(), mail => mail.Email == email);
+    }
+
+    internal static void AssertRequestOptionsJson(string optionsJson)
+    {
+        Assert.DoesNotContain("user not found", optionsJson, StringComparison.OrdinalIgnoreCase);
+        using var doc = JsonDocument.Parse(optionsJson);
+        Assert.Equal(JsonValueKind.Object, doc.RootElement.ValueKind);
+        var challenge = TestHelpers.TryGetString(doc.RootElement, "challenge", "Challenge");
+        Assert.False(string.IsNullOrEmpty(challenge), "Expected challenge in request options JSON.");
+    }
+
+    internal static int AllowCredentialsCount(string optionsJson)
+    {
+        using var doc = JsonDocument.Parse(optionsJson);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("publicKey", out var publicKey)
+            || root.TryGetProperty("PublicKey", out publicKey))
+        {
+            root = publicKey;
+        }
+
+        if (!root.TryGetProperty("allowCredentials", out var credentials)
+            && !root.TryGetProperty("AllowCredentials", out credentials))
+        {
+            return 0;
+        }
+
+        return credentials.ValueKind == JsonValueKind.Array ? credentials.GetArrayLength() : 0;
     }
 
     internal static string ReadCreationOptionsUserId(string optionsJson)
@@ -469,6 +500,39 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
+    public async Task RequestOptions_UnknownEmail_ReturnsOptionsJson()
+    {
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        var email = $"nobody-{Guid.NewGuid():N}@test.local";
+
+        var response = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/requestOptions",
+            new { email });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        AssertRequestOptionsJson(body);
+        Assert.Equal(0, AllowCredentialsCount(body));
+    }
+
+    [Fact]
+    public async Task RequestOptions_OmittedEmail_ReturnsOptionsJson()
+    {
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+
+        var response = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/requestOptions",
+            new { });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        AssertRequestOptionsJson(body);
+        Assert.Equal(0, AllowCredentialsCount(body));
+    }
+
+    [Fact]
     public async Task Login_WithoutRequestOptions_ReturnsInvalidPasskeyState()
     {
         using var factory = new TestWebApplicationFactory();
@@ -567,7 +631,7 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
         var requestOptions = await TestHelpers.PostWithCsrfAsync(
             client,
             "/account/passkeys/requestOptions",
-            new { });
+            new { email });
         Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
         var assertionJson = authenticator.CreateAssertion(
             await requestOptions.Content.ReadAsStringAsync(),

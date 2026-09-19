@@ -176,7 +176,7 @@ Full table: https://madeyoga.github.io/AuthEndpoints/getting-started/configurati
 
 Enabled by default. In Production set `Passkeys.ServerDomain`, or disable with `o.Passkeys.Enabled = false`.
 
-Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). CSRF is required for WebAuthn ceremonies. Add/rename/delete/`creationOptions` also require ReAuth. Passwordless register mints `Guid.NewGuid()` (UUID v4) unless the host registers `IPasskeyUserIdFactory`.
+Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). CSRF is required for WebAuthn ceremonies. Add/rename/delete/`creationOptions` also require ReAuth. Passwordless register mints `Guid.NewGuid()` (UUID v4) unless the host registers `IPasskeyUserIdFactory`. `POST {PasskeyPath}/passkeys/requestOptions` takes optional JSON `{ email }`. Empty or unknown email still returns 200 options. Identifier-first may reveal passkey presence via `allowCredentials`. Omit `email` for usernameless/discoverable login.
 
 Facade JWT opt-in does **not** auto-select `JwtPasskeySignInCompleter`. Register it explicitly when passkey register/login should issue Simple JWT (access token + refresh cookie); that completer ignores cookie query flags.
 

@@ -38,6 +38,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         group.MapPost("/requestOptions", PasskeyEndpoints<TUser>.RequestOptions)
             .WithSummary("Generate WebAuthn request options for passkey login.")
+            .WithDescription("""
+                Optional JSON body { "email": "..." }. Empty or unknown email still returns 200 options
+                (usernameless / discoverable). Identifier-first email may reveal passkey presence via allowCredentials.
+                CSRF and rate limiting apply.
+                """)
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
             .RequireAntiforgery();
 
