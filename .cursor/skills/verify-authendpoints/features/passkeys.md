@@ -36,8 +36,8 @@ Preconditions:
 - **No session.** Run `ae-http.sh get /identity/manage/info --out pk-info-before-confirm`. Status is `401`.
 - **Mailbox.** Run `ae-http.sh get /test/mailbox --out mailbox-after-passkey`. Body contains a `confirm` item for `EMAIL` whose `body` includes `/identity/confirmEmail`.
 - **Confirm.** GET the HTML-decoded confirm URL. Status is `200`. Body contains `confirming`.
+- **Unknown email options.** Run `ae-http.sh post --csrf /account/passkeys/requestOptions "{\"email\":\"nobody-${AE_RUN_ID}@test.local\"}" --out pk-request-options-unknown`. Status is `200`. Body is request-options JSON (no 404, no "user not found"). Do this before the identifier-first login options so it does not replace the login challenge.
 - **Login options.** Run `ae-http.sh post --csrf /account/passkeys/requestOptions "{\"email\":\"${EMAIL}\"}" --out pk-request-options`. Status is `200`. Body is request-options JSON. Identifier-first may include `allowCredentials`.
-- **Unknown email options.** Run `ae-http.sh post --csrf /account/passkeys/requestOptions "{\"email\":\"nobody-${AE_RUN_ID}@test.local\"}" --out pk-request-options-unknown`. Status is `200`. Body is request-options JSON (no 404, no "user not found").
 - **Assert and login.** POST assertion `credentialJson` to `/account/passkeys/login?useCookies=true` with CSRF. Status is `200` or `204`. Then `GET /identity/manage/info` is `200` with the same email and `isEmailConfirmed` true.
 - **Proof.** Keep `pw-register.status`, `mailbox-after-password.body`, `pk-register.status`, `pk-register.headers` (no session cookie), `pk-info-before-confirm.status` (`401`), `mailbox-after-passkey.body`, confirm GET, `pk-request-options` (email body), `pk-request-options-unknown` (`200`), `pk-login` plus `info` after login.
 
@@ -62,4 +62,5 @@ POST that JSON to `/test/webauthn/attestation` (`--out pk-attest`). Build the re
 - Passkey register is rate-limited (3 / minute). Use a fresh email rather than retrying the same ceremony in a tight loop.
 - Default test host allows unconfirmed sign-in. Confirmation-gate proof requires `AE_REQUIRE_CONFIRMED_ACCOUNT=true` on **launch**.
 - Completer cookie flags follow Identity bearer login: `?useCookies=true` on `/account/passkeys/register` and `/login`, not `POST /identity/login`.
+- Each `POST /account/passkeys/requestOptions` replaces the pending assertion challenge. Drive unknown-email options before the login options you will assert, or after login.
 - The test host stores Identity data in SQLite. EF in-memory does not round-trip passkey `Data`, so login after register would fail on that provider.
