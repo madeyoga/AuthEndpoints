@@ -38,11 +38,17 @@ public static class PasskeyEndpoints<TUser>
     }
 
     public static async Task<ContentHttpResult> RequestOptions(
+        [FromBody] PasskeyRequestOptionsRequest? request,
         UserManager<TUser> userManager,
-        SignInManager<TUser> signInManager,
-        [FromQuery] string? username)
+        SignInManager<TUser> signInManager)
     {
-        var user = string.IsNullOrEmpty(username) ? null : await userManager.FindByNameAsync(username);
+        if (!userManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires a user store with email support.");
+        }
+
+        var email = request?.Email?.Trim();
+        var user = string.IsNullOrEmpty(email) ? null : await userManager.FindByEmailAsync(email);
         var optionsJson = await signInManager.MakePasskeyRequestOptionsAsync(user);
         return TypedResults.Content(optionsJson, contentType: "application/json");
     }
