@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Passkey;
 
@@ -18,12 +19,18 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// Defaults to the same name as <c>MapIdentityManagementApi</c>. Required when that map
     /// used a custom name.
     /// </param>
+    /// <exception cref="NotSupportedException">
+    /// The user store does not support passkeys or email. This module is email-keyed and requires
+    /// a passkey store.
+    /// </exception>
     public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+
+        EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
 
         confirmEmailEndpointName ??= AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions
             .DefaultConfirmEmailEndpointName<TUser>();
@@ -115,5 +122,27 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             .RequireAntiforgery();
 
         return group;
+    }
+
+    /// <summary>
+    /// Fail fast at map time: passkey endpoints are email-keyed and need a passkey store.
+    /// </summary>
+    internal static void EnsurePasskeyAndEmailSupport<TUser>(IServiceProvider services)
+        where TUser : class
+    {
+        using var scope = services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TUser>>();
+
+        if (!userManager.SupportsUserPasskey)
+        {
+            throw new NotSupportedException(
+                $"{nameof(MapPasskeyEndpoints)} requires a user store with passkey support.");
+        }
+
+        if (!userManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException(
+                $"{nameof(MapPasskeyEndpoints)} requires a user store with email support.");
+        }
     }
 }

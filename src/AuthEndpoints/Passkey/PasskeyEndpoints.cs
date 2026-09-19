@@ -42,11 +42,6 @@ public static class PasskeyEndpoints<TUser>
         UserManager<TUser> userManager,
         SignInManager<TUser> signInManager)
     {
-        if (!userManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires a user store with email support.");
-        }
-
         var email = request?.Email?.Trim();
         var user = string.IsNullOrEmpty(email) ? null : await userManager.FindByEmailAsync(email);
         var optionsJson = await signInManager.MakePasskeyRequestOptionsAsync(user);
@@ -197,15 +192,9 @@ public static class PasskeyEndpoints<TUser>
 
     public static async Task<Results<ContentHttpResult, ValidationProblem, ProblemHttpResult>> RegisterOptions(
         [FromBody] PasskeyRegisterOptionsRequest request,
-        UserManager<TUser> userManager,
         SignInManager<TUser> signInManager,
         IPasskeyUserIdFactory userIdFactory)
     {
-        if (!userManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires a user store with email support.");
-        }
-
         var email = request.Email.Trim();
         if (string.IsNullOrEmpty(email) || !EmailAddressAttribute.IsValid(email))
         {
@@ -239,11 +228,6 @@ public static class PasskeyEndpoints<TUser>
         string confirmEmailEndpointName,
         CancellationToken cancellationToken)
     {
-        if (!userManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires a user store with email support.");
-        }
-
         if (userStore is not IUserEmailStore<TUser> emailStore)
         {
             throw new NotSupportedException($"{nameof(PasskeyEndpoints<>)} requires IUserEmailStore<TUser>.");
