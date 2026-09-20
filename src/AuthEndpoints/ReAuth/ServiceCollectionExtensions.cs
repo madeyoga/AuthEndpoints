@@ -1,9 +1,11 @@
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.ReAuth;
 
@@ -26,6 +28,10 @@ public static class ServiceCollectionExtensions
         services.AddDataProtection();
         services.TryAddSingleton<ReAuthTokenService>();
 
+        services.AddOptions<AuthEndpointsReAuthOptions>().ValidateOnStart();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IValidateOptions<AuthEndpointsReAuthOptions>, AuthEndpointsReAuthOptionsValidator>());
+
         services.AddAuthentication()
             .AddCookie(AuthEndpointsConstants.ReAuthScheme, options =>
             {
@@ -34,7 +40,6 @@ public static class ServiceCollectionExtensions
                 // SameAsRequest → Secure on HTTPS (production); allows HTTP test hosts.
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.Cookie.SameSite = SameSiteMode.Strict;
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
                 options.SlidingExpiration = false;
 
                 options.Events.OnRedirectToLogin = context =>
@@ -58,6 +63,14 @@ public static class ServiceCollectionExtensions
             .AddScheme<AuthenticationSchemeOptions, ReAuthBearerAuthenticationHandler>(
                 AuthEndpointsConstants.ReAuthBearerScheme,
                 _ => { });
+
+        services.AddOptions<CookieAuthenticationOptions>(AuthEndpointsConstants.ReAuthScheme)
+            .PostConfigure<IOptions<AuthEndpointsReAuthOptions>, TimeProvider>((cookie, reauth, time) =>
+            {
+                cookie.ExpireTimeSpan = reauth.Value.Lifetime;
+                cookie.SlidingExpiration = false;
+                cookie.TimeProvider = time;
+            });
 
         services.AddAuthorizationBuilder()
             .AddPolicy("ReAuthPolicy", policy =>

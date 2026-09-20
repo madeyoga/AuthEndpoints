@@ -1,24 +1,29 @@
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.ReAuth;
 
 internal sealed class ReAuthTokenService
 {
-    private static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(5);
     private readonly IDataProtector _protector;
     private readonly TimeProvider _timeProvider;
+    private readonly AuthEndpointsReAuthOptions _options;
 
-    public ReAuthTokenService(IDataProtectionProvider dataProtectionProvider, TimeProvider timeProvider)
+    public ReAuthTokenService(
+        IDataProtectionProvider dataProtectionProvider,
+        TimeProvider timeProvider,
+        IOptions<AuthEndpointsReAuthOptions> options)
     {
         _protector = dataProtectionProvider.CreateProtector("AuthEndpoints.ReAuth.Bearer.v1");
         _timeProvider = timeProvider;
+        _options = options.Value;
     }
 
     public string CreateToken(IEnumerable<Claim> claims)
     {
-        var expires = _timeProvider.GetUtcNow().Add(Lifetime);
+        var expires = _timeProvider.GetUtcNow().Add(_options.Lifetime);
         var payload = new ReAuthTokenPayload(
             expires.ToUnixTimeSeconds(),
             claims.Select(c => new ReAuthClaim(c.Type, c.Value)).ToArray());

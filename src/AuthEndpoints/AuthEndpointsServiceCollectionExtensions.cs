@@ -151,6 +151,12 @@ public static class AuthEndpointsServiceCollectionExtensions
             services.AddBearerAuthEndpoints();
         }
 
+        services.AddOptions<AuthEndpointsReAuthOptions>()
+            .PostConfigure<IOptions<AuthEndpointsOptions>>((reauth, parent) =>
+            {
+                reauth.Lifetime = parent.Value.ReAuth.Lifetime;
+            });
+
         if (bootstrap.Passkeys.Enabled)
         {
             services.AddPasskeyEndpoints<TUser>();

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.ReAuth;
 
@@ -56,6 +57,8 @@ public static class ReAuthEndpoints<TUser>
         HttpContext context)
     {
         var tokenService = context.RequestServices.GetRequiredService<ReAuthTokenService>();
+        var timeProvider = context.RequestServices.GetRequiredService<TimeProvider>();
+        var reAuthOptions = context.RequestServices.GetRequiredService<IOptions<AuthEndpointsReAuthOptions>>().Value;
         var user = await userManager.GetUserAsync(context.User);
         if (user is null)
         {
@@ -129,16 +132,17 @@ public static class ReAuthEndpoints<TUser>
             return TypedResults.Unauthorized();
         }
 
+        var now = timeProvider.GetUtcNow();
         var authProps = new AuthenticationProperties
         {
             IsPersistent = false,
-            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(5)
+            ExpiresUtc = now.Add(reAuthOptions.Lifetime)
         };
 
         var claims = new[]
             {
                 new Claim("Reauth", "true"),
-                new Claim("ReauthTime", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
+                new Claim("ReauthTime", now.ToUnixTimeSeconds().ToString())
             }
             .Concat(context.User.Claims)
             .ToArray();
