@@ -148,6 +148,7 @@ public class AuthEndpointsFacadeTests
         Assert.False(options.Jwt.Enabled);
         Assert.Equal("/auth", options.Jwt.Path);
         Assert.Equal(AuthEndpointsSignIn.Cookie, options.SignIn);
+        Assert.Equal(TimeSpan.FromMinutes(5), options.ReAuth.Lifetime);
         Assert.Null(options.EmailConfirmation.ConfirmEmailRedirectUri);
         Assert.Empty(options.EmailConfirmation.AllowedRedirectOrigins);
     }
