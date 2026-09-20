@@ -37,6 +37,12 @@ public sealed class AuthEndpointsOptions
     /// <summary>Optional JWT settings. Disabled by default; enable for facade JWT mapping.</summary>
     public AuthEndpointsJwtOptions Jwt { get; set; } = new();
 
+    /// <summary>
+    /// Step-up ReAuth cookie and <c>reauthToken</c> lifetime.
+    /// Default: 5 minutes, non-persistent, no sliding expiration.
+    /// </summary>
+    public AuthEndpointsReAuthOptions ReAuth { get; } = new();
+
     /// <summary>Optional Identity options customization applied after secure defaults.</summary>
     public Action<IdentityOptions>? ConfigureIdentity { get; set; }
 
@@ -90,4 +96,19 @@ public sealed class AuthEndpointsJwtOptions
 
     /// <summary>Optional JWT options customization (signing key, issuer, audience, etc.).</summary>
     public Action<SimpleJwtOptions>? Configure { get; set; }
+}
+
+/// <summary>
+/// Lifetime for the ReAuth cookie and header <c>reauthToken</c>.
+/// Both use this value for the same confirm. The cookie is not persistent
+/// and does not slide. Valid range: 1 minute through 60 minutes.
+/// </summary>
+public sealed class AuthEndpointsReAuthOptions
+{
+    /// <summary>
+    /// How long a successful <c>confirmIdentity</c> stays valid.
+    /// Default: 5 minutes. Applies to cookie <c>ExpireTimeSpan</c>,
+    /// ticket <c>ExpiresUtc</c>, and <c>reauthToken</c> expiry.
+    /// </summary>
+    public TimeSpan Lifetime { get; set; } = TimeSpan.FromMinutes(5);
 }
