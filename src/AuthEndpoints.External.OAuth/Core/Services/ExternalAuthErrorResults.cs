@@ -16,12 +16,14 @@ internal static class ExternalAuthErrorResults
             return Results.Problem(detail: description, statusCode: statusCode, title: error);
         }
 
+        return Results.Redirect(BrowserLocation(options, error, description));
+    }
+
+    internal static string BrowserLocation(ExternalAuthOptions options, string error, string description)
+    {
         var path = string.IsNullOrEmpty(options.ErrorPath) ? "/" : options.ErrorPath;
         var separator = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
-        var location =
-            $"{path}{separator}error={Uri.EscapeDataString(error)}&error_description={Uri.EscapeDataString(description)}";
-
-        return Results.Redirect(location);
+        return $"{path}{separator}error={Uri.EscapeDataString(error)}&error_description={Uri.EscapeDataString(description)}";
     }
 
     private static bool PrefersJson(HttpContext httpContext)

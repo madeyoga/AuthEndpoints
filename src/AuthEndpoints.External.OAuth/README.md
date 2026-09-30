@@ -1,14 +1,16 @@
 # AuthEndpoints.External.OAuth
 
-Preview package: modular external OAuth endpoints for AuthEndpoints (cookie completion by default; pluggable JWT completer).
+Preview package: modular external OAuth endpoints for AuthEndpoints (cookie completion by default; pluggable JWT completer). Compose-only. Not part of `MapAuthEndpoints`.
 
-## Layout
+GitHub and Google handlers are separate packages so this nupkg does not reference both.
 
-- `Core/` — shared options, provisioning, completers, login/link handlers
-- `GitHub/` — `AddGitHub` / `MapGitHubAuthEndpoints`
-- `Google/` — `AddGoogle` / `MapGoogleAuthEndpoints`
+## Packages
 
-This package references **both** GitHub and Google OAuth handler packages. Splitting into per-provider NuGets may come in a later release.
+| Package | Role |
+| --- | --- |
+| `AuthEndpoints.External.OAuth` | Options, provisioning, login/link/unlink endpoints, cookie and JWT completers |
+| `AuthEndpoints.OAuth.GitHub` | `AddGitHub` / `MapGitHubAuthEndpoints` |
+| `AuthEndpoints.OAuth.Google` | `AddGoogle` / `MapGoogleAuthEndpoints` |
 
 ## Install
 
@@ -16,22 +18,23 @@ This package references **both** GitHub and Google OAuth handler packages. Split
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 
 ```bash
-dotnet add package AuthEndpoints.External.OAuth --prerelease
+dotnet add package AuthEndpoints.OAuth.GitHub --prerelease
+dotnet add package AuthEndpoints.OAuth.Google --prerelease
 ```
 
-Use `--prerelease` while this package publishes preview builds. It needs a published [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) Identity host. See the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for the core version this preview targets. Does not use Identity management HTTP APIs.
+Each provider package depends on this core package. Install only the providers you use. Use `--prerelease` while these packages publish preview builds. They need a published [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) Identity host. See the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for the core version this preview targets. Does not use Identity management HTTP APIs.
 
 ## Usage
 
 ```csharp
 using AuthEndpoints.External.OAuth;
-using AuthEndpoints.External.OAuth.GitHub;
-using AuthEndpoints.External.OAuth.Google;
+using AuthEndpoints.OAuth.GitHub;
+using AuthEndpoints.OAuth.Google;
 
 builder.Services.AddExternalAuthEndpoints<AppUser>(o =>
 {
-    o.RequireVerifiedEmail = true;
-    o.AutoLinkByEmail = true;
+    o.RequireVerifiedEmail = true;   // default
+    o.AutoLinkByEmail = false;       // default; opt in only for verified provider email + confirmed local email
     o.ErrorPath = "/auth/external/error";
 })
 .AddGitHub(o =>
@@ -54,12 +57,16 @@ external.MapGoogleAuthEndpoints<AppUser>();
 external.MapExternalAccountEndpoints<AppUser>();
 ```
 
+Host a page at `ErrorPath`. Login and link failures clear the `Identity.External` cookie before redirecting there.
+
 ## Completers
 
 | Type | Behavior |
 |------|----------|
-| `CookieExternalLoginCompleter<TUser>` (default) | Identity cookie + clear External scheme + redirect |
+| `CookieExternalLoginCompleter<TUser>` (default) | Identity cookie via `SignInAsync` + clear External scheme + redirect |
 | `JwtExternalLoginCompleter<TUser>` | Refresh cookie + clear External + redirect (client uses JWT refresh for access token) |
+
+Cookie completion follows Identity UI: it signs the user in directly and does not run the two-factor challenge.
 
 ## Docs
 

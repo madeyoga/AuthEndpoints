@@ -8,15 +8,15 @@ using Microsoft.Extensions.Options;
 namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
-/// Completes external login by issuing a JWT access token and refresh cookie, then redirecting.
-/// Requires <c>AddJwtEndpoints</c> (or equivalent JWT services) to be registered.
+/// Completes external login by writing the JWT refresh cookie, then redirecting.
+/// The access token is not placed in the redirect. Requires <c>AddJwtEndpoints</c>
+/// (<see cref="IRefreshTokenService"/> and <see cref="RefreshTokenCookieWriter"/>).
 /// </summary>
 public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<TUser>
     where TUser : class
 {
     private readonly UserManager<TUser> _userManager;
     private readonly IUserClaimsPrincipalFactory<TUser> _claimsFactory;
-    private readonly IAccessTokenGenerator _accessTokenGenerator;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly RefreshTokenCookieWriter _refreshTokenCookieWriter;
     private readonly ExternalAuthOptions _options;
@@ -24,14 +24,12 @@ public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<T
     public JwtExternalLoginCompleter(
         UserManager<TUser> userManager,
         IUserClaimsPrincipalFactory<TUser> claimsFactory,
-        IAccessTokenGenerator accessTokenGenerator,
         IRefreshTokenService refreshTokenService,
         RefreshTokenCookieWriter refreshTokenCookieWriter,
         IOptions<ExternalAuthOptions> options)
     {
         _userManager = userManager;
         _claimsFactory = claimsFactory;
-        _accessTokenGenerator = accessTokenGenerator;
         _refreshTokenService = refreshTokenService;
         _refreshTokenCookieWriter = refreshTokenCookieWriter;
         _options = options.Value;

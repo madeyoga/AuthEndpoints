@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +37,7 @@ public static class ExternalAuthEndpoints<TUser>
     }
 
     public static async Task<IResult> Callback(
+        string expectedProvider,
         [FromQuery] string? returnUrl,
         [FromQuery] string? error,
         [FromQuery] string? error_description,
@@ -49,7 +51,7 @@ public static class ExternalAuthEndpoints<TUser>
 
         if (!string.IsNullOrEmpty(error))
         {
-            return ExternalAuthErrorResults.Create(
+            return await FailAsync(
                 httpContext,
                 opts,
                 error,
@@ -57,10 +59,10 @@ public static class ExternalAuthEndpoints<TUser>
                 StatusCodes.Status400BadRequest);
         }
 
-        var provision = await loginService.ProvisionAsync(cancellationToken);
+        var provision = await loginService.ProvisionAsync(expectedProvider, cancellationToken);
         if (!provision.Succeeded)
         {
-            return ExternalAuthErrorResults.Create(
+            return await FailAsync(
                 httpContext,
                 opts,
                 provision.Error!,
@@ -68,11 +70,30 @@ public static class ExternalAuthEndpoints<TUser>
                 provision.StatusCode);
         }
 
-        return await completer.CompleteAsync(
-            httpContext,
-            provision.User!,
-            provision.Info!,
-            returnUrl,
-            cancellationToken);
+        try
+        {
+            return await completer.CompleteAsync(
+                httpContext,
+                provision.User!,
+                provision.Info!,
+                returnUrl,
+                cancellationToken);
+        }
+        catch
+        {
+            await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            throw;
+        }
+    }
+
+    private static async Task<IResult> FailAsync(
+        HttpContext httpContext,
+        ExternalAuthOptions options,
+        string error,
+        string description,
+        int statusCode)
+    {
+        await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        return ExternalAuthErrorResults.Create(httpContext, options, error, description, statusCode);
     }
 }

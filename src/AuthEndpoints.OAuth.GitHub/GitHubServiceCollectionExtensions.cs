@@ -1,10 +1,11 @@
-using System.Security.Claims;
 using AspNet.Security.OAuth.GitHub;
+using AuthEndpoints.External.OAuth;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.External.OAuth.GitHub;
+namespace AuthEndpoints.OAuth.GitHub;
 
 /// <summary>
 /// GitHub OAuth registration for <see cref="ExternalAuthBuilder"/>.
@@ -13,6 +14,7 @@ public static class GitHubServiceCollectionExtensions
 {
     /// <summary>
     /// Adds GitHub as an external authentication provider.
+    /// The library calls <c>GET /user/emails</c> after the host <c>configure</c> delegate and keeps a verified address only.
     /// </summary>
     public static ExternalAuthBuilder AddGitHub(
         this ExternalAuthBuilder builder,
@@ -25,39 +27,28 @@ public static class GitHubServiceCollectionExtensions
             .AddAuthentication()
             .AddGitHub(options =>
             {
+                configure(options);
                 options.SignInScheme = IdentityConstants.ExternalScheme;
+                options.SaveTokens = false;
                 if (!options.Scope.Contains("user:email"))
                 {
                     options.Scope.Add("user:email");
                 }
 
-                // AspNet.Security.OAuth.GitHub only surfaces a verified primary email when user:email is granted.
-                // Mark it so RequireVerifiedEmail can succeed consistently with OIDC providers.
-                var prior = options.Events.OnCreatingTicket;
-                options.Events.OnCreatingTicket = async context =>
+                options.Events ??= new OAuthEvents();
+                OAuthTicketChain.Seal(options.Events, context =>
                 {
-                    if (prior is not null)
-                    {
-                        await prior(context);
-                    }
-
                     if (context.Identity is null)
                     {
-                        return;
+                        return Task.CompletedTask;
                     }
 
-                    var hasEmail = context.Identity.HasClaim(c =>
-                        c.Type == ClaimTypes.Email || c.Type == "email");
-                    var hasVerified = context.Identity.HasClaim(c =>
-                        c.Type == ExternalEmailClaims.EmailVerifiedClaimType);
-
-                    if (hasEmail && !hasVerified)
-                    {
-                        context.Identity.AddClaim(new Claim(ExternalEmailClaims.EmailVerifiedClaimType, "true"));
-                    }
-                };
-
-                configure(options);
+                    return GitHubUserEmails.ApplyAsync(
+                        context.Identity,
+                        context.Backchannel,
+                        context.AccessToken,
+                        context.HttpContext.RequestAborted);
+                });
             });
 
         builder.Services.AddSingleton<IValidateOptions<GitHubAuthenticationOptions>, GitHubOAuthOptionsValidator>();

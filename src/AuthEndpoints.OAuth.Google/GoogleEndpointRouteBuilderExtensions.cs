@@ -1,8 +1,9 @@
+using AuthEndpoints.External.OAuth;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
-namespace AuthEndpoints.External.OAuth.Google;
+namespace AuthEndpoints.OAuth.Google;
 
 /// <summary>
 /// Maps Google external auth login and callback endpoints.

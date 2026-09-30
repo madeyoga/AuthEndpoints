@@ -1,9 +1,11 @@
+using AuthEndpoints.External.OAuth;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.External.OAuth.Google;
+namespace AuthEndpoints.OAuth.Google;
 
 /// <summary>
 /// Google OAuth registration for <see cref="ExternalAuthBuilder"/>.
@@ -12,6 +14,7 @@ public static class GoogleServiceCollectionExtensions
 {
     /// <summary>
     /// Adds Google as an external authentication provider.
+    /// <c>email_verified</c> is taken from the userinfo payload after the host <c>configure</c> delegate.
     /// </summary>
     public static ExternalAuthBuilder AddGoogle(
         this ExternalAuthBuilder builder,
@@ -24,8 +27,19 @@ public static class GoogleServiceCollectionExtensions
             .AddAuthentication()
             .AddGoogle(options =>
             {
-                options.SignInScheme = IdentityConstants.ExternalScheme;
                 configure(options);
+                options.SignInScheme = IdentityConstants.ExternalScheme;
+                options.SaveTokens = false;
+                options.Events ??= new OAuthEvents();
+                OAuthTicketChain.Seal(options.Events, context =>
+                {
+                    if (context.Identity is not null)
+                    {
+                        GoogleEmailProof.Apply(context.Identity, context.User);
+                    }
+
+                    return Task.CompletedTask;
+                });
             });
 
         builder.Services.AddSingleton<IValidateOptions<GoogleOptions>, GoogleOAuthOptionsValidator>();

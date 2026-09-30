@@ -25,15 +25,22 @@ public static class ExternalAccountEndpoints<TUser>
         return Results.Ok(logins.Select(l => new ExternalLoginListItem(l.LoginProvider, l.ProviderKey, l.ProviderDisplayName)));
     }
 
-    public static IResult StartLink(
+    public static async Task<IResult> StartLink(
         string scheme,
         [FromQuery] string? returnUrl,
         HttpContext context,
         LinkGenerator linkGenerator,
         SignInManager<TUser> signInManager,
+        UserManager<TUser> userManager,
         IEnumerable<IExternalAuthProvider> providers)
     {
         if (context.User.Identity?.IsAuthenticated != true)
+        {
+            return Results.Unauthorized();
+        }
+
+        var user = await userManager.GetUserAsync(context.User);
+        if (user is null)
         {
             return Results.Unauthorized();
         }
@@ -57,7 +64,8 @@ public static class ExternalAccountEndpoints<TUser>
             ? callbackPath
             : $"{callbackPath}?returnUrl={Uri.EscapeDataString(returnUrl)}";
 
-        var properties = signInManager.ConfigureExternalAuthenticationProperties(provider.Scheme, redirectUri);
+        var userId = await userManager.GetUserIdAsync(user);
+        var properties = signInManager.ConfigureExternalAuthenticationProperties(provider.Scheme, redirectUri, userId);
         return Results.Challenge(properties, [provider.Scheme]);
     }
 
@@ -75,7 +83,7 @@ public static class ExternalAccountEndpoints<TUser>
 
         if (!string.IsNullOrEmpty(error))
         {
-            return ExternalAuthErrorResults.Create(
+            return await FailAsync(
                 httpContext,
                 opts,
                 error,
@@ -86,13 +94,15 @@ public static class ExternalAccountEndpoints<TUser>
         var user = await userManager.GetUserAsync(httpContext.User);
         if (user is null)
         {
+            await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             return Results.Unauthorized();
         }
 
-        var info = await signInManager.GetExternalLoginInfoAsync();
+        var userId = await userManager.GetUserIdAsync(user);
+        var info = await signInManager.GetExternalLoginInfoAsync(userId);
         if (info is null)
         {
-            return ExternalAuthErrorResults.Create(
+            return await FailAsync(
                 httpContext,
                 opts,
                 "external_login_info_missing",
@@ -102,7 +112,7 @@ public static class ExternalAccountEndpoints<TUser>
 
         if (!string.Equals(info.LoginProvider, scheme, StringComparison.Ordinal))
         {
-            return ExternalAuthErrorResults.Create(
+            return await FailAsync(
                 httpContext,
                 opts,
                 "provider_mismatch",
@@ -110,10 +120,20 @@ public static class ExternalAccountEndpoints<TUser>
                 StatusCodes.Status400BadRequest);
         }
 
+        if (opts.RequireVerifiedEmail && !ExternalEmailClaims.IsEmailVerified(info.Principal))
+        {
+            return await FailAsync(
+                httpContext,
+                opts,
+                "email_unverified",
+                "The external provider did not return a verified email.",
+                StatusCodes.Status400BadRequest);
+        }
+
         var result = await userManager.AddLoginAsync(user, info);
         if (!result.Succeeded)
         {
-            return ExternalAuthErrorResults.Create(
+            return await FailAsync(
                 httpContext,
                 opts,
                 "login_link_failed",
@@ -136,12 +156,33 @@ public static class ExternalAccountEndpoints<TUser>
         [FromRoute] string providerKey,
         UserManager<TUser> userManager,
         SignInManager<TUser> signInManager,
+        IOptions<IdentityOptions> identityOptions,
         HttpContext httpContext)
     {
         var user = await userManager.GetUserAsync(httpContext.User);
         if (user is null)
         {
             return Results.Unauthorized();
+        }
+
+        var logins = await userManager.GetLoginsAsync(user);
+        var exists = logins.Any(login =>
+            string.Equals(login.LoginProvider, loginProvider, StringComparison.Ordinal)
+            && string.Equals(login.ProviderKey, providerKey, StringComparison.Ordinal));
+        if (!exists)
+        {
+            return Results.NotFound();
+        }
+
+        var passkeyCount = await CountPasskeysAsync(userManager, identityOptions.Value, user);
+
+        var hasPassword = await userManager.HasPasswordAsync(user);
+        if (!ExternalLoginUnlinkPolicy.CanRemove(hasPassword, passkeyCount, logins.Count))
+        {
+            return Results.Problem(
+                title: "last_signin_method",
+                detail: "Cannot remove the last sign-in method.",
+                statusCode: StatusCodes.Status400BadRequest);
         }
 
         var result = await userManager.RemoveLoginAsync(user, loginProvider, providerKey);
@@ -157,6 +198,41 @@ public static class ExternalAccountEndpoints<TUser>
     }
 
     internal static string LinkCallbackEndpointName(string scheme) => $"ExternalLinkCallback-{scheme}";
+
+    /// <summary>
+    /// EF stores report passkey support while <see cref="IdentityOptions.Stores.SchemaVersion"/> is still below
+    /// <see cref="IdentitySchemaVersions.Version3"/>, then <see cref="UserManager{TUser}.GetPasskeysAsync"/> throws.
+    /// Unlink treats that as zero passkeys so a host that has not opted into passkeys can still remove a login.
+    /// </summary>
+    private static async Task<int> CountPasskeysAsync(
+        UserManager<TUser> userManager,
+        IdentityOptions identityOptions,
+        TUser user)
+    {
+        if (!userManager.SupportsUserPasskey)
+        {
+            return 0;
+        }
+
+        var schema = identityOptions.Stores.SchemaVersion;
+        if (schema is null || schema < IdentitySchemaVersions.Version3)
+        {
+            return 0;
+        }
+
+        return (await userManager.GetPasskeysAsync(user)).Count;
+    }
+
+    private static async Task<IResult> FailAsync(
+        HttpContext httpContext,
+        ExternalAuthOptions options,
+        string error,
+        string description,
+        int statusCode)
+    {
+        await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        return ExternalAuthErrorResults.Create(httpContext, options, error, description, statusCode);
+    }
 }
 
 /// <summary>
