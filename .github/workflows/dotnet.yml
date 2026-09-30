@@ -6,7 +6,10 @@ on:
     paths:
       - 'src/AuthEndpoints/**'
       - 'src/AuthEndpoints.External.OAuth/**'
+      - 'src/AuthEndpoints.External.OAuth.GitHub/**'
+      - 'src/AuthEndpoints.External.OAuth.Google/**'
       - 'tests/AuthEndpoints.Tests/**'
+      - 'tests/AuthEndpoints.External.OAuth.Tests/**'
       - 'AuthEndpoints.sln'
       - '.github/workflows/dotnet.yml'
 

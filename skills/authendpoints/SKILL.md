@@ -18,11 +18,14 @@ Requires **.NET 10**, ASP.NET Core Identity, and EF Core. The host `DbContext` i
 dotnet add package AuthEndpoints
 ```
 
-GitHub/Google OAuth is a **separate preview** package (independent versioning, not in the facade):
+GitHub/Google OAuth is **compose-only** (independent preview versioning, not inside `MapAuthEndpoints`). Install the provider package you use. It depends on `AuthEndpoints.External.OAuth`. The core OAuth nupkg does not reference GitHub or Google handlers.
 
 ```bash
-dotnet add package AuthEndpoints.External.OAuth --prerelease
+dotnet add package AuthEndpoints.External.OAuth.GitHub --prerelease
+dotnet add package AuthEndpoints.External.OAuth.Google --prerelease
 ```
+
+`AutoLinkByEmail` defaults to false. Opt in only when a verified provider email should attach to a local account whose email is already confirmed. Host a page at `ErrorPath`. Unlink requires the application cookie, an antiforgery token, and a ReAuth principal, and it refuses the last sign-in method.
 
 Docs: https://madeyoga.github.io/AuthEndpoints/modules/external-oauth
 

@@ -24,15 +24,16 @@ public sealed class ExternalAuthOptions
     public string DefaultReturnUrl { get; set; } = "/";
 
     /// <summary>
-    /// When true (default), create/link requires a verified email claim from the provider.
+    /// When true (default), creating a user or explicitly linking a login requires a verified provider email.
+    /// Auto-link does not consult this flag to become weaker: auto-link always requires a verified provider email.
     /// </summary>
     public bool RequireVerifiedEmail { get; set; } = true;
 
     /// <summary>
-    /// When true (default), an existing local user with the same verified email is linked to the external login.
-    /// When false, matching email without an existing login link fails.
+    /// When false (default), an existing local email is not attached. The user signs in locally and uses the link route.
+    /// When true, attach only if the provider email is verified and the local email is already confirmed.
     /// </summary>
-    public bool AutoLinkByEmail { get; set; } = true;
+    public bool AutoLinkByEmail { get; set; } = false;
 
     /// <summary>
     /// Absolute origins allowed for <c>returnUrl</c> (e.g. <c>https://app.example.com</c>).

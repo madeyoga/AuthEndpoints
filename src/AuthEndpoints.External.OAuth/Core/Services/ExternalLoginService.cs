@@ -28,8 +28,11 @@ public sealed class ExternalLoginService<TUser>
     }
 
     public async Task<ExternalLoginProvisionResult<TUser>> ProvisionAsync(
+        string expectedProvider,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrEmpty(expectedProvider);
+
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info is null)
         {
@@ -40,67 +43,64 @@ public sealed class ExternalLoginService<TUser>
         }
 
         var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-        if (user is null)
+        var email = ExternalEmailClaims.GetEmail(info.Principal);
+        var emailVerified = ExternalEmailClaims.IsEmailVerified(info.Principal);
+        TUser? localUser = null;
+        var localConfirmed = false;
+        if (user is null && !string.IsNullOrEmpty(email))
         {
-            var email = ExternalEmailClaims.GetEmail(info.Principal);
-            if (string.IsNullOrEmpty(email))
+            localUser = await _userManager.FindByEmailAsync(email);
+            if (localUser is not null)
+            {
+                localConfirmed = await _userManager.IsEmailConfirmedAsync(localUser);
+            }
+        }
+
+        var decision = ExternalEmailPolicy.Decide(
+            expectedProvider,
+            info.LoginProvider,
+            user is not null,
+            new ExternalEmailFacts(email, emailVerified, localConfirmed),
+            localUser is not null,
+            _options.RequireVerifiedEmail,
+            _options.AutoLinkByEmail);
+
+        if (decision.Kind == ExternalProvisionKind.Deny)
+        {
+            return ExternalLoginProvisionResult<TUser>.Failed(
+                decision.Error!,
+                decision.ErrorDescription!,
+                StatusCodes.Status400BadRequest);
+        }
+
+        if (decision.Kind == ExternalProvisionKind.CreateUser)
+        {
+            user = new TUser();
+            await _userStore.SetUserNameAsync(user, email!, cancellationToken);
+
+            if (_userStore is IUserEmailStore<TUser> emailStore)
+            {
+                await emailStore.SetEmailAsync(user, email!, cancellationToken);
+                await emailStore.SetEmailConfirmedAsync(user, emailVerified, cancellationToken);
+            }
+
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
             {
                 return ExternalLoginProvisionResult<TUser>.Failed(
-                    "email_missing",
-                    "The external provider did not return an email claim.",
+                    "user_create_failed",
+                    string.Join(" ", createResult.Errors.Select(e => e.Description)),
                     StatusCodes.Status400BadRequest);
             }
+        }
+        else if (decision.Kind == ExternalProvisionKind.LinkExistingUser)
+        {
+            user = localUser;
+        }
 
-            var emailVerified = ExternalEmailClaims.IsEmailVerified(info.Principal);
-            if (_options.RequireVerifiedEmail && !emailVerified)
-            {
-                return ExternalLoginProvisionResult<TUser>.Failed(
-                    "email_unverified",
-                    "The external provider did not return a verified email.",
-                    StatusCodes.Status400BadRequest);
-            }
-
-            user = await _userManager.FindByEmailAsync(email);
-            if (user is null)
-            {
-                user = new TUser();
-                await _userStore.SetUserNameAsync(user, email, cancellationToken);
-
-                if (_userStore is IUserEmailStore<TUser> emailStore)
-                {
-                    await emailStore.SetEmailAsync(user, email, cancellationToken);
-                    await emailStore.SetEmailConfirmedAsync(user, emailVerified, cancellationToken);
-                }
-
-                var createResult = await _userManager.CreateAsync(user);
-                if (!createResult.Succeeded)
-                {
-                    return ExternalLoginProvisionResult<TUser>.Failed(
-                        "user_create_failed",
-                        string.Join(" ", createResult.Errors.Select(e => e.Description)),
-                        StatusCodes.Status400BadRequest);
-                }
-            }
-            else
-            {
-                if (!_options.AutoLinkByEmail)
-                {
-                    return ExternalLoginProvisionResult<TUser>.Failed(
-                        "auto_link_disabled",
-                        "A local account with this email already exists. Sign in and link the provider from account settings.",
-                        StatusCodes.Status400BadRequest);
-                }
-
-                if (_options.RequireVerifiedEmail && !emailVerified)
-                {
-                    return ExternalLoginProvisionResult<TUser>.Failed(
-                        "email_unverified",
-                        "Cannot link to an existing account without a verified email from the provider.",
-                        StatusCodes.Status400BadRequest);
-                }
-            }
-
-            var linkResult = await _userManager.AddLoginAsync(user, info);
+        if (decision.Kind is ExternalProvisionKind.CreateUser or ExternalProvisionKind.LinkExistingUser)
+        {
+            var linkResult = await _userManager.AddLoginAsync(user!, info);
             if (!linkResult.Succeeded)
             {
                 return ExternalLoginProvisionResult<TUser>.Failed(
@@ -108,6 +108,14 @@ public sealed class ExternalLoginService<TUser>
                     string.Join(" ", linkResult.Errors.Select(e => e.Description)),
                     StatusCodes.Status400BadRequest);
             }
+        }
+
+        if (user is null)
+        {
+            return ExternalLoginProvisionResult<TUser>.Failed(
+                "external_login_info_missing",
+                "External login information was not found. Complete the OAuth challenge first.",
+                StatusCodes.Status400BadRequest);
         }
 
         if (await _userManager.IsLockedOutAsync(user))

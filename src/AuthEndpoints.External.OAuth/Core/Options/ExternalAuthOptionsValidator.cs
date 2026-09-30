@@ -27,12 +27,10 @@ public sealed class ExternalAuthOptionsValidator : IValidateOptions<ExternalAuth
 
         foreach (var origin in options.AllowedReturnUrlOrigins)
         {
-            if (string.IsNullOrWhiteSpace(origin)
-                || !Uri.TryCreate(origin, UriKind.Absolute, out var uri)
-                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            if (!ExternalAuthReturnUrl.IsAllowedOriginEntry(origin))
             {
                 return ValidateOptionsResult.Fail(
-                    $"{nameof(ExternalAuthOptions.AllowedReturnUrlOrigins)} entries must be absolute http(s) origins.");
+                    $"{nameof(ExternalAuthOptions.AllowedReturnUrlOrigins)} entries must be absolute http(s) origins without a path, query, fragment, or userinfo.");
             }
         }
 

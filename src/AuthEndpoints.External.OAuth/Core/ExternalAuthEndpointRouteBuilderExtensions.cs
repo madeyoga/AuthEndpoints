@@ -81,6 +81,8 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 
         group.MapDelete("/logins/{loginProvider}/{providerKey}", ExternalAccountEndpoints<TUser>.RemoveLogin)
             .RequireAuthorization()
+            .RequireAntiforgery()
+            .AddEndpointFilter<ExternalReauthFilter>()
             .WithSummary("Unlink an external login from the current user.")
             .WithName("ExternalRemoveLogin");
 
@@ -92,8 +94,10 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
                 HttpContext context,
                 LinkGenerator linkGenerator,
                 Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager,
+                Microsoft.AspNetCore.Identity.UserManager<TUser> userManager,
                 IEnumerable<IExternalAuthProvider> registered) =>
-                    ExternalAccountEndpoints<TUser>.StartLink(scheme, returnUrl, context, linkGenerator, signInManager, registered))
+                    ExternalAccountEndpoints<TUser>.StartLink(
+                        scheme, returnUrl, context, linkGenerator, signInManager, userManager, registered))
                 .RequireAuthorization()
                 .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
                 .WithSummary($"Start linking the {scheme} account.")
@@ -130,7 +134,26 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
             .WithSummary($"Start {provider.Scheme} OAuth sign-in.")
             .WithName($"ExternalLogin-{provider.Scheme}");
 
-        group.MapGet(provider.CallbackPath, ExternalAuthEndpoints<TUser>.Callback)
+        var scheme = provider.Scheme;
+        group.MapGet(provider.CallbackPath, (
+            string? returnUrl,
+            string? error,
+            string? error_description,
+            ExternalLoginService<TUser> loginService,
+            IExternalLoginCompleter<TUser> completer,
+            Microsoft.Extensions.Options.IOptions<ExternalAuthOptions> options,
+            HttpContext httpContext,
+            CancellationToken cancellationToken) =>
+                ExternalAuthEndpoints<TUser>.Callback(
+                    scheme,
+                    returnUrl,
+                    error,
+                    error_description,
+                    loginService,
+                    completer,
+                    options,
+                    httpContext,
+                    cancellationToken))
             .WithSummary($"Complete {provider.Scheme} OAuth sign-in.")
             .WithName(provider.CallbackEndpointName);
     }

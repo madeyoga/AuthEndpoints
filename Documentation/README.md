@@ -10,7 +10,7 @@ When cutting a NuGet release, add a note under [`content/versions/<tag>.md`](con
 
 ### Multi-package releases
 
-This repo publishes two NuGet packages with **independent versions**:
+This repo publishes the core library and the External OAuth packages with **independent versions**. GitHub and Google handlers are their own nupkgs and share the External OAuth version.
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![nuget](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
@@ -18,12 +18,14 @@ This repo publishes two NuGet packages with **independent versions**:
 | Package | GitHub tag pattern | Notes |
 | --- | --- | --- |
 | `AuthEndpoints` | `v*` | Core library |
-| `AuthEndpoints.External.OAuth` | `external-oauth-v*` | Preview OAuth module |
+| `AuthEndpoints.External.OAuth` | `external-oauth-v*` | Preview OAuth core (no GitHub/Google handler references) |
+| `AuthEndpoints.External.OAuth.GitHub` | `external-oauth-v*` | GitHub handler; depends on the OAuth core package |
+| `AuthEndpoints.External.OAuth.Google` | `external-oauth-v*` | Google handler; depends on the OAuth core package |
 
 - Set `<Version>` only on the package(s) you intend to ship. The publish workflow packs the solution and uses `--skip-duplicate`.
 - Changelog `title` should name the package + version (e.g. `AuthEndpoints.External.OAuth 3.0.0-preview.1`).
 - Set frontmatter `tag` to the GitHub release tag so the changelog links correctly.
-- If one GitHub release ships both packages, use body sections `### AuthEndpoints` and `### AuthEndpoints.External.OAuth`.
+- If one GitHub release ships more than one package, use a `###` section per package.
 
 ## Setup
 

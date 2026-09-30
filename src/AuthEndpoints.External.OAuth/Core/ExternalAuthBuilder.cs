@@ -24,6 +24,20 @@ public sealed class ExternalAuthBuilder
         where TCompleter : class
     {
         var completerType = typeof(IExternalLoginCompleter<>).MakeGenericType(UserType);
+        if (!completerType.IsAssignableFrom(typeof(TCompleter)))
+        {
+            throw new InvalidOperationException(
+                $"{typeof(TCompleter).Name} does not implement {completerType.Name}.");
+        }
+
+        for (var i = Services.Count - 1; i >= 0; i--)
+        {
+            if (Services[i].ServiceType == completerType)
+            {
+                Services.RemoveAt(i);
+            }
+        }
+
         Services.AddScoped(completerType, typeof(TCompleter));
         return this;
     }
