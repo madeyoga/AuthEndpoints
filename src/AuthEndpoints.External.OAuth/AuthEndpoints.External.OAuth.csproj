@@ -25,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth.GitHub" />
-    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth.Google" />
+    <InternalsVisibleTo Include="AuthEndpoints.OAuth.GitHub" />
+    <InternalsVisibleTo Include="AuthEndpoints.OAuth.Google" />
     <InternalsVisibleTo Include="AuthEndpoints.External.OAuth.Tests" />
   </ItemGroup>
 

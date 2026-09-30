@@ -1,6 +1,7 @@
 using AspNet.Security.OAuth.GitHub;
+using AuthEndpoints.External.OAuth;
 
-namespace AuthEndpoints.External.OAuth.GitHub;
+namespace AuthEndpoints.OAuth.GitHub;
 
 /// <summary>
 /// GitHub provider route metadata for external auth endpoints.

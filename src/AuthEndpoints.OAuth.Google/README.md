@@ -1,9 +1,9 @@
-# AuthEndpoints.External.OAuth.Google
+# AuthEndpoints.OAuth.Google
 
 Google provider for [AuthEndpoints.External.OAuth](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/). Compose-only. Not part of `MapAuthEndpoints`.
 
 ```bash
-dotnet add package AuthEndpoints.External.OAuth.Google --prerelease
+dotnet add package AuthEndpoints.OAuth.Google --prerelease
 ```
 
 ```csharp

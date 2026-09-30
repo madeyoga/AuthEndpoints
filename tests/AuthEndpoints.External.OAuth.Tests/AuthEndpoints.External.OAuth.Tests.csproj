@@ -19,8 +19,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
     <ProjectReference Include="..\..\src\AuthEndpoints.External.OAuth\AuthEndpoints.External.OAuth.csproj" />
-    <ProjectReference Include="..\..\src\AuthEndpoints.External.OAuth.GitHub\AuthEndpoints.External.OAuth.GitHub.csproj" />
-    <ProjectReference Include="..\..\src\AuthEndpoints.External.OAuth.Google\AuthEndpoints.External.OAuth.Google.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.OAuth.GitHub\AuthEndpoints.OAuth.GitHub.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.OAuth.Google\AuthEndpoints.OAuth.Google.csproj" />
   </ItemGroup>
 
   <ItemGroup>

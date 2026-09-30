@@ -1,9 +1,9 @@
-# AuthEndpoints.External.OAuth.GitHub
+# AuthEndpoints.OAuth.GitHub
 
 GitHub provider for [AuthEndpoints.External.OAuth](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/). Compose-only. Not part of `MapAuthEndpoints`.
 
 ```bash
-dotnet add package AuthEndpoints.External.OAuth.GitHub --prerelease
+dotnet add package AuthEndpoints.OAuth.GitHub --prerelease
 ```
 
 ```csharp

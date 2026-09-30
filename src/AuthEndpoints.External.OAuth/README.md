@@ -9,8 +9,8 @@ GitHub and Google handlers are separate packages so this nupkg does not referenc
 | Package | Role |
 | --- | --- |
 | `AuthEndpoints.External.OAuth` | Options, provisioning, login/link/unlink endpoints, cookie and JWT completers |
-| `AuthEndpoints.External.OAuth.GitHub` | `AddGitHub` / `MapGitHubAuthEndpoints` |
-| `AuthEndpoints.External.OAuth.Google` | `AddGoogle` / `MapGoogleAuthEndpoints` |
+| `AuthEndpoints.OAuth.GitHub` | `AddGitHub` / `MapGitHubAuthEndpoints` |
+| `AuthEndpoints.OAuth.Google` | `AddGoogle` / `MapGoogleAuthEndpoints` |
 
 ## Install
 
@@ -18,8 +18,8 @@ GitHub and Google handlers are separate packages so this nupkg does not referenc
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 
 ```bash
-dotnet add package AuthEndpoints.External.OAuth.GitHub --prerelease
-dotnet add package AuthEndpoints.External.OAuth.Google --prerelease
+dotnet add package AuthEndpoints.OAuth.GitHub --prerelease
+dotnet add package AuthEndpoints.OAuth.Google --prerelease
 ```
 
 Each provider package depends on this core package. Install only the providers you use. Use `--prerelease` while these packages publish preview builds. They need a published [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) Identity host. See the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for the core version this preview targets. Does not use Identity management HTTP APIs.
@@ -28,8 +28,8 @@ Each provider package depends on this core package. Install only the providers y
 
 ```csharp
 using AuthEndpoints.External.OAuth;
-using AuthEndpoints.External.OAuth.GitHub;
-using AuthEndpoints.External.OAuth.Google;
+using AuthEndpoints.OAuth.GitHub;
+using AuthEndpoints.OAuth.Google;
 
 builder.Services.AddExternalAuthEndpoints<AppUser>(o =>
 {

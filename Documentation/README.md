@@ -19,8 +19,8 @@ This repo publishes the core library and the External OAuth packages with **inde
 | --- | --- | --- |
 | `AuthEndpoints` | `v*` | Core library |
 | `AuthEndpoints.External.OAuth` | `external-oauth-v*` | Preview OAuth core (no GitHub/Google handler references) |
-| `AuthEndpoints.External.OAuth.GitHub` | `external-oauth-v*` | GitHub handler; depends on the OAuth core package |
-| `AuthEndpoints.External.OAuth.Google` | `external-oauth-v*` | Google handler; depends on the OAuth core package |
+| `AuthEndpoints.OAuth.GitHub` | `external-oauth-v*` | GitHub handler; depends on the OAuth core package |
+| `AuthEndpoints.OAuth.Google` | `external-oauth-v*` | Google handler; depends on the OAuth core package |
 
 - Set `<Version>` only on the package(s) you intend to ship. The publish workflow packs the solution and uses `--skip-duplicate`.
 - Changelog `title` should name the package + version (e.g. `AuthEndpoints.External.OAuth 3.0.0-preview.1`).

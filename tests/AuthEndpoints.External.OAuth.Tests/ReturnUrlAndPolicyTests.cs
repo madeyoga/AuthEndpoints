@@ -1,7 +1,7 @@
 using System.Text.Json;
 using AuthEndpoints.External.OAuth;
-using AuthEndpoints.External.OAuth.GitHub;
-using AuthEndpoints.External.OAuth.Google;
+using AuthEndpoints.OAuth.GitHub;
+using AuthEndpoints.OAuth.Google;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth.Tests;

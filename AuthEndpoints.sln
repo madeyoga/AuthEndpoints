@@ -18,9 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.External.OAut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.Tests", "tests\AuthEndpoints.Tests\AuthEndpoints.Tests.csproj", "{39086641-B031-45D2-9743-F1BD445C5B20}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.External.OAuth.GitHub", "src\AuthEndpoints.External.OAuth.GitHub\AuthEndpoints.External.OAuth.GitHub.csproj", "{BF5F191C-7890-418D-B774-6C8D8544CBEE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.OAuth.GitHub", "src\AuthEndpoints.OAuth.GitHub\AuthEndpoints.OAuth.GitHub.csproj", "{BF5F191C-7890-418D-B774-6C8D8544CBEE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.External.OAuth.Google", "src\AuthEndpoints.External.OAuth.Google\AuthEndpoints.External.OAuth.Google.csproj", "{CFB43099-E2F0-4593-92AA-C704DF079458}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.OAuth.Google", "src\AuthEndpoints.OAuth.Google\AuthEndpoints.OAuth.Google.csproj", "{CFB43099-E2F0-4593-92AA-C704DF079458}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthEndpoints.External.OAuth.Tests", "tests\AuthEndpoints.External.OAuth.Tests\AuthEndpoints.External.OAuth.Tests.csproj", "{70B952E3-E897-4A1D-9B2F-CBBDB8F02FCD}"
 EndProject

@@ -4,14 +4,14 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <PackageId>AuthEndpoints.External.OAuth.GitHub</PackageId>
-    <Description>GitHub OAuth provider for AuthEndpoints.External.OAuth</Description>
+    <PackageId>AuthEndpoints.OAuth.Google</PackageId>
+    <Description>Google OAuth provider for AuthEndpoints.External.OAuth</Description>
     <Version>3.0.0-preview.4</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
-    <PackageTags>auth;endpoints;aspnetcore;oauth;github;identity</PackageTags>
+    <PackageTags>auth;endpoints;aspnetcore;oauth;google;identity</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>True</IsPackable>
@@ -28,7 +28,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\AuthEndpoints.External.OAuth\AuthEndpoints.External.OAuth.csproj" />
-    <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.2" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,11 @@
 using AspNet.Security.OAuth.GitHub;
+using AuthEndpoints.External.OAuth;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace AuthEndpoints.External.OAuth.GitHub;
+namespace AuthEndpoints.OAuth.GitHub;
 
 /// <summary>
 /// GitHub OAuth registration for <see cref="ExternalAuthBuilder"/>.

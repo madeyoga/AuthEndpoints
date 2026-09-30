@@ -15,11 +15,11 @@ tag: external-oauth-v3.0.0-preview.4
 - Unlink requires authorization, antiforgery, and ReAuth, and refuses the last sign-in method.
 - JWT completion writes only the refresh cookie.
 
-### AuthEndpoints.External.OAuth.GitHub
+### AuthEndpoints.OAuth.GitHub
 
 - New package. `AddGitHub` loads a verified address from the GitHub emails API (verified primary, otherwise any verified address) and drops an unverified profile email.
 
-### AuthEndpoints.External.OAuth.Google
+### AuthEndpoints.OAuth.Google
 
 - New package. `AddGoogle` sets `email_verified` from the Google userinfo payload after host configuration.
 

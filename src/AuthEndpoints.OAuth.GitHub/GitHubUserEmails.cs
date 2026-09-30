@@ -1,8 +1,9 @@
 using System.Net.Http.Headers;
+using AuthEndpoints.External.OAuth;
 using System.Security.Claims;
 using System.Text.Json;
 
-namespace AuthEndpoints.External.OAuth.GitHub;
+namespace AuthEndpoints.OAuth.GitHub;
 
 /// <summary>
 /// Selects a verified GitHub email from <c>GET /user/emails</c>. An unverified primary is ignored.
