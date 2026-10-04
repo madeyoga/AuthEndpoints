@@ -3,12 +3,16 @@ import {
   SITE_NAME,
   SITE_TITLE,
   SITE_DESCRIPTION,
-  toCanonicalUrl
+  toCanonicalUrl,
+  toContentPath,
+  withNavTrailingSlash
 } from '#shared/site'
+import { findDocsRedirect } from '#shared/redirects'
 
 export function useDocsCanonical() {
   const route = useRoute()
-  const canonical = computed(() => toCanonicalUrl(route.path))
+  // A moved page points its canonical link at the new URL.
+  const canonical = computed(() => toCanonicalUrl(findDocsRedirect(toContentPath(route.path)) ?? route.path))
   return { canonical }
 }
 
@@ -107,5 +111,29 @@ export function useTechArticleJsonLd(input: { title: string, description?: strin
         })
       }]
     }
+  })
+}
+
+/**
+ * Head tags for a moved page: meta refresh to the new URL, noindex, and a client-side
+ * replace for in-app navigation. The canonical link already points at the new URL
+ * (see useDocsCanonical).
+ */
+export function useDocsRedirect(to: string) {
+  const { app } = useRuntimeConfig()
+  const target = withNavTrailingSlash(to) || '/'
+  const href = joinURL(app.baseURL, target)
+
+  useHead({
+    meta: [{ 'http-equiv': 'refresh', 'content': `0; url=${href}` }]
+  })
+  useSeoMeta({
+    title: 'Page moved',
+    description: `This page moved to ${toCanonicalUrl(target)}`,
+    robots: 'noindex, follow'
+  })
+
+  onMounted(() => {
+    navigateTo(target, { replace: true })
   })
 }

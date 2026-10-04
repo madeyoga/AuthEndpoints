@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import rehypeOwnPropertyLinks from './rehype/own-property-links'
 import { isOwnPropertyHref } from './shared/site'
+import { DOCS_REDIRECTS } from './shared/redirects'
 
 export default defineNuxtConfig({
   modules: [
@@ -102,7 +103,9 @@ export default defineNuxtConfig({
         '/',
         '/changelog',
         '/sitemap.xml',
-        '/404'
+        '/404',
+        // Moved pages: each emits a meta-refresh stub (shared/redirects.ts).
+        ...Object.keys(DOCS_REDIRECTS)
       ],
       crawlLinks: true
     }
@@ -134,38 +137,45 @@ export default defineNuxtConfig({
   llms: {
     domain: 'https://madeyoga.github.io/AuthEndpoints',
     title: 'AuthEndpoints',
-    description: 'Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.',
+    description: 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.',
     full: {
       title: 'AuthEndpoints - Full Documentation',
-      description: 'Complete documentation for AuthEndpoints: getting started, examples, composable endpoints, and module reference.'
+      description: 'Complete documentation for AuthEndpoints: get started, guides, composable endpoints, reference, and concepts.'
     },
     sections: [
       {
-        title: 'Getting Started',
+        title: 'Get started',
         contentCollection: 'docs',
         contentFilters: [
           { field: 'path', operator: 'LIKE', value: '/getting-started%' }
         ]
       },
       {
-        title: 'Examples',
+        title: 'Guides',
         contentCollection: 'docs',
         contentFilters: [
-          { field: 'path', operator: 'LIKE', value: '/examples%' }
+          { field: 'path', operator: 'LIKE', value: '/guides%' }
         ]
       },
       {
-        title: 'Composable Endpoints',
+        title: 'Composable endpoints',
         contentCollection: 'docs',
         contentFilters: [
           { field: 'path', operator: 'LIKE', value: '/composables%' }
         ]
       },
       {
-        title: 'Modules',
+        title: 'Reference',
         contentCollection: 'docs',
         contentFilters: [
           { field: 'path', operator: 'LIKE', value: '/modules%' }
+        ]
+      },
+      {
+        title: 'Concepts',
+        contentCollection: 'docs',
+        contentFilters: [
+          { field: 'path', operator: 'LIKE', value: '/concepts%' }
         ]
       },
       {

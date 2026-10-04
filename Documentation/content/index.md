@@ -1,7 +1,7 @@
 ---
 seo:
   title: AuthEndpoints — ASP.NET Core Identity auth library
-  description: Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.
+  description: Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.
 ---
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
@@ -15,7 +15,7 @@ orientation: horizontal
 [AuthEndpoints]{.text-primary}
 
 #description
-Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Cookies, JWT, and passkeys for first-party web and mobile apps.
+Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.
 
 #links
   :::u-button
@@ -71,76 +71,190 @@ Ready-made auth endpoints on top of ASP.NET Core Identity, not a replacement. Co
 
 ::u-page-section{class="dark:bg-zinc-950"}
 #title
-Built for first-party API auth
+What AuthEndpoints can do
 
 #description
-Ship registration, sign-in, and account management without wiring every Identity endpoint yourself.
+Each capability links to the guide that shows you how to use it.
 
 #features
   :::u-page-feature
   ---
-  icon: i-lucide-zap
+  icon: i-lucide-user-plus
+  to: /guides/registration
   ---
   #title
-  Opinionated quick start
+  Register with an email and password
 
   #description
-  `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` give you cookie Identity and passkeys with secure defaults. Native and mobile hosts pass `AuthEndpointsSignIn.IdentityBearer` for Identity bearer tokens.
+  Create accounts and send confirmation email.
   :::
 
   :::u-page-feature
   ---
-  icon: i-lucide-blocks
+  icon: i-lucide-fingerprint
+  to: /guides/registration#register-with-a-passkey
   ---
   #title
-  Composable modules
+  Register with a passkey
 
   #description
-  Mix management, cookie, bearer, JWT, and passkeys on the route prefixes your host needs.
+  Create passwordless accounts with WebAuthn.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-simple-icons-github
+  to: /guides/sign-in#sign-in-with-github-or-google
+  ---
+  #title
+  GitHub and Google sign-in
+
+  #description
+  Add social sign-in in a separate preview package.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-cookie
+  to: /guides/sign-in#sign-in-with-a-password-and-a-cookie
+  ---
+  #title
+  Cookie sessions
+
+  #description
+  Sign browser users in with a secure app cookie.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-smartphone
+  to: /guides/sign-in#sign-in-with-a-password-and-identity-bearer-tokens
+  ---
+  #title
+  Identity bearer tokens
+
+  #description
+  Issue access and refresh tokens for mobile apps.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-key-square
+  to: /guides/sign-in#sign-in-with-a-password-and-a-jwt
+  ---
+  #title
+  JWT with a refresh cookie
+
+  #description
+  Issue short-lived JWTs with rotating refresh tokens.
   :::
 
   :::u-page-feature
   ---
   icon: i-lucide-key-round
+  to: /guides/sign-in#sign-in-with-a-passkey
   ---
   #title
-  Cookie, JWT, and passkeys
+  Passkey sign-in
 
   #description
-  Choose cookie sessions, Identity bearer tokens, JWT with refresh cookies, and WebAuthn passwordless.
+  Sign users in with a passkey.
   :::
 
   :::u-page-feature
   ---
   icon: i-lucide-shield-check
+  to: /guides/two-factor
   ---
   #title
-  Hardened defaults
+  Two-factor authentication
 
   #description
-  Rate limiting, antiforgery for cookie flows, lockout-aware login, and hashed JWT refresh tokens with reuse detection.
+  Turn on authenticator codes and recovery codes.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-rotate-ccw-key
+  to: /guides/reset-password
+  ---
+  #title
+  Password reset
+
+  #description
+  Send reset codes and set a new password.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-mail
+  to: /guides/manage-account
+  ---
+  #title
+  Email change
+
+  #description
+  Change the email after the user confirms it.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-list
+  to: /guides/manage-passkeys
+  ---
+  #title
+  Passkey management
+
+  #description
+  Add, rename, and remove passkeys.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-link
+  to: /guides/link-external-accounts
+  ---
+  #title
+  Account linking
+
+  #description
+  Link and unlink GitHub or Google accounts.
   :::
 
   :::u-page-feature
   ---
   icon: i-lucide-shield-alert
+  to: /guides/step-up
   ---
   #title
-  ReAuth step-up
+  Step-up (ReAuth)
 
   #description
-  Confirm identity before sensitive manage and passkey mutations — cookie or header token for APIs.
+  Ask for proof again before sensitive changes.
   :::
 
   :::u-page-feature
   ---
-  icon: i-lucide-factory
+  icon: i-lucide-lock
+  to: /concepts/security-model
   ---
   #title
-  Production validators
+  Built-in protection
 
   #description
-  Production rejects no-op email senders, missing passkey domains, and default JWT issuer/audience values.
+  CSRF, rate limits, lockout, and checks at startup.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-blocks
+  to: /composables
+  ---
+  #title
+  Composable modules
+
+  #description
+  Map only the routes you need, on your own prefixes.
   :::
 ::
 

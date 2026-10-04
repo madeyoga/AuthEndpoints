@@ -171,7 +171,7 @@ CSRF is skipped when the request is authenticated via Identity bearer or JWT Bea
 | `ConfigurePasskeys` | `null` | After `ServerDomain` is applied |
 | `RequireEmailSenderInProduction` | `true` | Production must register a real `IEmailSender<TUser>` |
 
-Full table: https://madeyoga.github.io/AuthEndpoints/getting-started/configuration
+Full table: https://madeyoga.github.io/AuthEndpoints/modules/configuration/
 
 `POST {IdentityPath}/register` (default `/identity/register`) does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**. Passwordless passkey register that **creates** a user sends the same confirmation email; the completer still skips a session until the account can sign in.
 
@@ -231,4 +231,4 @@ https://madeyoga.github.io/AuthEndpoints/modules/reauth
 - `Passkeys.ServerDomain` if passkeys stay enabled; otherwise `Passkeys.Enabled = false`
 - JWT: `UseRefreshToken()`, real issuer/audience/signing material
 
-https://madeyoga.github.io/AuthEndpoints/getting-started/production
+https://madeyoga.github.io/AuthEndpoints/guides/production/
