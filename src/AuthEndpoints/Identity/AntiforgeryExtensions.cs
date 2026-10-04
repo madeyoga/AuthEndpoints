@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Identity;
 
@@ -81,6 +82,12 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
 
     private static async Task<bool> IsAuthenticatedAsync(HttpContext httpContext, string scheme)
     {
+        var schemeProvider = httpContext.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
+        if (await schemeProvider.GetSchemeAsync(scheme) is null)
+        {
+            return false;
+        }
+
         var result = await httpContext.AuthenticateAsync(scheme);
         return result.Succeeded && result.Principal?.Identity?.IsAuthenticated == true;
     }
