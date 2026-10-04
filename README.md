@@ -15,7 +15,7 @@ AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top
 - Sign-in stacks you choose: cookie sessions, Identity bearer tokens, or Simple JWT
 - Passkeys (WebAuthn) for passwordless register and login
 - Built-in hardening: rate limiting, antiforgery, lockout-aware login, hashed JWT refresh tokens with reuse detection
-- Optional preview packages for GitHub and Google OAuth: [`AuthEndpoints.External.OAuth`](https://madeyoga.github.io/AuthEndpoints/modules/external-oauth) plus `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`
+- Optional preview packages for GitHub and Google OAuth: [`AuthEndpoints.External.OAuth`](https://authendpoints.harten.id/modules/external-oauth) plus `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`
 
 ## Getting started
 
@@ -45,7 +45,7 @@ app.Run();
 
 ## Documentation
 
-For configuration, composable modules, route tables, and production guidance, see the [AuthEndpoints documentation](https://madeyoga.github.io/AuthEndpoints/).
+For configuration, composable modules, route tables, and production guidance, see the [AuthEndpoints documentation](https://authendpoints.harten.id/).
 
 ## AI agents
 
@@ -55,7 +55,7 @@ Add the coding-agent skill from this repository:
 npx skills add madeyoga/AuthEndpoints
 ```
 
-See [AI agents](https://madeyoga.github.io/AuthEndpoints/getting-started/ai-agents/).
+See [AI agents](https://authendpoints.harten.id/getting-started/ai-agents/).
 
 ## Contribute
 

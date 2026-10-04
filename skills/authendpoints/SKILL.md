@@ -8,7 +8,7 @@ license: MIT
 
 Ready-made Identity auth API endpoints for first-party web and mobile clients. This skill is for **apps that consume the NuGet package**, not for changing the AuthEndpoints source repo.
 
-Canonical docs: https://madeyoga.github.io/AuthEndpoints — follow those pages; do not invent APIs.
+Canonical docs: https://authendpoints.harten.id — follow those pages; do not invent APIs.
 
 Requires **.NET 10**, ASP.NET Core Identity, and EF Core. The host `DbContext` is typically `IdentityDbContext<TUser>` (or with roles). `TUser` may use any Identity key type (`string`, `Guid`, `long`, …). Passwordless passkey **account register** needs a `string` or `Guid` key. The minted user id defaults to `Guid.NewGuid()` (UUID v4); register `IPasskeyUserIdFactory` to choose a different id.
 
@@ -27,7 +27,7 @@ dotnet add package AuthEndpoints.OAuth.Google --prerelease
 
 `AutoLinkByEmail` defaults to false. Opt in only when a verified provider email should attach to a local account whose email is already confirmed. Host a page at `ErrorPath`. Unlink requires the application cookie, an antiforgery token, and a ReAuth principal, and it refuses the last sign-in method.
 
-Docs: https://madeyoga.github.io/AuthEndpoints/modules/external-oauth
+Docs: https://authendpoints.harten.id/modules/external-oauth
 
 ## Prefer the facade
 
@@ -78,7 +78,7 @@ app.Run();
 
 `UseAuthEndpoints` must run after exception-handling middleware. Enable HTTPS in Production separately. Safe to call once; a second call is a no-op.
 
-Quick start: https://madeyoga.github.io/AuthEndpoints/getting-started/quick-start
+Quick start: https://authendpoints.harten.id/getting-started/quick-start
 
 ### Roles
 
@@ -103,7 +103,7 @@ builder.Services.AddAuthEndpoints<AppUser, AppRole, AppDbContext>(o =>
 
 Mixed web + native: map **separate** sign-in groups (or hosts) per client type. Do not map cookie and bearer login on the same path without separate groups.
 
-Recipes: https://madeyoga.github.io/AuthEndpoints/composables/recipes
+Recipes: https://authendpoints.harten.id/composables/recipes
 
 Paths below use `IdentityPath` (default `/identity`). Hosts that change `o.IdentityPath` must use that prefix instead.
 
@@ -171,7 +171,7 @@ CSRF is skipped when the request is authenticated via Identity bearer or JWT Bea
 | `ConfigurePasskeys` | `null` | After `ServerDomain` is applied |
 | `RequireEmailSenderInProduction` | `true` | Production must register a real `IEmailSender<TUser>` |
 
-Full table: https://madeyoga.github.io/AuthEndpoints/modules/configuration/
+Full table: https://authendpoints.harten.id/modules/configuration/
 
 `POST {IdentityPath}/register` (default `/identity/register`) does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**. Passwordless passkey register that **creates** a user sends the same confirmation email; the completer still skips a session until the account can sign in.
 
@@ -183,7 +183,7 @@ Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). CSRF is req
 
 Facade JWT opt-in does **not** auto-select `JwtPasskeySignInCompleter`. Register it explicitly when passkey register/login should issue Simple JWT (access token + refresh cookie); that completer ignores cookie query flags.
 
-Module: https://madeyoga.github.io/AuthEndpoints/modules/passkeys
+Module: https://authendpoints.harten.id/modules/passkeys
 
 ## Simple JWT (opt-in)
 
@@ -193,7 +193,7 @@ When `o.Jwt.Enabled = true`:
 - Production: non-default issuer and audience; symmetric key ≥ 32 UTF-8 bytes (or RSA/ECDSA/X509).
 - Refresh cookie name: `AuthEndpoints.Jwt.RefreshToken`. Recreate the table if upgrading from plaintext storage.
 
-Module: https://madeyoga.github.io/AuthEndpoints/modules/jwt
+Module: https://authendpoints.harten.id/modules/jwt
 
 ## Compose when the facade does not fit
 
@@ -216,13 +216,13 @@ app.UseAntiforgery();
 
 Map `MapIdentityManagementApi` **once** in production. Pair it with **one** of cookie | bearer | JWT per prefix.
 
-https://madeyoga.github.io/AuthEndpoints/composables
+https://authendpoints.harten.id/composables
 
 ## ReAuth (step-up)
 
 Manage 2FA/info mutations and sensitive passkey routes require ReAuth plus CSRF where applicable. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Protect host endpoints with `.RequireReauth()`.
 
-https://madeyoga.github.io/AuthEndpoints/modules/reauth
+https://authendpoints.harten.id/modules/reauth
 
 ## Production checklist
 
@@ -231,4 +231,4 @@ https://madeyoga.github.io/AuthEndpoints/modules/reauth
 - `Passkeys.ServerDomain` if passkeys stay enabled; otherwise `Passkeys.Enabled = false`
 - JWT: `UseRefreshToken()`, real issuer/audience/signing material
 
-https://madeyoga.github.io/AuthEndpoints/guides/production/
+https://authendpoints.harten.id/guides/production/
