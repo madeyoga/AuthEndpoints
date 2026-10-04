@@ -2,6 +2,7 @@
 import type { ContentNavigationItem } from '@nuxt/content'
 import { findPageHeadline } from '@nuxt/content/utils'
 import { toContentPath } from '#shared/site'
+import { findDocsRedirect } from '#shared/redirects'
 
 definePageMeta({
   layout: 'docs'
@@ -12,38 +13,46 @@ const { toc } = useAppConfig()
 const navigation = inject<Ref<ContentNavigationItem[]>>('navigation')
 
 const contentPath = computed(() => toContentPath(route.path))
+// Moved pages render a meta-refresh stub instead of a 404 (static hosting has no redirects).
+const redirectTo = findDocsRedirect(contentPath.value)
 
 const { data: page } = await useAsyncData(
   () => contentPath.value,
-  () => queryCollection('docs').path(contentPath.value).first()
+  () => redirectTo ? Promise.resolve(null) : queryCollection('docs').path(contentPath.value).first()
 )
-if (!page.value) {
+if (!page.value && !redirectTo) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
 }
 
 const { data: surround } = await useAsyncData(
   () => `${contentPath.value}-surround`,
-  () => queryCollectionItemSurroundings('docs', contentPath.value, {
-    fields: ['description']
-  })
+  () => redirectTo
+    ? Promise.resolve([])
+    : queryCollectionItemSurroundings('docs', contentPath.value, {
+        fields: ['description']
+      })
 )
-
-const title = page.value.seo?.title || page.value.title
-const description = page.value.seo?.description || page.value.description
-
-useSeoMeta({
-  title,
-  ogTitle: title,
-  description,
-  ogDescription: description,
-  ogType: 'article'
-})
-
-useTechArticleJsonLd({ title, description })
 
 const headline = computed(() => findPageHeadline(navigation?.value, page.value?.path))
 
-defineOgImage('Docs', { title, description, headline: headline.value })
+if (redirectTo) {
+  useDocsRedirect(redirectTo)
+} else if (page.value) {
+  const title = page.value.seo?.title || page.value.title
+  const description = page.value.seo?.description || page.value.description
+
+  useSeoMeta({
+    title,
+    ogTitle: title,
+    description,
+    ogDescription: description,
+    ogType: 'article'
+  })
+
+  useTechArticleJsonLd({ title, description })
+
+  defineOgImage('Docs', { title, description, headline: headline.value })
+}
 
 const links = computed(() => {
   const links = []
@@ -61,7 +70,11 @@ const links = computed(() => {
 </script>
 
 <template>
-  <UPage v-if="page">
+  <DocsRedirectNotice
+    v-if="redirectTo"
+    :to="redirectTo"
+  />
+  <UPage v-else-if="page">
     <UPageHeader
       :title="page.title"
       :description="page.description"
