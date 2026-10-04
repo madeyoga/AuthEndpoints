@@ -22,7 +22,7 @@ dotnet add package AuthEndpoints.OAuth.GitHub --prerelease
 dotnet add package AuthEndpoints.OAuth.Google --prerelease
 ```
 
-Each provider package depends on this core package. Install only the providers you use. Use `--prerelease` while these packages publish preview builds. They need a published [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) Identity host. See the [changelog](https://madeyoga.github.io/AuthEndpoints/changelog) for the core version this preview targets. Does not use Identity management HTTP APIs.
+Each provider package depends on this core package. Install only the providers you use. Use `--prerelease` while these packages publish preview builds. They need a published [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/) Identity host. See the [changelog](https://authendpoints.harten.id/changelog) for the core version this preview targets. Does not use Identity management HTTP APIs.
 
 ## Usage
 
@@ -70,4 +70,4 @@ Cookie completion follows Identity UI: it signs the user in directly and does no
 
 ## Docs
 
-See [External OAuth](https://madeyoga.github.io/AuthEndpoints/modules/external-oauth).
+See [External OAuth](https://authendpoints.harten.id/modules/external-oauth).

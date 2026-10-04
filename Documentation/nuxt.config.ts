@@ -19,15 +19,13 @@ export default defineNuxtConfig({
   },
 
   app: {
-    // CI sets NUXT_APP_BASE_URL=/AuthEndpoints/ for GitHub Pages project site.
     baseURL: process.env.NUXT_APP_BASE_URL || '/'
   },
 
   css: ['~/assets/css/main.css'],
 
   site: {
-    // Origin only — nuxt-site-config / og-image append app.baseURL (/AuthEndpoints/).
-    url: 'https://madeyoga.github.io',
+    url: 'https://authendpoints.harten.id',
     name: 'AuthEndpoints',
     trailingSlash: true,
     indexable: true
@@ -135,7 +133,7 @@ export default defineNuxtConfig({
   },
 
   llms: {
-    domain: 'https://madeyoga.github.io/AuthEndpoints',
+    domain: 'https://authendpoints.harten.id',
     title: 'AuthEndpoints',
     description: 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.',
     full: {

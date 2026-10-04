@@ -46,8 +46,6 @@ jobs:
         run: pnpm install
 
       - name: Generate static site
-        env:
-          NUXT_APP_BASE_URL: /AuthEndpoints/
         run: pnpm generate
 
       - name: Upload Pages artifact

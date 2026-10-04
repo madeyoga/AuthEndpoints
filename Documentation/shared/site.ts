@@ -1,6 +1,6 @@
-/** Public GitHub Pages origin for the library docs (project site under /AuthEndpoints/). */
-export const DOCS_ORIGIN = 'https://madeyoga.github.io'
-export const DOCS_BASE_PATH = '/AuthEndpoints'
+/** Public origin for the library docs (GitHub Pages custom domain, served at the root). */
+export const DOCS_ORIGIN = 'https://authendpoints.harten.id'
+export const DOCS_BASE_PATH: string = ''
 export const DOCS_SITE_URL = `${DOCS_ORIGIN}${DOCS_BASE_PATH}`
 
 export const SITE_NAME = 'AuthEndpoints'
@@ -9,7 +9,7 @@ export const SITE_DESCRIPTION = 'Ready-made sign-up and sign-in endpoints for AS
 
 const OWN_URL_PREFIXES = [
   DOCS_SITE_URL,
-  `${DOCS_ORIGIN}${DOCS_BASE_PATH}/`,
+  'https://madeyoga.github.io/AuthEndpoints',
   'https://github.com/madeyoga/AuthEndpoints',
   'https://www.nuget.org/packages/AuthEndpoints',
   'https://nuget.org/packages/AuthEndpoints'
@@ -44,9 +44,12 @@ export function isOwnPropertyHref(href: string | undefined | null): boolean {
   })
 }
 
-/** Drop a leading /AuthEndpoints prefix so canonicals can be built from route.path or request URLs. */
+/** Drop the docs base path prefix, if any, so canonicals can be built from route.path or request URLs. */
 export function stripDocsBasePath(path: string): string {
   const pathname = path.split('?')[0]?.split('#')[0] || '/'
+  if (!DOCS_BASE_PATH) {
+    return pathname.startsWith('/') ? pathname : `/${pathname}`
+  }
   if (pathname === DOCS_BASE_PATH || pathname === `${DOCS_BASE_PATH}/`) {
     return '/'
   }
@@ -78,7 +81,7 @@ export function toRawMarkdownPath(path: string | undefined | null): string {
   return `/raw${toContentPath(path)}.md`
 }
 
-/** Resolve a raw markdown URL against the Pages base (`/AuthEndpoints/`). `.md` hrefs skip NuxtLink baseURL. */
+/** Resolve a raw markdown URL against the app base URL. `.md` hrefs skip NuxtLink baseURL. */
 export function toRawMarkdownHref(path: string | undefined | null, baseURL = '/'): string {
   const raw = toRawMarkdownPath(path).replace(/^\//, '')
   const base = baseURL.endsWith('/') ? baseURL : `${baseURL}/`
