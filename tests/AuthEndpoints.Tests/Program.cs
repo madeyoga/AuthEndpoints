@@ -4,6 +4,7 @@ using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.Tests;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -14,6 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
+var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.OrdinalIgnoreCase);
+var useFacade = useBearerFacade || useCookieFacade;
+var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
 var requireConfirmedAccount = IsTruthy(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"]);
 var confirmEmailRedirectUri = builder.Configuration["AE_CONFIRM_EMAIL_REDIRECT_URI"];
 var confirmEmailAllowedOrigins = SplitCommaSeparated(builder.Configuration["AE_CONFIRM_EMAIL_ALLOWED_ORIGINS"]);
@@ -26,22 +30,33 @@ builder.Services.AddSingleton<CapturingEmailSender>();
 builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
-if (useBearerFacade)
+if (useFacade)
 {
-    builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(
-        AuthEndpointsSignIn.IdentityBearer,
-        o =>
+    void ConfigureFacade(AuthEndpointsOptions o)
+    {
+        o.RequireConfirmedAccount = requireConfirmedAccount;
+        o.Passkeys.ServerDomain = "localhost";
+        o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, requireConfirmedAccount);
+        o.Jwt.Enabled = facadeJwtEnabled;
+        if (facadeJwtEnabled)
         {
-            o.RequireConfirmedAccount = requireConfirmedAccount;
-            o.Passkeys.ServerDomain = "localhost";
-            o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, requireConfirmedAccount);
-            o.Jwt.Enabled = true;
             o.Jwt.Configure = jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             };
-            ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins);
-        });
+        }
+
+        ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins);
+    }
+
+    if (useBearerFacade)
+    {
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(AuthEndpointsSignIn.IdentityBearer, ConfigureFacade);
+    }
+    else
+    {
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(ConfigureFacade);
+    }
 }
 else
 {
@@ -73,7 +88,7 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
 }
 
-if (useBearerFacade)
+if (useFacade)
 {
     app.UseAuthEndpoints();
     app.MapAuthEndpoints<TestAppUser>();
@@ -147,6 +162,9 @@ static void ConfigureTestIdentity(IdentityOptions options, bool requireConfirmed
 static void MapTestOnlyEndpoints(WebApplication app)
 {
     app.MapPost("/test/csrf", () => Results.Ok()).RequireAntiforgery();
+
+    app.MapGet("/test/csrfToken", (IAntiforgery antiforgery, HttpContext context) =>
+        Results.Ok(new { csrfToken = antiforgery.GetAndStoreTokens(context).RequestToken }));
 
     app.MapGet("/test/reauth", () => Results.Ok()).RequireReauth();
 
