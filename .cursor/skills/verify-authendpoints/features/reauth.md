@@ -37,7 +37,7 @@ Preconditions:
 ## Gotchas
 
 - Confirm requires **exactly one** proof field. Sending password plus another field is 400.
-- Cookie confirm and manage POSTs need CSRF **and** ReAuth. Bearer-only clients skip CSRF when no application cookie is present.
+- Cookie confirm and manage POSTs need CSRF **and** ReAuth. Clients that send `Authorization: Bearer` and no application cookie skip CSRF, unless the host reads that token from a cookie.
 - ReAuth tokens are short-lived. Confirm immediately before the mutation.
 - `/test/reauth` only checks the ReAuth cookie. Prefer `manage/info` as the library-facing proof.
 - Confirm is rate-limited (fixed window). Do not loop failed confirms.

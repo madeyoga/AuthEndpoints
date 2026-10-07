@@ -11,6 +11,7 @@ internal static class PasskeyHttp
     public const string InvalidCredentialId = nameof(InvalidCredentialId);
     public const string InvalidPasskeyState = nameof(InvalidPasskeyState);
     public const string UserMismatch = nameof(UserMismatch);
+    public const string LastSignInMethod = nameof(LastSignInMethod);
     public const int NameMaxLength = 200;
 
     public static ValidationProblem Problem(string code, string detail) =>
@@ -27,6 +28,9 @@ internal static class PasskeyHttp
 
     public static ValidationProblem UserMismatchProblem() =>
         Problem(UserMismatch, "The passkey does not belong to the signed-in user.");
+
+    public static ValidationProblem LastSignInMethodProblem() =>
+        Problem(LastSignInMethod, "Cannot remove the last sign-in method.");
 
     public static ValidationProblem NameTooLongProblem() =>
         TypedResults.ValidationProblem(new Dictionary<string, string[]>
