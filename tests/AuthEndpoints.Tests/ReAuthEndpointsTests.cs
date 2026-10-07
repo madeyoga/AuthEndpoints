@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace AuthEndpoints.Tests;
 
@@ -66,7 +67,7 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
         Assert.NotEqual(HttpStatusCode.OK, confirmResponse.StatusCode);
 
         var reauthResponse = await client.GetAsync("/test/reauth");
-        Assert.Equal(HttpStatusCode.Unauthorized, reauthResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, reauthResponse.StatusCode);
     }
 
     [Fact]
@@ -153,5 +154,49 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
             client,
             new { password = TestHelpers.DefaultPassword });
         Assert.False(string.IsNullOrWhiteSpace(token));
+    }
+
+    [Fact]
+    public async Task RequireReauthOnly_Anonymous_IsUnauthorized()
+    {
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        var response = await client.GetAsync("/test/reauth");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("identity-bearer")]
+    [InlineData("jwt")]
+    public async Task RequireReauthOnly_AcceptsBearerSignInWithMatchingProof(string mode)
+    {
+        var email = $"reauth-bearer-{mode}-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+
+        using var issuer = TestHelpers.CreateClientWithCookies(_factory);
+        var accessToken = mode == "jwt"
+            ? await TestHelpers.CreateJwtAsync(issuer, email, TestHelpers.DefaultPassword)
+            : (await TestHelpers.LoginBearerAsync(issuer, email, TestHelpers.DefaultPassword)).AccessToken;
+        TestHelpers.SetBearer(issuer, accessToken);
+        var reauth = await TestHelpers.ConfirmIdentityAsync(
+            issuer,
+            new { password = TestHelpers.DefaultPassword },
+            useCsrf: false);
+
+        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        TestHelpers.SetBearer(client, accessToken);
+        var missingProof = await client.GetAsync("/test/reauth");
+        // Identity bearer is the middleware default scheme, so a missing proof is 403.
+        // JWT is not, so the requirement authenticates it and a missing proof stays 401.
+        var expectedMissing = mode == "jwt" ? HttpStatusCode.Unauthorized : HttpStatusCode.Forbidden;
+        Assert.Equal(expectedMissing, missingProof.StatusCode);
+
+        TestHelpers.SetReauthToken(client, reauth);
+        var accepted = await client.GetAsync("/test/reauth");
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+
+        using var proofOnly = _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        TestHelpers.SetReauthToken(proofOnly, reauth);
+        var alone = await proofOnly.GetAsync("/test/reauth");
+        Assert.Equal(HttpStatusCode.Unauthorized, alone.StatusCode);
     }
 }

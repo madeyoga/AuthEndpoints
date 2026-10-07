@@ -201,13 +201,13 @@ public class ReAuthLifetimeTests
         Assert.Null(tokenService.Unprotect(token));
 
         var expiredCookie = await client.GetAsync("/test/reauth");
-        Assert.Equal(HttpStatusCode.Unauthorized, expiredCookie.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, expiredCookie.StatusCode);
 
         using var headerClient = TestHelpers.CreateClientWithCookies(factory);
         await TestHelpers.LoginCookieAsync(headerClient, email, TestHelpers.DefaultPassword);
         TestHelpers.SetReauthToken(headerClient, token);
         var expiredHeader = await headerClient.GetAsync("/test/reauth");
-        Assert.Equal(HttpStatusCode.Unauthorized, expiredHeader.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, expiredHeader.StatusCode);
     }
 
     private static WebApplicationFactory<Program> CreateTimedFactory(

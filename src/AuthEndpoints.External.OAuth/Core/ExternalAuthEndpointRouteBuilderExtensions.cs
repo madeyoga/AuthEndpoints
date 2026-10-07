@@ -1,4 +1,5 @@
 using AuthEndpoints.Identity;
+using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -81,8 +82,8 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 
         group.MapDelete("/logins/{loginProvider}/{providerKey}", ExternalAccountEndpoints<TUser>.RemoveLogin)
             .RequireAuthorization()
+            .RequireReauth()
             .RequireAntiforgery()
-            .AddEndpointFilter<ExternalReauthFilter>()
             .WithSummary("Unlink an external login from the current user.")
             .WithName("ExternalRemoveLogin");
 

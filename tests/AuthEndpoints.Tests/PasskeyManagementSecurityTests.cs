@@ -16,7 +16,7 @@ public class PasskeyManagementSecurityTests
 
     [Theory]
     [MemberData(nameof(SignInModes))]
-    public async Task ListAddRenameDelete_RequirePrimarySignIn_AndReauthOnMutations(string mode)
+    public async Task ListAddRenameDelete_RequireSignIn_AndReauthOnMutations(string mode)
     {
         using var factory = new TestWebApplicationFactory();
         var email = $"pk-auth-{mode}-{Guid.NewGuid():N}@test.local";
@@ -145,45 +145,49 @@ public class PasskeyManagementSecurityTests
         Assert.Empty(await ReadPasskeysAsync(await client.GetAsync("/account/passkeys/")));
     }
 
-    [Fact]
-    public async Task ReauthCredentialAlone_CannotListOrDelete()
+    [Theory]
+    [MemberData(nameof(SignInModes))]
+    public async Task ReauthCredentialAlone_IsNotASignIn(string mode)
     {
         using var factory = new TestWebApplicationFactory();
-        var email = $"pk-reauth-only-{Guid.NewGuid():N}@test.local";
+        var email = $"pk-reauth-only-{mode}-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(factory, email);
-        using var client = TestHelpers.CreateClientWithCookies(factory);
-        var origin = client.BaseAddress!.GetLeftPart(UriPartial.Authority);
-        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
 
-        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
-        var reauth = await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
-        var credentialId = await AddPasskeyAsync(client, authenticator, origin, reauth);
+        using var signedIn = TestHelpers.CreateClientWithCookies(factory);
+        await SignInAsync(signedIn, mode, email);
+        var (reauth, reauthCookie) = await ConfirmWithCookieAsync(signedIn, csrf: mode == "cookie");
 
-        using var headerOnly = factory.CreateClient();
-        headerOnly.DefaultRequestHeaders.TryAddWithoutValidation("X-AuthEndpoints-Reauth", reauth);
-        var list = await headerOnly.GetAsync("/account/passkeys/");
-        Assert.Equal(HttpStatusCode.Unauthorized, list.StatusCode);
+        await AssertReauthOnlyRejectedAsync(factory, reauth, cookie: null);
+        await AssertReauthOnlyRejectedAsync(factory, reauthToken: null, reauthCookie);
+    }
 
-        var delete = await headerOnly.DeleteAsync($"/account/passkeys/{credentialId}");
-        Assert.Equal(HttpStatusCode.Unauthorized, delete.StatusCode);
-        Assert.Single(await ReadPasskeysAsync(await client.GetAsync("/account/passkeys/")));
+    [Theory]
+    [MemberData(nameof(SignInModes))]
+    public async Task ReauthForADifferentUser_IsRejected(string mode)
+    {
+        using var factory = new TestWebApplicationFactory();
+        var emailA = $"pk-user-a-{mode}-{Guid.NewGuid():N}@test.local";
+        var emailB = $"pk-user-b-{mode}-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(factory, emailA);
+        await TestHelpers.SeedUserAsync(factory, emailB);
 
-        Assert.True(
-            (await TestHelpers.PostWithCsrfAsync(client, "/identity/confirmIdentity", new { password = TestHelpers.DefaultPassword }))
-                .Headers.TryGetValues("Set-Cookie", out var setCookies));
-        var reauthCookie = setCookies!.Select(value => value.Split(';', 2)[0].Trim())
-            .FirstOrDefault(pair => pair.StartsWith("AuthEndpoints.ReAuth=", StringComparison.Ordinal));
-        Assert.False(string.IsNullOrEmpty(reauthCookie));
+        using var clientA = TestHelpers.CreateClientWithCookies(factory);
+        await SignInAsync(clientA, mode, emailA);
+        var (reauthA, _) = await ConfirmWithCookieAsync(clientA, csrf: mode == "cookie");
 
-        using var cookieOnly = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+        using var clientB = TestHelpers.CreateClientWithCookies(factory);
+        await SignInAsync(clientB, mode, emailB);
+
+        foreach (var (method, url, body) in ReauthRoutes)
         {
-            HandleCookies = false
-        });
-        using var request = new HttpRequestMessage(HttpMethod.Delete, $"/account/passkeys/{credentialId}");
-        request.Headers.TryAddWithoutValidation("Cookie", reauthCookie);
-        var cookieDelete = await cookieOnly.SendAsync(request);
-        Assert.Equal(HttpStatusCode.Unauthorized, cookieDelete.StatusCode);
-        Assert.Single(await ReadPasskeysAsync(await client.GetAsync("/account/passkeys/")));
+            var response = await SendAsync(clientB, method, url, body, csrf: false, reauthA);
+            Assert.True(
+                response.StatusCode == HttpStatusCode.Forbidden,
+                $"{method} {url} with user B's sign-in and user A's ReAuth returned {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        }
+
+        var list = await SendAsync(clientB, HttpMethod.Get, "/account/passkeys/", body: null, csrf: false, reauthA);
+        Assert.Equal(HttpStatusCode.OK, list.StatusCode);
     }
 
     private static async Task SignInAsync(HttpClient client, string mode, string email)
@@ -219,29 +223,66 @@ public class PasskeyManagementSecurityTests
         return token!;
     }
 
-    private static async Task<string> AddPasskeyAsync(
-        HttpClient client,
-        SoftwareWebAuthnAuthenticator authenticator,
-        string origin,
-        string reauth)
+    private static readonly (HttpMethod Method, string Url, object? Body)[] ReauthRoutes =
+    [
+        (HttpMethod.Post, "/account/passkeys/creationOptions", new { }),
+        (HttpMethod.Post, "/account/passkeys/", new { credentialJson = "{}", name = "Laptop" }),
+        (HttpMethod.Patch, "/account/passkeys/", new { id = "abc", newName = "Phone" }),
+        (HttpMethod.Delete, "/account/passkeys/abc", null),
+        (HttpMethod.Post, "/identity/manage/2fa", new { enable = true, twoFactorCode = "000000" }),
+        (HttpMethod.Post, "/identity/manage/info", new { oldPassword = "x", newPassword = "ChangedPass1!" }),
+    ];
+
+    private static async Task AssertReauthOnlyRejectedAsync(
+        TestWebApplicationFactory factory,
+        string? reauthToken,
+        string? cookie)
     {
-        var options = await TestHelpers.PostWithCsrfAsync(
-            client,
-            "/account/passkeys/creationOptions",
-            new { },
-            reauth);
-        var optionsBody = await options.Content.ReadAsStringAsync();
-        Assert.True(options.StatusCode == HttpStatusCode.OK, optionsBody);
-        var credentialJson = authenticator.CreateAttestation(optionsBody, origin);
-        var add = await TestHelpers.PostWithCsrfAsync(
-            client,
-            "/account/passkeys/",
-            new { credentialJson, name = "Laptop" },
-            reauth);
-        var addBody = await add.Content.ReadAsStringAsync();
-        Assert.True(add.StatusCode == HttpStatusCode.OK, addBody);
-        using var doc = JsonDocument.Parse(addBody);
-        return TestHelpers.TryGetString(doc.RootElement, "credentialId", "CredentialId")!;
+        using var client = factory.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions
+        {
+            HandleCookies = false
+        });
+        if (!string.IsNullOrEmpty(reauthToken))
+        {
+            client.DefaultRequestHeaders.TryAddWithoutValidation("X-AuthEndpoints-Reauth", reauthToken);
+        }
+
+        var routes = ReauthRoutes.Append((HttpMethod.Get, "/account/passkeys/", (object?)null));
+        foreach (var (method, url, body) in routes)
+        {
+            using var request = new HttpRequestMessage(method, url)
+            {
+                Content = body is null ? null : JsonContent.Create(body)
+            };
+            if (!string.IsNullOrEmpty(cookie))
+            {
+                request.Headers.TryAddWithoutValidation("Cookie", cookie);
+            }
+
+            var response = await client.SendAsync(request);
+            Assert.True(
+                response.StatusCode == HttpStatusCode.Unauthorized,
+                $"{method} {url} with only a ReAuth credential returned {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        }
+    }
+
+    private static async Task<(string Token, string Cookie)> ConfirmWithCookieAsync(HttpClient client, bool csrf)
+    {
+        var proof = new { password = TestHelpers.DefaultPassword };
+        var response = csrf
+            ? await TestHelpers.PostWithCsrfAsync(client, "/identity/confirmIdentity", proof)
+            : await client.PostAsJsonAsync("/identity/confirmIdentity", proof);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.OK, body);
+        using var doc = JsonDocument.Parse(body);
+        var token = TestHelpers.TryGetString(doc.RootElement, "reauthToken", "ReauthToken");
+        Assert.False(string.IsNullOrEmpty(token));
+
+        Assert.True(response.Headers.TryGetValues("Set-Cookie", out var setCookies));
+        var cookie = setCookies.Select(value => value.Split(';', 2)[0].Trim())
+            .FirstOrDefault(pair => pair.StartsWith("AuthEndpoints.ReAuth=", StringComparison.Ordinal));
+        Assert.False(string.IsNullOrEmpty(cookie));
+        return (token!, cookie!);
     }
 
     private static async Task<HttpResponseMessage> SendAsync(

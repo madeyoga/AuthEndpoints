@@ -38,11 +38,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
 
         // Signed-in routes only. Anonymous ceremonies stay on the parent group.
-        // RequirePrimarySignIn rejects a ReAuth principal that the combined policy would
-        // otherwise accept, because RequireReauth() adds the ReAuth schemes to that policy.
         var secured = group.MapGroup(string.Empty)
-            .RequireAuthorization(authorize)
-            .RequirePrimarySignIn();
+            .RequireAuthorization(authorize);
 
         secured.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
             .WithSummary("Generate WebAuthn creation options for the signed-in user.")
