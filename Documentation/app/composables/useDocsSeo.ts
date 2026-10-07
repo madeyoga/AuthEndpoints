@@ -3,6 +3,9 @@ import {
   SITE_NAME,
   SITE_TITLE,
   SITE_DESCRIPTION,
+  REPOSITORY_URL,
+  NUGET_URL,
+  LICENSE_URL,
   toCanonicalUrl,
   toContentPath,
   withNavTrailingSlash
@@ -48,34 +51,126 @@ export function useDocsSiteHead() {
   })
 }
 
-export function useSoftwareJsonLd() {
+export function useSoftwareJsonLd(version?: string) {
+  const url = toCanonicalUrl('/')
+  const author = {
+    '@type': 'Person',
+    'name': 'madeyoga',
+    'url': 'https://github.com/madeyoga'
+  }
+
   useHead({
     script: [{
       key: 'ld-json',
       type: 'application/ld+json',
       innerHTML: JSON.stringify({
         '@context': 'https://schema.org',
-        '@type': ['SoftwareApplication', 'SoftwareSourceCode'],
-        'name': SITE_NAME,
-        'alternateName': SITE_TITLE,
-        'description': SITE_DESCRIPTION,
-        'url': toCanonicalUrl('/'),
-        'applicationCategory': 'DeveloperApplication',
-        'operatingSystem': 'ASP.NET Core',
-        'programmingLanguage': 'C#',
-        'runtimePlatform': '.NET 10',
-        'license': 'https://opensource.org/licenses/MIT',
-        'codeRepository': 'https://github.com/madeyoga/AuthEndpoints',
-        'downloadUrl': 'https://www.nuget.org/packages/AuthEndpoints/',
-        'isAccessibleForFree': true,
-        'author': {
-          '@type': 'Person',
-          'name': 'madeyoga',
-          'url': 'https://github.com/madeyoga'
-        }
+        '@graph': [
+          {
+            '@type': 'SoftwareApplication',
+            '@id': `${url}#software`,
+            'name': SITE_NAME,
+            'alternateName': SITE_TITLE,
+            'description': SITE_DESCRIPTION,
+            url,
+            'applicationCategory': 'DeveloperApplication',
+            'operatingSystem': 'ASP.NET Core',
+            'softwareVersion': version,
+            'license': LICENSE_URL,
+            'downloadUrl': NUGET_URL,
+            'installUrl': NUGET_URL,
+            'isAccessibleForFree': true,
+            'offers': {
+              '@type': 'Offer',
+              'price': '0',
+              'priceCurrency': 'USD'
+            },
+            author
+          },
+          {
+            '@type': 'SoftwareSourceCode',
+            '@id': `${url}#source`,
+            'name': SITE_NAME,
+            'description': SITE_DESCRIPTION,
+            url,
+            'codeRepository': REPOSITORY_URL,
+            'programmingLanguage': 'C#',
+            'runtimePlatform': '.NET 10',
+            'version': version,
+            'license': LICENSE_URL,
+            'targetProduct': { '@id': `${url}#software` },
+            author
+          }
+        ]
       })
     }]
   })
+}
+
+type MinimarkNode = string | [string, Record<string, unknown>, ...MinimarkNode[]]
+
+function minimarkText(node: MinimarkNode): string {
+  if (typeof node === 'string') {
+    return node
+  }
+  const [, , ...children] = node
+  return children.map(minimarkText).join('')
+}
+
+export function faqEntriesFromBody(body: { value?: unknown } | undefined | null) {
+  const nodes = Array.isArray(body?.value) ? body.value as MinimarkNode[] : []
+  const entries: { question: string, answer: string }[] = []
+  let current: { question: string, parts: string[] } | undefined
+
+  const flush = () => {
+    const answer = current?.parts.join(' ').replace(/\s+/g, ' ').trim()
+    if (current && answer) {
+      entries.push({ question: current.question, answer })
+    }
+    current = undefined
+  }
+
+  for (const node of nodes) {
+    if (Array.isArray(node) && node[0] === 'h2') {
+      flush()
+      const question = minimarkText(node).trim()
+      if (question.endsWith('?')) {
+        current = { question, parts: [] }
+      }
+    } else if (current) {
+      current.parts.push(minimarkText(node))
+    }
+  }
+  flush()
+  return entries
+}
+
+export function useFaqPageJsonLd(body: { value?: unknown } | undefined | null) {
+  const route = useRoute()
+  const entries = faqEntriesFromBody(body)
+  if (!entries.length) {
+    return
+  }
+
+  useHead(() => ({
+    script: [{
+      key: 'ld-json-faq',
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'url': toCanonicalUrl(route.path),
+        'mainEntity': entries.map(entry => ({
+          '@type': 'Question',
+          'name': entry.question,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': entry.answer
+          }
+        }))
+      })
+    }]
+  }))
 }
 
 export function useTechArticleJsonLd(input: { title: string, description?: string }) {
@@ -104,10 +199,10 @@ export function useTechArticleJsonLd(input: { title: string, description?: strin
             '@type': 'SoftwareApplication',
             'name': SITE_NAME,
             'url': toCanonicalUrl('/'),
-            'downloadUrl': 'https://www.nuget.org/packages/AuthEndpoints/',
-            'license': 'https://opensource.org/licenses/MIT'
+            'downloadUrl': NUGET_URL,
+            'license': LICENSE_URL
           },
-          'license': 'https://opensource.org/licenses/MIT'
+          'license': LICENSE_URL
         })
       }]
     }

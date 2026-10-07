@@ -51,6 +51,10 @@ if (redirectTo) {
 
   useTechArticleJsonLd({ title, description })
 
+  if (page.value.faq) {
+    useFaqPageJsonLd(page.value.body)
+  }
+
   defineOgImage('Docs', { title, description, headline: headline.value })
 }
 
