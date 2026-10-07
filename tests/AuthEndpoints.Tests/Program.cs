@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using OpenTelemetry;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -78,6 +81,8 @@ else
         .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
 }
 
+ConfigureOpenTelemetry(builder);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -117,6 +122,29 @@ else
 MapTestOnlyEndpoints(app);
 
 app.Run();
+
+static void ConfigureOpenTelemetry(WebApplicationBuilder builder)
+{
+    var endpoint = Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT");
+    if (string.IsNullOrWhiteSpace(endpoint))
+    {
+        return;
+    }
+
+    var serviceName = Environment.GetEnvironmentVariable("OTEL_SERVICE_NAME");
+    if (string.IsNullOrWhiteSpace(serviceName))
+    {
+        serviceName = "authendpoints-demo";
+    }
+
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(resource => resource.AddService(serviceName))
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddOtlpExporter());
+}
 
 static bool IsTruthy(string? value) =>
     string.Equals(value, "true", StringComparison.OrdinalIgnoreCase)
