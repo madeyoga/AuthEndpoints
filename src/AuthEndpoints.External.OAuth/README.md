@@ -1,5 +1,7 @@
 # AuthEndpoints.External.OAuth
 
+**Docs:** [https://authendpoints.harten.id](https://authendpoints.harten.id)
+
 Preview package: modular external OAuth endpoints for AuthEndpoints (cookie completion by default; pluggable JWT completer). Compose-only. Not part of `MapAuthEndpoints`.
 
 GitHub and Google handlers are separate packages so this nupkg does not reference both.

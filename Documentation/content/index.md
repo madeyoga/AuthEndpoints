@@ -256,6 +256,18 @@ Each capability links to the guide that shows you how to use it.
   #description
   Map only the routes you need, on your own prefixes.
   :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-arrow-left-right
+  to: /concepts/mapidentityapi-alternative
+  ---
+  #title
+  MapIdentityApi alternative
+
+  #description
+  Logout, chosen routes, JWT, and passkeys.
+  :::
 ::
 
 ::u-page-section{class="dark:bg-zinc-950"}
