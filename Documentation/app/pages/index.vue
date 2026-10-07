@@ -4,6 +4,13 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
 }
 
+const { data: releases } = await useAsyncData('index-releases', () =>
+  queryCollection('versions').order('date', 'DESC').select('tag').all()
+)
+const version = releases.value
+  ?.map(release => release.tag?.replace(/^v/, ''))
+  .find(tag => tag && /^\d+\.\d+\.\d+$/.test(tag))
+
 const title = page.value.seo?.title || page.value.title
 const description = page.value.seo?.description || page.value.description
 
@@ -21,7 +28,7 @@ defineOgImage('Docs', {
   headline: 'ASP.NET Core'
 })
 
-useSoftwareJsonLd()
+useSoftwareJsonLd(version)
 </script>
 
 <template>
