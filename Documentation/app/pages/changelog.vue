@@ -99,7 +99,7 @@ function badgeProps(badge?: string) {
             :description="version.description"
             :date="version.date"
             :badge="badgeProps(version.badge)"
-            :to="releaseUrl(version)"
+            :to="version.tag ? releaseUrl(version) : undefined"
             target="_blank"
           >
             <template
@@ -112,7 +112,10 @@ function badgeProps(badge?: string) {
               />
             </template>
 
-            <template #footer>
+            <template
+              v-if="version.tag"
+              #footer
+            >
               <UButton
                 :to="releaseUrl(version)"
                 target="_blank"

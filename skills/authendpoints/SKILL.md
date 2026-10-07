@@ -220,7 +220,7 @@ https://authendpoints.harten.id/composables
 
 ## ReAuth (step-up)
 
-Manage 2FA/info mutations and sensitive passkey routes require ReAuth plus CSRF where applicable. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Protect host endpoints with `.RequireReauth()`.
+Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Protect host endpoints with `.RequireReauth()`. `ReAuthPolicy` adds no authentication schemes.
 
 https://authendpoints.harten.id/modules/reauth
 
