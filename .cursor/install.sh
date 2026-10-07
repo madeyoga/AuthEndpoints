@@ -13,11 +13,13 @@ export PATH="/usr/local/bin:${DOTNET_ROOT}:${PATH}"
 NODE_VERSION=22.23.3
 NODE_SHA256=df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de
 PNPM_VERSION=12.3.4
+ASPIRE_DASHBOARD_VERSION=13.6.0
+ASPIRE_DASHBOARD_SHA256=e5a603eb9c0a7982fefd8323576befa63c4a0b023ffe909bec4513a2dc4df4b3
 
 install_packages() {
   local missing=()
   local pkg
-  for pkg in ca-certificates curl git xz-utils build-essential python3 pkg-config libicu74; do
+  for pkg in ca-certificates curl git unzip xz-utils build-essential python3 pkg-config libicu74; do
     if ! dpkg -s "$pkg" >/dev/null 2>&1; then
       missing+=("$pkg")
     fi
@@ -76,11 +78,33 @@ EOF
   fi
 }
 
+install_aspire_dashboard() {
+  local dest="/opt/aspire-dashboard/${ASPIRE_DASHBOARD_VERSION}"
+  local bin="${dest}/tools/Aspire.Dashboard"
+  if [[ -x "$bin" ]]; then
+    return
+  fi
+
+  local url="https://api.nuget.org/v3-flatcontainer/aspire.dashboard.sdk.linux-x64/${ASPIRE_DASHBOARD_VERSION}/aspire.dashboard.sdk.linux-x64.${ASPIRE_DASHBOARD_VERSION}.nupkg"
+  local tmp stage
+  tmp="$(mktemp)"
+  stage="$(mktemp -d)"
+  curl -fsSL "$url" -o "$tmp"
+  echo "${ASPIRE_DASHBOARD_SHA256}  ${tmp}" | sha256sum -c -
+  unzip -q "$tmp" "tools/*" -d "$stage"
+  rm -f "$tmp"
+  chmod +x "${stage}/tools/Aspire.Dashboard"
+  sudo rm -rf "$dest"
+  sudo mkdir -p /opt/aspire-dashboard
+  sudo mv "$stage" "$dest"
+}
+
 install_packages
 install_dotnet
 install_node
 install_pnpm
 write_shell_path
+install_aspire_dashboard
 
 dotnet restore AuthEndpoints.sln
 (

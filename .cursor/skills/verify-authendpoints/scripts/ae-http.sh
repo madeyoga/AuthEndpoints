@@ -28,6 +28,8 @@ Environment:
                                 Library default is true; this host defaults to false.
   AE_CONFIRM_EMAIL_REDIRECT_URI  Maps to AuthEndpointsOptions.EmailConfirmation.ConfirmEmailRedirectUri.
   AE_CONFIRM_EMAIL_ALLOWED_ORIGINS  Comma-separated AllowedRedirectOrigins.
+  OTEL_EXPORTER_OTLP_ENDPOINT  When unset, launch sets http://localhost:4317. Empty skips export.
+  OTEL_SERVICE_NAME  When unset, launch sets authendpoints-demo.
 
 Examples:
   AE_RUN_ID=demo ./ae-http.sh launch
@@ -247,6 +249,14 @@ cmd_launch() {
     exit 1
   fi
 
+  if [[ -z "${OTEL_EXPORTER_OTLP_ENDPOINT+x}" ]]; then
+    OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
+  fi
+  if [[ -z "${OTEL_SERVICE_NAME+x}" ]]; then
+    OTEL_SERVICE_NAME="authendpoints-demo"
+  fi
+  export OTEL_EXPORTER_OTLP_ENDPOINT OTEL_SERVICE_NAME
+
   echo "Starting host on ${AE_BASE_URL}" >&2
   (
     cd "$(dirname "$AE_DLL")"
@@ -261,6 +271,8 @@ cmd_launch() {
       AE_REQUIRE_CONFIRMED_ACCOUNT="${AE_REQUIRE_CONFIRMED_ACCOUNT:-}" \
       AE_CONFIRM_EMAIL_REDIRECT_URI="${AE_CONFIRM_EMAIL_REDIRECT_URI:-}" \
       AE_CONFIRM_EMAIL_ALLOWED_ORIGINS="${AE_CONFIRM_EMAIL_ALLOWED_ORIGINS:-}" \
+      OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT}" \
+      OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME}" \
       dotnet "$AE_DLL"
   ) >"$AE_LOG_FILE" 2>&1 &
   echo $! > "$AE_PID_FILE"

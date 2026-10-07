@@ -33,6 +33,8 @@ chmod +x "$HARNESS"
 
 Ready signal for the default **compose** host: `GET {AE_BASE_URL}/identity/csrfToken` returns **200** and JSON with `csrfToken` (Pascal `CsrfToken` is also accepted). The helper polls that URL after start.
 
+`launch` turns on OpenTelemetry export when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset (`http://localhost:4317`, service name `authendpoints-demo`). Set `OTEL_EXPORTER_OTLP_ENDPOINT` to empty before `launch` to skip export. How to read those traces is in the repository `AGENTS.md`.
+
 Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready signal is `GET /identity/manage/info` returning **401**. Doctor prints `mode=bearer-facade`. See [bearer-facade.md](features/bearer-facade.md).
 
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.

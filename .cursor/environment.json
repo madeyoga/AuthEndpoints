@@ -1,5 +1,6 @@
 {
   "name": "AuthEndpoints",
   "user": "ubuntu",
-  "install": "bash .cursor/install.sh"
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start-aspire-dashboard.sh"
 }
