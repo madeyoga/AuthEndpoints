@@ -1,5 +1,7 @@
 # AuthEndpoints.OAuth.GitHub
 
+**Docs:** [https://authendpoints.harten.id](https://authendpoints.harten.id)
+
 GitHub provider for [AuthEndpoints.External.OAuth](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/). Compose-only. Not part of `MapAuthEndpoints`.
 
 ```bash

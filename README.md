@@ -7,6 +7,8 @@
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
+**Docs:** [https://authendpoints.harten.id](https://authendpoints.harten.id)
+
 AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top of Identity. It fits a first-party auth API for web and mobile clients (React, Next.js, Vue, Nuxt, Svelte, native apps, and similar) with email/password, cookies, JWT, and/or passkeys.
 
 - Ready-made endpoints for registration, login, password reset, 2FA, and session/token flows

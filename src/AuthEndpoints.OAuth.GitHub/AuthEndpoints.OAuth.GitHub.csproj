@@ -9,7 +9,7 @@
     <Version>3.0.0-preview.4</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
-    <PackageProjectUrl>https://github.com/madeyoga/AuthEndpoints</PackageProjectUrl>
+    <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;oauth;github;identity</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
