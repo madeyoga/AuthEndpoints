@@ -25,4 +25,4 @@ curl -s localhost:18888/api/telemetry/traces
 curl -s 'localhost:18888/api/telemetry/traces?resource=authendpoints-demo'
 ```
 
-Repeat `resource` to include more than one resource (`?resource=authendpoints-demo&resource=other`). Traces are evidence to cite in PR verification. Do not commit them.
+Repeat `resource` to include more than one resource (`?resource=authendpoints-demo&resource=other`). The response is `{ data, totalCount, returnedCount }` with OTLP spans in `data.resourceSpans`. ASP.NET Core span names match the route, such as `POST /identity/register`. Traces are evidence to cite in PR verification. Do not commit them.
