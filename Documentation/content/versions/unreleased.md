@@ -12,6 +12,8 @@ A signed-in user without step-up now gets `403` on passkey mutations, `POST /man
 
 CSRF is skipped only when a non-empty `Authorization: Bearer` header is present, Identity bearer or JWT authenticates, and the application cookie does not. Hosts that read the access token from a cookie still send the CSRF token. The filter does not call `OnMessageReceived`.
 
+A step-up proof carries the user's security stamp. A password change, reset, or `UpdateSecurityStampAsync` cancels any outstanding ReAuth cookie or `X-AuthEndpoints-Reauth` token. A proof with no stamp is rejected. `POST /confirmIdentity` still returns `reauthToken`. Cookie sign-ins also receive the ReAuth cookie. A caller authenticated with `Authorization: Bearer` receives the token only and sends it on the sensitive call.
+
 ### Packages
 
 - **AuthEndpoints** `3.1.1` (version unchanged)

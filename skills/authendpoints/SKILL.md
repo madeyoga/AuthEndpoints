@@ -220,7 +220,7 @@ https://authendpoints.harten.id/composables
 
 ## ReAuth (step-up)
 
-Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in and does not replace the user. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Pair `.RequireReauth()` with `RequireAuthorization()` that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
+Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in and does not replace the user. The proof carries the user's security stamp; a password change, reset, or `UpdateSecurityStampAsync` cancels it. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`, issued for cookie sign-ins. An `Authorization: Bearer` confirm returns `reauthToken` and does not set that cookie; keep the token in memory. Pair `.RequireReauth()` with `RequireAuthorization()` that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
 
 https://authendpoints.harten.id/modules/reauth
 
