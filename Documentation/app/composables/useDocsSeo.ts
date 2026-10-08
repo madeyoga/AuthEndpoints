@@ -12,6 +12,63 @@ import {
 } from '#shared/site'
 import { findDocsRedirect } from '#shared/redirects'
 
+const TWITTER_META_KEY = 'docs:twitter-meta'
+
+interface ResolvedHeadTag {
+  tag: string
+  props: Record<string, unknown>
+}
+
+function metaContent(tags: ResolvedHeadTag[], id: string): string | undefined {
+  for (let index = tags.length - 1; index >= 0; index--) {
+    const tag = tags[index]
+    if (tag?.tag !== 'meta') {
+      continue
+    }
+    const key = tag.props.property || tag.props.name
+    if (key !== id) {
+      continue
+    }
+    const content = tag.props.content
+    return typeof content === 'string' && content ? content : undefined
+  }
+  return undefined
+}
+
+function upsertNamedMeta(tags: ResolvedHeadTag[], name: string, content: string | undefined) {
+  if (!content) {
+    return
+  }
+  const existing = tags.find(tag => tag.tag === 'meta' && tag.props.name === name)
+  if (existing) {
+    existing.props.content = content
+    return
+  }
+  tags.push({
+    tag: 'meta',
+    props: { name, content }
+  })
+}
+
+export function useDocsTwitterMeta() {
+  const head = injectHead()
+  if (head.plugins.has(TWITTER_META_KEY)) {
+    return
+  }
+
+  // Pages set og:title and description themselves. Copy them once, after resolve,
+  // so every page gets twitter:title and twitter:description without per-page tags.
+  head.use({
+    key: TWITTER_META_KEY,
+    hooks: {
+      'tags:afterResolve': (ctx: { tags: ResolvedHeadTag[] }) => {
+        upsertNamedMeta(ctx.tags, 'twitter:title', metaContent(ctx.tags, 'og:title'))
+        upsertNamedMeta(ctx.tags, 'twitter:description', metaContent(ctx.tags, 'description'))
+      }
+    }
+  })
+}
+
 export function useDocsCanonical() {
   const route = useRoute()
   // A moved page points its canonical link at the new URL.
@@ -20,6 +77,8 @@ export function useDocsCanonical() {
 }
 
 export function useDocsSiteHead() {
+  useDocsTwitterMeta()
+
   const { seo } = useAppConfig()
   const { app } = useRuntimeConfig()
   const { canonical } = useDocsCanonical()
