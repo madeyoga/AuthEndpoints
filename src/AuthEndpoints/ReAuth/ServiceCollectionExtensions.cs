@@ -73,6 +73,7 @@ public static class ServiceCollectionExtensions
                 cookie.TimeProvider = time;
             });
 
+        services.TryAddScoped<IReAuthSecurityStamp>(sp => ReAuthSecurityStampFactory.Create(sp, services));
         services.AddSingleton<IAuthorizationHandler, ReauthenticatedHandler>();
         services.AddAuthorizationBuilder()
             .AddPolicy("ReAuthPolicy", policy =>

@@ -89,11 +89,22 @@ internal static class TestHelpers
 
     public static async Task LoginCookieAsync(HttpClient client, string email, string password)
     {
-        var response = await client.PostAsJsonAsync(
-            "/identity/login",
-            new { email, password });
+        HttpResponseMessage? response = null;
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            response = await client.PostAsJsonAsync(
+                "/identity/login",
+                new { email, password });
+            if (response.StatusCode != HttpStatusCode.TooManyRequests)
+            {
+                break;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+
         Assert.True(
-            response.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent,
+            response!.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent,
             $"Login failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
     }
 
@@ -208,16 +219,27 @@ internal static class TestHelpers
         string? twoFactorCode = null,
         string? twoFactorRecoveryCode = null)
     {
-        var response = await client.PostAsJsonAsync(
-            "/identity/bearer/login",
-            new
+        HttpResponseMessage? response = null;
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            response = await client.PostAsJsonAsync(
+                "/identity/bearer/login",
+                new
+                {
+                    email,
+                    password,
+                    twoFactorCode,
+                    twoFactorRecoveryCode
+                });
+            if (response.StatusCode != HttpStatusCode.TooManyRequests)
             {
-                email,
-                password,
-                twoFactorCode,
-                twoFactorRecoveryCode
-            });
-        response.EnsureSuccessStatusCode();
+                break;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(2));
+        }
+
+        response!.EnsureSuccessStatusCode();
         using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         return (ReadToken(doc.RootElement, "accessToken", "AccessToken"),
             ReadToken(doc.RootElement, "refreshToken", "RefreshToken"));

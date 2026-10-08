@@ -2,10 +2,12 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 
 namespace AuthEndpoints.Identity;
 
@@ -40,6 +42,48 @@ internal static class SignInSchemes
 
         return Primary.Contains(identity.AuthenticationType, StringComparer.Ordinal)
             || string.Equals(identity.AuthenticationType, JwtIdentityType, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// True when <c>Authorization</c> contains a non-empty <c>Bearer</c> token.
+    /// </summary>
+    public static bool HasBearerAuthorizationHeader(HttpRequest request)
+    {
+        var values = request.Headers.Authorization;
+        if (StringValues.IsNullOrEmpty(values))
+        {
+            return false;
+        }
+
+        foreach (var value in values)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                continue;
+            }
+
+            const string prefix = "Bearer ";
+            if (value.Length > prefix.Length
+                && value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(value[prefix.Length..]))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static async Task<bool> IsAuthenticatedAsync(HttpContext httpContext, string scheme)
+    {
+        var schemeProvider = httpContext.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
+        if (await schemeProvider.GetSchemeAsync(scheme) is null)
+        {
+            return false;
+        }
+
+        var result = await httpContext.AuthenticateAsync(scheme);
+        return result.Succeeded && result.Principal?.Identity?.IsAuthenticated == true;
     }
 }
 

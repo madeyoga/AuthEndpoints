@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
 
 namespace AuthEndpoints.Identity;
 
@@ -71,63 +69,24 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
     /// </summary>
     private static async Task<bool> ShouldSkipAntiforgeryAsync(HttpContext httpContext)
     {
-        if (await IsAuthenticatedAsync(httpContext, SignInSchemes.Application))
+        if (await SignInSchemes.IsAuthenticatedAsync(httpContext, SignInSchemes.Application))
         {
             return false;
         }
 
-        if (!HasBearerAuthorizationHeader(httpContext.Request))
+        if (!SignInSchemes.HasBearerAuthorizationHeader(httpContext.Request))
         {
             return false;
         }
 
         foreach (var scheme in SignInSchemes.Bearer)
         {
-            if (await IsAuthenticatedAsync(httpContext, scheme))
+            if (await SignInSchemes.IsAuthenticatedAsync(httpContext, scheme))
             {
                 return true;
             }
         }
 
         return false;
-    }
-
-    private static bool HasBearerAuthorizationHeader(HttpRequest request)
-    {
-        var values = request.Headers.Authorization;
-        if (StringValues.IsNullOrEmpty(values))
-        {
-            return false;
-        }
-
-        foreach (var value in values)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                continue;
-            }
-
-            const string prefix = "Bearer ";
-            if (value.Length > prefix.Length
-                && value.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)
-                && !string.IsNullOrWhiteSpace(value[prefix.Length..]))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static async Task<bool> IsAuthenticatedAsync(HttpContext httpContext, string scheme)
-    {
-        var schemeProvider = httpContext.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
-        if (await schemeProvider.GetSchemeAsync(scheme) is null)
-        {
-            return false;
-        }
-
-        var result = await httpContext.AuthenticateAsync(scheme);
-        return result.Succeeded && result.Principal?.Identity?.IsAuthenticated == true;
     }
 }

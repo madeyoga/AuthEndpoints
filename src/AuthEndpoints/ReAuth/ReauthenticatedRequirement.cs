@@ -11,6 +11,7 @@ namespace AuthEndpoints.ReAuth;
 
 /// <summary>
 /// Requires a signed-in user and a ReAuth proof for that same user.
+/// When the store supports security stamps, the proof's stamp must match the user's current stamp.
 /// The proof is authenticated here and is never copied onto <see cref="HttpContext.User"/>.
 /// </summary>
 internal sealed class ReauthenticatedRequirement : IAuthorizationRequirement;
@@ -51,13 +52,44 @@ internal sealed class ReauthenticatedHandler : AuthorizationHandler<Reauthentica
             return;
         }
 
-        if (await HasMatchingReauthAsync(httpContext, userIdClaimType, primaryUserId))
+        var reauthPrincipal = await FindMatchingReauthAsync(httpContext, userIdClaimType, primaryUserId);
+        if (reauthPrincipal is null)
         {
-            context.Succeed(requirement);
+            return;
         }
+
+        if (!await SecurityStampMatchesAsync(httpContext, context.User, reauthPrincipal))
+        {
+            return;
+        }
+
+        context.Succeed(requirement);
     }
 
-    private static async Task<bool> HasMatchingReauthAsync(
+    private async Task<bool> SecurityStampMatchesAsync(
+        HttpContext httpContext,
+        ClaimsPrincipal signedInUser,
+        ClaimsPrincipal reauthPrincipal)
+    {
+        var stamps = httpContext.RequestServices.GetRequiredService<IReAuthSecurityStamp>();
+        if (!stamps.SupportsUserSecurityStamp)
+        {
+            return true;
+        }
+
+        var stampClaimType = _identityOptions.Value.ClaimsIdentity.SecurityStampClaimType;
+        var proofStamp = reauthPrincipal.FindFirst(stampClaimType)?.Value;
+        if (string.IsNullOrEmpty(proofStamp))
+        {
+            return false;
+        }
+
+        var currentStamp = await stamps.GetCurrentStampAsync(signedInUser);
+        return !string.IsNullOrEmpty(currentStamp)
+            && string.Equals(proofStamp, currentStamp, StringComparison.Ordinal);
+    }
+
+    private static async Task<ClaimsPrincipal?> FindMatchingReauthAsync(
         HttpContext httpContext,
         string userIdClaimType,
         string primaryUserId)
@@ -73,11 +105,11 @@ internal sealed class ReauthenticatedHandler : AuthorizationHandler<Reauthentica
             var result = await httpContext.AuthenticateAsync(scheme);
             if (result.Succeeded && IsMatchingReauth(result.Principal, userIdClaimType, primaryUserId))
             {
-                return true;
+                return result.Principal;
             }
         }
 
-        return false;
+        return null;
     }
 
     private static bool IsMatchingReauth(ClaimsPrincipal? principal, string userIdClaimType, string primaryUserId)

@@ -139,19 +139,81 @@ public static class ReAuthEndpoints<TUser>
             ExpiresUtc = now.Add(reAuthOptions.Lifetime)
         };
 
-        var claims = new[]
-            {
-                new Claim("Reauth", "true"),
-                new Claim("ReauthTime", now.ToUnixTimeSeconds().ToString())
-            }
-            .Concat(context.User.Claims)
-            .ToArray();
+        var claims = await CreateProofClaimsAsync(context, userManager, user, now);
 
-        var scheme = AuthEndpointsConstants.ReAuthScheme;
-        var identity = new ClaimsIdentity(claims, scheme);
-        await context.SignInAsync(scheme, new ClaimsPrincipal(identity), authProps);
+        if (await ShouldIssueReAuthCookieAsync(context))
+        {
+            var scheme = AuthEndpointsConstants.ReAuthScheme;
+            var identity = new ClaimsIdentity(claims, scheme);
+            await context.SignInAsync(scheme, new ClaimsPrincipal(identity), authProps);
+        }
 
         var reauthToken = tokenService.CreateToken(claims);
         return TypedResults.Ok(new ConfirmIdentityResponse { ReauthToken = reauthToken });
+    }
+
+    /// <summary>
+    /// Cookie sign-ins receive the ReAuth cookie and <c>reauthToken</c>.
+    /// A caller authenticated with <c>Authorization: Bearer</c> receives the token only.
+    /// Identity bearer principals use the application identity type, so this checks schemes.
+    /// </summary>
+    private static async Task<bool> ShouldIssueReAuthCookieAsync(HttpContext context)
+    {
+        if (await SignInSchemes.IsAuthenticatedAsync(context, SignInSchemes.Application))
+        {
+            return true;
+        }
+
+        if (!SignInSchemes.HasBearerAuthorizationHeader(context.Request))
+        {
+            return true;
+        }
+
+        foreach (var scheme in SignInSchemes.Bearer)
+        {
+            if (await SignInSchemes.IsAuthenticatedAsync(context, scheme))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static async Task<Claim[]> CreateProofClaimsAsync(
+        HttpContext context,
+        UserManager<TUser> userManager,
+        TUser user,
+        DateTimeOffset now)
+    {
+        var stampClaimType = userManager.Options.ClaimsIdentity.SecurityStampClaimType;
+        var claims = new List<Claim>
+        {
+            new("Reauth", "true"),
+            new("ReauthTime", now.ToUnixTimeSeconds().ToString()),
+        };
+
+        foreach (var claim in context.User.Claims)
+        {
+            if (string.Equals(claim.Type, stampClaimType, StringComparison.Ordinal)
+                || string.Equals(claim.Type, "Reauth", StringComparison.Ordinal)
+                || string.Equals(claim.Type, "ReauthTime", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            claims.Add(claim);
+        }
+
+        if (userManager.SupportsUserSecurityStamp)
+        {
+            var stamp = await userManager.GetSecurityStampAsync(user);
+            if (!string.IsNullOrEmpty(stamp))
+            {
+                claims.Add(new Claim(stampClaimType, stamp));
+            }
+        }
+
+        return claims.ToArray();
     }
 }
