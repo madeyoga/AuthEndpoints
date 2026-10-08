@@ -145,7 +145,13 @@ public static class PasskeyEndpoints<TUser>
             return TypedResults.NotFound();
         }
 
-        passkey.Name = request.NewName;
+        var name = PasskeyHttp.NormalizeName(request.NewName, out var nameProblem);
+        if (nameProblem is not null)
+        {
+            return nameProblem;
+        }
+
+        passkey.Name = name;
         var updateResult = await userManager.AddOrUpdatePasskeyAsync(user, passkey);
         if (!updateResult.Succeeded)
         {
@@ -177,6 +183,11 @@ public static class PasskeyEndpoints<TUser>
         if (passkey is null)
         {
             return TypedResults.NotFound();
+        }
+
+        if (!await CanRemovePasskeyAsync(userManager, user))
+        {
+            return PasskeyHttp.LastSignInMethodProblem();
         }
 
         var result = await userManager.RemovePasskeyAsync(user, credentialId);
@@ -378,5 +389,18 @@ public static class PasskeyEndpoints<TUser>
                 UseSessionCookies = useSessionCookies
             },
             cancellationToken);
+    }
+
+    private static async Task<bool> CanRemovePasskeyAsync(UserManager<TUser> userManager, TUser user)
+    {
+        var hasPassword = userManager.SupportsUserPassword && await userManager.HasPasswordAsync(user);
+        var externalLoginCount = 0;
+        if (userManager.SupportsUserLogin)
+        {
+            externalLoginCount = (await userManager.GetLoginsAsync(user)).Count;
+        }
+
+        var passkeyCount = (await userManager.GetPasskeysAsync(user)).Count;
+        return PasskeyRemovalPolicy.CanRemove(hasPassword, passkeyCount, externalLoginCount);
     }
 }

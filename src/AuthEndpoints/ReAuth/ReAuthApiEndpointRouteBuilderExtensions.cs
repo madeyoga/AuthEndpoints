@@ -25,9 +25,10 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
             .WithSummary("Confirm the user's identity and issue short-lived reauthentication credentials.")
             .WithDescription("""
                 Provide exactly one proof: Password, TwoFactorCode, TwoFactorRecoveryCode, or CredentialJson (passkey assertion).
-                On success, issues a temporary AuthEndpoints.ReAuth cookie and a reauthToken
-                for the X-AuthEndpoints-Reauth header on sensitive API actions.
-                Cookie and token share ReAuth.Lifetime (default 5 minutes).
+                On success, returns reauthToken for the X-AuthEndpoints-Reauth header.
+                Cookie sign-ins also receive a temporary AuthEndpoints.ReAuth cookie.
+                A caller authenticated with Authorization: Bearer receives the token only.
+                Both carry the user's security stamp and share ReAuth.Lifetime (default 5 minutes).
                 """)
             .RequireAuthorization(authorize)
             .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);

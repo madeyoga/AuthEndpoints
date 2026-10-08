@@ -6,14 +6,14 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>3.1.1</Version>
+    <Version>3.2.0</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>Passkey and other CSRF-protected endpoints no longer return 500 when JWT is not enabled.</PackageReleaseNotes>
+    <PackageReleaseNotes>Step-up is an extra proof bound to the security stamp. Signed-in callers without a matching proof get 403. CSRF skips only for an Authorization Bearer header. Bearer confirm no longer sets the ReAuth cookie.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AuthEndpoints.Tests" />
+    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth" />
   </ItemGroup>
 
   <ItemGroup>

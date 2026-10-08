@@ -199,7 +199,8 @@ static void MapTestOnlyEndpoints(WebApplication app)
     app.MapPost("/test/csrf-auth", () => Results.Ok())
         .RequireAuthorization(new AuthorizeAttribute
         {
-            AuthenticationSchemes = $"{JwtBearerDefaults.AuthenticationScheme},{IdentityConstants.ApplicationScheme}"
+            AuthenticationSchemes =
+                $"{JwtBearerDefaults.AuthenticationScheme},{IdentityConstants.BearerScheme},{IdentityConstants.ApplicationScheme}"
         })
         .RequireAntiforgery();
 

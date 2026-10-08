@@ -16,7 +16,7 @@ A signed-in user must prove their identity again before changing password or oth
 - `GET /identity/manage/authMethods`.
 - `POST /identity/confirmIdentity` JSON with **exactly one** of `password`, `twoFactorCode`, `twoFactorRecoveryCode`, `credentialJson`. Cookie clients also send CSRF.
 - Send `X-AuthEndpoints-Reauth: <reauthToken>` on `POST /identity/manage/info` and `POST /identity/manage/2fa`. Cookie clients still send CSRF.
-- Cookie clients also receive cookie `AuthEndpoints.ReAuth`.
+- Cookie clients also receive cookie `AuthEndpoints.ReAuth`. An `Authorization: Bearer` confirm returns `reauthToken` and does not set that cookie.
 
 ## Driving it with ae-http
 
@@ -37,7 +37,8 @@ Preconditions:
 ## Gotchas
 
 - Confirm requires **exactly one** proof field. Sending password plus another field is 400.
-- Cookie confirm and manage POSTs need CSRF **and** ReAuth. Bearer-only clients skip CSRF when no application cookie is present.
+- Cookie confirm and manage POSTs need CSRF **and** ReAuth. Clients that send `Authorization: Bearer` and no application cookie skip CSRF, unless the host reads that token from a cookie.
 - ReAuth tokens are short-lived. Confirm immediately before the mutation.
-- `/test/reauth` only checks the ReAuth cookie. Prefer `manage/info` as the library-facing proof.
+- `/test/reauth` is only `.RequireReauth()`. It does not list sign-in schemes. A ReAuth cookie or header alone is rejected (`401`). A cookie sign-in from the authentication middleware without a matching proof is `403`. Library routes pair `.RequireReauth()` with the management authorize attribute. Prefer `manage/info` as the library-facing proof.
 - Confirm is rate-limited (fixed window). Do not loop failed confirms.
+- A proof is bound to the user's security stamp. `UpdateSecurityStampAsync`, a password change, or a reset makes the cookie and `X-AuthEndpoints-Reauth` token fail with `403` while the sign-in is still valid. A proof minted without the stamp claim is rejected.

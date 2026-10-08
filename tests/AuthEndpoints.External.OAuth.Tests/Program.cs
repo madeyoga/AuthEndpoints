@@ -4,6 +4,7 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,20 @@ builder.Services
     })
     .AddEntityFrameworkStores<OAuthDb>()
     .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddSingleton<CapturedChallenge>();
 builder.Services.AddAuthentication()
@@ -82,9 +97,13 @@ app.MapPost("/test/signin", async (string email, SignInManager<OAuthUser> signIn
 
 app.MapPost("/test/reauth", async (HttpContext http) =>
 {
-    var identity = new ClaimsIdentity(
-        [new Claim("Reauth", "true"), new Claim(ClaimTypes.NameIdentifier, "reauth")],
-        AuthEndpointsConstants.ReAuthScheme);
+    if (http.User.Identity?.IsAuthenticated != true)
+    {
+        return Results.Unauthorized();
+    }
+
+    var claims = http.User.Claims.Append(new Claim("Reauth", "true"));
+    var identity = new ClaimsIdentity(claims, AuthEndpointsConstants.ReAuthScheme);
     await http.SignInAsync(AuthEndpointsConstants.ReAuthScheme, new ClaimsPrincipal(identity));
     return Results.NoContent();
 });

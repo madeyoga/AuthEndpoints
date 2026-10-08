@@ -1,6 +1,7 @@
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,19 +73,25 @@ public static class ServiceCollectionExtensions
                 cookie.TimeProvider = time;
             });
 
+        services.TryAddScoped<IReAuthSecurityStamp>(sp => ReAuthSecurityStampFactory.Create(sp, services));
+        services.AddSingleton<IAuthorizationHandler, ReauthenticatedHandler>();
         services.AddAuthorizationBuilder()
             .AddPolicy("ReAuthPolicy", policy =>
             {
-                policy.AddAuthenticationSchemes(
-                    AuthEndpointsConstants.ReAuthScheme,
-                    AuthEndpointsConstants.ReAuthBearerScheme);
-                policy.RequireAuthenticatedUser();
-                policy.RequireClaim("Reauth", "true");
+                policy.Requirements.Add(new ReauthenticatedRequirement());
             });
 
         return services;
     }
 
+    /// <summary>
+    /// Requires a signed-in user and a ReAuth proof for that same user.
+    /// Pair this with <c>RequireAuthorization</c> that authenticates the sign-in
+    /// (the management schemes). The policy adds no authentication schemes and does
+    /// not sign the user in. A ReAuth cookie or <c>X-AuthEndpoints-Reauth</c> token
+    /// is an extra proof, not a sign-in, and its principal is not merged into
+    /// <see cref="HttpContext.User"/>. Without a sign-in authorization, the request fails.
+    /// </summary>
     public static TBuilder RequireReauth<TBuilder>(this TBuilder builder)
         where TBuilder : IEndpointConventionBuilder
     {

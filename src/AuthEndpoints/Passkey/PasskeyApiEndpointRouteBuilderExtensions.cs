@@ -35,10 +35,14 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         confirmEmailEndpointName ??= AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions
             .DefaultConfirmEmailEndpointName<TUser>();
         var group = endpoints.MapGroup("/passkeys");
+        var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
 
-        group.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
+        // Signed-in routes only. Anonymous ceremonies stay on the parent group.
+        var secured = group.MapGroup(string.Empty)
+            .RequireAuthorization(authorize);
+
+        secured.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
             .WithSummary("Generate WebAuthn creation options for the signed-in user.")
-            .RequireAuthorization()
             .RequireReauth()
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
             .RequireAntiforgery();
@@ -98,26 +102,27 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
             .RequireAntiforgery();
 
-        group.MapPost("/", PasskeyEndpoints<TUser>.AddPasskey)
+        secured.MapPost("/", PasskeyEndpoints<TUser>.AddPasskey)
             .WithSummary("Attest and store a passkey on the signed-in account.")
-            .RequireAuthorization()
             .RequireReauth()
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
             .RequireAntiforgery();
 
-        group.MapGet("/", PasskeyEndpoints<TUser>.ListPasskeys)
-            .WithSummary("List passkeys for the signed-in user.")
-            .RequireAuthorization();
+        secured.MapGet("/", PasskeyEndpoints<TUser>.ListPasskeys)
+            .WithSummary("List passkeys for the signed-in user.");
 
-        group.MapPatch("/", PasskeyEndpoints<TUser>.RenamePasskey)
+        secured.MapPatch("/", PasskeyEndpoints<TUser>.RenamePasskey)
             .WithSummary("Rename a passkey.")
-            .RequireAuthorization()
+            .WithDescription("Trims the name. A name longer than 200 characters is rejected.")
             .RequireReauth()
             .RequireAntiforgery();
 
-        group.MapDelete("/{credentialIdUrl}", PasskeyEndpoints<TUser>.DeletePasskey)
+        secured.MapDelete("/{credentialIdUrl}", PasskeyEndpoints<TUser>.DeletePasskey)
             .WithSummary("Remove a passkey from the signed-in account.")
-            .RequireAuthorization()
+            .WithDescription("""
+                Refuses with a validation problem when this passkey is the user's only sign-in method
+                (no password and no external login).
+                """)
             .RequireReauth()
             .RequireAntiforgery();
 

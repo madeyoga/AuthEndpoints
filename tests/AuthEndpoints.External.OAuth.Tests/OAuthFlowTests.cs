@@ -104,7 +104,7 @@ public class OAuthFlowTests : IClassFixture<OAuthFlowTests.Host>
         var noReauth = new HttpRequestMessage(HttpMethod.Delete, "/auth/external/logins/Fake/only-key");
         noReauth.Headers.Add("RequestVerificationToken", csrfBeforeReauth!.Token);
         var bare = await client.SendAsync(noReauth);
-        Assert.Equal(HttpStatusCode.Unauthorized, bare.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, bare.StatusCode);
 
         await client.PostAsync("/test/reauth", null);
         var noCsrf = await client.DeleteAsync("/auth/external/logins/Fake/only-key");

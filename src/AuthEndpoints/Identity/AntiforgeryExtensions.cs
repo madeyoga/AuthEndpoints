@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -64,31 +61,32 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
     }
 
     /// <summary>
-    /// Skip CSRF when the request is authenticated via bearer schemes (Identity bearer or JWT Bearer)
-    /// and not via the application cookie. Cookie sessions still require antiforgery even if a
-    /// ReAuth cookie is also present.
+    /// Skip CSRF only when the caller presented a non-empty <c>Authorization: Bearer</c>
+    /// header and Identity bearer or JWT authenticated that request. An Identity application
+    /// cookie always forces the check. A cross-site request cannot attach that header without
+    /// a CORS preflight, so the header is the CSRF signal. Hosts that read the access token
+    /// from a cookie still send the CSRF token; this filter does not call <c>OnMessageReceived</c>.
     /// </summary>
     private static async Task<bool> ShouldSkipAntiforgeryAsync(HttpContext httpContext)
     {
-        if (await IsAuthenticatedAsync(httpContext, IdentityConstants.ApplicationScheme)
-            || await IsAuthenticatedAsync(httpContext, IdentityConstants.ExternalScheme))
+        if (await SignInSchemes.IsAuthenticatedAsync(httpContext, SignInSchemes.Application))
         {
             return false;
         }
 
-        return await IsAuthenticatedAsync(httpContext, IdentityConstants.BearerScheme)
-            || await IsAuthenticatedAsync(httpContext, JwtBearerDefaults.AuthenticationScheme);
-    }
-
-    private static async Task<bool> IsAuthenticatedAsync(HttpContext httpContext, string scheme)
-    {
-        var schemeProvider = httpContext.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
-        if (await schemeProvider.GetSchemeAsync(scheme) is null)
+        if (!SignInSchemes.HasBearerAuthorizationHeader(httpContext.Request))
         {
             return false;
         }
 
-        var result = await httpContext.AuthenticateAsync(scheme);
-        return result.Succeeded && result.Principal?.Identity?.IsAuthenticated == true;
+        foreach (var scheme in SignInSchemes.Bearer)
+        {
+            if (await SignInSchemes.IsAuthenticatedAsync(httpContext, scheme))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

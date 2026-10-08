@@ -98,7 +98,7 @@ builder.Services.AddAuthEndpoints<AppUser, AppRole, AppDbContext>(o =>
 | Stack | Typical client | How to select |
 | --- | --- | --- |
 | **Cookie** | First-party browser / SPA | `AddAuthEndpoints` + `MapAuthEndpoints` |
-| **Identity bearer** | Native / mobile (tokens in JSON, no cookie jar) | `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` + `MapAuthEndpoints` |
+| **Identity bearer** | Native / mobile, or a browser that keeps the token in `localStorage` or `sessionStorage` and sends `Authorization: Bearer` | `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` + `MapAuthEndpoints` |
 | **Simple JWT** | Browser that wants a Bearer access token + HttpOnly refresh cookie | Facade `o.Jwt.Enabled = true` and `modelBuilder.UseRefreshToken()` |
 
 Mixed web + native: map **separate** sign-in groups (or hosts) per client type. Do not map cookie and bearer login on the same path without separate groups.
@@ -152,7 +152,7 @@ Cookie sessions and the JWT refresh cookie need antiforgery on unsafe methods (`
 
 The library calls `AddAntiforgery()` with no header override. ASP.NET Core's default header name is `RequestVerificationToken`. Hosts may set `AntiforgeryOptions.HeaderName` to `X-CSRF-TOKEN` (common for SPAs). **Clients must use the header the host configured.**
 
-CSRF is skipped when the request is authenticated via Identity bearer or JWT Bearer **and not** via the application/external cookie. Cookie sessions still require CSRF even if a bearer token is also present.
+CSRF is skipped only when the request has a non-empty `Authorization: Bearer` header, Identity bearer or JWT authenticates, and the application cookie does not. A token that `OnMessageReceived` reads from a cookie still needs CSRF when that header is absent. Cookie sessions still require CSRF even if a bearer token is also present. The bearer facade maps no `/csrfToken` route. If a host stores the bearer token in a cookie, the host maps its own token route and clients send the CSRF token. Cookie-based browser auth should use the cookie or JWT stack (`GET /auth/csrfToken` stays on JWT).
 
 ## Facade options
 
@@ -179,7 +179,7 @@ Full table: https://authendpoints.harten.id/modules/configuration/
 
 Enabled by default. In Production set `Passkeys.ServerDomain`, or disable with `o.Passkeys.Enabled = false`.
 
-Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). CSRF is required for WebAuthn ceremonies. Add/rename/delete/`creationOptions` also require ReAuth. Passwordless register mints `Guid.NewGuid()` (UUID v4) unless the host registers `IPasskeyUserIdFactory`. `POST {PasskeyPath}/passkeys/requestOptions` takes optional JSON `{ email }`. Empty or unknown email still returns 200 options. Identifier-first may reveal passkey presence via `allowCredentials`. Omit `email` for usernameless/discoverable login.
+Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). Anonymous WebAuthn ceremonies always require CSRF: they store the challenge in the `Identity.TwoFactorUserId` cookie. Signed-in add/rename/delete/`creationOptions` require a primary sign-in (application cookie, Identity bearer, or JWT) plus ReAuth. A ReAuth credential alone is not enough. Those changes run the CSRF filter and follow the skip rule above. Rename trims the name and rejects more than 200 characters. Delete returns validation problem `LastSignInMethod` when the passkey is the only sign-in method (no password and no external login). Passwordless register mints `Guid.NewGuid()` (UUID v4) unless the host registers `IPasskeyUserIdFactory`. `POST {PasskeyPath}/passkeys/requestOptions` takes optional JSON `{ email }`. Empty or unknown email still returns 200 options. Identifier-first may reveal passkey presence via `allowCredentials`. Omit `email` for usernameless/discoverable login.
 
 Facade JWT opt-in does **not** auto-select `JwtPasskeySignInCompleter`. Register it explicitly when passkey register/login should issue Simple JWT (access token + refresh cookie); that completer ignores cookie query flags.
 
@@ -220,7 +220,7 @@ https://authendpoints.harten.id/composables
 
 ## ReAuth (step-up)
 
-Manage 2FA/info mutations and sensitive passkey routes require ReAuth plus CSRF where applicable. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Protect host endpoints with `.RequireReauth()`.
+Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in and does not replace the user. The proof carries the user's security stamp; a password change, reset, or `UpdateSecurityStampAsync` cancels it. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`, issued for cookie sign-ins. An `Authorization: Bearer` confirm returns `reauthToken` and does not set that cookie; keep the token in memory. Pair `.RequireReauth()` with `RequireAuthorization()` that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
 
 https://authendpoints.harten.id/modules/reauth
 
