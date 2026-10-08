@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AuthEndpoints.Tests" />
+    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth" />
   </ItemGroup>
 
   <ItemGroup>

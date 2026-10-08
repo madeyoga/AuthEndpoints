@@ -74,6 +74,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
     {
         var group = endpoints.MapGroup("");
         var providers = endpoints.ServiceProvider.GetServices<IExternalAuthProvider>().ToList();
+        var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
 
         group.MapGet("/logins", ExternalAccountEndpoints<TUser>.ListLogins)
             .RequireAuthorization()
@@ -81,7 +82,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
             .WithName("ExternalListLogins");
 
         group.MapDelete("/logins/{loginProvider}/{providerKey}", ExternalAccountEndpoints<TUser>.RemoveLogin)
-            .RequireAuthorization()
+            .RequireAuthorization(authorize)
             .RequireReauth()
             .RequireAntiforgery()
             .WithSummary("Unlink an external login from the current user.")

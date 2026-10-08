@@ -56,7 +56,7 @@ public class AntiforgeryCookieTokenTests
 
     [Theory]
     [MemberData(nameof(TokenSources))]
-    public async Task CookieAndHeaderTogether_RequireCsrf(string source)
+    public async Task CookieAndHeaderTogether_SkipsCsrf(string source)
     {
         await using var root = new TestWebApplicationFactory();
         using var factory = CreateCookieReadingFactory(root, source);
@@ -68,11 +68,7 @@ public class AntiforgeryCookieTokenTests
         });
 
         var without = await SendAsync(client, token, includeAuthorization: true, includeCsrf: false);
-        Assert.Equal(HttpStatusCode.BadRequest, without.StatusCode);
-        Assert.Contains("CSRF", await without.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
-
-        var with = await SendAsync(client, token, includeAuthorization: true, includeCsrf: true);
-        Assert.Equal(HttpStatusCode.OK, with.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, without.StatusCode);
     }
 
     private static WebApplicationFactory<Program> CreateCookieReadingFactory(TestWebApplicationFactory root, string source) =>

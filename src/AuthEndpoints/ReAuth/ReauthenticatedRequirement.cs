@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -18,13 +17,6 @@ internal sealed class ReauthenticatedRequirement : IAuthorizationRequirement;
 
 internal sealed class ReauthenticatedHandler : AuthorizationHandler<ReauthenticatedRequirement>
 {
-    private static readonly string[] PrimarySchemes =
-    [
-        IdentityConstants.ApplicationScheme,
-        IdentityConstants.BearerScheme,
-        JwtBearerDefaults.AuthenticationScheme,
-    ];
-
     private static readonly string[] ReAuthSchemes =
     [
         AuthEndpointsConstants.ReAuthScheme,
@@ -47,14 +39,13 @@ internal sealed class ReauthenticatedHandler : AuthorizationHandler<Reauthentica
             return;
         }
 
-        var primary = await ResolvePrimaryAsync(httpContext, context.User);
-        if (primary is null)
+        if (!IsPrimaryPrincipal(context.User))
         {
             return;
         }
 
         var userIdClaimType = _identityOptions.Value.ClaimsIdentity.UserIdClaimType;
-        var primaryUserId = primary.FindFirst(userIdClaimType)?.Value;
+        var primaryUserId = context.User.FindFirst(userIdClaimType)?.Value;
         if (string.IsNullOrEmpty(primaryUserId))
         {
             return;
@@ -64,37 +55,6 @@ internal sealed class ReauthenticatedHandler : AuthorizationHandler<Reauthentica
         {
             context.Succeed(requirement);
         }
-    }
-
-    /// <summary>
-    /// The combined policy (or the authentication middleware's default scheme) is the sign-in.
-    /// When that principal is missing, authenticate the registered primary schemes so a
-    /// <c>RequireReauth()</c>-only endpoint still rejects a step-up credential that has no sign-in.
-    /// </summary>
-    private static async Task<ClaimsPrincipal?> ResolvePrimaryAsync(HttpContext httpContext, ClaimsPrincipal user)
-    {
-        if (IsPrimaryPrincipal(user))
-        {
-            return user;
-        }
-
-        var schemeProvider = httpContext.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
-        foreach (var scheme in PrimarySchemes)
-        {
-            if (await schemeProvider.GetSchemeAsync(scheme) is null)
-            {
-                continue;
-            }
-
-            var result = await httpContext.AuthenticateAsync(scheme);
-            if (result.Succeeded && result.Principal is not null && IsPrimaryPrincipal(result.Principal))
-            {
-                httpContext.User = result.Principal;
-                return result.Principal;
-            }
-        }
-
-        return null;
     }
 
     private static async Task<bool> HasMatchingReauthAsync(
@@ -146,13 +106,10 @@ internal sealed class ReauthenticatedHandler : AuthorizationHandler<Reauthentica
                 continue;
             }
 
-            if (string.Equals(identity.AuthenticationType, AuthEndpointsConstants.ReAuthScheme, StringComparison.Ordinal)
-                || string.Equals(identity.AuthenticationType, AuthEndpointsConstants.ReAuthBearerScheme, StringComparison.Ordinal))
+            if (SignInSchemes.IsPrimaryIdentity(identity))
             {
-                continue;
+                return true;
             }
-
-            return true;
         }
 
         return false;

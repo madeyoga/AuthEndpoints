@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.BearerToken;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
 namespace AuthEndpoints.Identity;
@@ -67,23 +63,15 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
     }
 
     /// <summary>
-    /// Skip CSRF only when the caller presented <c>Authorization: Bearer</c> and a bearer
-    /// scheme authenticated that request. An Identity application or external cookie still
-    /// forces the check. A token supplied from a cookie (the usual <c>OnMessageReceived</c>
-    /// pattern) also forces the check, including when the header is present as well,
-    /// because the browser attaches that cookie on its own.
+    /// Skip CSRF only when the caller presented a non-empty <c>Authorization: Bearer</c>
+    /// header and Identity bearer or JWT authenticated that request. An Identity application
+    /// cookie always forces the check. A cross-site request cannot attach that header without
+    /// a CORS preflight, so the header is the CSRF signal. Hosts that read the access token
+    /// from a cookie still send the CSRF token; this filter does not call <c>OnMessageReceived</c>.
     /// </summary>
     private static async Task<bool> ShouldSkipAntiforgeryAsync(HttpContext httpContext)
     {
-        if (await IsAuthenticatedAsync(httpContext, IdentityConstants.ApplicationScheme)
-            || await IsAuthenticatedAsync(httpContext, IdentityConstants.ExternalScheme))
-        {
-            return false;
-        }
-
-        if (httpContext.Request.Cookies.Count > 0
-            && (await NonHeaderSourceSuppliesTokenAsync(httpContext, IdentityConstants.BearerScheme)
-                || await NonHeaderSourceSuppliesTokenAsync(httpContext, JwtBearerDefaults.AuthenticationScheme)))
+        if (await IsAuthenticatedAsync(httpContext, SignInSchemes.Application))
         {
             return false;
         }
@@ -93,8 +81,15 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
             return false;
         }
 
-        return await IsAuthenticatedAsync(httpContext, IdentityConstants.BearerScheme)
-            || await IsAuthenticatedAsync(httpContext, JwtBearerDefaults.AuthenticationScheme);
+        foreach (var scheme in SignInSchemes.Bearer)
+        {
+            if (await IsAuthenticatedAsync(httpContext, scheme))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool HasBearerAuthorizationHeader(HttpRequest request)
@@ -123,81 +118,6 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
 
         return false;
     }
-
-    /// <summary>
-    /// True when bearer or JWT <c>OnMessageReceived</c> supplies a token after the
-    /// Authorization header is removed. That is how hosts read the access token from a cookie.
-    /// The header is restored before the method returns. A throw from the host event does not
-    /// count as a supplied token; the later scheme authentication still has to succeed.
-    /// </summary>
-    private static async Task<bool> NonHeaderSourceSuppliesTokenAsync(HttpContext httpContext, string schemeName)
-    {
-        var schemeProvider = httpContext.RequestServices.GetRequiredService<IAuthenticationSchemeProvider>();
-        var scheme = await schemeProvider.GetSchemeAsync(schemeName);
-        if (scheme is null)
-        {
-            return false;
-        }
-
-        var authorization = httpContext.Request.Headers.Authorization;
-        httpContext.Request.Headers.Remove("Authorization");
-        try
-        {
-            if (string.Equals(schemeName, JwtBearerDefaults.AuthenticationScheme, StringComparison.Ordinal))
-            {
-                var monitor = httpContext.RequestServices.GetService<IOptionsMonitor<JwtBearerOptions>>();
-                var options = monitor?.Get(scheme.Name);
-                if (options?.Events is not { } events)
-                {
-                    return false;
-                }
-
-                var context = new Microsoft.AspNetCore.Authentication.JwtBearer.MessageReceivedContext(
-                    httpContext,
-                    scheme,
-                    options);
-                await events.MessageReceived(context);
-                return TokenWasSupplied(context.Token, context.Result);
-            }
-
-            if (string.Equals(schemeName, IdentityConstants.BearerScheme, StringComparison.Ordinal))
-            {
-                var monitor = httpContext.RequestServices.GetService<IOptionsMonitor<BearerTokenOptions>>();
-                var options = monitor?.Get(scheme.Name);
-                if (options?.Events is not { } events)
-                {
-                    return false;
-                }
-
-                var context = new Microsoft.AspNetCore.Authentication.BearerToken.MessageReceivedContext(
-                    httpContext,
-                    scheme,
-                    options);
-                await events.MessageReceivedAsync(context);
-                return TokenWasSupplied(context.Token, context.Result);
-            }
-
-            return false;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-        finally
-        {
-            if (StringValues.IsNullOrEmpty(authorization))
-            {
-                httpContext.Request.Headers.Remove("Authorization");
-            }
-            else
-            {
-                httpContext.Request.Headers.Authorization = authorization;
-            }
-        }
-    }
-
-    private static bool TokenWasSupplied(string? token, AuthenticateResult? result) =>
-        !string.IsNullOrWhiteSpace(token) || result?.Succeeded == true;
 
     private static async Task<bool> IsAuthenticatedAsync(HttpContext httpContext, string scheme)
     {

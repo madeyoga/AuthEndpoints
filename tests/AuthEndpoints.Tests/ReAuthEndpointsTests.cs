@@ -164,35 +164,17 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
-    [Theory]
-    [InlineData("identity-bearer")]
-    [InlineData("jwt")]
-    public async Task RequireReauthOnly_AcceptsBearerSignInWithMatchingProof(string mode)
+    [Fact]
+    public async Task RequireReauthOnly_ReauthCredentialWithoutSignIn_IsRejected()
     {
-        var email = $"reauth-bearer-{mode}-{Guid.NewGuid():N}@test.local";
+        var email = $"reauth-alone-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(_factory, email);
 
         using var issuer = TestHelpers.CreateClientWithCookies(_factory);
-        var accessToken = mode == "jwt"
-            ? await TestHelpers.CreateJwtAsync(issuer, email, TestHelpers.DefaultPassword)
-            : (await TestHelpers.LoginBearerAsync(issuer, email, TestHelpers.DefaultPassword)).AccessToken;
-        TestHelpers.SetBearer(issuer, accessToken);
+        await TestHelpers.LoginCookieAsync(issuer, email, TestHelpers.DefaultPassword);
         var reauth = await TestHelpers.ConfirmIdentityAsync(
             issuer,
-            new { password = TestHelpers.DefaultPassword },
-            useCsrf: false);
-
-        using var client = _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
-        TestHelpers.SetBearer(client, accessToken);
-        var missingProof = await client.GetAsync("/test/reauth");
-        // Identity bearer is the middleware default scheme, so a missing proof is 403.
-        // JWT is not, so the requirement authenticates it and a missing proof stays 401.
-        var expectedMissing = mode == "jwt" ? HttpStatusCode.Unauthorized : HttpStatusCode.Forbidden;
-        Assert.Equal(expectedMissing, missingProof.StatusCode);
-
-        TestHelpers.SetReauthToken(client, reauth);
-        var accepted = await client.GetAsync("/test/reauth");
-        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+            new { password = TestHelpers.DefaultPassword });
 
         using var proofOnly = _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
         TestHelpers.SetReauthToken(proofOnly, reauth);
