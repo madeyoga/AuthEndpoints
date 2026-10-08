@@ -1,6 +1,6 @@
 # CSRF on cookie mutations
 
-Cookie clients must fetch an antiforgery token and send it on unsafe methods that mutate the cookie session. The filter skips only when `Authorization: Bearer` is present, Identity bearer or JWT authenticates, and no application or external cookie authenticates. A token delivered by a cookie (including together with that header) still requires CSRF. A refresh cookie alone does not.
+Cookie clients must fetch an antiforgery token and send it on unsafe methods that mutate the cookie session. The filter skips only when a non-empty `Authorization: Bearer` header is present, Identity bearer or JWT authenticates, and the application cookie does not. A token delivered only by a cookie still requires CSRF. A refresh cookie alone does not. Hosts that read the access token from a cookie send the CSRF token.
 
 ## Sub-features
 

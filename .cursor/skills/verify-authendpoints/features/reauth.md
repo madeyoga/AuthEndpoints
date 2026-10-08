@@ -39,5 +39,5 @@ Preconditions:
 - Confirm requires **exactly one** proof field. Sending password plus another field is 400.
 - Cookie confirm and manage POSTs need CSRF **and** ReAuth. Clients that send `Authorization: Bearer` and no application cookie skip CSRF, unless the host reads that token from a cookie.
 - ReAuth tokens are short-lived. Confirm immediately before the mutation.
-- `/test/reauth` is only `.RequireReauth()`. It still needs a sign-in: the application cookie from the authentication middleware, or a registered Identity bearer or JWT bearer token. A ReAuth cookie or header alone is `401`. A cookie sign-in without a matching proof is `403`. Prefer `manage/info` as the library-facing proof.
+- `/test/reauth` is only `.RequireReauth()`. It does not list sign-in schemes. A ReAuth cookie or header alone is rejected (`401`). A cookie sign-in from the authentication middleware without a matching proof is `403`. Library routes pair `.RequireReauth()` with the management authorize attribute. Prefer `manage/info` as the library-facing proof.
 - Confirm is rate-limited (fixed window). Do not loop failed confirms.

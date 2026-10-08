@@ -1,16 +1,16 @@
 ---
 title: Unreleased
 description: Step-up is an extra proof on top of a sign-in, not a sign-in by itself.
-date: 2026-10-07
+date: 2026-10-08
 ---
 
 ### AuthEndpoints
 
-`ReAuthPolicy` no longer authenticates the ReAuth cookie or `X-AuthEndpoints-Reauth` header as sign-in schemes. The policy name and `.RequireReauth()` are unchanged. The requirement checks those credentials itself and succeeds only when the proof has `Reauth=true` and the same user id as the signed-in user. The ReAuth principal is not merged into `HttpContext.User`.
+A signed-in user without step-up now gets `403` on passkey mutations, `POST /manage/2fa`, `POST /manage/info`, and external login unlink. The step-up credential is never a sign-in and never replaces `HttpContext.User`. `ReAuthPolicy` adds no authentication schemes. The requirement succeeds only when the route's sign-in user matches a ReAuth proof with `Reauth=true` and the same user id.
 
-A request that presents only a step-up cookie or header is not signed in (`401`) on passkey management, `POST /manage/2fa`, or `POST /manage/info`. A signed-in user without a matching proof is rejected (`403`). A proof issued to a different user is rejected. External login unlink uses the same policy, so a signed-in user without step-up gets `403`.
+`.RequireReauth()` must be paired with a sign-in authorization. It does not authenticate the application cookie, Identity bearer, or JWT. A route that omits that authorization fails. A request that presents only a step-up cookie or header is rejected.
 
-`.RequireReauth()` alone still requires a sign-in. The host's default authenticate scheme supplies that user when it succeeds. Otherwise the requirement authenticates the registered application cookie, Identity bearer, and JWT bearer schemes.
+CSRF is skipped only when a non-empty `Authorization: Bearer` header is present, Identity bearer or JWT authenticates, and the application cookie does not. Hosts that read the access token from a cookie still send the CSRF token. The filter does not call `OnMessageReceived`.
 
 ### Packages
 

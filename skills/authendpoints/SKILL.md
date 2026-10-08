@@ -152,7 +152,7 @@ Cookie sessions and the JWT refresh cookie need antiforgery on unsafe methods (`
 
 The library calls `AddAntiforgery()` with no header override. ASP.NET Core's default header name is `RequestVerificationToken`. Hosts may set `AntiforgeryOptions.HeaderName` to `X-CSRF-TOKEN` (common for SPAs). **Clients must use the header the host configured.**
 
-CSRF is skipped only when the request has an `Authorization: Bearer` header, Identity bearer or JWT authenticates, and the application/external cookie does not. A token that `OnMessageReceived` reads from a cookie still requires CSRF, including when the header is also present. Cookie sessions still require CSRF even if a bearer token is also present. The bearer facade maps no `/csrfToken` route. If a host stores the bearer token in a cookie, the host maps its own token route. Cookie-based browser auth should use the cookie or JWT stack (`GET /auth/csrfToken` stays on JWT).
+CSRF is skipped only when the request has a non-empty `Authorization: Bearer` header, Identity bearer or JWT authenticates, and the application cookie does not. A token that `OnMessageReceived` reads from a cookie still needs CSRF when that header is absent. Cookie sessions still require CSRF even if a bearer token is also present. The bearer facade maps no `/csrfToken` route. If a host stores the bearer token in a cookie, the host maps its own token route and clients send the CSRF token. Cookie-based browser auth should use the cookie or JWT stack (`GET /auth/csrfToken` stays on JWT).
 
 ## Facade options
 
@@ -220,7 +220,7 @@ https://authendpoints.harten.id/composables
 
 ## ReAuth (step-up)
 
-Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Protect host endpoints with `.RequireReauth()`. `ReAuthPolicy` adds no authentication schemes.
+Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in and does not replace the user. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`. Pair `.RequireReauth()` with `RequireAuthorization()` that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
 
 https://authendpoints.harten.id/modules/reauth
 
