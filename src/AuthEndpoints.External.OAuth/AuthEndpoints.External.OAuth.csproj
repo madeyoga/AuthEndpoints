@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>AuthEndpoints.External.OAuth</PackageId>
     <Description>Minimal API endpoints for external OAuth authentication with ASP.NET Core Identity. GitHub and Google handlers ship in separate packages.</Description>
-    <Version>3.0.0-preview.4</Version>
+    <Version>3.0.0-preview.5</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
