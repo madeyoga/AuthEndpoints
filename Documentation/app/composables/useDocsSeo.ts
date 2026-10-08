@@ -50,6 +50,12 @@ function upsertNamedMeta(tags: ResolvedHeadTag[], name: string, content: string 
   })
 }
 
+/** Canonical URLs must not include a fragment. Redirect targets may still use one. */
+function withoutUrlFragment(url: string): string {
+  const hashIndex = url.indexOf('#')
+  return hashIndex === -1 ? url : url.slice(0, hashIndex)
+}
+
 export function useDocsTwitterMeta() {
   const head = injectHead()
   if (head.plugins.has(TWITTER_META_KEY)) {
@@ -71,8 +77,8 @@ export function useDocsTwitterMeta() {
 
 export function useDocsCanonical() {
   const route = useRoute()
-  // A moved page points its canonical link at the new URL.
-  const canonical = computed(() => toCanonicalUrl(findDocsRedirect(toContentPath(route.path)) ?? route.path))
+  // A moved page points its canonical link at the new URL, without any #fragment.
+  const canonical = computed(() => withoutUrlFragment(toCanonicalUrl(findDocsRedirect(toContentPath(route.path)) ?? route.path)))
   return { canonical }
 }
 
