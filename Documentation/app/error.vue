@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const { app } = useRuntimeConfig()
 
+useDocsTwitterMeta()
+
 useHead({
   htmlAttrs: {
     lang: 'en'
