@@ -158,7 +158,10 @@ public class PasskeyManagementSecurityTests
         var (reauth, reauthCookie) = await ConfirmWithCookieAsync(signedIn, csrf: mode == "cookie");
 
         await AssertReauthOnlyRejectedAsync(factory, reauth, cookie: null);
-        await AssertReauthOnlyRejectedAsync(factory, reauthToken: null, reauthCookie);
+        if (reauthCookie is not null)
+        {
+            await AssertReauthOnlyRejectedAsync(factory, reauthToken: null, reauthCookie);
+        }
     }
 
     [Theory]
@@ -266,7 +269,7 @@ public class PasskeyManagementSecurityTests
         }
     }
 
-    private static async Task<(string Token, string Cookie)> ConfirmWithCookieAsync(HttpClient client, bool csrf)
+    private static async Task<(string Token, string? Cookie)> ConfirmWithCookieAsync(HttpClient client, bool csrf)
     {
         var proof = new { password = TestHelpers.DefaultPassword };
         var response = csrf
@@ -278,11 +281,23 @@ public class PasskeyManagementSecurityTests
         var token = TestHelpers.TryGetString(doc.RootElement, "reauthToken", "ReauthToken");
         Assert.False(string.IsNullOrEmpty(token));
 
-        Assert.True(response.Headers.TryGetValues("Set-Cookie", out var setCookies));
-        var cookie = setCookies.Select(value => value.Split(';', 2)[0].Trim())
-            .FirstOrDefault(pair => pair.StartsWith("AuthEndpoints.ReAuth=", StringComparison.Ordinal));
-        Assert.False(string.IsNullOrEmpty(cookie));
-        return (token!, cookie!);
+        string? cookie = null;
+        if (response.Headers.TryGetValues("Set-Cookie", out var setCookies))
+        {
+            cookie = setCookies.Select(value => value.Split(';', 2)[0].Trim())
+                .FirstOrDefault(pair => pair.StartsWith("AuthEndpoints.ReAuth=", StringComparison.Ordinal));
+        }
+
+        if (csrf)
+        {
+            Assert.False(string.IsNullOrEmpty(cookie));
+        }
+        else
+        {
+            Assert.True(string.IsNullOrEmpty(cookie));
+        }
+
+        return (token!, cookie);
     }
 
     private static async Task<HttpResponseMessage> SendAsync(
