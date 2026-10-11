@@ -257,7 +257,7 @@ public class EmailCodeStoreTests
 
         async Task Consume(EmailCodeStore<MappedEmailCodeDbContext> store, EmailCodeEntity row)
         {
-            barrier.SignalAndWait(TimeSpan.FromSeconds(10));
+            Assert.True(barrier.SignalAndWait(TimeSpan.FromSeconds(10)));
             try
             {
                 results.Add((await store.TryConsumeAsync(row), null));
@@ -268,7 +268,9 @@ public class EmailCodeStoreTests
             }
         }
 
-        await Task.WhenAll(Consume(storeA, rowA), Consume(storeB, rowB));
+        await Task.WhenAll(
+            Task.Run(() => Consume(storeA, rowA)),
+            Task.Run(() => Consume(storeB, rowB)));
 
         Assert.Equal(2, results.Count);
         Assert.All(results, result => Assert.Null(result.Error));

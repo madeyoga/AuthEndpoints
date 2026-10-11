@@ -1165,6 +1165,32 @@ public class EmailCodeEndpointTests
     }
 
     [Fact]
+    public async Task SendAndVerify_UsesTheRegisteredLookupNormalizer()
+    {
+        var normalizer = new PrefixLookupNormalizer();
+        await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
+        {
+            services.RemoveAll<ILookupNormalizer>();
+            services.AddSingleton<ILookupNormalizer>(normalizer);
+        });
+        var email = UniqueEmail("normalizer");
+        await SeedAsync(host.App, email);
+
+        var response = await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var normalized = normalizer.NormalizeEmail(email);
+        Assert.StartsWith("ee:", normalized, StringComparison.Ordinal);
+        var row = Assert.Single(await RowsAsync(host.App, email));
+        Assert.Equal(EmailCodeHasher.HashEmail(normalized!), row.EmailHash);
+
+        var verify = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code = Codes(host.Mail, email).Single() });
+        Assert.Equal(HttpStatusCode.OK, verify.StatusCode);
+    }
+
+    [Fact]
     public async Task Send_ParallelWithinCooldown_IssuesOneRowAndOneMail()
     {
         await using var host = await EmailCodeHost.StartAsync();
@@ -1847,6 +1873,19 @@ public class EmailCodeEndpointTests
         }
     }
 
+    private sealed class PrefixLookupNormalizer : ILookupNormalizer
+    {
+        public string? NormalizeEmail(string? email)
+        {
+            return email is null ? null : "ee:" + email.Trim().ToUpperInvariant();
+        }
+
+        public string? NormalizeName(string? name)
+        {
+            return name?.ToUpperInvariant();
+        }
+    }
+
     private sealed class RetryingExecutionStrategy : ExecutionStrategy
     {
         public RetryingExecutionStrategy(ExecutionStrategyDependencies dependencies)
@@ -1937,7 +1976,7 @@ public class EmailCodeEndpointTests
             var row = await _inner.FindLiveByEmailAsync(email, cancellationToken);
             if (row is not null)
             {
-                _afterLoad.SignalAndWait(TimeSpan.FromSeconds(30));
+                Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
 
             return row;
@@ -1948,7 +1987,7 @@ public class EmailCodeEndpointTests
             var row = await _inner.FindLiveByLinkTokenAsync(token, cancellationToken);
             if (row is not null)
             {
-                _afterLoad.SignalAndWait(TimeSpan.FromSeconds(30));
+                Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
 
             return row;
