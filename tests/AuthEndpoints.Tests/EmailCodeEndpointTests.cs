@@ -1217,7 +1217,7 @@ public class EmailCodeEndpointTests
             options.Passkeys.ServerDomain = "example.com";
             options.RequireEmailSenderInProduction = false;
             options.EmailCode.Enabled = true;
-            options.EmailCode.Configure = emailCode => emailCode.RequireSenderInProduction = requireSender;
+            options.EmailCode.Configure = emailCode => emailCode.RequireSenderOutsideDevelopment = requireSender;
         });
         return builder.Build();
     }

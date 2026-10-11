@@ -18,7 +18,7 @@ internal sealed class EmailCodeSenderValidator<TUser> : IValidateOptions<EmailCo
 
     public ValidateOptionsResult Validate(string? name, EmailCodeOptions options)
     {
-        if (_environment.IsDevelopment() || !options.RequireSenderInProduction)
+        if (_environment.IsDevelopment() || !options.RequireSenderOutsideDevelopment)
         {
             return ValidateOptionsResult.Success;
         }
@@ -33,7 +33,7 @@ internal sealed class EmailCodeSenderValidator<TUser> : IValidateOptions<EmailCo
                 "AuthEndpoints: A real IEmailCodeSender<TUser> must be registered outside Development " +
                 "(DevelopmentEmailCodeSender is not allowed). " +
                 "Example: services.AddTransient<IEmailCodeSender<AppUser>, MyEmailCodeSender>(); " +
-                "Or set EmailCode.RequireSenderInProduction = false to opt out (not recommended).");
+                "Or set EmailCode.RequireSenderOutsideDevelopment = false to opt out (not recommended).");
         }
 
         return ValidateOptionsResult.Success;

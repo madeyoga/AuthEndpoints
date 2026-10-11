@@ -28,7 +28,8 @@ public sealed class EmailCodeMessage<TUser>
 /// Sends the email-code sign-in message.
 /// <see cref="EmailCodeMessage{TUser}.Code"/> and <see cref="EmailCodeMessage{TUser}.LinkUrl"/>
 /// are raw, not HTML-encoded. Encode them when the template is HTML.
-/// Queue the message and return quickly. A sender that waits on SMTP or HTTP
+/// Queue the message and return. The send endpoint awaits
+/// <see cref="SendSignInCodeAsync"/>, so a sender that waits on SMTP or HTTP
 /// makes known addresses slower than unknown ones.
 /// </summary>
 public interface IEmailCodeSender<TUser>
