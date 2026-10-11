@@ -26,6 +26,13 @@ internal static class EmailCodeHasher
         return Hash(token);
     }
 
+    public static string HashPrefix(string emailHash)
+    {
+        const int length = 12;
+        ArgumentNullException.ThrowIfNull(emailHash);
+        return emailHash.Length <= length ? emailHash : emailHash[..length];
+    }
+
     public static bool CodeMatches(string id, string submittedCode, string storedCodeHash)
     {
         byte[] computed = SHA256.HashData(Encoding.UTF8.GetBytes(id + ":" + submittedCode));

@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.Identity;
+﻿using AuthEndpoints.EmailCode;
+using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Builder;
@@ -46,6 +47,11 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
         else
         {
             identity.MapCookieAuthEndpoints<TUser>();
+        }
+
+        if (options.EmailCode.Enabled)
+        {
+            identity.MapEmailCodeEndpoints<TUser>();
         }
 
         if (options.Passkeys.Enabled)

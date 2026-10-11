@@ -1,3 +1,4 @@
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,5 +16,9 @@ public class TestDbContext : IdentityDbContext<TestAppUser>
     {
         base.OnModelCreating(builder);
         builder.UseRefreshToken();
+        if (Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            builder.UseEmailCodes();
+        }
     }
 }
