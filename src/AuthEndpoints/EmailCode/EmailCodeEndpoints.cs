@@ -13,9 +13,6 @@ namespace AuthEndpoints.EmailCode;
 public static class EmailCodeEndpoints<TUser>
     where TUser : class, new()
 {
-    private const string RecoveryCodeLoginProvider = "[AspNetUserStore]";
-    private const string RecoveryCodeTokenName = "RecoveryCodes";
-
     public static async Task<Results<Ok<EmailCodeSendResponse>, ValidationProblem>> Send(
         [FromBody] EmailCodeSendRequest request,
         HttpContext httpContext,
@@ -233,6 +230,11 @@ public static class EmailCodeEndpoints<TUser>
             if (!redeemed.Succeeded)
             {
                 await store.TryUnconsumeAsync(row, cancellationToken);
+                if (options.CountFailuresTowardLockout)
+                {
+                    await userManager.AccessFailedAsync(user!);
+                }
+
                 EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.TwoFactorMismatch);
                 return InvalidCode();
             }
@@ -283,6 +285,11 @@ public static class EmailCodeEndpoints<TUser>
                     if (!redeemed.Succeeded)
                     {
                         await store.TryUnconsumeAsync(row, cancellationToken);
+                        if (options.CountFailuresTowardLockout)
+                        {
+                            await userManager.AccessFailedAsync(user);
+                        }
+
                         EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.TwoFactorMismatch);
                         return InvalidCode();
                     }
@@ -422,21 +429,7 @@ public static class EmailCodeEndpoints<TUser>
             return new FactorDecision(ok ? SecondFactor.Passed : SecondFactor.Failed, false);
         }
 
-        var valid = await HasRecoveryCodeAsync(userManager, user, request.TwoFactorRecoveryCode!);
-        return valid
-            ? new FactorDecision(SecondFactor.Passed, true)
-            : new FactorDecision(SecondFactor.Failed, false);
-    }
-
-    private static async Task<bool> HasRecoveryCodeAsync(UserManager<TUser> userManager, TUser user, string code)
-    {
-        var merged = await userManager.GetAuthenticationTokenAsync(user, RecoveryCodeLoginProvider, RecoveryCodeTokenName);
-        if (string.IsNullOrEmpty(merged))
-        {
-            return false;
-        }
-
-        return merged.Split(';').Any(candidate => string.Equals(candidate, code, StringComparison.Ordinal));
+        return new FactorDecision(SecondFactor.Passed, true);
     }
 
     private static async Task<SignupCreateResult> CreateSignupUserAsync(
