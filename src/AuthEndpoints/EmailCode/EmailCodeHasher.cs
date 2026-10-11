@@ -5,12 +5,6 @@ namespace AuthEndpoints.EmailCode;
 
 internal static class EmailCodeHasher
 {
-    public static string NormalizeEmail(string email)
-    {
-        ArgumentNullException.ThrowIfNull(email);
-        return email.Trim().Normalize(NormalizationForm.FormC).ToUpperInvariant();
-    }
-
     public static string HashEmail(string normalizedEmail)
     {
         return Hash(normalizedEmail);

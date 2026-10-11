@@ -8,13 +8,19 @@ internal interface IEmailCodeStore
         string? securityStamp,
         CancellationToken cancellationToken = default);
 
-    Task<EmailCode?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default);
 
-    bool CodeMatches(EmailCode row, string submittedCode);
+    bool CodeMatches(EmailCodeEntry row, string submittedCode);
 
-    Task<bool> TryIncrementAttemptsAsync(EmailCode row, CancellationToken cancellationToken = default);
+    Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default);
 
-    Task<bool> TryConsumeAsync(EmailCode row, CancellationToken cancellationToken = default);
+    Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default);
+
+    Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default);
+
+    Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default);
+
+    Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default);
 
     Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default);
 

@@ -5,7 +5,7 @@ using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.ReAuth;
-using EmailCodeEntity = AuthEndpoints.EmailCode.EmailCode;
+using EmailCodeEntity = AuthEndpoints.EmailCode.EmailCodeEntry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -51,11 +51,13 @@ public class EmailCodeEndpointTests
         var threw = await PostAsync(host.Client, "/identity/emailCode/send", new { email = throwing });
 
         var body = await first.Content.ReadAsStringAsync();
+        var headers = StableHeaders(first);
         Assert.Equal(HttpStatusCode.OK, first.StatusCode);
         foreach (var response in new[] { unknownResponse, lockedResponse, cooled, rejectedResponse, threw })
         {
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(body, await response.Content.ReadAsStringAsync());
+            Assert.Equal(headers, StableHeaders(response));
         }
 
         using var doc = JsonDocument.Parse(body);
@@ -487,12 +489,14 @@ public class EmailCodeEndpointTests
             Assert.Null((await RowsAsync(host.App, email)).Single().UserId);
 
             string code;
+            host.Clock.Advance(TimeSpan.FromSeconds(61));
             using (var scope = host.App.Services.CreateScope())
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
                 var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
                 var user = await userManager.FindByEmailAsync(email);
                 var issued = await store.IssueAsync(email, user!.Id, await userManager.GetSecurityStampAsync(user));
+                Assert.False(issued.Suppressed);
                 code = issued.Code;
             }
 
@@ -652,13 +656,201 @@ public class EmailCodeEndpointTests
             _ = optedOut.Services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
             await optedOut.StartAsync();
         }
+
+        using (var staging = BuildProductionHost(sender: null, developmentSender: false, requireSender: true, environmentName: Environments.Staging))
+        {
+            var ex = Assert.ThrowsAny<Exception>(() => _ = staging.Services.GetRequiredService<IOptions<EmailCodeOptions>>().Value);
+            Assert.Contains("IEmailCodeSender", ex.ToString(), StringComparison.Ordinal);
+        }
+
+        using (var development = BuildProductionHost(sender: null, developmentSender: false, requireSender: true, environmentName: Environments.Development))
+        {
+            _ = development.Services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
+        }
     }
 
-    private static WebApplication BuildProductionHost(IEmailCodeSender<TestAppUser>? sender, bool developmentSender, bool requireSender)
+    [Fact]
+    public async Task Send_TaskCanceledException_ReturnsTheSame200AsAnUnknownAddress()
+    {
+        await using var host = await EmailCodeHost.StartAsync(sender: new TimingOutEmailCodeSender());
+        var known = UniqueEmail("timeout");
+        var unknown = UniqueEmail("timeout-unknown");
+        await SeedAsync(host.App, known);
+
+        var knownResponse = await PostAsync(host.Client, "/identity/emailCode/send", new { email = known });
+        var unknownResponse = await PostAsync(host.Client, "/identity/emailCode/send", new { email = unknown });
+
+        Assert.Equal(HttpStatusCode.OK, knownResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, unknownResponse.StatusCode);
+        Assert.Equal(await unknownResponse.Content.ReadAsStringAsync(), await knownResponse.Content.ReadAsStringAsync());
+        Assert.Equal(StableHeaders(unknownResponse), StableHeaders(knownResponse));
+        var row = (await RowsAsync(host.App, known)).Single();
+        Assert.Null(row.ConsumedAt);
+        Assert.Equal(0, row.Attempts);
+    }
+
+    [Fact]
+    public async Task Verify_ParallelAttemptCap_ComparesAtMostMaxAttempts()
+    {
+        const int maxAttempts = 5;
+        var counter = new CompareCounter();
+        var loaded = new Barrier(21);
+        await using var host = await EmailCodeHost.StartAsync(
+            options => options.MaxAttempts = maxAttempts,
+            configureServices: services => services.AddScoped<IEmailCodeStore>(sp => new GatedEmailCodeStore(
+                CreateStore(sp),
+                counter,
+                loaded)),
+            useRateLimiter: false);
+        var email = UniqueEmail("cap-race");
+        await SeedAsync(host.App, email);
+        Assert.Equal(HttpStatusCode.OK, (await PostAsync(host.Client, "/identity/emailCode/send", new { email })).StatusCode);
+        var code = Codes(host.Mail, email).Single();
+        var wrong = WrongCode(code);
+
+        var attempts = new List<Task<HttpResponseMessage>>();
+        for (var i = 0; i < 20; i++)
+        {
+            attempts.Add(PostAsync(host.Client, "/identity/emailCode/verify", new { email, code = wrong }));
+        }
+
+        attempts.Add(PostAsync(host.Client, "/identity/emailCode/verify", new { email, code }));
+        var results = await Task.WhenAll(attempts);
+        var unexpected = results.Where(response => response.StatusCode is not HttpStatusCode.OK and not HttpStatusCode.Unauthorized).ToArray();
+        Assert.True(unexpected.Length == 0, string.Join(", ", unexpected.Select(response => (int)response.StatusCode)));
+        Assert.InRange(counter.Compares, 1, maxAttempts);
+        Assert.True(results.Count(response => response.StatusCode == HttpStatusCode.OK) <= 1);
+
+        var followUp = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code });
+        Assert.Equal(HttpStatusCode.Unauthorized, followUp.StatusCode);
+        var row = (await RowsAsync(host.App, email)).Single();
+        if (row.ConsumedAt is null)
+        {
+            Assert.Equal(maxAttempts, row.Attempts);
+            Assert.DoesNotContain(results, response => response.StatusCode == HttpStatusCode.OK);
+        }
+    }
+
+    [Fact]
+    public async Task Verify_CredentialResetFailure_DoesNotConfirmOrSignIn()
+    {
+        await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
+            services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, FailingPasswordUserManager>()));
+        var email = UniqueEmail("reset-fail");
+        await SeedAsync(host.App, email, confirmed: false);
+        Assert.Equal(HttpStatusCode.OK, (await PostAsync(host.Client, "/identity/emailCode/send", new { email })).StatusCode);
+        var response = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code = Codes(host.Mail, email).Single() });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal("Unauthorized", await ProblemTitleAsync(response));
+        Assert.False(await IsConfirmedAsync(host.App, email));
+        Assert.True(await HasPasswordAsync(host.App, email));
+        Assert.False(response.Headers.Contains("Set-Cookie"));
+    }
+
+    [Fact]
+    public async Task Verify_WrongRecoveryCode_DoesNotSpendEitherSecret()
+    {
+        await using var host = await EmailCodeHost.StartAsync();
+        var email = UniqueEmail("recovery-wrong");
+        await SeedAsync(host.App, email, twoFactor: true);
+        var recoveryCode = await RecoveryCodeAsync(host.App, email);
+        var before = await RecoveryCodeCountAsync(host.App, email);
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+        var response = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code, twoFactorRecoveryCode = "not-a-code" });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(before, await RecoveryCodeCountAsync(host.App, email));
+        Assert.True(await RecoveryCodeStillValidAsync(host.App, email, recoveryCode));
+        var row = (await RowsAsync(host.App, email)).Single();
+        Assert.Null(row.ConsumedAt);
+        Assert.Equal(1, row.Attempts);
+    }
+
+    [Fact]
+    public async Task Verify_RecoveryCode_IsSpentOnlyAfterTheEmailCodeIsConsumed()
+    {
+        var loaded = new Barrier(2);
+        await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
+            services.AddScoped<IEmailCodeStore>(sp => new GatedEmailCodeStore(CreateStore(sp), new CompareCounter(), loaded)));
+        var email = UniqueEmail("recovery-race");
+        await SeedAsync(host.App, email, twoFactor: true);
+        var recoveryCode = await RecoveryCodeAsync(host.App, email);
+        var before = await RecoveryCodeCountAsync(host.App, email);
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+
+        using var clientA = host.App.GetTestClient();
+        using var clientB = host.App.GetTestClient();
+        var results = await Task.WhenAll(
+            PostAsync(clientA, "/identity/emailCode/verify", new { email, code, twoFactorRecoveryCode = recoveryCode }),
+            PostAsync(clientB, "/identity/emailCode/verify", new { email, code, twoFactorRecoveryCode = recoveryCode }));
+        Assert.Equal(1, results.Count(response => response.StatusCode == HttpStatusCode.OK));
+        Assert.Equal(1, results.Count(response => response.StatusCode == HttpStatusCode.Unauthorized));
+        Assert.Equal(before - 1, await RecoveryCodeCountAsync(host.App, email));
+        Assert.False(await RecoveryCodeStillValidAsync(host.App, email, recoveryCode));
+        Assert.NotNull((await RowsAsync(host.App, email)).Single().ConsumedAt);
+    }
+
+    [Fact]
+    public async Task Verify_RecoveryRedeemFailure_UnconsumesTheEmailCode()
+    {
+        await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
+            services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, FailingRecoveryUserManager>()));
+        var email = UniqueEmail("recovery-unconsume");
+        await SeedAsync(host.App, email, twoFactor: true);
+        var recoveryCode = await RecoveryCodeAsync(host.App, email);
+        var before = await RecoveryCodeCountAsync(host.App, email);
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var response = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code = Codes(host.Mail, email).Single(), twoFactorRecoveryCode = recoveryCode });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(before, await RecoveryCodeCountAsync(host.App, email));
+        var row = (await RowsAsync(host.App, email)).Single();
+        Assert.Null(row.ConsumedAt);
+        Assert.Equal(1, row.Attempts);
+    }
+
+    [Fact]
+    public async Task Send_ParallelWithinCooldown_IssuesOneRowAndOneMail()
+    {
+        await using var host = await EmailCodeHost.StartAsync();
+        var email = UniqueEmail("cooldown-race");
+        await SeedAsync(host.App, email);
+        var results = await Task.WhenAll(Enumerable.Range(0, 12).Select(_ =>
+            PostAsync(host.Client, "/identity/emailCode/send", new { email })));
+        Assert.All(results, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
+        Assert.Single(Codes(host.Mail, email));
+        Assert.Single(await RowsAsync(host.App, email));
+    }
+
+    [Fact]
+    public void Map_WithoutUseEmailCodes_Throws()
+    {
+        using var missing = BuildMapHost<UnmappedEmailCodeDbContext>();
+        var ex = Assert.Throws<NotSupportedException>(() => missing.MapEmailCodeEndpoints<TestAppUser>());
+        Assert.Contains("UseEmailCodes", ex.Message, StringComparison.Ordinal);
+
+        using var mapped = BuildMapHost<MappedEmailCodeDbContext>();
+        mapped.MapEmailCodeEndpoints<TestAppUser>();
+    }
+
+    private static WebApplication BuildProductionHost(
+        IEmailCodeSender<TestAppUser>? sender,
+        bool developmentSender,
+        bool requireSender,
+        string? environmentName = null)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
-            EnvironmentName = Environments.Production
+            EnvironmentName = environmentName ?? Environments.Production
         });
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(options =>
@@ -738,6 +930,49 @@ public class EmailCodeEndpointTests
     {
         var wrong = new string('0', code.Length);
         return wrong == code ? new string('1', code.Length) : wrong;
+    }
+
+    private static string StableHeaders(HttpResponseMessage response)
+    {
+        var headers = response.Headers
+            .Concat(response.Content.Headers)
+            .Where(header => !IsVolatileHeader(header.Key))
+            .OrderBy(header => header.Key, StringComparer.OrdinalIgnoreCase)
+            .Select(header => header.Key + "=" + string.Join(",", header.Value));
+        return string.Join("\n", headers);
+    }
+
+    private static bool IsVolatileHeader(string name)
+    {
+        return name.Equals("Date", StringComparison.OrdinalIgnoreCase)
+            || name.Equals("Retry-After", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("X-Rate-Limit-", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("RateLimit-", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("X-RateLimit-", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static EmailCodeStore<TestDbContext> CreateStore(IServiceProvider services)
+    {
+        return new EmailCodeStore<TestDbContext>(
+            services.GetRequiredService<TestDbContext>(),
+            services.GetRequiredService<TimeProvider>(),
+            services.GetRequiredService<IOptions<EmailCodeOptions>>().Value,
+            services.GetRequiredService<ILookupNormalizer>());
+    }
+
+    private static WebApplication BuildMapHost<TContext>()
+        where TContext : DbContext
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development
+        });
+        builder.WebHost.UseTestServer();
+        builder.Services.AddDbContext<TContext>(options =>
+            options.UseInMemoryDatabase("EmailCodeMap_" + Guid.NewGuid().ToString("N")));
+        builder.Services.AddSingleton<IEmailCodeSignInCompleter<TestAppUser>, UnusedEmailCodeSignInCompleter>();
+        builder.Services.AddEmailCodeEndpoints<TestAppUser, TContext>();
+        return builder.Build();
     }
 
     private static string SetCookie(HttpResponseMessage response)
@@ -821,7 +1056,8 @@ public class EmailCodeEndpointTests
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-        var hash = EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail(email));
+        var normalizer = scope.ServiceProvider.GetRequiredService<ILookupNormalizer>();
+        var hash = EmailCodeHasher.HashEmail(normalizer.NormalizeEmail(email.Trim())!);
         return await db.Set<EmailCodeEntity>().AsNoTracking()
             .Where(row => row.EmailHash == hash)
             .OrderBy(row => row.CreatedAt)
@@ -853,6 +1089,14 @@ public class EmailCodeEndpointTests
         var user = await userManager.FindByEmailAsync(email);
         var result = await userManager.RedeemTwoFactorRecoveryCodeAsync(user!, code);
         return result.Succeeded;
+    }
+
+    private static async Task<int> RecoveryCodeCountAsync(WebApplication app, string email)
+    {
+        using var scope = app.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = await userManager.FindByEmailAsync(email);
+        return await userManager.CountRecoveryCodesAsync(user!);
     }
 
     private static async Task<int> AccessFailedCountAsync(WebApplication app, string email)
@@ -969,7 +1213,9 @@ public class EmailCodeEndpointTests
             Action<IdentityOptions>? identity = null,
             IEmailCodeSender<TestAppUser>? sender = null,
             bool jwt = false,
-            bool captureLogs = false)
+            bool captureLogs = false,
+            Action<IServiceCollection>? configureServices = null,
+            bool useRateLimiter = true)
         {
             var path = Path.Combine(Path.GetTempPath(), $"ae-email-code-host-{Guid.NewGuid():N}.sqlite");
             var mail = new CapturingEmailSender();
@@ -1022,6 +1268,8 @@ public class EmailCodeEndpointTests
                 builder.Logging.AddFilter(EmailCodeLog.Category, LogLevel.Trace);
             }
 
+            configureServices?.Invoke(builder.Services);
+
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())
             {
@@ -1033,7 +1281,11 @@ public class EmailCodeEndpointTests
 
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseRateLimiter();
+            if (useRateLimiter)
+            {
+                app.UseRateLimiter();
+            }
+
             app.UseAntiforgery();
             var identityGroup = app.MapGroup("/identity");
             identityGroup.MapIdentityManagementApi<TestAppUser>();
@@ -1181,6 +1433,155 @@ public class EmailCodeEndpointTests
                     _messages.Add(text);
                 }
             }
+        }
+    }
+
+    private sealed class TimingOutEmailCodeSender : IEmailCodeSender<TestAppUser>
+    {
+        public Task SendSignInCodeAsync(EmailCodeMessage<TestAppUser> message, CancellationToken cancellationToken = default)
+        {
+            throw new TaskCanceledException("smtp timeout");
+        }
+    }
+
+    private sealed class CompareCounter
+    {
+        private int _compares;
+
+        public int Compares => _compares;
+
+        public void Increment() => Interlocked.Increment(ref _compares);
+    }
+
+    private sealed class GatedEmailCodeStore : IEmailCodeStore
+    {
+        private readonly EmailCodeStore<TestDbContext> _inner;
+        private readonly CompareCounter _compares;
+        private readonly Barrier _afterLoad;
+
+        public GatedEmailCodeStore(EmailCodeStore<TestDbContext> inner, CompareCounter compares, Barrier afterLoad)
+        {
+            _inner = inner;
+            _compares = compares;
+            _afterLoad = afterLoad;
+        }
+
+        public Task<EmailCodeIssueResult> IssueAsync(string email, string? userId, string? securityStamp, CancellationToken cancellationToken = default)
+            => _inner.IssueAsync(email, userId, securityStamp, cancellationToken);
+
+        public async Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            var row = await _inner.FindLiveByEmailAsync(email, cancellationToken);
+            if (row is not null)
+            {
+                _afterLoad.SignalAndWait(TimeSpan.FromSeconds(30));
+            }
+
+            return row;
+        }
+
+        public bool CodeMatches(EmailCodeEntry row, string submittedCode)
+        {
+            _compares.Increment();
+            return _inner.CodeMatches(row, submittedCode);
+        }
+
+        public Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => _inner.TryReserveAttemptAsync(row, cancellationToken);
+
+        public Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => _inner.TryReleaseAttemptAsync(row, cancellationToken);
+
+        public Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => _inner.TryConsumeAsync(row, cancellationToken);
+
+        public Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => _inner.TryConsumeReservedAsync(row, cancellationToken);
+
+        public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => _inner.TryUnconsumeAsync(row, cancellationToken);
+
+        public Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default)
+            => _inner.IsWithinResendCooldownAsync(email, cancellationToken);
+
+        public Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
+            => _inner.HasReachedSendCapAsync(email, cancellationToken);
+    }
+
+    private sealed class FailingPasswordUserManager : UserManager<TestAppUser>
+    {
+        public FailingPasswordUserManager(
+            IUserStore<TestAppUser> store,
+            IOptions<IdentityOptions> optionsAccessor,
+            IPasswordHasher<TestAppUser> passwordHasher,
+            IEnumerable<IUserValidator<TestAppUser>> userValidators,
+            IEnumerable<IPasswordValidator<TestAppUser>> passwordValidators,
+            ILookupNormalizer keyNormalizer,
+            IdentityErrorDescriber errors,
+            IServiceProvider services,
+            ILogger<UserManager<TestAppUser>> logger)
+            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
+        {
+        }
+
+        public override Task<IdentityResult> RemovePasswordAsync(TestAppUser user)
+        {
+            return Task.FromResult(IdentityResult.Failed(ErrorDescriber.PasswordMismatch()));
+        }
+    }
+
+    private sealed class FailingRecoveryUserManager : UserManager<TestAppUser>
+    {
+        public FailingRecoveryUserManager(
+            IUserStore<TestAppUser> store,
+            IOptions<IdentityOptions> optionsAccessor,
+            IPasswordHasher<TestAppUser> passwordHasher,
+            IEnumerable<IUserValidator<TestAppUser>> userValidators,
+            IEnumerable<IPasswordValidator<TestAppUser>> passwordValidators,
+            ILookupNormalizer keyNormalizer,
+            IdentityErrorDescriber errors,
+            IServiceProvider services,
+            ILogger<UserManager<TestAppUser>> logger)
+            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
+        {
+        }
+
+        public override Task<IdentityResult> RedeemTwoFactorRecoveryCodeAsync(TestAppUser user, string code)
+        {
+            return Task.FromResult(IdentityResult.Failed(ErrorDescriber.RecoveryCodeRedemptionFailed()));
+        }
+    }
+
+    private sealed class UnusedEmailCodeSignInCompleter : IEmailCodeSignInCompleter<TestAppUser>
+    {
+        public Task<IResult> CompleteAsync(
+            HttpContext httpContext,
+            TestAppUser user,
+            EmailCodeSignInContext context,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    private sealed class UnmappedEmailCodeDbContext : DbContext
+    {
+        public UnmappedEmailCodeDbContext(DbContextOptions<UnmappedEmailCodeDbContext> options)
+            : base(options)
+        {
+        }
+    }
+
+    private sealed class MappedEmailCodeDbContext : DbContext
+    {
+        public MappedEmailCodeDbContext(DbContextOptions<MappedEmailCodeDbContext> options)
+            : base(options)
+        {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.UseEmailCodes();
         }
     }
 }

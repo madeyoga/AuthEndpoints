@@ -13,6 +13,9 @@ namespace AuthEndpoints.EmailCode;
 public static class EmailCodeEndpoints<TUser>
     where TUser : class, new()
 {
+    private const string RecoveryCodeLoginProvider = "[AspNetUserStore]";
+    private const string RecoveryCodeTokenName = "RecoveryCodes";
+
     private static readonly EmailAddressAttribute EmailAddress = new();
 
     public static async Task<Results<Ok<EmailCodeSendResponse>, ValidationProblem>> Send(
@@ -37,13 +40,7 @@ public static class EmailCodeEndpoints<TUser>
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(email ?? "")));
         }
 
-        var hashPrefix = EmailCodeHasher.HashPrefix(EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail(email)));
-        if (await store.IsWithinResendCooldownAsync(email, cancellationToken))
-        {
-            EmailCodeLog.SendSuppressed(logger, null, hashPrefix, "cooldown");
-            return TypedResults.Ok(response);
-        }
-
+        var hashPrefix = HashPrefix(userManager, email);
         if (await store.HasReachedSendCapAsync(email, cancellationToken))
         {
             EmailCodeLog.SendSuppressed(logger, null, hashPrefix, "cap");
@@ -69,6 +66,11 @@ public static class EmailCodeEndpoints<TUser>
             eligible ? userId : null,
             eligible ? stamp : null,
             cancellationToken);
+        if (issued.Suppressed)
+        {
+            EmailCodeLog.SendSuppressed(logger, userId, hashPrefix, "cooldown");
+            return TypedResults.Ok(response);
+        }
 
         if (!eligible)
         {
@@ -91,7 +93,7 @@ public static class EmailCodeEndpoints<TUser>
             }, cancellationToken);
             EmailCodeLog.CodeIssued(logger, userId, EmailCodeHasher.HashPrefix(issued.EmailHash));
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             EmailCodeLog.SenderFailed(logger, ex, userId, EmailCodeHasher.HashPrefix(issued.EmailHash));
         }
@@ -124,11 +126,7 @@ public static class EmailCodeEndpoints<TUser>
         var row = await store.FindLiveByEmailAsync(email, cancellationToken);
         if (row is null)
         {
-            EmailCodeLog.VerifyFailed(
-                logger,
-                null,
-                EmailCodeHasher.HashPrefix(EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail(email))),
-                EmailCodeVerifyFailure.NotFound);
+            EmailCodeLog.VerifyFailed(logger, null, HashPrefix(userManager, email), EmailCodeVerifyFailure.NotFound);
             return InvalidCode();
         }
 
@@ -136,14 +134,20 @@ public static class EmailCodeEndpoints<TUser>
         var user = row.UserId is null ? null : await userManager.FindByIdAsync(row.UserId);
         if (user is null)
         {
-            _ = store.CodeMatches(row, code);
             if (row.UserId is null)
             {
-                await store.TryIncrementAttemptsAsync(row, cancellationToken);
+                if (!await store.TryReserveAttemptAsync(row, cancellationToken))
+                {
+                    EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.AttemptCap);
+                    return InvalidCode();
+                }
+
+                _ = store.CodeMatches(row, code);
                 EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.UnknownEmail);
             }
             else
             {
+                _ = store.CodeMatches(row, code);
                 await store.TryConsumeAsync(row, cancellationToken);
                 EmailCodeLog.VerifyFailed(logger, row.UserId, hashPrefix, EmailCodeVerifyFailure.UserMissing);
             }
@@ -154,10 +158,7 @@ public static class EmailCodeEndpoints<TUser>
         var userId = await userManager.GetUserIdAsync(user);
         var currentEmail = await userManager.GetEmailAsync(user);
         var emailMismatch = currentEmail is null
-            || !string.Equals(
-                EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail(currentEmail)),
-                row.EmailHash,
-                StringComparison.Ordinal);
+            || !string.Equals(EmailHash(userManager, currentEmail), row.EmailHash, StringComparison.Ordinal);
         var currentStamp = await userManager.GetSecurityStampAsync(user);
         var stampMismatch = !string.Equals(currentStamp, row.SecurityStamp, StringComparison.Ordinal);
         if (emailMismatch || stampMismatch)
@@ -177,9 +178,14 @@ public static class EmailCodeEndpoints<TUser>
             return InvalidCode();
         }
 
+        if (!await store.TryReserveAttemptAsync(row, cancellationToken))
+        {
+            EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.AttemptCap);
+            return InvalidCode();
+        }
+
         if (!store.CodeMatches(row, code))
         {
-            await store.TryIncrementAttemptsAsync(row, cancellationToken);
             if (options.CountFailuresTowardLockout)
             {
                 await userManager.AccessFailedAsync(user);
@@ -189,10 +195,12 @@ public static class EmailCodeEndpoints<TUser>
             return InvalidCode();
         }
 
+        var redeemRecoveryCode = false;
         if (options.RequireTwoFactor && await userManager.GetTwoFactorEnabledAsync(user))
         {
             if (string.IsNullOrEmpty(request.TwoFactorCode) && string.IsNullOrEmpty(request.TwoFactorRecoveryCode))
             {
+                await store.TryReleaseAttemptAsync(row, cancellationToken);
                 EmailCodeLog.VerifyRequiresTwoFactor(logger, userId, hashPrefix);
                 return TypedResults.Problem(
                     title: "RequiresTwoFactor",
@@ -210,13 +218,12 @@ public static class EmailCodeEndpoints<TUser>
             }
             else
             {
-                var redeemed = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, request.TwoFactorRecoveryCode!);
-                proofOk = redeemed.Succeeded;
+                proofOk = await HasRecoveryCodeAsync(userManager, user, request.TwoFactorRecoveryCode!);
+                redeemRecoveryCode = proofOk;
             }
 
             if (!proofOk)
             {
-                await store.TryIncrementAttemptsAsync(row, cancellationToken);
                 if (options.CountFailuresTowardLockout)
                 {
                     await userManager.AccessFailedAsync(user);
@@ -227,10 +234,21 @@ public static class EmailCodeEndpoints<TUser>
             }
         }
 
-        if (!await store.TryConsumeAsync(row, cancellationToken))
+        if (!await store.TryConsumeReservedAsync(row, cancellationToken))
         {
             EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.ConsumeLost);
             return InvalidCode();
+        }
+
+        if (redeemRecoveryCode)
+        {
+            var redeemed = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, request!.TwoFactorRecoveryCode!);
+            if (!redeemed.Succeeded)
+            {
+                await store.TryUnconsumeAsync(row, cancellationToken);
+                EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.TwoFactorMismatch);
+                return InvalidCode();
+            }
         }
 
         if (!await userManager.IsEmailConfirmedAsync(user))
@@ -242,19 +260,24 @@ public static class EmailCodeEndpoints<TUser>
                 return InvalidCode();
             }
 
+            if (hasCredentials
+                && options.UnconfirmedAccounts == EmailCodeUnconfirmedAccounts.ConfirmAndResetCredentials)
+            {
+                if (!await ResetCredentialsAsync(userManager, user))
+                {
+                    EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.CredentialResetFailed);
+                    return InvalidCode();
+                }
+
+                EmailCodeLog.CredentialsResetOnConfirm(logger, userId, hashPrefix);
+            }
+
             var confirmToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
             var confirm = await userManager.ConfirmEmailAsync(user, confirmToken);
             if (!confirm.Succeeded)
             {
                 EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.ConfirmFailed);
                 return InvalidCode();
-            }
-
-            if (hasCredentials
-                && options.UnconfirmedAccounts == EmailCodeUnconfirmedAccounts.ConfirmAndResetCredentials
-                && await ResetCredentialsAsync(userManager, user))
-            {
-                EmailCodeLog.CredentialsResetOnConfirm(logger, userId, hashPrefix);
             }
         }
 
@@ -277,6 +300,25 @@ public static class EmailCodeEndpoints<TUser>
             cancellationToken);
         EmailCodeLog.SignedIn(logger, userId, hashPrefix);
         return result;
+    }
+
+    private static async Task<bool> HasRecoveryCodeAsync(UserManager<TUser> userManager, TUser user, string code)
+    {
+        var merged = await userManager.GetAuthenticationTokenAsync(user, RecoveryCodeLoginProvider, RecoveryCodeTokenName);
+        if (string.IsNullOrEmpty(merged))
+        {
+            return false;
+        }
+
+        foreach (var candidate in merged.Split(';'))
+        {
+            if (string.Equals(candidate, code, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static async Task<bool> IsSendIneligibleAsync(
@@ -311,11 +353,13 @@ public static class EmailCodeEndpoints<TUser>
 
     private static async Task<bool> ResetCredentialsAsync(UserManager<TUser> userManager, TUser user)
     {
-        var removed = false;
         if (userManager.SupportsUserPassword && await userManager.HasPasswordAsync(user))
         {
             var password = await userManager.RemovePasswordAsync(user);
-            removed |= password.Succeeded;
+            if (!password.Succeeded)
+            {
+                return false;
+            }
         }
 
         if (userManager.SupportsUserLogin)
@@ -323,7 +367,10 @@ public static class EmailCodeEndpoints<TUser>
             foreach (var login in await userManager.GetLoginsAsync(user))
             {
                 var result = await userManager.RemoveLoginAsync(user, login.LoginProvider, login.ProviderKey);
-                removed |= result.Succeeded;
+                if (!result.Succeeded)
+                {
+                    return false;
+                }
             }
         }
 
@@ -332,16 +379,31 @@ public static class EmailCodeEndpoints<TUser>
             foreach (var passkey in await userManager.GetPasskeysAsync(user))
             {
                 var result = await userManager.RemovePasskeyAsync(user, passkey.CredentialId);
-                removed |= result.Succeeded;
+                if (!result.Succeeded)
+                {
+                    return false;
+                }
             }
         }
 
-        if (removed)
+        var stamp = await userManager.UpdateSecurityStampAsync(user);
+        return stamp.Succeeded;
+    }
+
+    private static string HashPrefix(UserManager<TUser> userManager, string email)
+    {
+        return EmailCodeHasher.HashPrefix(EmailHash(userManager, email));
+    }
+
+    private static string EmailHash(UserManager<TUser> userManager, string email)
+    {
+        var normalized = userManager.NormalizeEmail(email.Trim());
+        if (string.IsNullOrEmpty(normalized))
         {
-            await userManager.UpdateSecurityStampAsync(user);
+            throw new InvalidOperationException("UserManager.NormalizeEmail returned no value.");
         }
 
-        return removed;
+        return EmailCodeHasher.HashEmail(normalized);
     }
 
     private static bool TryGetCode(EmailCodeVerifyRequest? request, int codeLength, out string email, out string code)
