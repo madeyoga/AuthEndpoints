@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using AuthEndpoints.EmailCode;
+using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Tests;
 
@@ -80,13 +81,16 @@ public class EmailCodeCoreTests
     [Fact]
     public void EmailHash_TrimsAndIgnoresCase()
     {
-        string left = EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail("A@X.com "));
-        string right = EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail("a@x.com"));
-        string other = EmailCodeHasher.HashEmail(EmailCodeHasher.NormalizeEmail("b@x.com"));
+        var normalizer = new UpperInvariantLookupNormalizer();
+        string Hash(string email) => EmailCodeHasher.HashEmail(normalizer.NormalizeEmail(email.Trim())!);
+
+        string left = Hash("A@X.com ");
+        string right = Hash("a@x.com");
+        string other = Hash("b@x.com");
 
         Assert.Equal(left, right);
         Assert.NotEqual(left, other);
-        Assert.Equal("A@X.COM", EmailCodeHasher.NormalizeEmail("A@X.com "));
-        Assert.Equal("A@X.COM", EmailCodeHasher.NormalizeEmail("a@x.com"));
+        Assert.Equal("A@X.COM", normalizer.NormalizeEmail("A@X.com ".Trim()));
+        Assert.Equal("A@X.COM", normalizer.NormalizeEmail("a@x.com".Trim()));
     }
 }

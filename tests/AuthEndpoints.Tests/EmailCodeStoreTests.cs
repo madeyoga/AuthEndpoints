@@ -1,10 +1,11 @@
 ﻿using System.Buffers.Text;
 using System.Collections.Concurrent;
 using AuthEndpoints.EmailCode;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using EmailCodeEntity = AuthEndpoints.EmailCode.EmailCode;
+using EmailCodeEntity = AuthEndpoints.EmailCode.EmailCodeEntry;
 
 namespace AuthEndpoints.Tests;
 
@@ -27,7 +28,7 @@ public class EmailCodeStoreTests
             && i.Properties[1].Name == nameof(EmailCodeEntity.CreatedAt));
         Assert.False(emailIndex.IsUnique);
         var linkIndex = entity.GetIndexes().Single(i => i.IsUnique && i.Properties.Any(p => p.Name == nameof(EmailCodeEntity.LinkTokenHash)));
-        Assert.Equal("\"LinkTokenHash\" IS NOT NULL", linkIndex.GetFilter());
+        Assert.Null(linkIndex.GetFilter());
 
         var mappedTables = await SqliteTablesAsync(mapped);
         Assert.Contains(mappedTables, name => name.Contains("AuthEndpointsEmailCodes", StringComparison.Ordinal));
@@ -169,12 +170,12 @@ public class EmailCodeStoreTests
         for (var i = 0; i < 5; i++)
         {
             EmailCodeEntity current = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
-            Assert.True(await store.TryIncrementAttemptsAsync(current));
+            Assert.True(await store.TryReserveAttemptAsync(current));
         }
 
         EmailCodeEntity exhausted = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
         Assert.Equal(5, exhausted.Attempts);
-        Assert.False(await store.TryIncrementAttemptsAsync(exhausted));
+        Assert.False(await store.TryReserveAttemptAsync(exhausted));
         Assert.Equal(5, (await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == issued.Id)).Attempts);
         Assert.True(EmailCodeHasher.CodeMatches(issued.Id, issued.Code, exhausted.CodeHash));
         Assert.False(await store.TryConsumeAsync(exhausted));
@@ -320,15 +321,74 @@ public class EmailCodeStoreTests
         Assert.False(await store.IsWithinResendCooldownAsync("a@x.com"));
     }
 
+    [Fact]
+    public async Task Issue_UsesTheLookupNormalizer()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var normalizer = new MarkerNormalizer();
+        var store = NewStore(context, normalizer: normalizer);
+        EmailCodeIssueResult issued = await store.IssueAsync("A@X.com ", null, null);
+
+        Assert.Equal(EmailCodeHasher.HashEmail("mark:A@X.com"), issued.EmailHash);
+        Assert.NotNull(await store.FindLiveByEmailAsync("A@X.com "));
+        Assert.Null(await store.FindLiveByEmailAsync("other@x.com"));
+    }
+
+    [Fact]
+    public async Task ReservedLastAttempt_CanBeConsumed_UnreservedMaxCannot()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var store = NewStore(context, new EmailCodeOptions { MaxAttempts = 1, ResendCooldown = TimeSpan.Zero });
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+
+        EmailCodeEntity row = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
+        Assert.True(await store.TryReserveAttemptAsync(row));
+        EmailCodeEntity reserved = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
+        Assert.Equal(1, reserved.Attempts);
+        Assert.False(await store.TryConsumeAsync(reserved));
+        Assert.True(await store.TryConsumeReservedAsync(reserved));
+        Assert.NotNull((await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == issued.Id)).ConsumedAt);
+    }
+
+    [Fact]
+    public async Task ParallelIssue_WithinCooldown_InsertsOneRow()
+    {
+        using var db = new SqliteDatabase();
+        var options = new EmailCodeOptions { ResendCooldown = TimeSpan.FromSeconds(60) };
+        var clock = new MutableTimeProvider(Start);
+        await using (var wal = db.Open())
+        {
+            await wal.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
+        }
+
+        async Task<EmailCodeIssueResult> Issue()
+        {
+            await using var context = db.Open();
+            var store = NewStore(context, options, clock);
+            return await store.IssueAsync("a@x.com", "user", "stamp");
+        }
+
+        EmailCodeIssueResult[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Issue()));
+        Assert.Equal(1, results.Count(result => !result.Suppressed));
+        Assert.Equal(7, results.Count(result => result.Suppressed));
+
+        await using var check = db.Open();
+        Assert.Equal(1, await check.Set<EmailCodeEntity>().CountAsync());
+    }
+
     private static EmailCodeStore<MappedEmailCodeDbContext> NewStore(
         MappedEmailCodeDbContext context,
         EmailCodeOptions? options = null,
-        TimeProvider? time = null)
+        TimeProvider? time = null,
+        ILookupNormalizer? normalizer = null)
     {
         return new EmailCodeStore<MappedEmailCodeDbContext>(
             context,
             time ?? TimeProvider.System,
-            options ?? new EmailCodeOptions());
+            options ?? new EmailCodeOptions { ResendCooldown = TimeSpan.Zero },
+            normalizer ?? new UpperInvariantLookupNormalizer());
     }
 
     private static async Task<List<string>> SqliteTablesAsync(DbContext context)
@@ -349,6 +409,13 @@ public class EmailCodeStoreTests
         }
 
         return names;
+    }
+
+    private sealed class MarkerNormalizer : ILookupNormalizer
+    {
+        public string? NormalizeEmail(string? email) => email is null ? null : "mark:" + email;
+
+        public string? NormalizeName(string? name) => name;
     }
 
     private sealed class MutableTimeProvider : TimeProvider

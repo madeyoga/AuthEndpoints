@@ -3,22 +3,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AuthEndpoints.EmailCode;
 
-public class EmailCodeConfiguration : IEntityTypeConfiguration<EmailCode>
+public class EmailCodeConfiguration : IEntityTypeConfiguration<EmailCodeEntry>
 {
-    public void Configure(EntityTypeBuilder<EmailCode> builder)
+    public void Configure(EntityTypeBuilder<EmailCodeEntry> builder)
     {
         builder.ToTable("AuthEndpointsEmailCodes", "AuthEndpoints");
         builder.HasKey(e => e.Id);
         builder.Property(e => e.EmailHash).IsRequired();
         builder.Property(e => e.CodeHash).IsRequired();
         builder.HasIndex(e => new { e.EmailHash, e.CreatedAt });
-        builder.HasIndex(e => e.LinkTokenHash)
-            .IsUnique()
-            .HasFilter("\"LinkTokenHash\" IS NOT NULL");
+        builder.HasIndex(e => e.LinkTokenHash).IsUnique();
     }
 }
 
-public static class EntityFrameworkCoreHelpers
+public static class EmailCodeModelBuilderExtensions
 {
     /// <summary>
     /// Maps the email-code entity (<c>AuthEndpoints.AuthEndpointsEmailCodes</c>).

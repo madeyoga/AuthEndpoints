@@ -1,6 +1,6 @@
 ﻿namespace AuthEndpoints.EmailCode;
 
-public class EmailCode
+public class EmailCodeEntry
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 

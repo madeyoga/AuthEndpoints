@@ -13,9 +13,11 @@ internal enum EmailCodeVerifyFailure
     CodeMismatch,
     TwoFactorMismatch,
     ConsumeLost,
+    AttemptCap,
     NotAllowed,
     UnconfirmedRejected,
-    ConfirmFailed
+    ConfirmFailed,
+    CredentialResetFailed
 }
 
 internal static partial class EmailCodeLog

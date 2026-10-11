@@ -2,6 +2,7 @@
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -36,13 +37,16 @@ public static class ServiceCollectionExtensions
             ServiceDescriptor.Singleton<IValidateOptions<EmailCodeOptions>, EmailCodeSenderValidator<TUser>>());
 
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>();
         services.AddLoginRateLimiting();
         AddEmailCodeSendRateLimiting(services);
 
+        services.TryAddSingleton<IEmailCodeModelCheck, EmailCodeModelCheck<TContext>>();
         services.TryAddScoped<IEmailCodeStore>(sp => new EmailCodeStore<TContext>(
             sp.GetRequiredService<TContext>(),
             sp.GetRequiredService<TimeProvider>(),
-            sp.GetRequiredService<IOptions<EmailCodeOptions>>().Value));
+            sp.GetRequiredService<IOptions<EmailCodeOptions>>().Value,
+            sp.GetRequiredService<ILookupNormalizer>()));
         services.TryAddScoped<IEmailCodeSignInCompleter<TUser>, IdentityEmailCodeSignInCompleter<TUser>>();
         services.TryAddScoped<IEmailCodeSender<TUser>>(sp =>
         {
