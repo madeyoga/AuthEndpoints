@@ -503,7 +503,7 @@ public class EmailCodeEndpointTests
             var response = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code });
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             Assert.Equal("Unauthorized", await ProblemTitleAsync(response));
-            Assert.NotNull((await RowsAsync(host.App, email)).OrderByDescending(row => row.CreatedAt).First().ConsumedAt);
+            Assert.NotNull((await RowsAsync(host.App, email)).Single(row => row.UserId != null).ConsumedAt);
             Assert.False(await IsConfirmedAsync(host.App, email));
             Assert.True(await HasPasswordAsync(host.App, email));
         }

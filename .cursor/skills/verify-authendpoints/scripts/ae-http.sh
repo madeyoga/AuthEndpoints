@@ -28,6 +28,9 @@ Environment:
                                 Library default is true; this host defaults to false.
   AE_CONFIRM_EMAIL_REDIRECT_URI  Maps to AuthEndpointsOptions.EmailConfirmation.ConfirmEmailRedirectUri.
   AE_CONFIRM_EMAIL_ALLOWED_ORIGINS  Comma-separated AllowedRedirectOrigins.
+  AE_EMAIL_CODE         When true, maps email-code send and verify.
+  AE_EMAIL_CODE_SIGNUP  When true, AllowSignUp creates a user from an unknown address.
+  AE_EMAIL_CODE_LINK    Magic-link base URL. Set to enable the link.
   OTEL_EXPORTER_OTLP_ENDPOINT  When unset, launch sets http://localhost:4317. Empty skips export.
   OTEL_SERVICE_NAME  When unset, launch sets authendpoints-demo.
 
@@ -271,6 +274,9 @@ cmd_launch() {
       AE_REQUIRE_CONFIRMED_ACCOUNT="${AE_REQUIRE_CONFIRMED_ACCOUNT:-}" \
       AE_CONFIRM_EMAIL_REDIRECT_URI="${AE_CONFIRM_EMAIL_REDIRECT_URI:-}" \
       AE_CONFIRM_EMAIL_ALLOWED_ORIGINS="${AE_CONFIRM_EMAIL_ALLOWED_ORIGINS:-}" \
+      AE_EMAIL_CODE="${AE_EMAIL_CODE:-}" \
+      AE_EMAIL_CODE_SIGNUP="${AE_EMAIL_CODE_SIGNUP:-}" \
+      AE_EMAIL_CODE_LINK="${AE_EMAIL_CODE_LINK:-}" \
       OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT}" \
       OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME}" \
       dotnet "$AE_DLL"
