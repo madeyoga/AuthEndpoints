@@ -1,12 +1,15 @@
 ﻿using System.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AuthEndpoints.EmailCode;
 
 internal sealed class EmailCodeIssueResult
 {
     public bool Suppressed { get; init; }
+
+    public string? SuppressedReason { get; init; }
 
     public required string Id { get; init; }
 
@@ -50,77 +53,113 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         ArgumentNullException.ThrowIfNull(email);
 
         string emailHash = HashEmail(email);
-        DateTime now = UtcNow();
-        string id = Guid.NewGuid().ToString();
-        string code = EmailCodeGenerator.CreateCode(_options.CodeLength);
-        string? linkToken = null;
-        string? linkTokenHash = null;
-        if (_options.MagicLink.Enabled)
-        {
-            linkToken = EmailCodeGenerator.CreateLinkToken();
-            linkTokenHash = EmailCodeHasher.HashLinkToken(linkToken);
-        }
-
-        await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
-        EmailCodeEntry? row = null;
         try
         {
-            DetachEmail(emailHash);
-            if (await IsWithinResendCooldownAsync(email, cancellationToken))
-            {
-                return Suppressed(emailHash);
-            }
-
-            DateTime deleteBefore = now - EmailCodeRetention.ExpiredRowRetention;
-            await _db.Set<EmailCodeEntry>()
-                .Where(e => e.EmailHash == emailHash && e.ExpiresAt < deleteBefore)
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await _db.Set<EmailCodeEntry>()
-                .Where(e => e.EmailHash == emailHash
-                    && e.ConsumedAt == null
-                    && e.SupersededAt == null
-                    && e.Attempts < _options.MaxAttempts
-                    && e.ExpiresAt > now)
-                .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(e => e.SupersededAt, now),
-                    cancellationToken);
-
-            row = new EmailCodeEntry
-            {
-                Id = id,
-                EmailHash = emailHash,
-                UserId = userId,
-                CodeHash = EmailCodeHasher.HashCode(id, code),
-                LinkTokenHash = linkTokenHash,
-                SecurityStamp = securityStamp,
-                SignupEmail = rememberSignupEmail ? email.Trim() : null,
-                CreatedAt = now,
-                ExpiresAt = now.Add(_options.CodeLifetime),
-                Attempts = 0
-            };
-            _db.Add(row);
-            await _db.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            return await IssueOnceAsync(email, emailHash, userId, securityStamp, rememberSignupEmail, cancellationToken);
         }
-        catch
+        catch (Exception ex) when (IsTransientTransactionConflict(ex, cancellationToken))
         {
-            if (row is not null)
+            try
             {
-                Detach(row);
+                return await IssueOnceAsync(email, emailHash, userId, securityStamp, rememberSignupEmail, cancellationToken);
             }
-
-            throw;
+            catch (Exception retryEx) when (IsTransientTransactionConflict(retryEx, cancellationToken))
+            {
+                return Suppressed(emailHash, "conflict");
+            }
         }
+    }
 
-        return new EmailCodeIssueResult
-        {
-            Id = row.Id,
-            Code = code,
-            LinkToken = linkToken,
-            EmailHash = emailHash,
-            ExpiresAt = row.ExpiresAt
-        };
+    private async Task<EmailCodeIssueResult> IssueOnceAsync(
+        string email,
+        string emailHash,
+        string? userId,
+        string? securityStamp,
+        bool rememberSignupEmail,
+        CancellationToken cancellationToken)
+    {
+        IExecutionStrategy strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(
+            async ct =>
+            {
+                DateTime now = UtcNow();
+                string id = Guid.NewGuid().ToString();
+                string code = EmailCodeGenerator.CreateCode(_options.CodeLength);
+                string? linkToken = null;
+                string? linkTokenHash = null;
+                if (_options.MagicLink.Enabled)
+                {
+                    linkToken = EmailCodeGenerator.CreateLinkToken();
+                    linkTokenHash = EmailCodeHasher.HashLinkToken(linkToken);
+                }
+
+                await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+                EmailCodeEntry? row = null;
+                try
+                {
+                    DetachEmail(emailHash);
+                    if (await IsWithinResendCooldownAsync(email, ct))
+                    {
+                        return Suppressed(emailHash);
+                    }
+
+                    DateTime deleteBefore = now - EmailCodeRetention.ExpiredRowRetention;
+                    await _db.Set<EmailCodeEntry>()
+                        .Where(e => e.EmailHash == emailHash && e.ExpiresAt < deleteBefore)
+                        .ExecuteDeleteAsync(ct);
+
+                    await _db.Set<EmailCodeEntry>()
+                        .Where(e => e.EmailHash == emailHash
+                            && e.ConsumedAt == null
+                            && e.SupersededAt == null
+                            && e.Attempts < _options.MaxAttempts
+                            && e.ExpiresAt > now)
+                        .ExecuteUpdateAsync(
+                            setters => setters.SetProperty(e => e.SupersededAt, now),
+                            ct);
+
+                    row = new EmailCodeEntry
+                    {
+                        Id = id,
+                        EmailHash = emailHash,
+                        UserId = userId,
+                        CodeHash = EmailCodeHasher.HashCode(id, code),
+                        LinkTokenHash = linkTokenHash,
+                        SecurityStamp = securityStamp,
+                        SignupEmail = rememberSignupEmail ? email.Trim() : null,
+                        CreatedAt = now,
+                        ExpiresAt = now.Add(_options.CodeLifetime),
+                        Attempts = 0
+                    };
+                    _db.Add(row);
+                    await _db.SaveChangesAsync(ct);
+                    await transaction.CommitAsync(ct);
+                    return new EmailCodeIssueResult
+                    {
+                        Id = row.Id,
+                        Code = code,
+                        LinkToken = linkToken,
+                        EmailHash = emailHash,
+                        ExpiresAt = row.ExpiresAt
+                    };
+                }
+                catch
+                {
+                    if (row is not null)
+                    {
+                        Detach(row);
+                    }
+
+                    throw;
+                }
+            },
+            cancellationToken);
+    }
+
+    private static bool IsTransientTransactionConflict(Exception exception, CancellationToken cancellationToken)
+    {
+        return !cancellationToken.IsCancellationRequested
+            && EmailCodeTransactionFailures.IsDeadlockOrSerializationFailure(exception);
     }
 
     public Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -289,11 +328,12 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         return EmailCodeHasher.HashEmail(normalized);
     }
 
-    private static EmailCodeIssueResult Suppressed(string emailHash)
+    private static EmailCodeIssueResult Suppressed(string emailHash, string reason = "cooldown")
     {
         return new EmailCodeIssueResult
         {
             Suppressed = true,
+            SuppressedReason = reason,
             Id = "",
             Code = "",
             EmailHash = emailHash,

@@ -70,15 +70,37 @@ public static class EmailCodeEndpoints<TUser>
             }
         }
 
-        var issued = await store.IssueAsync(
-            email,
-            eligible ? userId : null,
-            eligible ? stamp : null,
-            rememberSignupEmail,
-            cancellationToken);
+        EmailCodeIssueResult issued;
+        try
+        {
+            issued = await store.IssueAsync(
+                email,
+                eligible ? userId : null,
+                eligible ? stamp : null,
+                rememberSignupEmail,
+                cancellationToken);
+        }
+        catch (Exception ex) when (IsTransientTransactionConflict(ex, cancellationToken))
+        {
+            try
+            {
+                issued = await store.IssueAsync(
+                    email,
+                    eligible ? userId : null,
+                    eligible ? stamp : null,
+                    rememberSignupEmail,
+                    cancellationToken);
+            }
+            catch (Exception retryEx) when (IsTransientTransactionConflict(retryEx, cancellationToken))
+            {
+                EmailCodeLog.SendSuppressed(logger, userId, hashPrefix, "conflict");
+                return TypedResults.Ok(response);
+            }
+        }
+
         if (issued.Suppressed)
         {
-            EmailCodeLog.SendSuppressed(logger, userId, hashPrefix, "cooldown");
+            EmailCodeLog.SendSuppressed(logger, userId, hashPrefix, issued.SuppressedReason ?? "cooldown");
             return TypedResults.Ok(response);
         }
 
@@ -600,6 +622,12 @@ public static class EmailCodeEndpoints<TUser>
 
         var stamp = await userManager.UpdateSecurityStampAsync(user);
         return stamp.Succeeded;
+    }
+
+    private static bool IsTransientTransactionConflict(Exception exception, CancellationToken cancellationToken)
+    {
+        return !cancellationToken.IsCancellationRequested
+            && EmailCodeTransactionFailures.IsDeadlockOrSerializationFailure(exception);
     }
 
     private static string HashPrefix(UserManager<TUser> userManager, string email)

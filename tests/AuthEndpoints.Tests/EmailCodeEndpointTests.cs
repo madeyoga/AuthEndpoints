@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -1119,6 +1121,50 @@ public class EmailCodeEndpointTests
     }
 
     [Fact]
+    public async Task Send_SerializationFailure_ReturnsTheSameBodyAsANormalSend()
+    {
+        string normalBody;
+        await using (var host = await EmailCodeHost.StartAsync())
+        {
+            var email = UniqueEmail("conflict-baseline");
+            await SeedAsync(host.App, email);
+            var response = await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            normalBody = await response.Content.ReadAsStringAsync();
+        }
+
+        var throwing = new SerializationFailureStore();
+        await using var failed = await EmailCodeHost.StartAsync(configureServices: services =>
+            services.AddScoped<IEmailCodeStore>(_ => throwing));
+        var conflictEmail = UniqueEmail("conflict");
+        await SeedAsync(failed.App, conflictEmail);
+        var conflict = await PostAsync(failed.Client, "/identity/emailCode/send", new { email = conflictEmail });
+        Assert.Equal(HttpStatusCode.OK, conflict.StatusCode);
+        Assert.Equal(normalBody, await conflict.Content.ReadAsStringAsync());
+        Assert.Equal(2, throwing.IssueCalls);
+        Assert.Empty(Codes(failed.Mail, conflictEmail));
+    }
+
+    [Fact]
+    public async Task Send_WithRetryingExecutionStrategy_IssuesTheCode()
+    {
+        await using var host = await EmailCodeHost.StartAsync(configureSqlite: sqlite =>
+            sqlite.ExecutionStrategy(dependencies => new RetryingExecutionStrategy(dependencies)));
+        using (var scope = host.App.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            Assert.True(db.Database.CreateExecutionStrategy().RetriesOnFailure);
+        }
+
+        var email = UniqueEmail("retry-strategy");
+        await SeedAsync(host.App, email);
+        var response = await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Single(Codes(host.Mail, email));
+        Assert.Single(await RowsAsync(host.App, email));
+    }
+
+    [Fact]
     public async Task Send_ParallelWithinCooldown_IssuesOneRowAndOneMail()
     {
         await using var host = await EmailCodeHost.StartAsync();
@@ -1569,7 +1615,8 @@ public class EmailCodeEndpointTests
             bool jwt = false,
             bool captureLogs = false,
             Action<IServiceCollection>? configureServices = null,
-            bool useRateLimiter = true)
+            bool useRateLimiter = true,
+            Action<SqliteDbContextOptionsBuilder>? configureSqlite = null)
         {
             var path = Path.Combine(Path.GetTempPath(), $"ae-email-code-host-{Guid.NewGuid():N}.sqlite");
             var mail = new CapturingEmailSender();
@@ -1581,7 +1628,9 @@ public class EmailCodeEndpointTests
             });
             builder.WebHost.UseTestServer();
             builder.Services.AddDbContext<TestDbContext>(options =>
-                options.UseSqlite($"Data Source={path};Default Timeout=30"));
+                options.UseSqlite(
+                    $"Data Source={path};Default Timeout=30",
+                    sqlite => configureSqlite?.Invoke(sqlite)));
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton(sender ?? mail);
             builder.Services
@@ -1796,6 +1845,61 @@ public class EmailCodeEndpointTests
         {
             throw new TaskCanceledException("smtp timeout");
         }
+    }
+
+    private sealed class RetryingExecutionStrategy : ExecutionStrategy
+    {
+        public RetryingExecutionStrategy(ExecutionStrategyDependencies dependencies)
+            : base(dependencies, maxRetryCount: 3, maxRetryDelay: TimeSpan.Zero)
+        {
+        }
+
+        protected override bool ShouldRetryOn(Exception exception) => false;
+    }
+
+    private sealed class SerializationFailureStore : IEmailCodeStore
+    {
+        public int IssueCalls { get; private set; }
+
+        public Task<EmailCodeIssueResult> IssueAsync(
+            string email,
+            string? userId,
+            string? securityStamp,
+            bool rememberSignupEmail = false,
+            CancellationToken cancellationToken = default)
+        {
+            IssueCalls++;
+            throw EmailCodeFailureExceptions.SqlDeadlock();
+        }
+
+        public Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult<EmailCodeEntry?>(null);
+
+        public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+            => Task.FromResult<EmailCodeEntry?>(null);
+
+        public bool CodeMatches(EmailCodeEntry row, string submittedCode) => false;
+
+        public Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
     }
 
     private sealed class CompareCounter
