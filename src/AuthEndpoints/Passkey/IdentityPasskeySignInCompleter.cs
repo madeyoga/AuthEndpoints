@@ -1,4 +1,5 @@
 using System.Buffers.Text;
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
@@ -30,7 +31,7 @@ public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInComple
             return Denied(context);
         }
 
-        var isPersistent = ConfigureAuthenticationScheme(
+        var isPersistent = SignInScheme.Configure(
             _signInManager,
             context.UseCookies,
             context.UseSessionCookies);
@@ -66,21 +67,5 @@ public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInComple
             title: "Unauthorized",
             detail: "Invalid credentials.",
             statusCode: StatusCodes.Status401Unauthorized);
-    }
-
-    /// <summary>
-    /// Matches IdentityApiEndpoints.Login: cookie flags select ApplicationScheme; otherwise BearerScheme.
-    /// </summary>
-    private static bool ConfigureAuthenticationScheme(
-        SignInManager<TUser> signInManager,
-        bool? useCookies,
-        bool? useSessionCookies)
-    {
-        var useCookieScheme = useCookies == true || useSessionCookies == true;
-        var isPersistent = useCookies == true && useSessionCookies != true;
-        signInManager.AuthenticationScheme = useCookieScheme
-            ? IdentityConstants.ApplicationScheme
-            : IdentityConstants.BearerScheme;
-        return isPersistent;
     }
 }

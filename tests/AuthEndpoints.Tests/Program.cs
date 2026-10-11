@@ -1,4 +1,5 @@
 using AuthEndpoints;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
@@ -21,6 +22,7 @@ var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.
 var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.OrdinalIgnoreCase);
 var useFacade = useBearerFacade || useCookieFacade;
 var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
+var emailCode = IsTruthy(builder.Configuration["AE_EMAIL_CODE"]);
 var requireConfirmedAccount = IsTruthy(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"]);
 var confirmEmailRedirectUri = builder.Configuration["AE_CONFIRM_EMAIL_REDIRECT_URI"];
 var confirmEmailAllowedOrigins = SplitCommaSeparated(builder.Configuration["AE_CONFIRM_EMAIL_ALLOWED_ORIGINS"]);
@@ -31,6 +33,7 @@ builder.Services.AddDbContext<TestDbContext>(options =>
 
 builder.Services.AddSingleton<CapturingEmailSender>();
 builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
+builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
 if (useFacade)
@@ -41,6 +44,7 @@ if (useFacade)
         o.Passkeys.ServerDomain = "localhost";
         o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, requireConfirmedAccount);
         o.Jwt.Enabled = facadeJwtEnabled;
+        o.EmailCode.Enabled = emailCode;
         if (facadeJwtEnabled)
         {
             o.Jwt.Configure = jwt =>
@@ -77,6 +81,10 @@ else
     builder.Services.AddAntiforgery();
     builder.Services.AddCookieAuthEndpoints();
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
+    if (emailCode)
+    {
+        builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+    }
     builder.Services.AddOptions<AuthEndpointsOptions>()
         .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
 }
@@ -110,6 +118,10 @@ else
     var identity = app.MapGroup("/identity");
     identity.MapIdentityManagementApi<TestAppUser>();
     identity.MapCookieAuthEndpoints<TestAppUser>();
+    if (emailCode)
+    {
+        identity.MapEmailCodeEndpoints<TestAppUser>();
+    }
 
     var identityBearer = app.MapGroup("/identity/bearer");
     identityBearer.MapIdentityManagementApi<TestAppUser>(

@@ -1,3 +1,4 @@
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Identity;
 
@@ -36,6 +37,9 @@ public sealed class AuthEndpointsOptions
 
     /// <summary>Optional JWT settings. Disabled by default; enable for facade JWT mapping.</summary>
     public AuthEndpointsJwtOptions Jwt { get; set; } = new();
+
+    /// <summary>Optional emailed-code sign-in. Disabled by default.</summary>
+    public AuthEndpointsEmailCodeOptions EmailCode { get; set; } = new();
 
     /// <summary>
     /// Step-up ReAuth cookie and <c>reauthToken</c> lifetime.
@@ -96,6 +100,16 @@ public sealed class AuthEndpointsJwtOptions
 
     /// <summary>Optional JWT options customization (signing key, issuer, audience, etc.).</summary>
     public Action<SimpleJwtOptions>? Configure { get; set; }
+}
+
+/// <summary>Emailed-code sign-in options for the opinionated facade.</summary>
+public sealed class AuthEndpointsEmailCodeOptions
+{
+    /// <summary>When true, registers and maps email-code sign-in. Default: <c>false</c>.</summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>Optional email-code options customization.</summary>
+    public Action<EmailCodeOptions>? Configure { get; set; }
 }
 
 /// <summary>

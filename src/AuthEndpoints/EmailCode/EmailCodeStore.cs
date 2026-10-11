@@ -15,7 +15,7 @@ internal sealed class EmailCodeIssueResult
     public required DateTime ExpiresAt { get; init; }
 }
 
-internal sealed class EmailCodeStore<TContext>
+internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
     where TContext : DbContext
 {
     internal static readonly TimeSpan ExpiredRowRetention = TimeSpan.FromHours(24);

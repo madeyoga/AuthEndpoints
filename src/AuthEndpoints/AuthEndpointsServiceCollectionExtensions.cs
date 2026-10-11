@@ -1,4 +1,5 @@
-﻿using AuthEndpoints.Identity;
+﻿using AuthEndpoints.EmailCode;
+using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Identity;
@@ -177,6 +178,11 @@ public static class AuthEndpointsServiceCollectionExtensions
             {
                 bootstrap.Jwt.Configure?.Invoke(jwt);
             });
+        }
+
+        if (bootstrap.EmailCode.Enabled)
+        {
+            services.AddEmailCodeEndpoints<TUser, TContext>(bootstrap.EmailCode.Configure);
         }
 
         return identityBuilder;

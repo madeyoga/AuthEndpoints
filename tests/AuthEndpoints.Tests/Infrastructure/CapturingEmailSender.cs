@@ -1,9 +1,10 @@
 using System.Collections.Concurrent;
+using AuthEndpoints.EmailCode;
 using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Tests;
 
-internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>
+internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>, IEmailCodeSender<TestAppUser>
 {
     private readonly ConcurrentQueue<CapturedMail> _sent = new();
 
@@ -24,6 +25,12 @@ internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>
     public Task SendPasswordResetLinkAsync(TestAppUser user, string email, string resetLink)
     {
         _sent.Enqueue(new CapturedMail(email, "reset-link", resetLink));
+        return Task.CompletedTask;
+    }
+
+    public Task SendSignInCodeAsync(EmailCodeMessage<TestAppUser> message, CancellationToken cancellationToken = default)
+    {
+        _sent.Enqueue(new CapturedMail(message.Email, "email-code", message.Code));
         return Task.CompletedTask;
     }
 }
