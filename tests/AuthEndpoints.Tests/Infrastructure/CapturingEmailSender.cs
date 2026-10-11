@@ -30,9 +30,18 @@ internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>, IEmailCo
 
     public Task SendSignInCodeAsync(EmailCodeMessage<TestAppUser> message, CancellationToken cancellationToken = default)
     {
-        _sent.Enqueue(new CapturedMail(message.Email, "email-code", message.Code));
+        _sent.Enqueue(new CapturedMail(message.Email, "email-code", message.Code)
+        {
+            LinkUrl = message.LinkUrl,
+            Purpose = message.Purpose
+        });
         return Task.CompletedTask;
     }
 }
 
-internal sealed record CapturedMail(string Email, string Kind, string Body);
+internal sealed record CapturedMail(string Email, string Kind, string Body)
+{
+    public string? LinkUrl { get; init; }
+
+    public EmailCodePurpose? Purpose { get; init; }
+}

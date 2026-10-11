@@ -19,11 +19,14 @@ internal sealed class EmailCodeIssueResult
     public required DateTime ExpiresAt { get; init; }
 }
 
+internal static class EmailCodeRetention
+{
+    public static readonly TimeSpan ExpiredRowRetention = TimeSpan.FromHours(24);
+}
+
 internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
     where TContext : DbContext
 {
-    internal static readonly TimeSpan ExpiredRowRetention = TimeSpan.FromHours(24);
-
     private readonly TContext _db;
     private readonly TimeProvider _time;
     private readonly EmailCodeOptions _options;
@@ -41,6 +44,7 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         string email,
         string? userId,
         string? securityStamp,
+        bool rememberSignupEmail = false,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
@@ -67,7 +71,7 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
                 return Suppressed(emailHash);
             }
 
-            DateTime deleteBefore = now - ExpiredRowRetention;
+            DateTime deleteBefore = now - EmailCodeRetention.ExpiredRowRetention;
             await _db.Set<EmailCodeEntry>()
                 .Where(e => e.EmailHash == emailHash && e.ExpiresAt < deleteBefore)
                 .ExecuteDeleteAsync(cancellationToken);
@@ -90,6 +94,7 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
                 CodeHash = EmailCodeHasher.HashCode(id, code),
                 LinkTokenHash = linkTokenHash,
                 SecurityStamp = securityStamp,
+                SignupEmail = rememberSignupEmail ? email.Trim() : null,
                 CreatedAt = now,
                 ExpiresAt = now.Add(_options.CodeLifetime),
                 Attempts = 0
@@ -133,6 +138,22 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
                 && e.ExpiresAt > now)
             .OrderByDescending(e => e.CreatedAt)
             .ThenByDescending(e => e.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(token);
+
+        string tokenHash = EmailCodeHasher.HashLinkToken(token);
+        DateTime now = UtcNow();
+        return _db.Set<EmailCodeEntry>()
+            .AsNoTracking()
+            .Where(e => e.LinkTokenHash == tokenHash
+                && e.ConsumedAt == null
+                && e.SupersededAt == null
+                && e.Attempts < _options.MaxAttempts
+                && e.ExpiresAt > now)
             .FirstOrDefaultAsync(cancellationToken);
     }
 

@@ -71,6 +71,7 @@ public class EmailCodeStoreTests
         Assert.Equal("user-1", row.UserId);
         Assert.Equal("stamp-1", row.SecurityStamp);
         Assert.Null(row.LinkTokenHash);
+        Assert.Null(row.SignupEmail);
         Assert.Null(row.ConsumedAt);
         Assert.Null(row.SupersededAt);
         Assert.Equal(0, row.Attempts);
@@ -103,6 +104,29 @@ public class EmailCodeStoreTests
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync();
         Assert.Equal(EmailCodeHasher.HashLinkToken(issued.LinkToken), row.LinkTokenHash);
         Assert.NotEqual(issued.LinkToken, row.LinkTokenHash);
+        Assert.Null(row.UserId);
+        Assert.Null(row.SignupEmail);
+
+        EmailCodeEntity? byToken = await store.FindLiveByLinkTokenAsync(issued.LinkToken!);
+        Assert.NotNull(byToken);
+        Assert.Equal(issued.Id, byToken.Id);
+        Assert.Null(await store.FindLiveByLinkTokenAsync(EmailCodeGenerator.CreateLinkToken()));
+        Assert.True(await store.TryConsumeAsync(byToken));
+        Assert.Null(await store.FindLiveByLinkTokenAsync(issued.LinkToken!));
+    }
+
+    [Fact]
+    public async Task Issue_RememberSignupEmail_StoresTheTrimmedAddressOnly()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var store = NewStore(context);
+        EmailCodeIssueResult issued = await store.IssueAsync(" A@X.com ", null, null, rememberSignupEmail: true);
+
+        EmailCodeEntity row = await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync();
+        Assert.Equal("A@X.com", row.SignupEmail);
+        Assert.Equal(issued.EmailHash, row.EmailHash);
+        Assert.DoesNotContain(issued.Code, row.SignupEmail, StringComparison.Ordinal);
         Assert.Null(row.UserId);
     }
 

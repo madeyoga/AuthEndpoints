@@ -23,6 +23,8 @@ var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.
 var useFacade = useBearerFacade || useCookieFacade;
 var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
 var emailCode = IsTruthy(builder.Configuration["AE_EMAIL_CODE"]);
+var emailCodeSignUp = IsTruthy(builder.Configuration["AE_EMAIL_CODE_SIGNUP"]);
+var emailCodeLink = builder.Configuration["AE_EMAIL_CODE_LINK"];
 var requireConfirmedAccount = IsTruthy(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"]);
 var confirmEmailRedirectUri = builder.Configuration["AE_CONFIRM_EMAIL_REDIRECT_URI"];
 var confirmEmailAllowedOrigins = SplitCommaSeparated(builder.Configuration["AE_CONFIRM_EMAIL_ALLOWED_ORIGINS"]);
@@ -45,6 +47,7 @@ if (useFacade)
         o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, requireConfirmedAccount);
         o.Jwt.Enabled = facadeJwtEnabled;
         o.EmailCode.Enabled = emailCode;
+        o.EmailCode.Configure = options => ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink);
         if (facadeJwtEnabled)
         {
             o.Jwt.Configure = jwt =>
@@ -83,7 +86,8 @@ else
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
     if (emailCode)
     {
-        builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+            ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
     }
     builder.Services.AddOptions<AuthEndpointsOptions>()
         .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
@@ -156,6 +160,16 @@ static void ConfigureOpenTelemetry(WebApplicationBuilder builder)
             .AddHttpClientInstrumentation()
             .AddEntityFrameworkCoreInstrumentation()
             .AddOtlpExporter());
+}
+
+static void ConfigureEmailCode(EmailCodeOptions options, bool allowSignUp, string? magicLinkUri)
+{
+    options.AllowSignUp = allowSignUp;
+    if (!string.IsNullOrWhiteSpace(magicLinkUri))
+    {
+        options.MagicLink.Enabled = true;
+        options.MagicLink.LinkUri = magicLinkUri;
+    }
 }
 
 static bool IsTruthy(string? value) =>

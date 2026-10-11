@@ -17,6 +17,7 @@ internal enum EmailCodeVerifyFailure
     NotAllowed,
     UnconfirmedRejected,
     ConfirmFailed,
+    SignupFailed,
     CredentialResetFailed
 }
 

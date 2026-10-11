@@ -16,8 +16,6 @@ public static class EmailCodeEndpoints<TUser>
     private const string RecoveryCodeLoginProvider = "[AspNetUserStore]";
     private const string RecoveryCodeTokenName = "RecoveryCodes";
 
-    private static readonly EmailAddressAttribute EmailAddress = new();
-
     public static async Task<Results<Ok<EmailCodeSendResponse>, ValidationProblem>> Send(
         [FromBody] EmailCodeSendRequest request,
         HttpContext httpContext,
@@ -35,7 +33,7 @@ public static class EmailCodeEndpoints<TUser>
             (int)options.ResendCooldown.TotalSeconds);
 
         var email = request?.Email?.Trim();
-        if (string.IsNullOrEmpty(email) || !EmailAddress.IsValid(email))
+        if (string.IsNullOrEmpty(email) || !EmailCodeAddress.IsValid(email))
         {
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(email ?? "")));
         }
@@ -51,7 +49,18 @@ public static class EmailCodeEndpoints<TUser>
         string? userId = null;
         string? stamp = null;
         var eligible = false;
-        if (user is not null)
+        var purpose = EmailCodePurpose.SignIn;
+        var rememberSignupEmail = false;
+        if (user is null)
+        {
+            if (options.AllowSignUp)
+            {
+                eligible = true;
+                purpose = EmailCodePurpose.SignUp;
+                rememberSignupEmail = true;
+            }
+        }
+        else
         {
             userId = await userManager.GetUserIdAsync(user);
             eligible = !await IsSendIneligibleAsync(userManager, user, options);
@@ -65,6 +74,7 @@ public static class EmailCodeEndpoints<TUser>
             email,
             eligible ? userId : null,
             eligible ? stamp : null,
+            rememberSignupEmail,
             cancellationToken);
         if (issued.Suppressed)
         {
@@ -86,10 +96,10 @@ public static class EmailCodeEndpoints<TUser>
                 Email = email,
                 User = user,
                 Code = issued.Code,
-                LinkUrl = null,
+                LinkUrl = EmailCodeLinks.CreateUrl(options.MagicLink, issued.LinkToken),
                 ExpiresAt = new DateTimeOffset(DateTime.SpecifyKind(issued.ExpiresAt, DateTimeKind.Utc)),
                 Lifetime = options.CodeLifetime,
-                Purpose = EmailCodePurpose.SignIn
+                Purpose = purpose
             }, cancellationToken);
             EmailCodeLog.CodeIssued(logger, userId, EmailCodeHasher.HashPrefix(issued.EmailHash));
         }
@@ -118,61 +128,30 @@ public static class EmailCodeEndpoints<TUser>
         var completer = services.GetRequiredService<IEmailCodeSignInCompleter<TUser>>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(EmailCodeLog.Category);
 
-        if (!TryGetCode(request, options.CodeLength, out var email, out var code))
+        if (!TryReadProof(request, options, out var proof))
         {
             return InvalidRequest();
         }
 
-        var row = await store.FindLiveByEmailAsync(email, cancellationToken);
+        var row = proof.IsToken
+            ? await store.FindLiveByLinkTokenAsync(proof.Token, cancellationToken)
+            : await store.FindLiveByEmailAsync(proof.Email, cancellationToken);
         if (row is null)
         {
-            EmailCodeLog.VerifyFailed(logger, null, HashPrefix(userManager, email), EmailCodeVerifyFailure.NotFound);
+            EmailCodeLog.VerifyFailed(logger, null, ProofHashPrefix(userManager, proof), EmailCodeVerifyFailure.NotFound);
             return InvalidCode();
         }
 
         var hashPrefix = EmailCodeHasher.HashPrefix(row.EmailHash);
-        var user = row.UserId is null ? null : await userManager.FindByIdAsync(row.UserId);
-        if (user is null)
+        var resolved = await ResolveUserAsync(userManager, store, options, row, proof, logger, hashPrefix, cancellationToken);
+        if (resolved.Error is not null)
         {
-            if (row.UserId is null)
-            {
-                if (!await store.TryReserveAttemptAsync(row, cancellationToken))
-                {
-                    EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.AttemptCap);
-                    return InvalidCode();
-                }
-
-                _ = store.CodeMatches(row, code);
-                EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.UnknownEmail);
-            }
-            else
-            {
-                _ = store.CodeMatches(row, code);
-                await store.TryConsumeAsync(row, cancellationToken);
-                EmailCodeLog.VerifyFailed(logger, row.UserId, hashPrefix, EmailCodeVerifyFailure.UserMissing);
-            }
-
-            return InvalidCode();
+            return resolved.Error;
         }
 
-        var userId = await userManager.GetUserIdAsync(user);
-        var currentEmail = await userManager.GetEmailAsync(user);
-        var emailMismatch = currentEmail is null
-            || !string.Equals(EmailHash(userManager, currentEmail), row.EmailHash, StringComparison.Ordinal);
-        var currentStamp = await userManager.GetSecurityStampAsync(user);
-        var stampMismatch = !string.Equals(currentStamp, row.SecurityStamp, StringComparison.Ordinal);
-        if (emailMismatch || stampMismatch)
-        {
-            await store.TryConsumeAsync(row, cancellationToken);
-            EmailCodeLog.VerifyFailed(
-                logger,
-                userId,
-                hashPrefix,
-                emailMismatch ? EmailCodeVerifyFailure.EmailMismatch : EmailCodeVerifyFailure.StampMismatch);
-            return InvalidCode();
-        }
-
-        if (await userManager.IsLockedOutAsync(user))
+        var user = resolved.User;
+        var userId = user is null ? null : await userManager.GetUserIdAsync(user);
+        if (user is not null && await userManager.IsLockedOutAsync(user))
         {
             EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.LockedOut);
             return InvalidCode();
@@ -184,9 +163,9 @@ public static class EmailCodeEndpoints<TUser>
             return InvalidCode();
         }
 
-        if (!store.CodeMatches(row, code))
+        if (!proof.IsToken && !store.CodeMatches(row, proof.Code))
         {
-            if (options.CountFailuresTowardLockout)
+            if (user is not null && options.CountFailuresTowardLockout)
             {
                 await userManager.AccessFailedAsync(user);
             }
@@ -195,34 +174,18 @@ public static class EmailCodeEndpoints<TUser>
             return InvalidCode();
         }
 
-        var redeemRecoveryCode = false;
-        if (options.RequireTwoFactor && await userManager.GetTwoFactorEnabledAsync(user))
+        var redeemRecovery = false;
+        if (user is not null)
         {
-            if (string.IsNullOrEmpty(request.TwoFactorCode) && string.IsNullOrEmpty(request.TwoFactorRecoveryCode))
+            var factor = await EvaluateSecondFactorAsync(userManager, options, user, request!);
+            if (factor.Outcome == SecondFactor.Missing)
             {
                 await store.TryReleaseAttemptAsync(row, cancellationToken);
                 EmailCodeLog.VerifyRequiresTwoFactor(logger, userId, hashPrefix);
-                return TypedResults.Problem(
-                    title: "RequiresTwoFactor",
-                    detail: "Two-factor authentication is required.",
-                    statusCode: StatusCodes.Status401Unauthorized);
+                return TwoFactorRequired();
             }
 
-            var proofOk = false;
-            if (!string.IsNullOrEmpty(request.TwoFactorCode))
-            {
-                proofOk = await userManager.VerifyTwoFactorTokenAsync(
-                    user,
-                    userManager.Options.Tokens.AuthenticatorTokenProvider,
-                    request.TwoFactorCode);
-            }
-            else
-            {
-                proofOk = await HasRecoveryCodeAsync(userManager, user, request.TwoFactorRecoveryCode!);
-                redeemRecoveryCode = proofOk;
-            }
-
-            if (!proofOk)
+            if (factor.Outcome == SecondFactor.Failed)
             {
                 if (options.CountFailuresTowardLockout)
                 {
@@ -232,6 +195,8 @@ public static class EmailCodeEndpoints<TUser>
                 EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.TwoFactorMismatch);
                 return InvalidCode();
             }
+
+            redeemRecovery = factor.RedeemRecovery;
         }
 
         if (!await store.TryConsumeReservedAsync(row, cancellationToken))
@@ -240,9 +205,9 @@ public static class EmailCodeEndpoints<TUser>
             return InvalidCode();
         }
 
-        if (redeemRecoveryCode)
+        if (redeemRecovery)
         {
-            var redeemed = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, request!.TwoFactorRecoveryCode!);
+            var redeemed = await userManager.RedeemTwoFactorRecoveryCodeAsync(user!, request!.TwoFactorRecoveryCode!);
             if (!redeemed.Succeeded)
             {
                 await store.TryUnconsumeAsync(row, cancellationToken);
@@ -251,7 +216,255 @@ public static class EmailCodeEndpoints<TUser>
             }
         }
 
-        if (!await userManager.IsEmailConfirmedAsync(user))
+        var isNewUser = false;
+        if (user is null)
+        {
+            var created = await CreateSignupUserAsync(services, userManager, resolved.SignupEmail!, cancellationToken);
+            if (created.Status == SignupCreateStatus.Failed || created.User is null)
+            {
+                EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.SignupFailed);
+                return InvalidCode();
+            }
+
+            user = created.User;
+            userId = await userManager.GetUserIdAsync(user);
+            isNewUser = created.Status == SignupCreateStatus.Created;
+            if (!isNewUser)
+            {
+                if (await userManager.IsLockedOutAsync(user))
+                {
+                    EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.LockedOut);
+                    return InvalidCode();
+                }
+
+                var raced = await EvaluateSecondFactorAsync(userManager, options, user, request!);
+                if (raced.Outcome == SecondFactor.Missing)
+                {
+                    EmailCodeLog.VerifyRequiresTwoFactor(logger, userId, hashPrefix);
+                    return TwoFactorRequired();
+                }
+
+                if (raced.Outcome == SecondFactor.Failed)
+                {
+                    if (options.CountFailuresTowardLockout)
+                    {
+                        await userManager.AccessFailedAsync(user);
+                    }
+
+                    EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.TwoFactorMismatch);
+                    return InvalidCode();
+                }
+
+                if (raced.RedeemRecovery)
+                {
+                    var redeemed = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, request!.TwoFactorRecoveryCode!);
+                    if (!redeemed.Succeeded)
+                    {
+                        await store.TryUnconsumeAsync(row, cancellationToken);
+                        EmailCodeLog.VerifyFailed(logger, userId, hashPrefix, EmailCodeVerifyFailure.TwoFactorMismatch);
+                        return InvalidCode();
+                    }
+                }
+            }
+        }
+
+        return await FinishSignInAsync(
+            httpContext,
+            userManager,
+            signInManager,
+            completer,
+            logger,
+            options,
+            user!,
+            hashPrefix,
+            isNewUser,
+            useCookies,
+            useSessionCookies,
+            cancellationToken);
+    }
+
+    private static async Task<ResolvedUser> ResolveUserAsync(
+        UserManager<TUser> userManager,
+        IEmailCodeStore store,
+        EmailCodeOptions options,
+        EmailCodeEntry row,
+        EmailCodeProof proof,
+        ILogger logger,
+        string hashPrefix,
+        CancellationToken cancellationToken)
+    {
+        if (row.UserId is not null)
+        {
+            var bound = await userManager.FindByIdAsync(row.UserId);
+            if (bound is null)
+            {
+                if (!proof.IsToken)
+                {
+                    _ = store.CodeMatches(row, proof.Code);
+                }
+
+                await store.TryConsumeAsync(row, cancellationToken);
+                EmailCodeLog.VerifyFailed(logger, row.UserId, hashPrefix, EmailCodeVerifyFailure.UserMissing);
+                return ResolvedUser.Fail(InvalidCode());
+            }
+
+            if (!await EmailHashMatchesAsync(userManager, bound, row.EmailHash))
+            {
+                await store.TryConsumeAsync(row, cancellationToken);
+                EmailCodeLog.VerifyFailed(logger, row.UserId, hashPrefix, EmailCodeVerifyFailure.EmailMismatch);
+                return ResolvedUser.Fail(InvalidCode());
+            }
+
+            var stamp = await userManager.GetSecurityStampAsync(bound);
+            if (!string.Equals(stamp, row.SecurityStamp, StringComparison.Ordinal))
+            {
+                await store.TryConsumeAsync(row, cancellationToken);
+                EmailCodeLog.VerifyFailed(logger, row.UserId, hashPrefix, EmailCodeVerifyFailure.StampMismatch);
+                return ResolvedUser.Fail(InvalidCode());
+            }
+
+            return ResolvedUser.Found(bound);
+        }
+
+        var signupEmail = proof.IsToken ? row.SignupEmail?.Trim() : proof.Email;
+        if (!options.AllowSignUp || !SignupEmailMatches(userManager, signupEmail, row.EmailHash))
+        {
+            return await RejectUnknownAsync(store, row, proof, logger, hashPrefix, cancellationToken);
+        }
+
+        var existing = await userManager.FindByEmailAsync(signupEmail!);
+        if (existing is null)
+        {
+            return ResolvedUser.Signup(signupEmail!);
+        }
+
+        if (!await EmailHashMatchesAsync(userManager, existing, row.EmailHash))
+        {
+            await store.TryConsumeAsync(row, cancellationToken);
+            EmailCodeLog.VerifyFailed(
+                logger,
+                await userManager.GetUserIdAsync(existing),
+                hashPrefix,
+                EmailCodeVerifyFailure.EmailMismatch);
+            return ResolvedUser.Fail(InvalidCode());
+        }
+
+        return ResolvedUser.Found(existing);
+    }
+
+    private static async Task<ResolvedUser> RejectUnknownAsync(
+        IEmailCodeStore store,
+        EmailCodeEntry row,
+        EmailCodeProof proof,
+        ILogger logger,
+        string hashPrefix,
+        CancellationToken cancellationToken)
+    {
+        if (!await store.TryReserveAttemptAsync(row, cancellationToken))
+        {
+            EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.AttemptCap);
+            return ResolvedUser.Fail(InvalidCode());
+        }
+
+        if (!proof.IsToken)
+        {
+            _ = store.CodeMatches(row, proof.Code);
+        }
+
+        EmailCodeLog.VerifyFailed(logger, null, hashPrefix, EmailCodeVerifyFailure.UnknownEmail);
+        return ResolvedUser.Fail(InvalidCode());
+    }
+
+    private static async Task<FactorDecision> EvaluateSecondFactorAsync(
+        UserManager<TUser> userManager,
+        EmailCodeOptions options,
+        TUser user,
+        EmailCodeVerifyRequest request)
+    {
+        if (!options.RequireTwoFactor || !await userManager.GetTwoFactorEnabledAsync(user))
+        {
+            return new FactorDecision(SecondFactor.NotRequired, false);
+        }
+
+        if (string.IsNullOrEmpty(request.TwoFactorCode) && string.IsNullOrEmpty(request.TwoFactorRecoveryCode))
+        {
+            return new FactorDecision(SecondFactor.Missing, false);
+        }
+
+        if (!string.IsNullOrEmpty(request.TwoFactorCode))
+        {
+            var ok = await userManager.VerifyTwoFactorTokenAsync(
+                user,
+                userManager.Options.Tokens.AuthenticatorTokenProvider,
+                request.TwoFactorCode);
+            return new FactorDecision(ok ? SecondFactor.Passed : SecondFactor.Failed, false);
+        }
+
+        var valid = await HasRecoveryCodeAsync(userManager, user, request.TwoFactorRecoveryCode!);
+        return valid
+            ? new FactorDecision(SecondFactor.Passed, true)
+            : new FactorDecision(SecondFactor.Failed, false);
+    }
+
+    private static async Task<bool> HasRecoveryCodeAsync(UserManager<TUser> userManager, TUser user, string code)
+    {
+        var merged = await userManager.GetAuthenticationTokenAsync(user, RecoveryCodeLoginProvider, RecoveryCodeTokenName);
+        if (string.IsNullOrEmpty(merged))
+        {
+            return false;
+        }
+
+        return merged.Split(';').Any(candidate => string.Equals(candidate, code, StringComparison.Ordinal));
+    }
+
+    private static async Task<SignupCreateResult> CreateSignupUserAsync(
+        IServiceProvider services,
+        UserManager<TUser> userManager,
+        string email,
+        CancellationToken cancellationToken)
+    {
+        var userStore = services.GetRequiredService<IUserStore<TUser>>();
+        if (userStore is not IUserEmailStore<TUser> emailStore)
+        {
+            return SignupCreateResult.Fail();
+        }
+
+        var user = new TUser();
+        await userStore.SetUserNameAsync(user, email, cancellationToken);
+        await emailStore.SetEmailAsync(user, email, cancellationToken);
+        var created = await userManager.CreateAsync(user);
+        if (!created.Succeeded)
+        {
+            if (created.Errors.Any(error => error.Code is "DuplicateUserName" or "DuplicateEmail"))
+            {
+                var existing = await userManager.FindByEmailAsync(email);
+                return existing is null ? SignupCreateResult.Fail() : SignupCreateResult.Duplicate(existing);
+            }
+
+            return SignupCreateResult.Fail();
+        }
+
+        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirmed = await userManager.ConfirmEmailAsync(user, token);
+        return confirmed.Succeeded ? SignupCreateResult.Created(user) : SignupCreateResult.Fail();
+    }
+
+    private static async Task<IResult> FinishSignInAsync(
+        HttpContext httpContext,
+        UserManager<TUser> userManager,
+        SignInManager<TUser> signInManager,
+        IEmailCodeSignInCompleter<TUser> completer,
+        ILogger logger,
+        EmailCodeOptions options,
+        TUser user,
+        string hashPrefix,
+        bool isNewUser,
+        bool? useCookies,
+        bool? useSessionCookies,
+        CancellationToken cancellationToken)
+    {
+        var userId = await userManager.GetUserIdAsync(user);
+        if (!isNewUser && !await userManager.IsEmailConfirmedAsync(user))
         {
             var hasCredentials = await HasCredentialsAsync(userManager, user);
             if (hasCredentials && options.UnconfirmedAccounts == EmailCodeUnconfirmedAccounts.Reject)
@@ -295,30 +508,29 @@ public static class EmailCodeEndpoints<TUser>
             {
                 UseCookies = useCookies,
                 UseSessionCookies = useSessionCookies,
-                IsNewUser = false
+                IsNewUser = isNewUser
             },
             cancellationToken);
+        if (isNewUser)
+        {
+            EmailCodeLog.SignedUp(logger, userId, hashPrefix);
+        }
+
         EmailCodeLog.SignedIn(logger, userId, hashPrefix);
         return result;
     }
 
-    private static async Task<bool> HasRecoveryCodeAsync(UserManager<TUser> userManager, TUser user, string code)
+    private static async Task<bool> EmailHashMatchesAsync(UserManager<TUser> userManager, TUser user, string emailHash)
     {
-        var merged = await userManager.GetAuthenticationTokenAsync(user, RecoveryCodeLoginProvider, RecoveryCodeTokenName);
-        if (string.IsNullOrEmpty(merged))
-        {
-            return false;
-        }
+        var current = await userManager.GetEmailAsync(user);
+        return current is not null
+            && string.Equals(EmailHash(userManager, current), emailHash, StringComparison.Ordinal);
+    }
 
-        foreach (var candidate in merged.Split(';'))
-        {
-            if (string.Equals(candidate, code, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
+    private static bool SignupEmailMatches(UserManager<TUser> userManager, string? email, string emailHash)
+    {
+        return !string.IsNullOrEmpty(email)
+            && string.Equals(EmailHash(userManager, email), emailHash, StringComparison.Ordinal);
     }
 
     private static async Task<bool> IsSendIneligibleAsync(
@@ -406,37 +618,128 @@ public static class EmailCodeEndpoints<TUser>
         return EmailCodeHasher.HashEmail(normalized);
     }
 
-    private static bool TryGetCode(EmailCodeVerifyRequest? request, int codeLength, out string email, out string code)
+    private readonly struct EmailCodeProof
     {
-        email = "";
-        code = "";
-        if (request is null || !string.IsNullOrWhiteSpace(request.Token))
+        public bool IsToken { get; init; }
+
+        public string Email { get; init; }
+
+        public string Code { get; init; }
+
+        public string Token { get; init; }
+    }
+
+    private static bool TryReadProof(EmailCodeVerifyRequest? request, EmailCodeOptions options, out EmailCodeProof proof)
+    {
+        proof = default;
+        if (request is null)
         {
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrEmpty(request.Code))
+        if (!string.IsNullOrWhiteSpace(request.Token))
         {
-            return false;
-        }
-
-        if (request.Code.Length != codeLength)
-        {
-            return false;
-        }
-
-        foreach (var ch in request.Code)
-        {
-            if (ch is < '0' or > '9')
+            if (!options.MagicLink.Enabled
+                || !string.IsNullOrWhiteSpace(request.Email)
+                || !string.IsNullOrEmpty(request.Code))
             {
                 return false;
             }
+
+            proof = new EmailCodeProof
+            {
+                IsToken = true,
+                Email = "",
+                Code = "",
+                Token = request.Token
+            };
+            return true;
         }
 
-        email = request.Email.Trim();
-        code = request.Code;
-        return email.Length > 0;
+        if (string.IsNullOrWhiteSpace(request.Email)
+            || string.IsNullOrEmpty(request.Code)
+            || request.Code.Length != options.CodeLength
+            || !request.Code.All(static ch => ch is >= '0' and <= '9'))
+        {
+            return false;
+        }
+
+        var email = request.Email.Trim();
+        if (email.Length == 0)
+        {
+            return false;
+        }
+
+        proof = new EmailCodeProof
+        {
+            IsToken = false,
+            Email = email,
+            Code = request.Code,
+            Token = ""
+        };
+        return true;
     }
+
+    private static string ProofHashPrefix(UserManager<TUser> userManager, EmailCodeProof proof)
+    {
+        var hash = proof.IsToken
+            ? EmailCodeHasher.HashLinkToken(proof.Token)
+            : EmailHash(userManager, proof.Email);
+        return EmailCodeHasher.HashPrefix(hash);
+    }
+
+    private static ProblemHttpResult TwoFactorRequired()
+    {
+        return TypedResults.Problem(
+            title: "RequiresTwoFactor",
+            detail: "Two-factor authentication is required.",
+            statusCode: StatusCodes.Status401Unauthorized);
+    }
+
+    private sealed class ResolvedUser
+    {
+        public TUser? User { get; private init; }
+
+        public string? SignupEmail { get; private init; }
+
+        public IResult? Error { get; private init; }
+
+        public static ResolvedUser Found(TUser user) => new() { User = user };
+
+        public static ResolvedUser Signup(string email) => new() { SignupEmail = email };
+
+        public static ResolvedUser Fail(IResult error) => new() { Error = error };
+    }
+
+    private enum SignupCreateStatus
+    {
+        Created,
+        Duplicate,
+        Failed
+    }
+
+    private sealed class SignupCreateResult
+    {
+        public SignupCreateStatus Status { get; private init; }
+
+        public TUser? User { get; private init; }
+
+        public static SignupCreateResult Created(TUser user) => new() { Status = SignupCreateStatus.Created, User = user };
+
+        public static SignupCreateResult Duplicate(TUser user) => new() { Status = SignupCreateStatus.Duplicate, User = user };
+
+        public static SignupCreateResult Fail() => new() { Status = SignupCreateStatus.Failed };
+    }
+
+    private enum SecondFactor
+    {
+        NotRequired,
+        Missing,
+        Failed,
+        Passed
+    }
+
+    private readonly record struct FactorDecision(SecondFactor Outcome, bool RedeemRecovery);
 
     private static ProblemHttpResult InvalidCode()
     {
@@ -473,5 +776,15 @@ public static class EmailCodeEndpoints<TUser>
         }
 
         return TypedResults.ValidationProblem(errors);
+    }
+}
+
+internal static class EmailCodeAddress
+{
+    private static readonly EmailAddressAttribute Attribute = new();
+
+    public static bool IsValid(string email)
+    {
+        return Attribute.IsValid(email);
     }
 }

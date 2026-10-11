@@ -6,9 +6,12 @@ internal interface IEmailCodeStore
         string email,
         string? userId,
         string? securityStamp,
+        bool rememberSignupEmail = false,
         CancellationToken cancellationToken = default);
 
     Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default);
 
     bool CodeMatches(EmailCodeEntry row, string submittedCode);
 
