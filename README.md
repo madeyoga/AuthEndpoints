@@ -14,6 +14,7 @@ AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top
 - Account lifecycle: register, confirm email, forgot/reset password, manage info and 2FA, step-up ReAuth
 - Sign-in stacks you choose: cookie sessions, Identity bearer tokens, or Simple JWT
 - Passkeys (WebAuthn) for passwordless register and login
+- Optional emailed one-time codes (`POST /identity/emailCode/send` and `POST /identity/emailCode/verify`). Sign-up and magic links stay off until you enable them
 - Built-in hardening: rate limiting, antiforgery, lockout-aware login, hashed JWT refresh tokens with reuse detection
 - Optional preview packages for GitHub and Google OAuth: [`AuthEndpoints.External.OAuth`](https://authendpoints.harten.id/modules/external-oauth) plus `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`
 
