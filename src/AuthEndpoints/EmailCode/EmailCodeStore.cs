@@ -247,9 +247,8 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
             return false;
         }
 
-        DateTime consumedAt = row.ConsumedAt.Value;
         int affected = await _db.Set<EmailCodeEntry>()
-            .Where(e => e.Id == row.Id && e.ConsumedAt == consumedAt)
+            .Where(e => e.Id == row.Id && e.ConsumedAt != null)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(e => e.ConsumedAt, (DateTime?)null),
                 cancellationToken);

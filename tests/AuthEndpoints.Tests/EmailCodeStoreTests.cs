@@ -379,6 +379,23 @@ public class EmailCodeStoreTests
     }
 
     [Fact]
+    public async Task Unconsume_ClearsConsumedAtWithoutMatchingTheTimestamp()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var store = NewStore(context);
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeEntity row = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
+        Assert.True(await store.TryConsumeAsync(row));
+        Assert.NotNull(row.ConsumedAt);
+        row.ConsumedAt = row.ConsumedAt.Value.AddTicks(10);
+
+        Assert.True(await store.TryUnconsumeAsync(row));
+        Assert.Null(row.ConsumedAt);
+        Assert.Null((await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == issued.Id)).ConsumedAt);
+    }
+
+    [Fact]
     public async Task ParallelIssue_WithinCooldown_InsertsOneRow()
     {
         using var db = new SqliteDatabase();
