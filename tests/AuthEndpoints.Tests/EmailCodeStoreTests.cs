@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using EmailCodeEntity = AuthEndpoints.EmailCode.EmailCodeEntry;
 
 namespace AuthEndpoints.Tests;
@@ -71,6 +73,7 @@ public class EmailCodeStoreTests
         Assert.Equal("user-1", row.UserId);
         Assert.Equal("stamp-1", row.SecurityStamp);
         Assert.Null(row.LinkTokenHash);
+        Assert.Null(row.SignupEmail);
         Assert.Null(row.ConsumedAt);
         Assert.Null(row.SupersededAt);
         Assert.Equal(0, row.Attempts);
@@ -103,6 +106,29 @@ public class EmailCodeStoreTests
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync();
         Assert.Equal(EmailCodeHasher.HashLinkToken(issued.LinkToken), row.LinkTokenHash);
         Assert.NotEqual(issued.LinkToken, row.LinkTokenHash);
+        Assert.Null(row.UserId);
+        Assert.Null(row.SignupEmail);
+
+        EmailCodeEntity? byToken = await store.FindLiveByLinkTokenAsync(issued.LinkToken!);
+        Assert.NotNull(byToken);
+        Assert.Equal(issued.Id, byToken.Id);
+        Assert.Null(await store.FindLiveByLinkTokenAsync(EmailCodeGenerator.CreateLinkToken()));
+        Assert.True(await store.TryConsumeAsync(byToken));
+        Assert.Null(await store.FindLiveByLinkTokenAsync(issued.LinkToken!));
+    }
+
+    [Fact]
+    public async Task Issue_RememberSignupEmail_StoresTheTrimmedAddressOnly()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var store = NewStore(context);
+        EmailCodeIssueResult issued = await store.IssueAsync(" A@X.com ", null, null, rememberSignupEmail: true);
+
+        EmailCodeEntity row = await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync();
+        Assert.Equal("A@X.com", row.SignupEmail);
+        Assert.Equal(issued.EmailHash, row.EmailHash);
+        Assert.DoesNotContain(issued.Code, row.SignupEmail, StringComparison.Ordinal);
         Assert.Null(row.UserId);
     }
 
@@ -231,7 +257,7 @@ public class EmailCodeStoreTests
 
         async Task Consume(EmailCodeStore<MappedEmailCodeDbContext> store, EmailCodeEntity row)
         {
-            barrier.SignalAndWait(TimeSpan.FromSeconds(10));
+            Assert.True(barrier.SignalAndWait(TimeSpan.FromSeconds(10)));
             try
             {
                 results.Add((await store.TryConsumeAsync(row), null));
@@ -242,7 +268,9 @@ public class EmailCodeStoreTests
             }
         }
 
-        await Task.WhenAll(Consume(storeA, rowA), Consume(storeB, rowB));
+        await Task.WhenAll(
+            Task.Run(() => Consume(storeA, rowA)),
+            Task.Run(() => Consume(storeB, rowB)));
 
         Assert.Equal(2, results.Count);
         Assert.All(results, result => Assert.Null(result.Error));
@@ -353,6 +381,23 @@ public class EmailCodeStoreTests
     }
 
     [Fact]
+    public async Task Unconsume_ClearsConsumedAtWithoutMatchingTheTimestamp()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var store = NewStore(context);
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeEntity row = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
+        Assert.True(await store.TryConsumeAsync(row));
+        Assert.NotNull(row.ConsumedAt);
+        row.ConsumedAt = row.ConsumedAt.Value.AddTicks(10);
+
+        Assert.True(await store.TryUnconsumeAsync(row));
+        Assert.Null(row.ConsumedAt);
+        Assert.Null((await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == issued.Id)).ConsumedAt);
+    }
+
+    [Fact]
     public async Task ParallelIssue_WithinCooldown_InsertsOneRow()
     {
         using var db = new SqliteDatabase();
@@ -376,6 +421,54 @@ public class EmailCodeStoreTests
 
         await using var check = db.Open();
         Assert.Equal(1, await check.Set<EmailCodeEntity>().CountAsync());
+    }
+
+    [Fact]
+    public async Task Issue_WithRetryingExecutionStrategy_InsertsTheRow()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open(configureSqlite: sqlite =>
+            sqlite.ExecutionStrategy(dependencies => new RetryingExecutionStrategy(dependencies)));
+        Assert.True(context.Database.CreateExecutionStrategy().RetriesOnFailure);
+
+        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
+        Assert.False(issued.Suppressed);
+        Assert.Equal(6, issued.Code.Length);
+        Assert.Equal(1, await context.Set<EmailCodeEntity>().CountAsync());
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Issue_DeadlockOrSerializationFailure_RetriesOnce(bool postgres)
+    {
+        using var db = new SqliteDatabase();
+        await using (var seed = db.Open())
+        {
+            _ = seed;
+        }
+
+        var interceptor = new FailSavesInterceptor(
+            times: 1,
+            postgres ? EmailCodeFailureExceptions.PostgresSerialization() : EmailCodeFailureExceptions.SqlDeadlock());
+        await using var context = db.Open(interceptor);
+        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
+        Assert.False(issued.Suppressed);
+        Assert.Equal(2, interceptor.Attempts);
+        Assert.Equal(1, await context.Set<EmailCodeEntity>().CountAsync());
+    }
+
+    [Fact]
+    public async Task Issue_RepeatedDeadlock_ReturnsTheSuppressedResult()
+    {
+        using var db = new SqliteDatabase();
+        var interceptor = new FailSavesInterceptor(times: 5, EmailCodeFailureExceptions.SqlDeadlock());
+        await using var context = db.Open(interceptor);
+        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
+        Assert.True(issued.Suppressed);
+        Assert.Equal("conflict", issued.SuppressedReason);
+        Assert.Equal(2, interceptor.Attempts);
+        Assert.Equal(0, await context.Set<EmailCodeEntity>().CountAsync());
     }
 
     private static EmailCodeStore<MappedEmailCodeDbContext> NewStore(
@@ -432,6 +525,59 @@ public class EmailCodeStoreTests
         public void Advance(TimeSpan by) => _utc = _utc.Add(by);
     }
 
+    private sealed class RetryingExecutionStrategy : ExecutionStrategy
+    {
+        public RetryingExecutionStrategy(ExecutionStrategyDependencies dependencies)
+            : base(dependencies, maxRetryCount: 3, maxRetryDelay: TimeSpan.Zero)
+        {
+        }
+
+        protected override bool ShouldRetryOn(Exception exception) => false;
+    }
+
+    private sealed class FailSavesInterceptor : SaveChangesInterceptor
+    {
+        private readonly Exception _exception;
+        private int _remaining;
+
+        public FailSavesInterceptor(int times, Exception exception)
+        {
+            _remaining = times;
+            _exception = exception;
+        }
+
+        public int Attempts { get; private set; }
+
+        public override InterceptionResult<int> SavingChanges(
+            DbContextEventData eventData,
+            InterceptionResult<int> result)
+        {
+            ThrowIfPending();
+            return result;
+        }
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            ThrowIfPending();
+            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        }
+
+        private void ThrowIfPending()
+        {
+            Attempts++;
+            if (_remaining <= 0)
+            {
+                return;
+            }
+
+            _remaining--;
+            throw _exception;
+        }
+    }
+
     private sealed class ThrowOnSaveChangesInterceptor : SaveChangesInterceptor
     {
         public override InterceptionResult<int> SavingChanges(
@@ -454,10 +600,14 @@ public class EmailCodeStoreTests
     {
         private readonly string _path = Path.Combine(Path.GetTempPath(), $"ae-email-code-{Guid.NewGuid():N}.sqlite");
 
-        public MappedEmailCodeDbContext Open(SaveChangesInterceptor? interceptor = null)
+        public MappedEmailCodeDbContext Open(
+            SaveChangesInterceptor? interceptor = null,
+            Action<SqliteDbContextOptionsBuilder>? configureSqlite = null)
         {
             var builder = new DbContextOptionsBuilder<MappedEmailCodeDbContext>()
-                .UseSqlite($"Data Source={_path};Default Timeout=30");
+                .UseSqlite(
+                    $"Data Source={_path};Default Timeout=30",
+                    sqlite => configureSqlite?.Invoke(sqlite));
             if (interceptor is not null)
             {
                 builder.AddInterceptors(interceptor);

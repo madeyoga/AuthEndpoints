@@ -69,6 +69,32 @@ public class EmailCodeCoreTests
     }
 
     [Fact]
+    public void LinkUrl_PutsTokenInTheFragment_AndHonoursOverride()
+    {
+        const string token = "link-token-value";
+        var magicLink = new EmailCodeMagicLinkOptions
+        {
+            Enabled = true,
+            LinkUri = "https://app.example.com/auth/email-link"
+        };
+
+        string? url = EmailCodeLinks.CreateUrl(magicLink, token);
+        Assert.Equal("https://app.example.com/auth/email-link#token=link-token-value", url);
+        Assert.DoesNotContain(token, url!.Split('#')[0], StringComparison.Ordinal);
+
+        magicLink.BuildLinkUrl = context => context.LinkUri + "#custom=" + context.Token;
+        Assert.Equal(
+            "https://app.example.com/auth/email-link#custom=link-token-value",
+            EmailCodeLinks.CreateUrl(magicLink, token));
+
+        magicLink.Enabled = false;
+        Assert.Null(EmailCodeLinks.CreateUrl(magicLink, token));
+        Assert.Null(EmailCodeLinks.CreateUrl(
+            new EmailCodeMagicLinkOptions { Enabled = true, LinkUri = "https://app.example.com/auth/email-link" },
+            token: null));
+    }
+
+    [Fact]
     public void LinkTokenHash_IsSha256OfTheToken()
     {
         const string token = "abcdefghijklmnopqrstuvwxyz012345";

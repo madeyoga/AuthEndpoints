@@ -170,10 +170,31 @@ CSRF is skipped only when the request has a non-empty `Authorization: Bearer` he
 | `ConfigureIdentity` | `null` | After secure Identity defaults |
 | `ConfigurePasskeys` | `null` | After `ServerDomain` is applied |
 | `RequireEmailSenderInProduction` | `true` | Production must register a real `IEmailSender<TUser>` |
+| `EmailCode.Enabled` | `false` | When true, maps `POST {IdentityPath}/emailCode/send` and `POST {IdentityPath}/emailCode/verify` |
+| `EmailCode.Configure` | `null` | `Action<EmailCodeOptions>`. `AllowSignUp` and `MagicLink.Enabled` default to `false` |
 
 Full table: https://authendpoints.harten.id/modules/configuration/
 
 `POST {IdentityPath}/register` (default `/identity/register`) does not sign the user in. Duplicate email returns `200 OK` (no enumeration). With the default confirmed-account policy, unconfirmed login is **401**. Passwordless passkey register that **creates** a user sends the same confirmation email; the completer still skips a session until the account can sign in.
+
+## Email code (opt-in)
+
+Off until `o.EmailCode.Enabled = true` (or you call `AddEmailCodeEndpoints` and `MapEmailCodeEndpoints`). Call `modelBuilder.UseEmailCodes()` and migrate (`AuthEndpoints.AuthEndpointsEmailCodes`). `MapEmailCodeEndpoints` throws if that entity is missing.
+
+Register `IEmailCodeSender<TUser>` outside Development (`RequireSenderOutsideDevelopment`, default `true`). `IEmailSender<TUser>` does not send the code. In Development, a missing sender becomes `DevelopmentEmailCodeSender<TUser>`, which logs the raw code. `Code` and `LinkUrl` are raw, not HTML-encoded. The send endpoint awaits `SendSignInCodeAsync`, so queue the message and return. Do not log the code, token, address, or link. Log category: `AuthEndpoints.EmailCode`.
+
+| Method | Path | Contract |
+| --- | --- | --- |
+| `POST` | `{IdentityPath}/emailCode/send` | `{ email }`. `200` `{ expiresInSeconds, resendAfterSeconds }` for a valid address, including when no mail is sent. `400` `InvalidEmail`. No CSRF. Rate limit `AuthEndpoints.EmailCode.Send` (default 5/minute/IP). |
+| `POST` | `{IdentityPath}/emailCode/verify` | `{ email, code }` or, when the magic link is on, `{ token }` alone. No CSRF. Rate limit `AuthEndpoints.Login`. |
+
+Verify query flags match Identity bearer login, not cookie `LoginCookie`. Neither flag returns Identity bearer token JSON. `useCookies=true` sets a persistent application cookie. `useSessionCookies=true` sets a session cookie. `401` detail `Invalid or expired code.` is the failure body. `401` title `RequiresTwoFactor` when the user has 2FA on and `RequireTwoFactor` is `true` (the default) and neither `twoFactorCode` nor `twoFactorRecoveryCode` was sent. That response does not consume the row.
+
+`AllowSignUp` `true`: a correct code for an unknown address creates one confirmed user with that email as the user name and no password, and does not send confirmation mail. `MagicLink.Enabled` requires `LinkUri`. The default link is `LinkUri + "#token=" + token`. A token in the body is `400` while the magic link is off. `GET` verify is `405`.
+
+`Jwt.Enabled` does not select `JwtEmailCodeSignInCompleter<TUser>`. Register it with `AddEmailCodeSignInCompleter` after `AddEmailCodeEndpoints` when verify should issue a Simple JWT. That completer ignores the cookie query flags.
+
+Module: https://authendpoints.harten.id/modules/email-code
 
 ## Passkeys
 
@@ -228,6 +249,7 @@ https://authendpoints.harten.id/modules/reauth
 
 - HTTPS
 - Real `IEmailSender<TUser>`
+- Email code, if enabled: `UseEmailCodes()`, a real `IEmailCodeSender<TUser>` outside Development, and `https` plus `AllowedOrigins` for an absolute magic-link URI in Production
 - `Passkeys.ServerDomain` if passkeys stay enabled; otherwise `Passkeys.Enabled = false`
 - JWT: `UseRefreshToken()`, real issuer/audience/signing material
 

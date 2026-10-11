@@ -27,7 +27,7 @@ public class EmailCodeOptionsTests
         Assert.Null(options.MagicLink.LinkUri);
         Assert.Empty(options.MagicLink.AllowedOrigins);
         Assert.Null(options.MagicLink.BuildLinkUrl);
-        Assert.True(options.RequireSenderInProduction);
+        Assert.True(options.RequireSenderOutsideDevelopment);
     }
 
     [Fact]

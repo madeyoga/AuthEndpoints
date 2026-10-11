@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -503,7 +505,7 @@ public class EmailCodeEndpointTests
             var response = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code });
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
             Assert.Equal("Unauthorized", await ProblemTitleAsync(response));
-            Assert.NotNull((await RowsAsync(host.App, email)).OrderByDescending(row => row.CreatedAt).First().ConsumedAt);
+            Assert.NotNull((await RowsAsync(host.App, email)).Single(row => row.UserId != null).ConsumedAt);
             Assert.False(await IsConfirmedAsync(host.App, email));
             Assert.True(await HasPasswordAsync(host.App, email));
         }
@@ -523,6 +525,306 @@ public class EmailCodeEndpointTests
         using var scope = host.App.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
         Assert.Null(await userManager.FindByEmailAsync(email));
+    }
+
+    [Fact]
+    public async Task AllowSignUp_OffRejectsTheCorrectCode_OnCreatesAConfirmedUser_AndExistingUsersStayOnTheSignInPath()
+    {
+        await using (var off = await EmailCodeHost.StartAsync())
+        {
+            var email = UniqueEmail("signup-off");
+            await PostAsync(off.Client, "/identity/emailCode/send", new { email });
+            Assert.Empty(Codes(off.Mail, email));
+            Assert.Null((await RowsAsync(off.App, email)).Single().SignupEmail);
+            string code;
+            off.Clock.Advance(TimeSpan.FromSeconds(61));
+            using (var scope = off.App.Services.CreateScope())
+            {
+                var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
+                var issued = await store.IssueAsync(email, null, null);
+                Assert.False(issued.Suppressed);
+                code = issued.Code;
+            }
+
+            var rejected = await PostAsync(off.Client, "/identity/emailCode/verify", new { email, code });
+            Assert.Equal(HttpStatusCode.Unauthorized, rejected.StatusCode);
+            Assert.Equal("Unauthorized", await ProblemTitleAsync(rejected));
+            Assert.Equal(0, await CountUsersAsync(off.App, email));
+        }
+
+        await using var on = await EmailCodeHost.StartAsync(options => options.AllowSignUp = true, captureLogs: true);
+        var missed = UniqueEmail("signup-miss");
+        await PostAsync(on.Client, "/identity/emailCode/send", new { email = missed });
+        var missedMail = MailFor(on.Mail, missed);
+        var missedVerify = await PostAsync(
+            on.Client,
+            "/identity/emailCode/verify",
+            new { email = missed, code = WrongCode(missedMail.Body) });
+        Assert.Equal(HttpStatusCode.Unauthorized, missedVerify.StatusCode);
+        Assert.Equal(0, await CountUsersAsync(on.App, missed));
+        Assert.Equal(1, (await RowsAsync(on.App, missed)).Single().Attempts);
+
+        var known = UniqueEmail("signup-known");
+        var unknown = UniqueEmail("signup-new");
+        await SeedAsync(on.App, known);
+        var knownId = await UserIdAsync(on.App, known);
+        var knownSend = await PostAsync(on.Client, "/identity/emailCode/send", new { email = known });
+        var unknownSend = await PostAsync(on.Client, "/identity/emailCode/send", new { email = unknown });
+        Assert.Equal(HttpStatusCode.OK, knownSend.StatusCode);
+        Assert.Equal(await knownSend.Content.ReadAsStringAsync(), await unknownSend.Content.ReadAsStringAsync());
+        Assert.Equal(EmailCodePurpose.SignIn, MailFor(on.Mail, known).Purpose);
+        Assert.Null(MailFor(on.Mail, known).LinkUrl);
+        var unknownMail = MailFor(on.Mail, unknown);
+        Assert.Equal(EmailCodePurpose.SignUp, unknownMail.Purpose);
+        Assert.Null(unknownMail.LinkUrl);
+        var unknownRow = (await RowsAsync(on.App, unknown)).Single();
+        Assert.Equal(unknown, unknownRow.SignupEmail);
+        Assert.Null(unknownRow.UserId);
+        Assert.Null((await RowsAsync(on.App, known)).Single().SignupEmail);
+
+        var created = await PostAsync(
+            on.Client,
+            "/identity/emailCode/verify",
+            new { email = unknown, code = unknownMail.Body });
+        Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        using (var doc = JsonDocument.Parse(await created.Content.ReadAsStringAsync()))
+        {
+            Assert.False(string.IsNullOrWhiteSpace(TestHelpers.TryGetString(doc.RootElement, "accessToken", "AccessToken")));
+        }
+
+        Assert.Equal(1, await CountUsersAsync(on.App, unknown));
+        Assert.True(await IsConfirmedAsync(on.App, unknown));
+        Assert.False(await HasPasswordAsync(on.App, unknown));
+        Assert.DoesNotContain(on.Mail.Snapshot(), item => item.Kind == "confirm" && item.Email == unknown);
+        Assert.Contains(on.Logs.Messages, message => message.Contains("SignedUp", StringComparison.Ordinal));
+        foreach (var message in on.Logs.Messages)
+        {
+            Assert.DoesNotContain(unknown, message, StringComparison.Ordinal);
+            Assert.DoesNotContain(unknownMail.Body, message, StringComparison.Ordinal);
+        }
+
+        var existing = await PostAsync(
+            on.Client,
+            "/identity/emailCode/verify",
+            new { email = known, code = Codes(on.Mail, known).Single() });
+        Assert.Equal(HttpStatusCode.OK, existing.StatusCode);
+        Assert.Equal(knownId, await UserIdAsync(on.App, known));
+        Assert.True(await HasPasswordAsync(on.App, known));
+        Assert.Equal(1, await CountUsersAsync(on.App, known));
+    }
+
+    [Fact]
+    public async Task AllowSignUp_ParallelVerifiesCreateOneUser()
+    {
+        await using var host = await EmailCodeHost.StartAsync(options => options.AllowSignUp = true);
+        var email = UniqueEmail("signup-race");
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+        using var clientA = host.App.GetTestClient();
+        using var clientB = host.App.GetTestClient();
+        var results = await Task.WhenAll(
+            PostAsync(clientA, "/identity/emailCode/verify", new { email, code }),
+            PostAsync(clientB, "/identity/emailCode/verify", new { email, code }));
+        Assert.Equal(1, results.Count(response => response.StatusCode == HttpStatusCode.OK));
+        Assert.Equal(1, results.Count(response => response.StatusCode == HttpStatusCode.Unauthorized));
+        Assert.Equal(1, await CountUsersAsync(host.App, email));
+        Assert.True(await IsConfirmedAsync(host.App, email));
+        Assert.False(await HasPasswordAsync(host.App, email));
+    }
+
+    [Fact]
+    public async Task AllowSignUp_ParallelTokensCreateOneUser_AndALaterUserKeepsItsPassword()
+    {
+        await using (var host = await EmailCodeHost.StartAsync(options =>
+        {
+            options.AllowSignUp = true;
+            EnableLink(options);
+        }))
+        {
+            var email = UniqueEmail("signup-dup");
+            var createdAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            var emailHash = EmailCodeHasher.HashEmail(new UpperInvariantLookupNormalizer().NormalizeEmail(email.Trim())!);
+            var tokenA = EmailCodeGenerator.CreateLinkToken();
+            var tokenB = EmailCodeGenerator.CreateLinkToken();
+            using (var scope = host.App.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+                db.Add(NewSignupRow(email, emailHash, tokenA, createdAt));
+                db.Add(NewSignupRow(email, emailHash, tokenB, createdAt.AddSeconds(1)));
+                await db.SaveChangesAsync();
+            }
+
+            using var clientA = host.App.GetTestClient();
+            using var clientB = host.App.GetTestClient();
+            var results = await Task.WhenAll(
+                PostAsync(clientA, "/identity/emailCode/verify", new { token = tokenA }),
+                PostAsync(clientB, "/identity/emailCode/verify", new { token = tokenB }));
+            Assert.Contains(results, response => response.StatusCode == HttpStatusCode.OK);
+            Assert.Equal(1, await CountUsersAsync(host.App, email));
+            Assert.True(await IsConfirmedAsync(host.App, email));
+            Assert.False(await HasPasswordAsync(host.App, email));
+        }
+
+        await using var later = await EmailCodeHost.StartAsync(options => options.AllowSignUp = true);
+        var existingEmail = UniqueEmail("signup-later");
+        await PostAsync(later.Client, "/identity/emailCode/send", new { email = existingEmail });
+        var code = Codes(later.Mail, existingEmail).Single();
+        await SeedAsync(later.App, existingEmail);
+        var userId = await UserIdAsync(later.App, existingEmail);
+        var signedIn = await PostAsync(later.Client, "/identity/emailCode/verify", new { email = existingEmail, code });
+        Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
+        Assert.Equal(userId, await UserIdAsync(later.App, existingEmail));
+        Assert.True(await HasPasswordAsync(later.App, existingEmail));
+        Assert.Equal(1, await CountUsersAsync(later.App, existingEmail));
+    }
+
+    [Fact]
+    public async Task MagicLink_FragmentUrl_PostVerifiesOnce_AndGetDoesNotSignIn()
+    {
+        await using var host = await EmailCodeHost.StartAsync(options => EnableLink(options), captureLogs: true);
+        var email = UniqueEmail("link");
+        await SeedAsync(host.App, email);
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var mail = MailFor(host.Mail, email);
+        var token = TokenFromLink(mail.LinkUrl);
+        Assert.Equal("https://app.example.com/auth/email-link#token=" + token, mail.LinkUrl);
+        Assert.Equal(EmailCodeHasher.HashLinkToken(token), (await RowsAsync(host.App, email)).Single().LinkTokenHash);
+        foreach (var message in host.Logs.Messages)
+        {
+            Assert.DoesNotContain(token, message, StringComparison.Ordinal);
+            Assert.DoesNotContain(mail.LinkUrl!, message, StringComparison.Ordinal);
+            Assert.DoesNotContain(email, message, StringComparison.Ordinal);
+            Assert.DoesNotContain(mail.Body, message, StringComparison.Ordinal);
+        }
+
+        var get = await host.Client.GetAsync("/identity/emailCode/verify?token=" + Uri.EscapeDataString(token));
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, get.StatusCode);
+        Assert.DoesNotContain(".AspNetCore.Identity.Application", SetCookie(get), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.Client.GetAsync("/identity/manage/info")).StatusCode);
+        Assert.Null((await RowsAsync(host.App, email)).Single().ConsumedAt);
+
+        var ok = await PostAsync(host.Client, "/identity/emailCode/verify", new { token });
+        Assert.Equal(HttpStatusCode.OK, ok.StatusCode);
+        using (var doc = JsonDocument.Parse(await ok.Content.ReadAsStringAsync()))
+        {
+            Assert.False(string.IsNullOrWhiteSpace(TestHelpers.TryGetString(doc.RootElement, "accessToken", "AccessToken")));
+        }
+
+        var replay = await PostAsync(host.Client, "/identity/emailCode/verify", new { token });
+        Assert.Equal(HttpStatusCode.Unauthorized, replay.StatusCode);
+        var codeAfter = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code = mail.Body });
+        Assert.Equal(HttpStatusCode.Unauthorized, codeAfter.StatusCode);
+        Assert.Equal("Unauthorized", await ProblemTitleAsync(codeAfter));
+    }
+
+    [Fact]
+    public async Task MagicLink_CodeConsumesTheToken_AndTheOverrideIsHonoured()
+    {
+        await using (var host = await EmailCodeHost.StartAsync(options => EnableLink(options)))
+        {
+            var email = UniqueEmail("link-code");
+            await SeedAsync(host.App, email);
+            await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+            var mail = MailFor(host.Mail, email);
+            var token = TokenFromLink(mail.LinkUrl);
+            var signedIn = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code = mail.Body });
+            Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
+            var tokenAfter = await PostAsync(host.Client, "/identity/emailCode/verify", new { token });
+            Assert.Equal(HttpStatusCode.Unauthorized, tokenAfter.StatusCode);
+        }
+
+        await using var custom = await EmailCodeHost.StartAsync(options =>
+        {
+            EnableLink(options);
+            options.MagicLink.BuildLinkUrl = context => context.LinkUri + "#custom=" + context.Token;
+        });
+        var customEmail = UniqueEmail("link-custom");
+        await SeedAsync(custom.App, customEmail);
+        await PostAsync(custom.Client, "/identity/emailCode/send", new { email = customEmail });
+        var customMail = MailFor(custom.Mail, customEmail);
+        const string customPrefix = "https://app.example.com/auth/email-link#custom=";
+        Assert.StartsWith(customPrefix, customMail.LinkUrl, StringComparison.Ordinal);
+        var customToken = customMail.LinkUrl![customPrefix.Length..];
+        Assert.Equal(EmailCodeHasher.HashLinkToken(customToken), (await RowsAsync(custom.App, customEmail)).Single().LinkTokenHash);
+    }
+
+    [Fact]
+    public async Task MagicLink_Disabled_RejectsAToken()
+    {
+        await using var host = await EmailCodeHost.StartAsync();
+        var email = UniqueEmail("link-off");
+        await SeedAsync(host.App, email);
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+        Assert.Null(MailFor(host.Mail, email).LinkUrl);
+
+        var tokenOnly = await PostAsync(host.Client, "/identity/emailCode/verify", new { token = "abc" });
+        Assert.Equal(HttpStatusCode.BadRequest, tokenOnly.StatusCode);
+        var both = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code, token = "abc" });
+        Assert.Equal(HttpStatusCode.BadRequest, both.StatusCode);
+        using (var doc = JsonDocument.Parse(await both.Content.ReadAsStringAsync()))
+        {
+            Assert.True(doc.RootElement.GetProperty("errors").TryGetProperty("InvalidEmailCodeRequest", out _));
+        }
+
+        Assert.Null((await RowsAsync(host.App, email)).Single().ConsumedAt);
+        var signedIn = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code });
+        Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
+    }
+
+    [Fact]
+    public async Task MagicLink_TokenRequiresTwoFactor_AndSharesAttemptsAndExpiryWithTheCode()
+    {
+        await using (var host = await EmailCodeHost.StartAsync(options => EnableLink(options)))
+        {
+            var email = UniqueEmail("link-totp");
+            await SeedAsync(host.App, email, twoFactor: true);
+            var key = await AuthenticatorKeyAsync(host.App, email);
+            await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+            var token = TokenFromLink(MailFor(host.Mail, email).LinkUrl);
+            var missing = await PostAsync(host.Client, "/identity/emailCode/verify", new { token });
+            Assert.Equal(HttpStatusCode.Unauthorized, missing.StatusCode);
+            Assert.Equal("RequiresTwoFactor", await ProblemTitleAsync(missing));
+            Assert.Equal("Two-factor authentication is required.", await ProblemDetailAsync(missing));
+            Assert.Null((await RowsAsync(host.App, email)).Single().ConsumedAt);
+
+            var accepted = await PostAsync(
+                host.Client,
+                "/identity/emailCode/verify",
+                new { token, twoFactorCode = TotpHelper.GenerateCode(key) });
+            Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+            Assert.NotNull((await RowsAsync(host.App, email)).Single().ConsumedAt);
+        }
+
+        await using (var attempts = await EmailCodeHost.StartAsync(options =>
+        {
+            EnableLink(options);
+            options.MaxAttempts = 2;
+        }))
+        {
+            var email = UniqueEmail("link-attempts");
+            await SeedAsync(attempts.App, email);
+            await PostAsync(attempts.Client, "/identity/emailCode/send", new { email });
+            var mail = MailFor(attempts.Mail, email);
+            var token = TokenFromLink(mail.LinkUrl);
+            await PostAsync(attempts.Client, "/identity/emailCode/verify", new { email, code = WrongCode(mail.Body) });
+            await PostAsync(attempts.Client, "/identity/emailCode/verify", new { email, code = WrongCode(mail.Body) });
+            var blocked = await PostAsync(attempts.Client, "/identity/emailCode/verify", new { token });
+            Assert.Equal(HttpStatusCode.Unauthorized, blocked.StatusCode);
+            var row = (await RowsAsync(attempts.App, email)).Single();
+            Assert.Equal(2, row.Attempts);
+            Assert.Null(row.ConsumedAt);
+        }
+
+        await using var expired = await EmailCodeHost.StartAsync(options => EnableLink(options));
+        var expiredEmail = UniqueEmail("link-expired");
+        await SeedAsync(expired.App, expiredEmail);
+        await PostAsync(expired.Client, "/identity/emailCode/send", new { email = expiredEmail });
+        var expiredToken = TokenFromLink(MailFor(expired.Mail, expiredEmail).LinkUrl);
+        expired.Clock.Advance(TimeSpan.FromMinutes(11));
+        var expiredVerify = await PostAsync(expired.Client, "/identity/emailCode/verify", new { token = expiredToken });
+        Assert.Equal(HttpStatusCode.Unauthorized, expiredVerify.StatusCode);
+        Assert.Null((await RowsAsync(expired.App, expiredEmail)).Single().ConsumedAt);
     }
 
     [Fact]
@@ -819,6 +1121,76 @@ public class EmailCodeEndpointTests
     }
 
     [Fact]
+    public async Task Send_SerializationFailure_ReturnsTheSameBodyAsANormalSend()
+    {
+        string normalBody;
+        await using (var host = await EmailCodeHost.StartAsync())
+        {
+            var email = UniqueEmail("conflict-baseline");
+            await SeedAsync(host.App, email);
+            var response = await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            normalBody = await response.Content.ReadAsStringAsync();
+        }
+
+        var throwing = new SerializationFailureStore();
+        await using var failed = await EmailCodeHost.StartAsync(configureServices: services =>
+            services.AddScoped<IEmailCodeStore>(_ => throwing));
+        var conflictEmail = UniqueEmail("conflict");
+        await SeedAsync(failed.App, conflictEmail);
+        var conflict = await PostAsync(failed.Client, "/identity/emailCode/send", new { email = conflictEmail });
+        Assert.Equal(HttpStatusCode.OK, conflict.StatusCode);
+        Assert.Equal(normalBody, await conflict.Content.ReadAsStringAsync());
+        Assert.Equal(2, throwing.IssueCalls);
+        Assert.Empty(Codes(failed.Mail, conflictEmail));
+    }
+
+    [Fact]
+    public async Task Send_WithRetryingExecutionStrategy_IssuesTheCode()
+    {
+        await using var host = await EmailCodeHost.StartAsync(configureSqlite: sqlite =>
+            sqlite.ExecutionStrategy(dependencies => new RetryingExecutionStrategy(dependencies)));
+        using (var scope = host.App.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            Assert.True(db.Database.CreateExecutionStrategy().RetriesOnFailure);
+        }
+
+        var email = UniqueEmail("retry-strategy");
+        await SeedAsync(host.App, email);
+        var response = await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Single(Codes(host.Mail, email));
+        Assert.Single(await RowsAsync(host.App, email));
+    }
+
+    [Fact]
+    public async Task SendAndVerify_UsesTheRegisteredLookupNormalizer()
+    {
+        var normalizer = new PrefixLookupNormalizer();
+        await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
+        {
+            services.RemoveAll<ILookupNormalizer>();
+            services.AddSingleton<ILookupNormalizer>(normalizer);
+        });
+        var email = UniqueEmail("normalizer");
+        await SeedAsync(host.App, email);
+
+        var response = await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var normalized = normalizer.NormalizeEmail(email);
+        Assert.StartsWith("ee:", normalized, StringComparison.Ordinal);
+        var row = Assert.Single(await RowsAsync(host.App, email));
+        Assert.Equal(EmailCodeHasher.HashEmail(normalized!), row.EmailHash);
+
+        var verify = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code = Codes(host.Mail, email).Single() });
+        Assert.Equal(HttpStatusCode.OK, verify.StatusCode);
+    }
+
+    [Fact]
     public async Task Send_ParallelWithinCooldown_IssuesOneRowAndOneMail()
     {
         await using var host = await EmailCodeHost.StartAsync();
@@ -871,7 +1243,7 @@ public class EmailCodeEndpointTests
             options.Passkeys.ServerDomain = "example.com";
             options.RequireEmailSenderInProduction = false;
             options.EmailCode.Enabled = true;
-            options.EmailCode.Configure = emailCode => emailCode.RequireSenderInProduction = requireSender;
+            options.EmailCode.Configure = emailCode => emailCode.RequireSenderOutsideDevelopment = requireSender;
         });
         return builder.Build();
     }
@@ -914,6 +1286,60 @@ public class EmailCodeEndpointTests
         app.MapAuthEndpoints<TestAppUser>();
         await app.StartAsync();
         return app;
+    }
+
+    private static void EnableLink(EmailCodeOptions options)
+    {
+        options.MagicLink.Enabled = true;
+        options.MagicLink.LinkUri = "https://app.example.com/auth/email-link";
+    }
+
+    private static CapturedMail MailFor(CapturingEmailSender mail, string email)
+    {
+        return mail.Snapshot().Single(item => item.Kind == "email-code" && item.Email == email);
+    }
+
+    private static string TokenFromLink(string? link)
+    {
+        const string marker = "#token=";
+        Assert.NotNull(link);
+        var index = link.IndexOf(marker, StringComparison.Ordinal);
+        Assert.True(index >= 0, link);
+        var token = link[(index + marker.Length)..];
+        Assert.False(string.IsNullOrEmpty(token));
+        Assert.DoesNotContain(token, link[..index], StringComparison.Ordinal);
+        return token;
+    }
+
+    private static EmailCodeEntity NewSignupRow(string email, string emailHash, string token, DateTime createdAt)
+    {
+        var id = Guid.NewGuid().ToString();
+        return new EmailCodeEntity
+        {
+            Id = id,
+            EmailHash = emailHash,
+            CodeHash = EmailCodeHasher.HashCode(id, "000000"),
+            LinkTokenHash = EmailCodeHasher.HashLinkToken(token),
+            SignupEmail = email,
+            CreatedAt = createdAt,
+            ExpiresAt = createdAt.AddMinutes(10)
+        };
+    }
+
+    private static async Task<int> CountUsersAsync(WebApplication app, string email)
+    {
+        using var scope = app.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var normalized = userManager.NormalizeEmail(email);
+        return await userManager.Users.CountAsync(user => user.NormalizedEmail == normalized);
+    }
+
+    private static async Task<string> UserIdAsync(WebApplication app, string email)
+    {
+        using var scope = app.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = await userManager.FindByEmailAsync(email);
+        return await userManager.GetUserIdAsync(user!);
     }
 
     private static List<string> Codes(CapturingEmailSender mail, string email)
@@ -1215,7 +1641,8 @@ public class EmailCodeEndpointTests
             bool jwt = false,
             bool captureLogs = false,
             Action<IServiceCollection>? configureServices = null,
-            bool useRateLimiter = true)
+            bool useRateLimiter = true,
+            Action<SqliteDbContextOptionsBuilder>? configureSqlite = null)
         {
             var path = Path.Combine(Path.GetTempPath(), $"ae-email-code-host-{Guid.NewGuid():N}.sqlite");
             var mail = new CapturingEmailSender();
@@ -1227,7 +1654,9 @@ public class EmailCodeEndpointTests
             });
             builder.WebHost.UseTestServer();
             builder.Services.AddDbContext<TestDbContext>(options =>
-                options.UseSqlite($"Data Source={path};Default Timeout=30"));
+                options.UseSqlite(
+                    $"Data Source={path};Default Timeout=30",
+                    sqlite => configureSqlite?.Invoke(sqlite)));
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton(sender ?? mail);
             builder.Services
@@ -1444,6 +1873,74 @@ public class EmailCodeEndpointTests
         }
     }
 
+    private sealed class PrefixLookupNormalizer : ILookupNormalizer
+    {
+        public string? NormalizeEmail(string? email)
+        {
+            return email is null ? null : "ee:" + email.Trim().ToUpperInvariant();
+        }
+
+        public string? NormalizeName(string? name)
+        {
+            return name?.ToUpperInvariant();
+        }
+    }
+
+    private sealed class RetryingExecutionStrategy : ExecutionStrategy
+    {
+        public RetryingExecutionStrategy(ExecutionStrategyDependencies dependencies)
+            : base(dependencies, maxRetryCount: 3, maxRetryDelay: TimeSpan.Zero)
+        {
+        }
+
+        protected override bool ShouldRetryOn(Exception exception) => false;
+    }
+
+    private sealed class SerializationFailureStore : IEmailCodeStore
+    {
+        public int IssueCalls { get; private set; }
+
+        public Task<EmailCodeIssueResult> IssueAsync(
+            string email,
+            string? userId,
+            string? securityStamp,
+            bool rememberSignupEmail = false,
+            CancellationToken cancellationToken = default)
+        {
+            IssueCalls++;
+            throw EmailCodeFailureExceptions.SqlDeadlock();
+        }
+
+        public Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult<EmailCodeEntry?>(null);
+
+        public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+            => Task.FromResult<EmailCodeEntry?>(null);
+
+        public bool CodeMatches(EmailCodeEntry row, string submittedCode) => false;
+
+        public Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+    }
+
     private sealed class CompareCounter
     {
         private int _compares;
@@ -1466,15 +1963,31 @@ public class EmailCodeEndpointTests
             _afterLoad = afterLoad;
         }
 
-        public Task<EmailCodeIssueResult> IssueAsync(string email, string? userId, string? securityStamp, CancellationToken cancellationToken = default)
-            => _inner.IssueAsync(email, userId, securityStamp, cancellationToken);
+        public Task<EmailCodeIssueResult> IssueAsync(
+            string email,
+            string? userId,
+            string? securityStamp,
+            bool rememberSignupEmail = false,
+            CancellationToken cancellationToken = default)
+            => _inner.IssueAsync(email, userId, securityStamp, rememberSignupEmail, cancellationToken);
 
         public async Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
         {
             var row = await _inner.FindLiveByEmailAsync(email, cancellationToken);
             if (row is not null)
             {
-                _afterLoad.SignalAndWait(TimeSpan.FromSeconds(30));
+                Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
+            }
+
+            return row;
+        }
+
+        public async Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+        {
+            var row = await _inner.FindLiveByLinkTokenAsync(token, cancellationToken);
+            if (row is not null)
+            {
+                Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
 
             return row;

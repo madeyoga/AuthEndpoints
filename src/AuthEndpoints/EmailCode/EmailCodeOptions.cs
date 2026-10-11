@@ -27,7 +27,10 @@ public sealed class EmailCodeOptions
 
     public EmailCodeMagicLinkOptions MagicLink { get; set; } = new();
 
-    public bool RequireSenderInProduction { get; set; } = true;
+    /// <summary>
+    /// Requires a real email-code sender in every environment except Development.
+    /// </summary>
+    public bool RequireSenderOutsideDevelopment { get; set; } = true;
 }
 
 public sealed class EmailCodeMagicLinkOptions
