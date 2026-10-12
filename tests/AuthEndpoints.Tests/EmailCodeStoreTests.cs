@@ -438,9 +438,12 @@ public class EmailCodeStoreTests
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Issue_DeadlockOrSerializationFailure_RetriesOnce(bool postgres)
+    [InlineData("sql-1205")]
+    [InlineData("postgres-40001")]
+    [InlineData("sqlite-5")]
+    [InlineData("sqlite-6")]
+    [InlineData("mysql-1213")]
+    public async Task Issue_TransientConflict_RetriesOnce(string kind)
     {
         using var db = new SqliteDatabase();
         await using (var seed = db.Open())
@@ -448,14 +451,52 @@ public class EmailCodeStoreTests
             _ = seed;
         }
 
-        var interceptor = new FailSavesInterceptor(
-            times: 1,
-            postgres ? EmailCodeFailureExceptions.PostgresSerialization() : EmailCodeFailureExceptions.SqlDeadlock());
+        var interceptor = new FailSavesInterceptor(times: 1, Conflict(kind));
         await using var context = db.Open(interceptor);
         EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
         Assert.False(issued.Suppressed);
         Assert.Equal(2, interceptor.Attempts);
         Assert.Equal(1, await context.Set<EmailCodeEntity>().CountAsync());
+    }
+
+    [Theory]
+    [InlineData("sqlite-19")]
+    [InlineData("mysql-1062")]
+    public async Task Issue_NonTransientProviderError_DoesNotRetry(string kind)
+    {
+        using var db = new SqliteDatabase();
+        var interceptor = new FailSavesInterceptor(times: 1, Conflict(kind));
+        await using var context = db.Open(interceptor);
+        await Assert.ThrowsAnyAsync<Exception>(() => NewStore(context).IssueAsync("a@x.com", "user", "stamp"));
+        Assert.Equal(1, interceptor.Attempts);
+    }
+
+    [Theory]
+    [InlineData("sql-1205", true)]
+    [InlineData("postgres-40001", true)]
+    [InlineData("sqlite-5", true)]
+    [InlineData("sqlite-6", true)]
+    [InlineData("mysql-1213", true)]
+    [InlineData("sqlite-19", false)]
+    [InlineData("mysql-1062", false)]
+    public void TransactionConflict_MatchesBusyDeadlockAndSerializationOnly(string kind, bool conflict)
+    {
+        Assert.Equal(conflict, EmailCodeTransactionFailures.IsDeadlockOrSerializationFailure(Conflict(kind)));
+    }
+
+    private static Exception Conflict(string kind)
+    {
+        return kind switch
+        {
+            "sql-1205" => EmailCodeFailureExceptions.SqlDeadlock(),
+            "postgres-40001" => EmailCodeFailureExceptions.PostgresSerialization(),
+            "sqlite-5" => EmailCodeFailureExceptions.Sqlite(5),
+            "sqlite-6" => EmailCodeFailureExceptions.Sqlite(6),
+            "sqlite-19" => EmailCodeFailureExceptions.Sqlite(19),
+            "mysql-1213" => EmailCodeFailureExceptions.MySql(1213),
+            "mysql-1062" => EmailCodeFailureExceptions.MySql(1062),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+        };
     }
 
     [Fact]

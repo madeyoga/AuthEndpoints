@@ -190,7 +190,7 @@ Register `IEmailCodeSender<TUser>` outside Development (`RequireSenderOutsideDev
 
 Verify query flags match Identity bearer login, not cookie `LoginCookie`. Neither flag returns Identity bearer token JSON. `useCookies=true` sets a persistent application cookie. `useSessionCookies=true` sets a session cookie. `401` detail `Invalid or expired code.` is the failure body. `401` title `RequiresTwoFactor` when the user has 2FA on and `RequireTwoFactor` is `true` (the default) and neither `twoFactorCode` nor `twoFactorRecoveryCode` was sent. That response does not consume the row.
 
-`AllowSignUp` `true`: a correct code for an unknown address creates one confirmed user with that email as the user name and no password, and does not send confirmation mail. `MagicLink.Enabled` requires `LinkUri`. The default link is `LinkUri + "#token=" + token`. A token in the body is `400` while the magic link is off. `GET` verify is `405`.
+`AllowSignUp` `true`: a correct code for an unknown address creates one confirmed user with that email as the user name and no password, and does not send confirmation mail. `EmailConfirmed` is set before create, without an email-confirmation token provider. `MagicLink.Enabled` requires an absolute `http(s)` `LinkUri` with no `#`. The default link is `LinkUri + "#token=" + token`. A token in the body is `400` while the magic link is off. `GET` verify is `405`. A confirmed user's existing password stays in place. An unconfirmed user follows `UnconfirmedAccounts`.
 
 `Jwt.Enabled` does not select `JwtEmailCodeSignInCompleter<TUser>`. Register it with `AddEmailCodeSignInCompleter` after `AddEmailCodeEndpoints` when verify should issue a Simple JWT. That completer ignores the cookie query flags.
 

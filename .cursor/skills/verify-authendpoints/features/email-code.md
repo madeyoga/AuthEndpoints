@@ -25,7 +25,7 @@
 
 Preconditions:
 
-- Launch with `AE_EMAIL_CODE=true`. Add `AE_EMAIL_CODE_SIGNUP=true` only for the sign-up case. Add `AE_EMAIL_CODE_LINK` (a rooted path or absolute `http(s)` URI) only for the magic-link case.
+- Launch with `AE_EMAIL_CODE=true`. Add `AE_EMAIL_CODE_SIGNUP=true` only for the sign-up case. Add `AE_EMAIL_CODE_LINK` (an absolute `http(s)` URI with no `#`) only for the magic-link case.
 - Host is healthy (`ae-http.sh doctor`).
 - Cookie jar is empty.
 - `EMAIL` is unused. This host's `RequireConfirmedAccount` is false unless `AE_REQUIRE_CONFIRMED_ACCOUNT=true`.
