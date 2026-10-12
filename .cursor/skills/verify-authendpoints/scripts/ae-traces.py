@@ -107,11 +107,11 @@ class RequestTrace:
 
     @property
     def statements(self) -> list[tuple[str, str]]:
-        rows = []
-        for span in self.spans:
-            if span.statement:
-                rows.append((span.statement_key, span.statement))
-        return rows
+        ordered = sorted(
+            (span for span in self.spans if span.statement),
+            key=lambda span: (span.start_ns, span.span_id),
+        )
+        return [(span.statement_key, span.statement) for span in ordered]
 
 
 @dataclass
@@ -229,42 +229,112 @@ def parse_spans(document: dict[str, Any], service: str) -> list[Span]:
     return spans
 
 
-def fetch_document(dashboard: str, service: str, limit: int, has_error: bool | None = None) -> dict[str, Any]:
-    params: list[tuple[str, str]] = [("limit", str(limit))]
-    if service:
-        params.append(("resource", service))
-    if has_error is True:
-        params.append(("hasError", "true"))
-    url = dashboard.rstrip("/") + "/api/telemetry/traces?" + urllib.parse.urlencode(params)
+class TraceFetchError(Exception):
+    pass
+
+
+def fetch_json(url: str) -> tuple[int, Any]:
     request = urllib.request.Request(url, headers={"Accept": "application/json"})
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             body = response.read().decode("utf-8")
+            status = response.status
     except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:500]
-        raise SystemExit(f"Dashboard traces API returned HTTP {exc.code} for {url}\n{detail}") from exc
+        detail = exc.read().decode("utf-8", errors="replace")
+        try:
+            payload = json.loads(detail) if detail else {}
+        except json.JSONDecodeError:
+            payload = detail[:500]
+        return exc.code, payload
     except urllib.error.URLError as exc:
-        raise SystemExit(
+        raise TraceFetchError(
             f"Could not reach the Aspire dashboard at {url}. Start it and retry. ({exc.reason})"
         ) from exc
     try:
-        return json.loads(body)
+        return status, json.loads(body) if body else {}
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"Dashboard traces API did not return JSON from {url}") from exc
+        raise TraceFetchError(f"Dashboard API did not return JSON from {url}") from exc
+
+
+def resource_keys(dashboard: str, service: str) -> list[str]:
+    """Names to pass as repeated resource filters.
+
+    Two live hosts both export service.name=authendpoints-demo. The dashboard
+    then rejects ?resource=authendpoints-demo with 404 and keeps each instance
+    under displayName "{name}-{instanceId}".
+    """
+    status, payload = fetch_json(dashboard.rstrip("/") + "/api/telemetry/resources")
+    if status != 200 or not isinstance(payload, list):
+        return [service] if service else []
+    keys: list[str] = []
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+        if service and item.get("name") != service:
+            continue
+        if item.get("hasTraces") is False:
+            continue
+        display = str(item.get("displayName") or item.get("name") or "")
+        if display and display not in keys:
+            keys.append(display)
+    if not keys and service:
+        return [service]
+    return keys
+
+
+def fetch_document(dashboard: str, resource_key: str, limit: int, has_error: bool | None = None) -> dict[str, Any]:
+    params: list[tuple[str, str]] = [("limit", str(limit))]
+    if resource_key:
+        params.append(("resource", resource_key))
+    if has_error is True:
+        params.append(("hasError", "true"))
+    url = dashboard.rstrip("/") + "/api/telemetry/traces?" + urllib.parse.urlencode(params)
+    status, payload = fetch_json(url)
+    if status == 404:
+        raise TraceFetchError(f"Dashboard traces API returned HTTP 404 for resource {resource_key}")
+    if status != 200 or not isinstance(payload, dict):
+        raise TraceFetchError(f"Dashboard traces API returned HTTP {status} for {url}")
+    return payload
 
 
 def load_spans(dashboard: str, service: str, limit: int) -> tuple[list[Span], int, int]:
-    document = fetch_document(dashboard, service, limit)
-    total = int(document.get("totalCount") or 0)
-    returned = int(document.get("returnedCount") or 0)
-    spans = parse_spans(document, service)
-    if returned < total:
-        error_doc = fetch_document(dashboard, service, limit, has_error=True)
-        known = {span.span_id for span in spans}
-        for span in parse_spans(error_doc, service):
-            if span.span_id not in known:
-                spans.append(span)
+    keys = resource_keys(dashboard, service)
+    spans: list[Span] = []
+    known: set[str] = set()
+    total = 0
+    returned = 0
+    errors: list[str] = []
+    for key in keys:
+        try:
+            document = fetch_document(dashboard, key, limit)
+        except TraceFetchError as exc:
+            errors.append(str(exc))
+            continue
+        total += int(document.get("totalCount") or 0)
+        returned += int(document.get("returnedCount") or 0)
+        for span in parse_spans(document, service):
+            if span.span_id in known:
+                continue
+            known.add(span.span_id)
+            spans.append(span)
+        if int(document.get("returnedCount") or 0) < int(document.get("totalCount") or 0):
+            try:
+                error_doc = fetch_document(dashboard, key, limit, has_error=True)
+            except TraceFetchError:
+                continue
+            for span in parse_spans(error_doc, service):
+                if span.span_id in known:
+                    continue
                 known.add(span.span_id)
+                spans.append(span)
+    if not spans and errors and not keys:
+        raise TraceFetchError("; ".join(errors))
+    if not spans and errors and all("404" in error for error in errors):
+        raise TraceFetchError(
+            "No traces for service "
+            f"{service}. The dashboard resource list did not match, or export has not flushed. "
+            + "; ".join(errors)
+        )
     return spans, total, returned
 
 
@@ -787,7 +857,10 @@ def analyze(section: str, wait: bool, require_email_code: bool) -> int:
     if wait and flush_seconds > 0:
         print(f"waiting {flush_seconds:.0f}s for the OTLP batch exporter", file=sys.stderr)
         time.sleep(flush_seconds)
-    spans, total, returned = load_spans(dashboard, service, limit)
+    try:
+        spans, total, returned = load_spans(dashboard, service, limit)
+    except TraceFetchError as exc:
+        raise SystemExit(str(exc)) from exc
     requests, orphans = group_requests(spans, since_ns, port)
     label_path = os.path.join(evidence, "trace-labels.jsonl")
     labels = read_labels(label_path)

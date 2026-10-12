@@ -152,7 +152,7 @@ Live verification reads **inside** spans from the Aspire dashboard:
 
 `GET http://localhost:18888/api/telemetry/traces?resource=authendpoints-demo`
 
-The response is `{ data, totalCount, returnedCount }` with OTLP spans in `data.resourceSpans`. Route names are not enough. The helper in `scripts/ae-traces.py` (invoked as `ae-http.sh traces`) uses span status, exception events, `db.statement` (or `db.query.text` when that is the only statement attribute), and server-span duration. It keeps spans whose `server.port` is `AE_PORT` and whose start is at or after `traces.since`.
+The response is `{ data, totalCount, returnedCount }` with OTLP spans in `data.resourceSpans`. Route names are not enough. The helper in `scripts/ae-traces.py` (invoked as `ae-http.sh traces`) uses span status, exception events, `db.statement` (or `db.query.text` when that is the only statement attribute), and server-span duration. It keeps spans whose `server.port` is `AE_PORT` and whose start is at or after `traces.since`. When several processes export the same `service.name`, the dashboard 404s `?resource=authendpoints-demo`; the helper lists `/api/telemetry/resources` and queries each `displayName` instead.
 
 ```bash
 "$HARNESS" traces
