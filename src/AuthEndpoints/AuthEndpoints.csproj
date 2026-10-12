@@ -13,7 +13,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>Additive Map* building blocks for password, cookie and bearer sessions, JWT create versus session, passkey sign-in versus management, shared confirm-email, and account management. A missing Add* logs a warning. Facade routes match 3.3.0. No new migration.</PackageReleaseNotes>
+    <PackageReleaseNotes>Additive Map* building blocks for password, cookie and bearer sessions, JWT create versus session, passkey sign-in versus management, shared confirm-email, and account management. A missing Add* logs a warning. The same method and path mapped twice logs a startup warning naming both map methods. Facade routes match 3.3.0. No new migration.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
