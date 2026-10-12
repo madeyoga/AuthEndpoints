@@ -227,6 +227,68 @@ public class EmailCodeOptionsTests
         }, "#");
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Validator_AcceptsRootedLinkUriWhenBuildLinkUrlIsSet(bool production)
+    {
+        var result = Validate(new EmailCodeOptions
+        {
+            MagicLink = new EmailCodeMagicLinkOptions
+            {
+                Enabled = true,
+                LinkUri = "/auth/email-link",
+                BuildLinkUrl = context => context.LinkUri + "?token=" + context.Token
+            }
+        }, production);
+
+        Assert.False(result.Failed);
+    }
+
+    [Theory]
+    [InlineData("auth/email-link")]
+    [InlineData("//app.example.com/auth/email-link")]
+    [InlineData("/auth/email-link#token")]
+    public void Validator_RejectsNonRootedOrHashLinkUriWhenBuildLinkUrlIsSet(string linkUri)
+    {
+        AssertRejected(o =>
+        {
+            o.MagicLink.Enabled = true;
+            o.MagicLink.LinkUri = linkUri;
+            o.MagicLink.BuildLinkUrl = context => context.LinkUri;
+        }, "#");
+    }
+
+    [Fact]
+    public void Validator_BuildLinkUrl_StillChecksAbsoluteUriInProduction()
+    {
+        var http = Validate(new EmailCodeOptions
+        {
+            MagicLink = new EmailCodeMagicLinkOptions
+            {
+                Enabled = true,
+                LinkUri = "http://app.example.com/auth/email-link",
+                AllowedOrigins = ["https://app.example.com"],
+                BuildLinkUrl = context => context.LinkUri
+            }
+        }, production: true);
+        Assert.True(http.Failed);
+        Assert.Contains("https", http.FailureMessage, StringComparison.Ordinal);
+
+        var foreign = Validate(new EmailCodeOptions
+        {
+            MagicLink = new EmailCodeMagicLinkOptions
+            {
+                Enabled = true,
+                LinkUri = "https://evil.example/auth/email-link",
+                AllowedOrigins = ["https://app.example.com"],
+                BuildLinkUrl = context => context.LinkUri
+            }
+        }, production: true);
+        Assert.True(foreign.Failed);
+        Assert.Contains("AllowedOrigins", foreign.FailureMessage, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Validator_RejectsIllegalLinkUri()
     {

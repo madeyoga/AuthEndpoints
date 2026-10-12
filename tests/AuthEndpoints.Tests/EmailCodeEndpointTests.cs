@@ -781,6 +781,43 @@ public class EmailCodeEndpointTests
     }
 
     [Fact]
+    public async Task AllowSignUp_DuplicateWrongTotp_UnconsumesAndKeepsTheAttempt()
+    {
+        var race = new SignupCreateGate { Mode = SignupCreateMode.UniqueConflict, TwoFactor = true };
+        await using var host = await EmailCodeHost.StartAsync(
+            options => options.AllowSignUp = true,
+            configureServices: services =>
+            {
+                services.AddSingleton(race);
+                services.RemoveAll<IUserValidator<TestAppUser>>();
+                services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, ConflictSignupUserManager>());
+            });
+        var email = UniqueEmail("signup-2fa-wrong");
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+        race.Email = email;
+
+        var wrong = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code, twoFactorCode = "000000" });
+        Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+        Assert.Equal("Unauthorized", await ProblemTitleAsync(wrong));
+        var reserved = (await RowsAsync(host.App, email)).Single();
+        Assert.Null(reserved.ConsumedAt);
+        Assert.Equal(1, reserved.Attempts);
+
+        var key = await AuthenticatorKeyAsync(host.App, email);
+        Assert.NotEqual("000000", TotpHelper.GenerateCode(key));
+        var accepted = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code, twoFactorCode = TotpHelper.GenerateCode(key) });
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        Assert.NotNull((await RowsAsync(host.App, email)).Single().ConsumedAt);
+    }
+
+    [Fact]
     public async Task AllowSignUp_ConfirmsEmailWithoutATokenProvider()
     {
         await using var host = await EmailCodeHost.StartAsync(

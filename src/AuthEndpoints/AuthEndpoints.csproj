@@ -6,14 +6,14 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>3.3.1</Version>
+    <Version>3.4.0</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>Email-code 3.3.1: a conflicting sign-up create returns the existing user or a generic 401, email is confirmed without a token provider, and a duplicate sign-up that needs two-factor authentication does not consume the code. LinkUri must be an absolute http(s) URI without '#'.</PackageReleaseNotes>
+    <PackageReleaseNotes>Additive Map* building blocks for password, cookie and bearer sessions, JWT create versus session, passkey sign-in versus management, shared confirm-email, and account management. A missing Add* logs a warning. The same method and path mapped twice logs a startup warning naming both map methods. Facade routes match 3.3.0. No new migration.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>

@@ -273,6 +273,7 @@ public static class EmailCodeEndpoints<TUser>
 
                 if (raced.Outcome == SecondFactor.Failed)
                 {
+                    await store.TryUnconsumeAsync(row, cancellationToken);
                     if (options.CountFailuresTowardLockout)
                     {
                         await userManager.AccessFailedAsync(user);

@@ -1,0 +1,20 @@
+﻿namespace AuthEndpoints.OAuth.GitHub
+{
+    public static class GitHubEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapGitHubAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+    }
+    public sealed class GitHubExternalAuthProvider : AuthEndpoints.External.OAuth.IExternalAuthProvider
+    {
+        public GitHubExternalAuthProvider() { }
+        public string CallbackEndpointName { get; }
+        public string CallbackPath { get; }
+        public string LoginPath { get; }
+        public string Scheme { get; }
+    }
+    public static class GitHubServiceCollectionExtensions
+    {
+        public static AuthEndpoints.External.OAuth.ExternalAuthBuilder AddGitHub(this AuthEndpoints.External.OAuth.ExternalAuthBuilder builder, System.Action<AspNet.Security.OAuth.GitHub.GitHubAuthenticationOptions> configure) { }
+    }
+}
