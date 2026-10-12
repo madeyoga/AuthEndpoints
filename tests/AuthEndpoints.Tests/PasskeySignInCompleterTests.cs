@@ -108,6 +108,135 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
+    public async Task IdentityPasskeySignInCompleter_Register_Bearer_ReturnsTokenWithoutSecondWrite()
+    {
+        var email = $"passkey-bearer-reg-{Guid.NewGuid():N}@test.local";
+        var user = await TestHelpers.SeedUserAsync(_factory, email);
+
+        using var scope = _factory.Services.CreateScope();
+        var completer = ActivatorUtilities.CreateInstance<IdentityPasskeySignInCompleter<TestAppUser>>(
+            scope.ServiceProvider);
+        var httpContext = NewHttpContext(scope.ServiceProvider);
+        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        accessor.HttpContext = httpContext;
+        try
+        {
+            var result = await completer.CompleteAsync(
+                httpContext,
+                user,
+                new PasskeySignInCompletionContext
+                {
+                    Kind = PasskeySignInKind.Register,
+                    CredentialId = [1, 2, 3, 4]
+                },
+                CancellationToken.None);
+
+            await result.ExecuteAsync(httpContext);
+        }
+        finally
+        {
+            accessor.HttpContext = null;
+        }
+
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        httpContext.Response.Body.Position = 0;
+        using var doc = await JsonDocument.ParseAsync(httpContext.Response.Body);
+        Assert.False(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(doc.RootElement, "accessToken", "AccessToken")));
+        Assert.True(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(doc.RootElement, "credentialId", "CredentialId")));
+        Assert.DoesNotContain(
+            httpContext.Response.Headers.SetCookie,
+            static c => c is not null && c.Contains(".AspNetCore.Identity.Application", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task IdentityPasskeySignInCompleter_Register_Cookies_ReturnsCredentialId()
+    {
+        var email = $"passkey-cookie-reg-{Guid.NewGuid():N}@test.local";
+        var user = await TestHelpers.SeedUserAsync(_factory, email);
+
+        using var scope = _factory.Services.CreateScope();
+        var completer = ActivatorUtilities.CreateInstance<IdentityPasskeySignInCompleter<TestAppUser>>(
+            scope.ServiceProvider);
+        var httpContext = NewHttpContext(scope.ServiceProvider);
+        var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+        accessor.HttpContext = httpContext;
+        try
+        {
+            var result = await completer.CompleteAsync(
+                httpContext,
+                user,
+                new PasskeySignInCompletionContext
+                {
+                    Kind = PasskeySignInKind.Register,
+                    UseCookies = true,
+                    CredentialId = [1, 2, 3, 4]
+                },
+                CancellationToken.None);
+
+            await result.ExecuteAsync(httpContext);
+        }
+        finally
+        {
+            accessor.HttpContext = null;
+        }
+
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        Assert.Contains(
+            httpContext.Response.Headers.SetCookie,
+            static c => c is not null && c.Contains(".AspNetCore.Identity.Application", StringComparison.Ordinal));
+
+        httpContext.Response.Body.Position = 0;
+        using var doc = await JsonDocument.ParseAsync(httpContext.Response.Body);
+        Assert.False(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(doc.RootElement, "credentialId", "CredentialId")));
+        Assert.True(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(doc.RootElement, "accessToken", "AccessToken")));
+    }
+
+    [Fact]
+    public async Task JwtPasskeySignInCompleter_Register_ReturnsTokenWithoutCredentialId()
+    {
+        var email = $"passkey-jwt-reg-{Guid.NewGuid():N}@test.local";
+        var user = await TestHelpers.SeedUserAsync(_factory, email);
+
+        using var scope = _factory.Services.CreateScope();
+        var completer = ActivatorUtilities.CreateInstance<JwtPasskeySignInCompleter<TestAppUser>>(
+            scope.ServiceProvider);
+        var httpContext = NewHttpContext(scope.ServiceProvider);
+
+        var result = await completer.CompleteAsync(
+            httpContext,
+            user,
+            new PasskeySignInCompletionContext
+            {
+                Kind = PasskeySignInKind.Register,
+                UseCookies = true,
+                CredentialId = [1, 2, 3, 4]
+            },
+            CancellationToken.None);
+
+        await result.ExecuteAsync(httpContext);
+
+        Assert.Equal(StatusCodes.Status200OK, httpContext.Response.StatusCode);
+        Assert.Contains(
+            httpContext.Response.Headers.SetCookie,
+            static c => c is not null && c.Contains(RefreshTokenCookieWriter.CookieName, StringComparison.Ordinal));
+        Assert.DoesNotContain(
+            httpContext.Response.Headers.SetCookie,
+            static c => c is not null && c.Contains(".AspNetCore.Identity.Application", StringComparison.Ordinal));
+
+        httpContext.Response.Body.Position = 0;
+        using var doc = await JsonDocument.ParseAsync(httpContext.Response.Body);
+        Assert.False(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(doc.RootElement, "accessToken", "AccessToken")));
+        Assert.Equal("Bearer", doc.RootElement.GetProperty("tokenType").GetString());
+        Assert.True(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(doc.RootElement, "credentialId", "CredentialId")));
+    }
+
+    [Fact]
     public async Task JwtPasskeySignInCompleter_IssuesAccessTokenAndRefreshCookie()
     {
         var email = $"passkey-jwt-{Guid.NewGuid():N}@test.local";
