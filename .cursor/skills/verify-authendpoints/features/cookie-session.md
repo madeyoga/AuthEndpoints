@@ -32,8 +32,8 @@ Preconditions:
 - **Register.** Create the account. Run `ae-http.sh post /identity/register "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}" --out register`. Status is `200`. Body is empty or `{}`.
 - **Invalid email.** Register `not-an-email`. Run `ae-http.sh post /identity/register '{"email":"not-an-email","password":"Passw0rd!"}' --out register-invalid`. Status is `400`.
 - **Duplicate email.** Run the same register body again. Run `ae-http.sh post /identity/register "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}" --out register-duplicate`. Status is `200`. That 200 is not a second account.
+- **Wrong password.** Same `EMAIL`, password `WrongPass1!`, before the successful login. Run `ae-http.sh post /identity/login "{\"email\":\"${EMAIL}\",\"password\":\"WrongPass1!\"}" --out login-bad`. Status is `401`. Body contains `Invalid credentials` and does not contain `LockedOut`.
 - **Login.** Sign in. Run `ae-http.sh post /identity/login "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}" --out login`. Status is `200` or `204`. Headers include `Set-Cookie` for `.AspNetCore.Identity.Application`.
-- **Wrong password.** Same `EMAIL`, password `WrongPass1!`. Run `ae-http.sh post /identity/login "{\"email\":\"${EMAIL}\",\"password\":\"WrongPass1!\"}" --out login-bad`. Status is `401`. Body contains `Invalid credentials` and does not contain `LockedOut`.
 - **Session info.** Read the signed-in account. Run `ae-http.sh get /identity/manage/info --out info`. Status is `200`. Body `email` matches `EMAIL`.
 - **Two-factor status.** Run `ae-http.sh get /identity/manage/2fa --out twofa`. Status is `200`. `isTwoFactorEnabled` is false.
 - **Logout.** End the session. Run `ae-http.sh post --csrf /identity/logout --out logout`. Status is `200` or `204`.
