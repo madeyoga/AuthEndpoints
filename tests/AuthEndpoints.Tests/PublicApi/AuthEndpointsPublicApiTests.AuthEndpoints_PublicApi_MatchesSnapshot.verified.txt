@@ -1,0 +1,659 @@
+﻿namespace AuthEndpoints
+{
+    public static class AuthEndpointsApplicationBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseAuthEndpoints(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
+    }
+    public sealed class AuthEndpointsEmailCodeOptions
+    {
+        public AuthEndpointsEmailCodeOptions() { }
+        public System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? Configure { get; set; }
+        public bool Enabled { get; set; }
+    }
+    public sealed class AuthEndpointsEmailConfirmationOptions
+    {
+        public AuthEndpointsEmailConfirmationOptions() { }
+        public System.Collections.Generic.IList<string> AllowedRedirectOrigins { get; set; }
+        public string? ConfirmEmailRedirectUri { get; set; }
+    }
+    public static class AuthEndpointsEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+    }
+    public sealed class AuthEndpointsJwtOptions
+    {
+        public AuthEndpointsJwtOptions() { }
+        public System.Action<AuthEndpoints.Jwt.SimpleJwtOptions>? Configure { get; set; }
+        public bool Enabled { get; set; }
+        public string Path { get; set; }
+    }
+    public sealed class AuthEndpointsOptions
+    {
+        public AuthEndpointsOptions() { }
+        public System.Action<Microsoft.AspNetCore.Identity.IdentityOptions>? ConfigureIdentity { get; set; }
+        public System.Action<Microsoft.AspNetCore.Identity.IdentityPasskeyOptions>? ConfigurePasskeys { get; set; }
+        public AuthEndpoints.AuthEndpointsEmailCodeOptions EmailCode { get; set; }
+        public AuthEndpoints.AuthEndpointsEmailConfirmationOptions EmailConfirmation { get; set; }
+        public string IdentityPath { get; set; }
+        public AuthEndpoints.AuthEndpointsJwtOptions Jwt { get; set; }
+        public string PasskeyPath { get; set; }
+        public AuthEndpoints.AuthEndpointsPasskeyOptions Passkeys { get; set; }
+        public AuthEndpoints.AuthEndpointsReAuthOptions ReAuth { get; }
+        public bool RequireConfirmedAccount { get; set; }
+        public bool RequireEmailSenderInProduction { get; set; }
+        public AuthEndpoints.AuthEndpointsSignIn SignIn { get; set; }
+    }
+    public sealed class AuthEndpointsPasskeyOptions
+    {
+        public AuthEndpointsPasskeyOptions() { }
+        public bool Enabled { get; set; }
+        public string? ServerDomain { get; set; }
+    }
+    public sealed class AuthEndpointsReAuthOptions
+    {
+        public AuthEndpointsReAuthOptions() { }
+        public System.TimeSpan Lifetime { get; set; }
+    }
+    public static class AuthEndpointsServiceCollectionExtensions
+    {
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+            where TUser :  class, new ()
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, AuthEndpoints.AuthEndpointsSignIn signIn, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+            where TUser :  class, new ()
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+            where TUser :  class, new ()
+            where TRole :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, AuthEndpoints.AuthEndpointsSignIn signIn, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+            where TUser :  class, new ()
+            where TRole :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public enum AuthEndpointsSignIn
+    {
+        Cookie = 0,
+        IdentityBearer = 1,
+    }
+}
+namespace AuthEndpoints.EmailCode
+{
+    public sealed class DevelopmentEmailCodeSender<TUser> : AuthEndpoints.EmailCode.IEmailCodeSender<TUser>
+        where TUser :  class
+    {
+        public DevelopmentEmailCodeSender(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.EmailCode.DevelopmentEmailCodeSender<TUser>> logger) { }
+        public System.Threading.Tasks.Task SendSignInCodeAsync(AuthEndpoints.EmailCode.EmailCodeMessage<TUser> message, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public class EmailCodeConfiguration : Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<AuthEndpoints.EmailCode.EmailCodeEntry>
+    {
+        public EmailCodeConfiguration() { }
+        public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<AuthEndpoints.EmailCode.EmailCodeEntry> builder) { }
+    }
+    public static class EmailCodeEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+    }
+    public static class EmailCodeEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.EmailCode.EmailCodeSendResponse>, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> Send([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.EmailCode.EmailCodeSendRequest request, Microsoft.AspNetCore.Http.HttpContext httpContext, System.Threading.CancellationToken cancellationToken) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Verify([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.EmailCode.EmailCodeVerifyRequest request, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useCookies, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useSessionCookies, Microsoft.AspNetCore.Http.HttpContext httpContext, System.Threading.CancellationToken cancellationToken) { }
+    }
+    public class EmailCodeEntry
+    {
+        public EmailCodeEntry() { }
+        public int Attempts { get; set; }
+        public required string CodeHash { get; set; }
+        public System.DateTime? ConsumedAt { get; set; }
+        public System.DateTime CreatedAt { get; set; }
+        public required string EmailHash { get; set; }
+        public System.DateTime ExpiresAt { get; set; }
+        public string Id { get; set; }
+        public string? LinkTokenHash { get; set; }
+        public string? SecurityStamp { get; set; }
+        public string? SignupEmail { get; set; }
+        public System.DateTime? SupersededAt { get; set; }
+        public string? UserId { get; set; }
+    }
+    public sealed class EmailCodeLinkContext
+    {
+        public EmailCodeLinkContext() { }
+        public required string LinkUri { get; init; }
+        public required string Token { get; init; }
+    }
+    public sealed class EmailCodeMagicLinkOptions
+    {
+        public EmailCodeMagicLinkOptions() { }
+        public System.Collections.Generic.IList<string> AllowedOrigins { get; set; }
+        public System.Func<AuthEndpoints.EmailCode.EmailCodeLinkContext, string>? BuildLinkUrl { get; set; }
+        public bool Enabled { get; set; }
+        public string? LinkUri { get; set; }
+    }
+    public sealed class EmailCodeMessage<TUser>
+        where TUser :  class
+    {
+        public EmailCodeMessage() { }
+        public required string Code { get; init; }
+        public required string Email { get; init; }
+        public required System.DateTimeOffset ExpiresAt { get; init; }
+        public required System.TimeSpan Lifetime { get; init; }
+        public string? LinkUrl { get; init; }
+        public required AuthEndpoints.EmailCode.EmailCodePurpose Purpose { get; init; }
+        public TUser User { get; init; }
+    }
+    public static class EmailCodeModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseEmailCodes(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+    public sealed class EmailCodeOptions
+    {
+        public EmailCodeOptions() { }
+        public bool AllowSignUp { get; set; }
+        public int CodeLength { get; set; }
+        public System.TimeSpan CodeLifetime { get; set; }
+        public bool CountFailuresTowardLockout { get; set; }
+        public AuthEndpoints.EmailCode.EmailCodeMagicLinkOptions MagicLink { get; set; }
+        public int MaxAttempts { get; set; }
+        public int MaxSendsPerEmail { get; set; }
+        public bool RequireSenderOutsideDevelopment { get; set; }
+        public bool RequireTwoFactor { get; set; }
+        public System.TimeSpan ResendCooldown { get; set; }
+        public System.TimeSpan SendWindow { get; set; }
+        public int SendsPerIpPerMinute { get; set; }
+        public AuthEndpoints.EmailCode.EmailCodeUnconfirmedAccounts UnconfirmedAccounts { get; set; }
+    }
+    public enum EmailCodePurpose
+    {
+        SignIn = 0,
+        SignUp = 1,
+    }
+    public sealed class EmailCodeSendRequest
+    {
+        public EmailCodeSendRequest() { }
+        public required string Email { get; init; }
+    }
+    public sealed record EmailCodeSendResponse : System.IEquatable<AuthEndpoints.EmailCode.EmailCodeSendResponse>
+    {
+        public EmailCodeSendResponse(int ExpiresInSeconds, int ResendAfterSeconds) { }
+        public int ExpiresInSeconds { get; init; }
+        public int ResendAfterSeconds { get; init; }
+    }
+    public sealed class EmailCodeSignInContext
+    {
+        public EmailCodeSignInContext() { }
+        public bool IsNewUser { get; init; }
+        public bool? UseCookies { get; init; }
+        public bool? UseSessionCookies { get; init; }
+    }
+    public enum EmailCodeUnconfirmedAccounts
+    {
+        ConfirmAndResetCredentials = 0,
+        Reject = 1,
+    }
+    public sealed class EmailCodeVerifyRequest
+    {
+        public EmailCodeVerifyRequest() { }
+        public string? Code { get; init; }
+        public string? Email { get; init; }
+        public string? Token { get; init; }
+        public string? TwoFactorCode { get; init; }
+        public string? TwoFactorRecoveryCode { get; init; }
+    }
+    public interface IEmailCodeSender<TUser>
+        where TUser :  class
+    {
+        System.Threading.Tasks.Task SendSignInCodeAsync(AuthEndpoints.EmailCode.EmailCodeMessage<TUser> message, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IEmailCodeSignInCompleter<TUser>
+        where TUser :  class
+    {
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.EmailCode.EmailCodeSignInContext context, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public sealed class IdentityEmailCodeSignInCompleter<TUser> : AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser>
+        where TUser :  class
+    {
+        public IdentityEmailCodeSignInCompleter(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.EmailCode.EmailCodeSignInContext context, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
+            where TUser :  class, new ()
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class
+            where TCompleter :  class, AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser> { }
+    }
+}
+namespace AuthEndpoints.Identity
+{
+    public class AntiforgeryEnforcementMiddleware
+    {
+        public AntiforgeryEnforcementMiddleware(Microsoft.AspNetCore.Http.RequestDelegate next) { }
+        public System.Threading.Tasks.Task InvokeAsync(Microsoft.AspNetCore.Http.HttpContext context) { }
+    }
+    public sealed class AntiforgeryMetadata : Microsoft.AspNetCore.Antiforgery.IAntiforgeryMetadata
+    {
+        public static readonly Microsoft.AspNetCore.Antiforgery.IAntiforgeryMetadata ValidationNotRequired;
+        public static readonly Microsoft.AspNetCore.Antiforgery.IAntiforgeryMetadata ValidationRequired;
+        public AntiforgeryMetadata(bool required) { }
+        public bool RequiresValidation { get; }
+    }
+    public static class AntiforgeryRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder EnableAntiforgery(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder builder) { }
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder EnableAntiforgery(this Microsoft.AspNetCore.Routing.RouteGroupBuilder builder) { }
+        public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder RequireAntiforgery(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder builder) { }
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder RequireAntiforgery(this Microsoft.AspNetCore.Routing.RouteGroupBuilder builder) { }
+    }
+    public class AuthEndpointsConstants
+    {
+        public const string AccountAbusePolicy = "AuthEndpoints.AccountAbuse";
+        public const string ConfirmIdentityPolicy = "AuthEndpoints.ConfirmIdentity";
+        public const string EmailCodeSendPolicy = "AuthEndpoints.EmailCode.Send";
+        public const string LoginPolicy = "AuthEndpoints.Login";
+        public const string PasskeyObtainOptionsPolicy = "AuthEndpoints.Passkey.ObtainOptions";
+        public const string PasskeyRegisterPolicy = "AuthEndpoints.Passkey.Register";
+        public const string ReAuthBearerScheme = "AuthEndpoints.ReAuth.Bearer";
+        public const string ReAuthHeaderName = "X-AuthEndpoints-Reauth";
+        public const string ReAuthScheme = "AuthEndpoints.ReAuth";
+        public AuthEndpointsConstants() { }
+    }
+    public class EnforceAntiforgeryEndpointFilters : Microsoft.AspNetCore.Http.IEndpointFilter
+    {
+        public EnforceAntiforgeryEndpointFilters(Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery) { }
+        public virtual System.Threading.Tasks.ValueTask<object?> InvokeAsync(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext context, Microsoft.AspNetCore.Http.EndpointFilterDelegate next) { }
+    }
+    public static class IdentityApiEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapBearerAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapCookieAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapIdentityManagementApi<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
+            where TUser :  class, new () { }
+    }
+    public class IdentityApiEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public IdentityApiEndpoints() { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.RedirectHttpResult>> ConfirmEmail([Microsoft.AspNetCore.Mvc.FromQuery] string userId, [Microsoft.AspNetCore.Mvc.FromQuery] string code, [Microsoft.AspNetCore.Mvc.FromQuery] string? changedEmail, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> ForgotPassword([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ForgotPasswordRequest resetRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static Microsoft.AspNetCore.Http.IResult GetAntiforgeryToken(Microsoft.AspNetCore.Antiforgery.IAntiforgery forgeryService, Microsoft.AspNetCore.Http.HttpContext context) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Authentication.BearerToken.AccessTokenResponse>, Microsoft.AspNetCore.Http.HttpResults.EmptyHttpResult, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> Login([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.LoginRequest login, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useCookies, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useSessionCookies, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Authentication.BearerToken.AccessTokenResponse>, Microsoft.AspNetCore.Http.HttpResults.EmptyHttpResult, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> LoginCookie([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.LoginRequest login, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useSessionCookies, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static Microsoft.AspNetCore.Http.IResult Logout() { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Identity.Data.InfoResponse>, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> ManageInfoGet(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Identity.Data.InfoResponse>, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> ManageInfoPost(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.InfoRequest infoRequest, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Identity.Data.TwoFactorResponse>, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> ManageTwoFactor(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.TwoFactorRequest tfaRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Authentication.BearerToken.AccessTokenResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult, Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult>> Refresh([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.RefreshRequest refreshRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> Register([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.RegisterRequest registration, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Ok> ResendConfirmationEmail([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResendConfirmationEmailRequest resendRequest, System.Security.Claims.ClaimsPrincipal claimsPrincipal, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> ResetPassword([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResetPasswordRequest resetRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> TwoFactorStatus(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.Security.Claims.ClaimsPrincipal user) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddBearerAuthEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddCookieAuthEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddIdentityEndpointRateLimiting(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddLoginRateLimiting(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+    }
+}
+namespace AuthEndpoints.Jwt
+{
+    public class AccessTokenGenerator : AuthEndpoints.Jwt.IAccessTokenGenerator
+    {
+        public AccessTokenGenerator(System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler tokenHandler, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.SimpleJwtOptions> options) { }
+        public string GenerateAccessToken(System.Security.Claims.ClaimsPrincipal user) { }
+    }
+    public class AuthenticationError
+    {
+        public AuthenticationError() { }
+        public required string Code { get; set; }
+        public required string Description { get; set; }
+    }
+    public class AuthenticationResult<TUser>
+        where TUser :  class
+    {
+        public AuthenticationResult() { }
+        public System.Collections.Generic.IEnumerable<AuthEndpoints.Jwt.AuthenticationError> Errors { get; }
+        public bool Succeeded { get; protected set; }
+        public TUser User { get; protected set; }
+        public static AuthEndpoints.Jwt.AuthenticationResult<TUser> Failed(params AuthEndpoints.Jwt.AuthenticationError[] errors) { }
+        public static AuthEndpoints.Jwt.AuthenticationResult<TUser> Success(TUser user) { }
+    }
+    public class DefaultAuthenticator<TUser> : AuthEndpoints.Jwt.IAuthenticator<TUser>
+        where TUser :  class
+    {
+        public DefaultAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.AuthenticationResult<TUser>> AuthenticateAsync(string username, string password) { }
+    }
+    public static class EntityFrameworkCoreHelpers
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseRefreshToken(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+    public interface IAccessTokenGenerator
+    {
+        string GenerateAccessToken(System.Security.Claims.ClaimsPrincipal user);
+    }
+    public interface IAuthenticator<TUser>
+        where TUser :  class
+    {
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.AuthenticationResult<TUser>> AuthenticateAsync(string username, string password);
+    }
+    public interface IRefreshTokenService
+    {
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null);
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken);
+        bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken);
+        System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken);
+        System.Threading.Tasks.Task RevokeFamilyAsync(string familyId);
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp);
+    }
+    public static class JwtApiEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapJwtAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+    }
+    public sealed class JwtEmailCodeSignInCompleter<TUser> : AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser>
+        where TUser :  class
+    {
+        public JwtEmailCodeSignInCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.EmailCode.EmailCodeSignInContext context, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public class JwtEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public JwtEndpoints() { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Create([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Jwt.SimpleJwtLoginRequest request, AuthEndpoints.Jwt.IAuthenticator<TUser> authenticator, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter, Microsoft.AspNetCore.Http.HttpContext context) { }
+        public static Microsoft.AspNetCore.Http.IResult GetAntiforgeryToken(Microsoft.AspNetCore.Antiforgery.IAntiforgery forgeryService, Microsoft.AspNetCore.Http.HttpContext context) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Logout(Microsoft.AspNetCore.Http.HttpContext context, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Refresh(Microsoft.AspNetCore.Http.HttpContext context, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.IAccessTokenGenerator tokenGenerator, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
+        [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes="Bearer")]
+        public static Microsoft.AspNetCore.Http.IResult Verify() { }
+    }
+    public sealed class JwtPasskeySignInCompleter<TUser> : AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser>
+        where TUser :  class
+    {
+        public JwtPasskeySignInCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public class RefreshToken
+    {
+        public RefreshToken() { }
+        public System.DateTime ExpiresAt { get; set; }
+        public required string FamilyId { get; set; }
+        public string Id { get; set; }
+        public string? ReplacedByTokenId { get; set; }
+        public System.DateTime? RevokedAt { get; set; }
+        public required string SecurityStamp { get; set; }
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public string? Token { get; set; }
+        public required string TokenHash { get; set; }
+        public required string UserId { get; set; }
+    }
+    public class RefreshTokenConfiguration : Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<AuthEndpoints.Jwt.RefreshToken>
+    {
+        public RefreshTokenConfiguration() { }
+        public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<AuthEndpoints.Jwt.RefreshToken> builder) { }
+    }
+    public class RefreshTokenCookieWriter
+    {
+        public static readonly string CookieName;
+        public RefreshTokenCookieWriter() { }
+        public void Delete(Microsoft.AspNetCore.Http.HttpContext context) { }
+        public void Write(Microsoft.AspNetCore.Http.HttpContext context, AuthEndpoints.Jwt.RefreshToken refreshToken, Microsoft.AspNetCore.Http.CookieOptions? options = null) { }
+    }
+    public class RefreshTokenService<TContext> : AuthEndpoints.Jwt.IRefreshTokenService
+        where TContext : Microsoft.EntityFrameworkCore.DbContext
+    {
+        public RefreshTokenService(TContext db) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken) { }
+        public bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
+        public System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
+        public System.Threading.Tasks.Task RevokeFamilyAsync(string familyId) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static AuthEndpoints.Jwt.SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static AuthEndpoints.Jwt.SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Jwt.SimpleJwtOptions> setup, System.Action<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>? jwtSetup = null)
+            where TUser :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public class SimpleJwtBuilder
+    {
+        public SimpleJwtBuilder(System.Type keyType, System.Type userType, Microsoft.Extensions.DependencyInjection.IServiceCollection services, AuthEndpoints.Jwt.SimpleJwtOptions options) { }
+        public AuthEndpoints.Jwt.SimpleJwtOptions Options { get; }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public System.Type UserKeyType { get; }
+        public System.Type UserType { get; }
+        public virtual AuthEndpoints.Jwt.SimpleJwtBuilder AddAccessTokenGenerator<TGenerator>()
+            where TGenerator :  class { }
+        public virtual AuthEndpoints.Jwt.SimpleJwtBuilder AddErrorDescriber<TDescriber>()
+            where TDescriber : Microsoft.AspNetCore.Identity.IdentityErrorDescriber { }
+        public virtual AuthEndpoints.Jwt.SimpleJwtBuilder AddRefreshTokenService<TService>()
+            where TService :  class { }
+        protected AuthEndpoints.Jwt.SimpleJwtBuilder AddScoped(System.Type serviceType, System.Type concreteType) { }
+    }
+    public class SimpleJwtLoginRequest
+    {
+        public SimpleJwtLoginRequest() { }
+        public required string Email { get; set; }
+        public required string Password { get; set; }
+        public string? TwoFactorCode { get; set; }
+        public string? TwoFactorRecoveryCode { get; set; }
+    }
+    public class SimpleJwtOptions
+    {
+        public SimpleJwtOptions() { }
+        public System.TimeSpan AccessTokenLifetime { get; set; }
+        public string Audience { get; set; }
+        public string Issuer { get; set; }
+        public AuthEndpoints.Jwt.SimpleJwtSigningOptions SigningOptions { get; set; }
+        public Microsoft.IdentityModel.Tokens.TokenValidationParameters? TokenValidationParameters { get; set; }
+    }
+    public class SimpleJwtOptionsValidator : Microsoft.Extensions.Options.IValidateOptions<AuthEndpoints.Jwt.SimpleJwtOptions>
+    {
+        public SimpleJwtOptionsValidator() { }
+        public SimpleJwtOptionsValidator(Microsoft.Extensions.Hosting.IHostEnvironment environment) { }
+        public Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, AuthEndpoints.Jwt.SimpleJwtOptions options) { }
+    }
+    public class SimpleJwtRefreshTokenRequest
+    {
+        public SimpleJwtRefreshTokenRequest() { }
+        public required string RefreshToken { get; set; }
+    }
+    public class SimpleJwtSigningOptions
+    {
+        public SimpleJwtSigningOptions() { }
+        public AuthEndpoints.Jwt.SimpleJwtSigningOptions.SigningAlgorithm Algorithm { get; set; }
+        public string? AlgorithmOverride { get; set; }
+        public System.Security.Cryptography.X509Certificates.X509Certificate2? Certificate { get; set; }
+        public System.Security.Cryptography.ECDsa? EcdsaKey { get; set; }
+        public System.Security.Cryptography.RSA? RsaKey { get; set; }
+        public string? SymmetricKey { get; set; }
+        public string GetAlgorithm() { }
+        public Microsoft.IdentityModel.Tokens.SecurityKey ToSecurityKey() { }
+        public Microsoft.IdentityModel.Tokens.SigningCredentials ToSigningCredentials() { }
+        public enum SigningAlgorithm
+        {
+            Symmetric = 0,
+            Rsa = 1,
+            Ecdsa = 2,
+            X509 = 3,
+        }
+    }
+    public class SimpleJwtTokenResponse
+    {
+        public SimpleJwtTokenResponse() { }
+        public required string AccessToken { get; set; }
+        public string TokenType { get; set; }
+    }
+    public static class TypeHelper
+    {
+        public static System.Type? FindGenericBaseType(System.Type currentType, System.Type genericBaseType) { }
+        public static System.Type FindKeyType(System.Type userType) { }
+    }
+}
+namespace AuthEndpoints.Passkey
+{
+    public sealed class DefaultPasskeyUserIdFactory : AuthEndpoints.Passkey.IPasskeyUserIdFactory
+    {
+        public DefaultPasskeyUserIdFactory() { }
+        public string CreateUserId() { }
+    }
+    public interface IPasskeySignInCompleter<TUser>
+        where TUser :  class
+    {
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IPasskeyUserIdFactory
+    {
+        string CreateUserId();
+    }
+    public sealed class IdentityPasskeySignInCompleter<TUser> : AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser>
+        where TUser :  class
+    {
+        public IdentityPasskeySignInCompleter(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class PasskeyApiEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
+            where TUser :  class, new () { }
+    }
+    public record PasskeyCredentialResponse : System.IEquatable<AuthEndpoints.Passkey.PasskeyCredentialResponse>
+    {
+        public PasskeyCredentialResponse(string CredentialId, string? DisplayName = null, System.DateTimeOffset? CreatedAt = default) { }
+        public System.DateTimeOffset? CreatedAt { get; init; }
+        public string CredentialId { get; init; }
+        public string? DisplayName { get; init; }
+    }
+    public static class PasskeyEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.Passkey.PasskeyCredentialResponse>, Microsoft.AspNetCore.Http.HttpResults.NotFound, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> AddPasskey([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Passkey.PasskeyVerifyAndStoreRequest request, Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult, Microsoft.AspNetCore.Http.HttpResults.NotFound, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> CreationOptions(Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.NotFound, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> DeletePasskey(string credentialIdUrl, Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.Passkey.PasskeyListResponse>, Microsoft.AspNetCore.Http.HttpResults.NotFound>> ListPasskeys(System.Security.Claims.ClaimsPrincipal principal, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Login([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Passkey.PasskeyLoginRequest request, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useCookies, [Microsoft.AspNetCore.Mvc.FromQuery] bool? useSessionCookies, Microsoft.AspNetCore.Http.HttpContext httpContext, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser> completer, System.Threading.CancellationToken cancellationToken) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Register(AuthEndpoints.Passkey.PasskeyRegisterRequest request, bool? useCookies, bool? useSessionCookies, Microsoft.AspNetCore.Http.HttpContext httpContext, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserStore<TUser> userStore, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser> completer, string confirmEmailEndpointName, System.Threading.CancellationToken cancellationToken) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> RegisterOptions([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Passkey.PasskeyRegisterOptionsRequest request, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, AuthEndpoints.Passkey.IPasskeyUserIdFactory userIdFactory) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.NotFound, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> RenamePasskey([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Passkey.PasskeyRenameRequest request, Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult> RequestOptions([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Passkey.PasskeyRequestOptionsRequest? request, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+    }
+    public record PasskeyListResponse : System.IEquatable<AuthEndpoints.Passkey.PasskeyListResponse>
+    {
+        public PasskeyListResponse(System.Collections.Generic.IReadOnlyList<AuthEndpoints.Passkey.PasskeyCredentialResponse> Passkeys) { }
+        public System.Collections.Generic.IReadOnlyList<AuthEndpoints.Passkey.PasskeyCredentialResponse> Passkeys { get; init; }
+    }
+    public record PasskeyLoginRequest : System.IEquatable<AuthEndpoints.Passkey.PasskeyLoginRequest>
+    {
+        public PasskeyLoginRequest(string CredentialJson) { }
+        public string CredentialJson { get; init; }
+    }
+    public record PasskeyRegisterOptionsRequest : System.IEquatable<AuthEndpoints.Passkey.PasskeyRegisterOptionsRequest>
+    {
+        public PasskeyRegisterOptionsRequest(string Email) { }
+        public string Email { get; init; }
+    }
+    public record PasskeyRegisterRequest : System.IEquatable<AuthEndpoints.Passkey.PasskeyRegisterRequest>
+    {
+        public PasskeyRegisterRequest(string Email, string CredentialJson) { }
+        public string CredentialJson { get; init; }
+        public string Email { get; init; }
+    }
+    public record PasskeyRenameRequest : System.IEquatable<AuthEndpoints.Passkey.PasskeyRenameRequest>
+    {
+        public PasskeyRenameRequest(string Id, string NewName) { }
+        public string Id { get; init; }
+        public string NewName { get; init; }
+    }
+    public record PasskeyRequestOptionsRequest : System.IEquatable<AuthEndpoints.Passkey.PasskeyRequestOptionsRequest>
+    {
+        public PasskeyRequestOptionsRequest(string? Email = null) { }
+        public string? Email { get; init; }
+    }
+    public sealed class PasskeySignInCompletionContext
+    {
+        public PasskeySignInCompletionContext() { }
+        public byte[]? CredentialId { get; init; }
+        public required AuthEndpoints.Passkey.PasskeySignInKind Kind { get; init; }
+        public bool? UseCookies { get; init; }
+        public bool? UseSessionCookies { get; init; }
+    }
+    public enum PasskeySignInKind
+    {
+        Login = 0,
+        Register = 1,
+    }
+    public record PasskeyVerifyAndStoreRequest : System.IEquatable<AuthEndpoints.Passkey.PasskeyVerifyAndStoreRequest>
+    {
+        public PasskeyVerifyAndStoreRequest(string CredentialJson, string? Name = null) { }
+        public string CredentialJson { get; init; }
+        public string? Name { get; init; }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class
+            where TCompleter :  class, AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser> { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyUserIdFactory(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Func<string> createUserId) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyUserIdFactory<TFactory>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TFactory :  class, AuthEndpoints.Passkey.IPasskeyUserIdFactory { }
+    }
+}
+namespace AuthEndpoints.ReAuth
+{
+    public sealed record AuthMethodsResponse : System.IEquatable<AuthEndpoints.ReAuth.AuthMethodsResponse>
+    {
+        public AuthMethodsResponse(bool Password, bool Authenticator, bool RecoveryCodes, bool Passkeys, int PasskeyCount) { }
+        public bool Authenticator { get; init; }
+        public int PasskeyCount { get; init; }
+        public bool Passkeys { get; init; }
+        public bool Password { get; init; }
+        public bool RecoveryCodes { get; init; }
+    }
+    public sealed class ConfirmIdentityRequest
+    {
+        public ConfirmIdentityRequest() { }
+        public string? CredentialJson { get; init; }
+        public string? Password { get; init; }
+        public string? TwoFactorCode { get; init; }
+        public string? TwoFactorRecoveryCode { get; init; }
+    }
+    public sealed class ConfirmIdentityResponse
+    {
+        public ConfirmIdentityResponse() { }
+        public required string ReauthToken { get; init; }
+    }
+    public static class ReAuthApiEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapReAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, bool requireAntiforgery = false)
+            where TUser :  class, new () { }
+    }
+    public static class ReAuthEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.AuthMethodsResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>> AuthMethods(System.Security.Claims.ClaimsPrincipal principal, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.ConfirmIdentityResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.BadRequest<string>, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> ConfirmIdentity([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.ReAuth.ConfirmIdentityRequest request, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Http.HttpContext context) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.NotFound>> PasskeyOptions(Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddReAuthScheme(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static TBuilder RequireReauth<TBuilder>(this TBuilder builder)
+            where TBuilder : Microsoft.AspNetCore.Builder.IEndpointConventionBuilder { }
+    }
+}

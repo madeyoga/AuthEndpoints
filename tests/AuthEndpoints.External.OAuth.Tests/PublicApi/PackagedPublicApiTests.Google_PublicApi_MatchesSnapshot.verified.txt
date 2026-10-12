@@ -1,0 +1,20 @@
+﻿namespace AuthEndpoints.OAuth.Google
+{
+    public static class GoogleEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapGoogleAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+    }
+    public sealed class GoogleExternalAuthProvider : AuthEndpoints.External.OAuth.IExternalAuthProvider
+    {
+        public GoogleExternalAuthProvider() { }
+        public string CallbackEndpointName { get; }
+        public string CallbackPath { get; }
+        public string LoginPath { get; }
+        public string Scheme { get; }
+    }
+    public static class GoogleServiceCollectionExtensions
+    {
+        public static AuthEndpoints.External.OAuth.ExternalAuthBuilder AddGoogle(this AuthEndpoints.External.OAuth.ExternalAuthBuilder builder, System.Action<Microsoft.AspNetCore.Authentication.Google.GoogleOptions> configure) { }
+    }
+}

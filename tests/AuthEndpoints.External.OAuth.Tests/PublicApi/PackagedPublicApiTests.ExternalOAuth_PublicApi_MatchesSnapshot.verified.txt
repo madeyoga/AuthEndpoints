@@ -1,0 +1,116 @@
+﻿namespace AuthEndpoints.External.OAuth
+{
+    public sealed class CookieExternalLoginCompleter<TUser> : AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser>
+        where TUser :  class
+    {
+        public CookieExternalLoginCompleter(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class ExternalAccountEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> LinkCallback(string scheme, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, [Microsoft.AspNetCore.Mvc.FromQuery] string? error, [Microsoft.AspNetCore.Mvc.FromQuery] string? error_description, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options, Microsoft.AspNetCore.Http.HttpContext httpContext) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> ListLogins(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Http.HttpContext httpContext) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> RemoveLogin([Microsoft.AspNetCore.Mvc.FromRoute] string loginProvider, [Microsoft.AspNetCore.Mvc.FromRoute] string providerKey, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Identity.IdentityOptions> identityOptions, Microsoft.AspNetCore.Http.HttpContext httpContext) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> StartLink(string scheme, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Routing.LinkGenerator linkGenerator, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.Collections.Generic.IEnumerable<AuthEndpoints.External.OAuth.IExternalAuthProvider> providers) { }
+    }
+    public sealed class ExternalAuthBuilder
+    {
+        public ExternalAuthBuilder(System.Type userType, Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public System.Type UserType { get; }
+        public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddCompleter<TCompleter>()
+            where TCompleter :  class { }
+        public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddProvider(AuthEndpoints.External.OAuth.IExternalAuthProvider provider) { }
+        public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddProvider<TProvider>()
+            where TProvider :  class, AuthEndpoints.External.OAuth.IExternalAuthProvider { }
+    }
+    public static class ExternalAuthEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapExternalAccountEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapExternalAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapExternalAuthProvider<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.External.OAuth.IExternalAuthProvider provider)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapExternalAuthProvider<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string scheme)
+            where TUser :  class, new () { }
+    }
+    public static class ExternalAuthEndpoints<TUser>
+        where TUser :  class, new ()
+    {
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> Callback(string expectedProvider, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, [Microsoft.AspNetCore.Mvc.FromQuery] string? error, [Microsoft.AspNetCore.Mvc.FromQuery] string? error_description, AuthEndpoints.External.OAuth.ExternalLoginService<TUser> loginService, AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser> completer, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options, Microsoft.AspNetCore.Http.HttpContext httpContext, System.Threading.CancellationToken cancellationToken) { }
+        public static Microsoft.AspNetCore.Http.IResult Login([Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Routing.LinkGenerator linkGenerator, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, AuthEndpoints.External.OAuth.IExternalAuthProvider provider) { }
+    }
+    public sealed class ExternalAuthOptions
+    {
+        public ExternalAuthOptions() { }
+        public System.Collections.Generic.IList<string> AllowedReturnUrlOrigins { get; }
+        public bool AutoLinkByEmail { get; set; }
+        public string DefaultReturnUrl { get; set; }
+        public string ErrorPath { get; set; }
+        public bool IsPersistent { get; set; }
+        public bool RequireVerifiedEmail { get; set; }
+        public string? SignInScheme { get; set; }
+    }
+    public sealed class ExternalAuthOptionsValidator : Microsoft.Extensions.Options.IValidateOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions>
+    {
+        public ExternalAuthOptionsValidator() { }
+        public Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, AuthEndpoints.External.OAuth.ExternalAuthOptions options) { }
+    }
+    public static class ExternalEmailClaims
+    {
+        public const string EmailVerifiedClaimType = "email_verified";
+        public static string? GetEmail(System.Security.Claims.ClaimsPrincipal principal) { }
+        public static bool IsEmailVerified(System.Security.Claims.ClaimsPrincipal principal) { }
+    }
+    public sealed record ExternalLoginListItem : System.IEquatable<AuthEndpoints.External.OAuth.ExternalLoginListItem>
+    {
+        public ExternalLoginListItem(string LoginProvider, string ProviderKey, string? ProviderDisplayName) { }
+        public string LoginProvider { get; init; }
+        public string? ProviderDisplayName { get; init; }
+        public string ProviderKey { get; init; }
+    }
+    public sealed class ExternalLoginProvisionResult<TUser>
+        where TUser :  class
+    {
+        public ExternalLoginProvisionResult() { }
+        public string? Error { get; }
+        public string? ErrorDescription { get; }
+        public Microsoft.AspNetCore.Identity.ExternalLoginInfo? Info { get; }
+        public int StatusCode { get; }
+        public bool Succeeded { get; }
+        public TUser User { get; }
+        public static AuthEndpoints.External.OAuth.ExternalLoginProvisionResult<TUser> Failed(string error, string description, int statusCode) { }
+        public static AuthEndpoints.External.OAuth.ExternalLoginProvisionResult<TUser> Success(TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info) { }
+    }
+    public sealed class ExternalLoginService<TUser>
+        where TUser :  class, new ()
+    {
+        public ExternalLoginService(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserStore<TUser> userStore, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.External.OAuth.ExternalLoginProvisionResult<TUser>> ProvisionAsync(string expectedProvider, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public interface IExternalAuthProvider
+    {
+        string CallbackEndpointName { get; }
+        string CallbackPath { get; }
+        string LoginPath { get; }
+        string Scheme { get; }
+    }
+    public interface IExternalLoginCompleter<TUser>
+        where TUser :  class
+    {
+        System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public sealed class JwtExternalLoginCompleter<TUser> : AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser>
+        where TUser :  class
+    {
+        public JwtExternalLoginCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options) { }
+        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public static class ServiceCollectionExtensions
+    {
+        public static AuthEndpoints.External.OAuth.ExternalAuthBuilder AddExternalAuthEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.External.OAuth.ExternalAuthOptions>? configure = null)
+            where TUser :  class, new () { }
+    }
+}

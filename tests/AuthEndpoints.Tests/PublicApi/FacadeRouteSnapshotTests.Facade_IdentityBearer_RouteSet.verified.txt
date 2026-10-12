@@ -1,0 +1,40 @@
+﻿DefaultScheme: Identity.BearerAndApplication
+DefaultAuthenticateScheme: (none)
+DefaultChallengeScheme: (none)
+DefaultSignInScheme: (none)
+DefaultForbidScheme: (none)
+DefaultSignOutScheme: (none)
+Schemes:
+AuthEndpoints.ReAuth
+AuthEndpoints.ReAuth.Bearer
+Identity.Application
+Identity.Bearer
+Identity.BearerAndApplication
+Identity.External
+Identity.TwoFactorRememberMe
+Identity.TwoFactorUserId
+---
+DELETE /account/passkeys/{credentialIdUrl}
+GET /account/passkeys/
+GET /identity/confirmEmail
+GET /identity/manage/2fa
+GET /identity/manage/authMethods
+GET /identity/manage/info
+PATCH /account/passkeys/
+POST /account/passkeys/
+POST /account/passkeys/creationOptions
+POST /account/passkeys/login
+POST /account/passkeys/register
+POST /account/passkeys/register/options
+POST /account/passkeys/requestOptions
+POST /identity/confirmIdentity
+POST /identity/confirmIdentity/passkeyOptions
+POST /identity/forgotPassword
+POST /identity/login
+POST /identity/logout
+POST /identity/manage/2fa
+POST /identity/manage/info
+POST /identity/refresh
+POST /identity/register
+POST /identity/resendConfirmationEmail
+POST /identity/resetPassword
