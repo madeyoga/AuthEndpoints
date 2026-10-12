@@ -13,11 +13,13 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps passkey register, login, and credential management endpoints under <c>/passkeys</c>.
+    /// This is <see cref="MapPasskeySignInEndpoints{TUser}"/> without auto-mapping confirm-email,
+    /// plus <see cref="MapPasskeyManagementEndpoints{TUser}"/>, on one <c>/passkeys</c> group.
     /// </summary>
     /// <param name="confirmEmailEndpointName">
     /// Optional unique endpoint name for confirm-email link generation after passwordless register.
-    /// Defaults to the same name as <c>MapIdentityManagementApi</c>. Required when that map
-    /// used a custom name.
+    /// Defaults to <see cref="AuthEndpointsEndpointNames.ConfirmEmail{TUser}"/>. Required when that map
+    /// used a custom name. This method does not map the confirm-email route.
     /// </param>
     /// <exception cref="NotSupportedException">
     /// The user store does not support passkeys or email. This module is email-keyed and requires
@@ -31,22 +33,62 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
+        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeyEndpoints));
 
-        confirmEmailEndpointName ??= AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions
-            .DefaultConfirmEmailEndpointName<TUser>();
+        confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var group = endpoints.MapGroup("/passkeys");
-        var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
+        MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName);
+        MapPasskeyManagementRoutes<TUser>(group);
+        return group;
+    }
 
-        // Signed-in routes only. Anonymous ceremonies stay on the parent group.
-        var secured = group.MapGroup(string.Empty)
-            .RequireAuthorization(authorize);
+    /// <summary>
+    /// Maps passkey sign-up and sign-in under <c>/passkeys</c>
+    /// (<c>requestOptions</c>, <c>login</c>, <c>register/options</c>, <c>register</c>).
+    /// Maps confirm-email on this group when that endpoint name is not mapped yet.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
 
-        secured.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
-            .WithSummary("Generate WebAuthn creation options for the signed-in user.")
-            .RequireReauth()
-            .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-            .RequireAntiforgery();
+        EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
+        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeySignInEndpoints));
 
+        confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
+        var group = endpoints.MapGroup("/passkeys");
+        MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName);
+        ConfirmEmailEndpointRouteBuilderExtensions.EnsureConfirmEmailMapped<TUser>(endpoints, confirmEmailEndpointName);
+        return group;
+    }
+
+    /// <summary>
+    /// Maps signed-in passkey credential management under <c>/passkeys</c>
+    /// (<c>creationOptions</c>, <c>POST /</c>, <c>GET /</c>, <c>PATCH /</c>, <c>DELETE /{credentialIdUrl}</c>).
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeyManagementEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
+        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeyManagementEndpoints));
+
+        var group = endpoints.MapGroup("/passkeys");
+        MapPasskeyManagementRoutes<TUser>(group);
+        return group;
+    }
+
+    private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
+    {
+        AuthEndpointsModules.WarnIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
+    }
+
+    private static void MapPasskeySignInRoutes<TUser>(IEndpointRouteBuilder group, string confirmEmailEndpointName)
+        where TUser : class, new()
+    {
         group.MapPost("/requestOptions", PasskeyEndpoints<TUser>.RequestOptions)
             .WithSummary("Generate WebAuthn request options for passkey login.")
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
@@ -101,6 +143,19 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                 """)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
             .RequireAntiforgery();
+    }
+
+    private static void MapPasskeyManagementRoutes<TUser>(IEndpointRouteBuilder group)
+        where TUser : class, new()
+    {
+        var secured = group.MapGroup(string.Empty)
+            .RequireAuthEndpointsUser();
+
+        secured.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
+            .WithSummary("Generate WebAuthn creation options for the signed-in user.")
+            .RequireReauth()
+            .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
+            .RequireAntiforgery();
 
         secured.MapPost("/", PasskeyEndpoints<TUser>.AddPasskey)
             .WithSummary("Attest and store a passkey on the signed-in account.")
@@ -125,8 +180,6 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                 """)
             .RequireReauth()
             .RequireAntiforgery();
-
-        return group;
     }
 
     /// <summary>

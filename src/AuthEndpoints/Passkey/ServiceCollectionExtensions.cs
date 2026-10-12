@@ -9,6 +9,8 @@ namespace AuthEndpoints.Passkey;
 
 internal sealed class PasskeyRateLimitMarker;
 
+internal sealed class PasskeyEndpointsModule;
+
 public static class ServiceCollectionExtensions
 {
     /// <summary>
@@ -20,6 +22,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddPasskeyEndpoints(this IServiceCollection services)
     {
+        services.AddModule<PasskeyEndpointsModule>();
         services.AddReAuthScheme();
         services.AddIdentityEndpointRateLimiting();
         services.TryAddSingleton<IPasskeyUserIdFactory, DefaultPasskeyUserIdFactory>();

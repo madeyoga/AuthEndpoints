@@ -1,7 +1,4 @@
-using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Routing;
 
 namespace AuthEndpoints.Identity;
@@ -10,12 +7,16 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth).
+    /// This is <see cref="MapPasswordEndpoints{TUser}"/> with <see cref="PasswordLoginMode.None"/>,
+    /// <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>,
+    /// and <see cref="AccountManagementEndpointRouteBuilderExtensions.MapAccountManagementEndpoints{TUser}"/>.
+    /// Passkey reauthentication options stay mapped, including when passkey services are not registered.
     /// Compose with <see cref="MapCookieAuthEndpoints{TUser}"/>, <see cref="MapBearerAuthEndpoints{TUser}"/>,
     /// or <c>MapJwtAuthEndpoints</c> for sign-in. Call <c>UseRateLimiter()</c> and <c>UseAntiforgery()</c>.
     /// </summary>
     /// <param name="confirmEmailEndpointName">
     /// Optional unique endpoint name for confirm-email link generation.
-    /// Required when mapping management more than once in the same app.
+    /// The confirm route is mapped once per name in an app.
     /// </param>
     public static IEndpointConventionBuilder MapIdentityManagementApi<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -24,69 +25,47 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
+        var password = endpoints.MapPasswordEndpoints<TUser>(PasswordLoginMode.None, confirmEmailEndpointName);
+        var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
+        var account = endpoints.MapAccountManagementEndpoints<TUser>(confirmEmailEndpointName, alwaysMapPasskeyOptions: true);
+        return new CompositeEndpointConventionBuilder(password, confirm, account);
+    }
+
+    internal static string DefaultConfirmEmailEndpointName<TUser>()
+        where TUser : class
+        => AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
+
+    /// <summary>
+    /// Maps password register, login, forgot-password, and reset-password routes.
+    /// Also maps confirm-email when <paramref name="confirmEmailEndpointName"/> is not mapped yet.
+    /// <see cref="PasswordLoginMode.None"/> omits <c>POST /login</c> so a session map can own that route.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        PasswordLoginMode login = PasswordLoginMode.Cookie,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+            endpoints,
+            "AddPasswordEndpoints",
+            "MapPasswordEndpoints");
+
+        confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var routeGroup = endpoints.MapGroup("");
-        var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
-        confirmEmailEndpointName ??= DefaultConfirmEmailEndpointName<TUser>();
-
-        routeGroup.MapPost("/register", (
-            RegisterRequest registration,
-            HttpContext context,
-            IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
-            .WithSummary("Registers a new user account.")
-            .WithDescription("Creates a new user and sends a confirmation email if configured.")
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
-
-        routeGroup.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
-            .WithSummary("Confirms a user's email address.")
-            .WithName(confirmEmailEndpointName);
-
-        routeGroup.MapPost("/resendConfirmationEmail", (
-            ResendConfirmationEmailRequest resendRequest,
-            System.Security.Claims.ClaimsPrincipal claimsPrincipal,
-            HttpContext context,
-            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ResendConfirmationEmail(resendRequest, claimsPrincipal, context, sp, confirmEmailEndpointName))
-            .WithSummary("Resends the confirmation email for the signed-in account.")
-            .RequireAuthorization(authorize)
-            .RequireAntiforgery()
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
-
-        routeGroup.MapPost("/forgotPassword", IdentityApiEndpoints<TUser>.ForgotPassword)
-            .WithSummary("Sends a password reset email to the user.")
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
-
-        routeGroup.MapPost("/resetPassword", IdentityApiEndpoints<TUser>.ResetPassword)
-            .WithSummary("Resets the user's password using the provided token.")
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
-
-        routeGroup.MapReAuthEndpoints<TUser>(requireAntiforgery: true);
-
-        var accountGroup = routeGroup.MapGroup("/manage").RequireAuthorization(authorize);
-
-        accountGroup.MapGet("/2fa", IdentityApiEndpoints<TUser>.TwoFactorStatus)
-            .WithSummary("Get two-factor authentication status.");
-        accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
-            .WithSummary("Enables or disables two-factor authentication.")
-            .RequireAntiforgery()
-            .RequireReauth();
-        accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet);
-        accountGroup.MapPost("/info", (
-            System.Security.Claims.ClaimsPrincipal claimsPrincipal,
-            InfoRequest infoRequest,
-            HttpContext context,
-            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageInfoPost(claimsPrincipal, infoRequest, context, sp, confirmEmailEndpointName))
-            .WithSummary("Updates the current user account information.")
-            .RequireAntiforgery()
-            .RequireReauth();
-
+        IdentityEndpointRoutes.MapRegister<TUser>(routeGroup, confirmEmailEndpointName);
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login);
+        IdentityEndpointRoutes.MapForgotPassword<TUser>(routeGroup);
+        IdentityEndpointRoutes.MapResetPassword<TUser>(routeGroup);
+        ConfirmEmailEndpointRouteBuilderExtensions.EnsureConfirmEmailMapped<TUser>(routeGroup, confirmEmailEndpointName);
         return routeGroup;
     }
 
-    internal static string DefaultConfirmEmailEndpointName<TUser>() where TUser : class
-        => $"{nameof(MapIdentityManagementApi)}-{typeof(TUser).Name}-confirmEmail";
-
     /// <summary>
     /// Maps Identity bearer sign-in endpoints (login, refresh, logout).
-    /// Pair with <see cref="MapIdentityManagementApi{TUser}"/> for register/manage.
+    /// Pair with <see cref="MapIdentityManagementApi{TUser}"/> or <see cref="MapPasswordEndpoints{TUser}"/> for register.
     /// Call <see cref="ServiceCollectionExtensions.AddBearerAuthEndpoints"/> and <c>UseRateLimiter()</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapBearerAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -94,16 +73,32 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
+        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+            endpoints,
+            "AddPasswordEndpoints",
+            "MapBearerAuthEndpoints");
+
         var routeGroup = endpoints.MapGroup("");
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.IdentityBearer);
+        routeGroup.MapBearerSessionEndpoints<TUser>();
+        return routeGroup;
+    }
 
-        routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
-        routeGroup.MapPost("/refresh", IdentityApiEndpoints<TUser>.Refresh);
+    /// <summary>
+    /// Maps <c>POST /refresh</c> and signed-in <c>POST /logout</c> for Identity bearer sessions.
+    /// </summary>
+    public static IEndpointConventionBuilder MapBearerSessionEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
 
-        routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
-            .WithSummary("Clear cookies and logout user")
-            .RequireAuthorization();
+        AuthEndpointsModules.WarnIfMissing<BearerSessionEndpointsModule>(
+            endpoints,
+            "AddBearerSessionEndpoints",
+            "MapBearerSessionEndpoints");
 
+        var routeGroup = endpoints.MapGroup("");
+        IdentityEndpointRoutes.MapBearerSession<TUser>(routeGroup);
         return routeGroup;
     }
 
@@ -117,18 +112,32 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
+        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+            endpoints,
+            "AddPasswordEndpoints",
+            "MapCookieAuthEndpoints");
+
         var routeGroup = endpoints.MapGroup("");
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.Cookie);
+        routeGroup.MapCookieSessionEndpoints<TUser>();
+        return routeGroup;
+    }
 
-        routeGroup.MapPost("/login", IdentityApiEndpoints<TUser>.LoginCookie)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
+    /// <summary>
+    /// Maps signed-in <c>POST /logout</c> and <c>GET /csrfToken</c> for application-cookie sessions.
+    /// </summary>
+    public static IEndpointConventionBuilder MapCookieSessionEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
 
-        routeGroup.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
-            .WithSummary("Clear cookies and logout user")
-            .RequireAuthorization()
-            .RequireAntiforgery();
+        AuthEndpointsModules.WarnIfMissing<CookieSessionEndpointsModule>(
+            endpoints,
+            "AddCookieSessionEndpoints",
+            "MapCookieSessionEndpoints");
 
-        routeGroup.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken);
-
+        var routeGroup = endpoints.MapGroup("");
+        IdentityEndpointRoutes.MapCookieSession<TUser>(routeGroup);
         return routeGroup;
     }
 }

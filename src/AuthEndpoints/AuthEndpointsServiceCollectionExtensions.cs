@@ -125,27 +125,15 @@ public static class AuthEndpointsServiceCollectionExtensions
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<AuthEndpointsOptions>, AuthEndpointsEmailSenderValidator<TUser>>());
 
-        var identityBuilder = services
-            .AddIdentityApiEndpoints<TUser>(identity =>
+        // Roles must be configured before AddEntityFrameworkStores so IRoleStore is registered.
+        var identityBuilder = services.AddAuthEndpointsIdentity<TUser, TContext>(
+            identity =>
             {
                 identity.SignIn.RequireConfirmedAccount = bootstrap.RequireConfirmedAccount;
-                // Version3 is required for passkey credential storage.
-                identity.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
                 bootstrap.ConfigureIdentity?.Invoke(identity);
-            });
+            },
+            addRoles);
 
-        // Roles must be configured before AddEntityFrameworkStores so IRoleStore is registered.
-        if (addRoles is not null)
-        {
-            identityBuilder = addRoles(identityBuilder);
-        }
-
-        identityBuilder = identityBuilder
-            .AddEntityFrameworkStores<TContext>()
-            .AddDefaultTokenProviders();
-
-        services.AddAuthorization();
-        services.AddAntiforgery();
         services.AddCookieAuthEndpoints();
         if (bootstrap.SignIn == AuthEndpointsSignIn.IdentityBearer)
         {

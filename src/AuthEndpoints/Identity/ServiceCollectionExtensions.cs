@@ -13,25 +13,29 @@ internal sealed class ConfirmIdentityRateLimitMarker;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the ReAuth schemes and rate-limit policies used by cookie Identity endpoints.
+    /// Registers password, cookie-session, and account-management services
+    /// (ReAuth schemes, rate-limit policies, authorization, and antiforgery).
     /// Hosts must also call <c>UseRateLimiter()</c> in the pipeline for policies to take effect.
-    /// For passkeys, also call <c>AddPasskeyEndpoints&lt;TUser&gt;</c> (or call only that if you need both).
+    /// For passkeys, also call <c>AddPasskeyEndpoints&lt;TUser&gt;</c>.
     /// </summary>
     public static IServiceCollection AddCookieAuthEndpoints(this IServiceCollection services)
     {
-        services.AddReAuthScheme();
-        services.AddIdentityEndpointRateLimiting();
+        services.AddPasswordEndpoints();
+        services.AddCookieSessionEndpoints();
+        services.AddAccountManagementEndpoints();
         return services;
     }
 
     /// <summary>
-    /// Registers the ReAuth schemes and rate-limit policies used by bearer Identity endpoints.
+    /// Registers password, bearer-session, and account-management services
+    /// (ReAuth schemes, rate-limit policies, authorization, and antiforgery).
     /// Hosts must also call <c>UseRateLimiter()</c> in the pipeline for policies to take effect.
     /// </summary>
     public static IServiceCollection AddBearerAuthEndpoints(this IServiceCollection services)
     {
-        services.AddReAuthScheme();
-        services.AddIdentityEndpointRateLimiting();
+        services.AddPasswordEndpoints();
+        services.AddBearerSessionEndpoints();
+        services.AddAccountManagementEndpoints();
         return services;
     }
 
@@ -82,7 +86,11 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddAccountAbuseRateLimiting(this IServiceCollection services)
+    /// <summary>
+    /// Registers the account-abuse rate-limit policy (<see cref="AuthEndpointsConstants.AccountAbusePolicy"/>).
+    /// Safe to call multiple times. Hosts must call <c>UseRateLimiter()</c> for the policy to apply.
+    /// </summary>
+    public static IServiceCollection AddAccountAbuseRateLimiting(this IServiceCollection services)
     {
         if (services.Any(d => d.ServiceType == typeof(AccountAbuseRateLimitMarker)))
         {
@@ -111,7 +119,11 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    internal static IServiceCollection AddConfirmIdentityRateLimiting(this IServiceCollection services)
+    /// <summary>
+    /// Registers the confirm-identity rate-limit policy (<see cref="AuthEndpointsConstants.ConfirmIdentityPolicy"/>).
+    /// Safe to call multiple times. Hosts must call <c>UseRateLimiter()</c> for the policy to apply.
+    /// </summary>
+    public static IServiceCollection AddConfirmIdentityRateLimiting(this IServiceCollection services)
     {
         if (services.Any(d => d.ServiceType == typeof(ConfirmIdentityRateLimitMarker)))
         {

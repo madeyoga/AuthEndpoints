@@ -10,12 +10,16 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Jwt;
 
+internal sealed class JwtEndpointsModule;
+
 public static class ServiceCollectionExtensions
 {
     private static SimpleJwtBuilder AddSimpleJwtCore<TUser, TContext>(this IServiceCollection services, SimpleJwtOptions options)
         where TUser : class
         where TContext : DbContext
     {
+        services.AddModule<JwtEndpointsModule>();
+
         var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>))
             ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser");
 

@@ -96,8 +96,12 @@ internal static class ManagementAuthorization
     public static AuthorizeAttribute CreateAuthorizeAttribute(IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+        return CreateAttribute(endpoints.ServiceProvider);
+    }
 
-        var authOptions = endpoints.ServiceProvider.GetService<IOptions<AuthenticationOptions>>()?.Value;
+    internal static AuthorizeAttribute CreateAttribute(IServiceProvider services)
+    {
+        var authOptions = services.GetService<IOptions<AuthenticationOptions>>()?.Value;
         var registered = authOptions?.Schemes
             .Select(s => s.Name)
             .ToHashSet(StringComparer.Ordinal) ?? [];

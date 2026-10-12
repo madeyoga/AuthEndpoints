@@ -8,7 +8,7 @@ namespace AuthEndpoints.Tests.PublicApi;
 
 internal static class RouteSurface
 {
-    public static string Capture(Action<WebApplicationBuilder> configure, Action<WebApplication> map)
+    public static WebApplication Build(Action<WebApplicationBuilder> configure, Action<WebApplication> map)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -21,6 +21,12 @@ internal static class RouteSurface
 
         var app = builder.Build();
         map(app);
+        return app;
+    }
+
+    public static string Capture(Action<WebApplicationBuilder> configure, Action<WebApplication> map)
+    {
+        var app = Build(configure, map);
 
         var auth = app.Services.GetRequiredService<IOptions<AuthenticationOptions>>().Value;
         var lines = new List<string>
