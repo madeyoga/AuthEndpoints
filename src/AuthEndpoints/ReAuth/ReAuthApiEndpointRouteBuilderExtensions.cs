@@ -18,9 +18,9 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var group = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery);
-        IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery);
-        IdentityEndpointRoutes.MapAuthMethods<TUser>(group);
+        IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
+        IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
+        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, nameof(MapReAuthEndpoints));
         return group;
     }
 }

@@ -38,7 +38,8 @@ public static class JwtApiEndpointRouteBuilderExtensions
 
         var routeGroup = endpoints.MapGroup("");
         routeGroup.MapPost("/create", JwtEndpoints<TUser>.Create)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+            .Track(endpoints, nameof(MapJwtPasswordEndpoints));
         return routeGroup;
     }
 
@@ -59,14 +60,18 @@ public static class JwtApiEndpointRouteBuilderExtensions
 
         routeGroup.MapPost("/refresh", JwtEndpoints<TUser>.Refresh)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(endpoints, nameof(MapJwtSessionEndpoints));
 
-        routeGroup.MapGet("/verify", JwtEndpoints<TUser>.Verify);
+        routeGroup.MapGet("/verify", JwtEndpoints<TUser>.Verify)
+            .Track(endpoints, nameof(MapJwtSessionEndpoints));
 
         routeGroup.MapPost("/logout", JwtEndpoints<TUser>.Logout)
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(endpoints, nameof(MapJwtSessionEndpoints));
 
-        routeGroup.MapGet("/csrfToken", JwtEndpoints<TUser>.GetAntiforgeryToken);
+        routeGroup.MapGet("/csrfToken", JwtEndpoints<TUser>.GetAntiforgeryToken)
+            .Track(endpoints, nameof(MapJwtSessionEndpoints));
 
         return routeGroup;
     }

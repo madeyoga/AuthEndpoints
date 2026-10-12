@@ -37,15 +37,17 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var group = endpoints.MapGroup("/passkeys");
-        MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName);
-        MapPasskeyManagementRoutes<TUser>(group);
+        MapPasskeyRoutes<TUser>(group, confirmEmailEndpointName, nameof(MapPasskeyEndpoints), signIn: true, management: true);
         return group;
     }
 
     /// <summary>
     /// Maps passkey sign-up and sign-in under <c>/passkeys</c>
     /// (<c>requestOptions</c>, <c>login</c>, <c>register/options</c>, <c>register</c>).
-    /// Maps confirm-email on this group when that endpoint name is not mapped yet.
+    /// Maps confirm-email on the parent builder when that endpoint name is not mapped yet.
+    /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
+    /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
+    /// contributes a no-op builder and those conventions do not reach the existing route.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -59,9 +61,9 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var group = endpoints.MapGroup("/passkeys");
-        MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName);
-        ConfirmEmailEndpointRouteBuilderExtensions.EnsureConfirmEmailMapped<TUser>(endpoints, confirmEmailEndpointName);
-        return group;
+        MapPasskeyRoutes<TUser>(group, confirmEmailEndpointName, nameof(MapPasskeySignInEndpoints), signIn: true, management: false);
+        var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
+        return new CompositeEndpointConventionBuilder(group, confirm);
     }
 
     /// <summary>
@@ -77,7 +79,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         WarnIfPasskeysMissing(endpoints, nameof(MapPasskeyManagementEndpoints));
 
         var group = endpoints.MapGroup("/passkeys");
-        MapPasskeyManagementRoutes<TUser>(group);
+        MapPasskeyRoutes<TUser>(group, confirmEmailEndpointName: null, nameof(MapPasskeyManagementEndpoints), signIn: false, management: true);
         return group;
     }
 
@@ -86,18 +88,83 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         AuthEndpointsModules.WarnIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
     }
 
-    private static void MapPasskeySignInRoutes<TUser>(IEndpointRouteBuilder group, string confirmEmailEndpointName)
+    private static void MapPasskeyRoutes<TUser>(
+        IEndpointRouteBuilder group,
+        string? confirmEmailEndpointName,
+        string mapMethod,
+        bool signIn,
+        bool management)
+        where TUser : class, new()
+    {
+        // creationOptions is mapped before the anonymous ceremonies, and credential
+        // changes after them, so MapPasskeyEndpoints keeps the 3.3.0 OpenAPI order.
+        RouteGroupBuilder? secured = null;
+        if (management)
+        {
+            secured = group.MapGroup(string.Empty)
+                .RequireAuthEndpointsUser();
+
+            secured.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
+                .WithSummary("Generate WebAuthn creation options for the signed-in user.")
+                .RequireReauth()
+                .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
+                .RequireAntiforgery()
+                .Track(group, mapMethod);
+        }
+
+        if (signIn)
+        {
+            MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName!, mapMethod);
+        }
+
+        if (!management || secured is null)
+        {
+            return;
+        }
+
+        secured.MapPost("/", PasskeyEndpoints<TUser>.AddPasskey)
+            .WithSummary("Attest and store a passkey on the signed-in account.")
+            .RequireReauth()
+            .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
+
+        secured.MapGet("/", PasskeyEndpoints<TUser>.ListPasskeys)
+            .WithSummary("List passkeys for the signed-in user.")
+            .Track(group, mapMethod);
+
+        secured.MapPatch("/", PasskeyEndpoints<TUser>.RenamePasskey)
+            .WithSummary("Rename a passkey.")
+            .WithDescription("Trims the name. A name longer than 200 characters is rejected.")
+            .RequireReauth()
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
+
+        secured.MapDelete("/{credentialIdUrl}", PasskeyEndpoints<TUser>.DeletePasskey)
+            .WithSummary("Remove a passkey from the signed-in account.")
+            .WithDescription("""
+                Refuses with a validation problem when this passkey is the user's only sign-in method
+                (no password and no external login).
+                """)
+            .RequireReauth()
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
+    }
+
+    private static void MapPasskeySignInRoutes<TUser>(IEndpointRouteBuilder group, string confirmEmailEndpointName, string mapMethod)
         where TUser : class, new()
     {
         group.MapPost("/requestOptions", PasskeyEndpoints<TUser>.RequestOptions)
             .WithSummary("Generate WebAuthn request options for passkey login.")
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
 
         group.MapPost("/register/options", PasskeyEndpoints<TUser>.RegisterOptions)
             .WithSummary("Generate WebAuthn creation options for passwordless account registration.")
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
 
         group.MapPost("/register", (
             [FromBody] PasskeyRegisterRequest request,
@@ -128,7 +195,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                 (access token + refresh cookie). CSRF (antiforgery) is required.
                 """)
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
 
         group.MapPost("/login", PasskeyEndpoints<TUser>.Login)
             .WithSummary("Sign in with a passkey assertion.")
@@ -142,44 +210,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                 CSRF (antiforgery) is required for the WebAuthn ceremony.
                 """)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-            .RequireAntiforgery();
-    }
-
-    private static void MapPasskeyManagementRoutes<TUser>(IEndpointRouteBuilder group)
-        where TUser : class, new()
-    {
-        var secured = group.MapGroup(string.Empty)
-            .RequireAuthEndpointsUser();
-
-        secured.MapPost("/creationOptions", PasskeyEndpoints<TUser>.CreationOptions)
-            .WithSummary("Generate WebAuthn creation options for the signed-in user.")
-            .RequireReauth()
-            .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-            .RequireAntiforgery();
-
-        secured.MapPost("/", PasskeyEndpoints<TUser>.AddPasskey)
-            .WithSummary("Attest and store a passkey on the signed-in account.")
-            .RequireReauth()
-            .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
-            .RequireAntiforgery();
-
-        secured.MapGet("/", PasskeyEndpoints<TUser>.ListPasskeys)
-            .WithSummary("List passkeys for the signed-in user.");
-
-        secured.MapPatch("/", PasskeyEndpoints<TUser>.RenamePasskey)
-            .WithSummary("Rename a passkey.")
-            .WithDescription("Trims the name. A name longer than 200 characters is rejected.")
-            .RequireReauth()
-            .RequireAntiforgery();
-
-        secured.MapDelete("/{credentialIdUrl}", PasskeyEndpoints<TUser>.DeletePasskey)
-            .WithSummary("Remove a passkey from the signed-in account.")
-            .WithDescription("""
-                Refuses with a validation problem when this passkey is the user's only sign-in method
-                (no password and no external login).
-                """)
-            .RequireReauth()
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(group, mapMethod);
     }
 
     /// <summary>

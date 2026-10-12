@@ -10,6 +10,9 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     /// Maps signed-in account routes: <c>/manage/info</c>, <c>/manage/2fa</c>, <c>/manage/authMethods</c>,
     /// and <c>/confirmIdentity</c>. <c>POST /confirmIdentity/passkeyOptions</c> is mapped when
     /// <c>AddPasskeyEndpoints</c> was called. Also maps confirm-email when that name is not mapped yet.
+    /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
+    /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
+    /// contributes a no-op builder and those conventions do not reach the existing route.
     /// </summary>
     public static IEndpointConventionBuilder MapAccountManagementEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -33,17 +36,18 @@ public static class AccountManagementEndpointRouteBuilderExtensions
             "MapAccountManagementEndpoints");
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
-        ConfirmEmailEndpointRouteBuilderExtensions.EnsureConfirmEmailMapped<TUser>(endpoints, confirmEmailEndpointName);
+        var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
 
         var group = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery: true);
+        const string mapMethod = nameof(MapAccountManagementEndpoints);
+        IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery: true, mapMethod);
         if (alwaysMapPasskeyOptions || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
         {
-            IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true);
+            IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
-        IdentityEndpointRoutes.MapAuthMethods<TUser>(group);
-        IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName);
-        return group;
+        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod);
+        IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName, mapMethod);
+        return new CompositeEndpointConventionBuilder(confirm, group);
     }
 }

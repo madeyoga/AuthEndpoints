@@ -55,11 +55,11 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapRegister<TUser>(routeGroup, confirmEmailEndpointName);
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login);
-        IdentityEndpointRoutes.MapForgotPassword<TUser>(routeGroup);
-        IdentityEndpointRoutes.MapResetPassword<TUser>(routeGroup);
-        ConfirmEmailEndpointRouteBuilderExtensions.EnsureConfirmEmailMapped<TUser>(routeGroup, confirmEmailEndpointName);
+        IdentityEndpointRoutes.MapRegister<TUser>(routeGroup, confirmEmailEndpointName, nameof(MapPasswordEndpoints));
+        routeGroup.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login, nameof(MapPasswordEndpoints));
+        IdentityEndpointRoutes.MapForgotPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
+        IdentityEndpointRoutes.MapResetPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
         return routeGroup;
     }
 
@@ -79,7 +79,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "MapBearerAuthEndpoints");
 
         var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.IdentityBearer);
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.IdentityBearer, nameof(MapBearerAuthEndpoints));
         routeGroup.MapBearerSessionEndpoints<TUser>();
         return routeGroup;
     }
@@ -98,7 +98,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "MapBearerSessionEndpoints");
 
         var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapBearerSession<TUser>(routeGroup);
+        IdentityEndpointRoutes.MapBearerSession<TUser>(routeGroup, nameof(MapBearerSessionEndpoints));
         return routeGroup;
     }
 
@@ -118,7 +118,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "MapCookieAuthEndpoints");
 
         var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.Cookie);
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.Cookie, nameof(MapCookieAuthEndpoints));
         routeGroup.MapCookieSessionEndpoints<TUser>();
         return routeGroup;
     }
@@ -137,7 +137,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "MapCookieSessionEndpoints");
 
         var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapCookieSession<TUser>(routeGroup);
+        IdentityEndpointRoutes.MapCookieSession<TUser>(routeGroup, nameof(MapCookieSessionEndpoints));
         return routeGroup;
     }
 }

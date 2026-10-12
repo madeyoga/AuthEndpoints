@@ -9,7 +9,7 @@ namespace AuthEndpoints.Identity;
 
 internal static class IdentityEndpointRoutes
 {
-    public static void MapRegister<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName)
+    public static void MapRegister<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName, string mapMethod)
         where TUser : class, new()
     {
         endpoints.MapPost("/register", (
@@ -18,10 +18,11 @@ internal static class IdentityEndpointRoutes
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
             .WithSummary("Registers a new user account.")
             .WithDescription("Creates a new user and sends a confirmation email if configured.")
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .Track(endpoints, mapMethod);
     }
 
-    public static void MapPasswordLogin<TUser>(IEndpointRouteBuilder endpoints, PasswordLoginMode login)
+    public static void MapPasswordLogin<TUser>(IEndpointRouteBuilder endpoints, PasswordLoginMode login, string mapMethod)
         where TUser : class, new()
     {
         switch (login)
@@ -30,43 +31,48 @@ internal static class IdentityEndpointRoutes
                 return;
             case PasswordLoginMode.Cookie:
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.LoginCookie)
-                    .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
+                    .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                    .Track(endpoints, mapMethod);
                 return;
             case PasswordLoginMode.IdentityBearer:
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
-                    .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
+                    .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                    .Track(endpoints, mapMethod);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(login), login, "Unknown password login mode.");
         }
     }
 
-    public static void MapForgotPassword<TUser>(IEndpointRouteBuilder endpoints)
+    public static void MapForgotPassword<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {
         endpoints.MapPost("/forgotPassword", IdentityApiEndpoints<TUser>.ForgotPassword)
             .WithSummary("Sends a password reset email to the user.")
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .Track(endpoints, mapMethod);
     }
 
-    public static void MapResetPassword<TUser>(IEndpointRouteBuilder endpoints)
+    public static void MapResetPassword<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {
         endpoints.MapPost("/resetPassword", IdentityApiEndpoints<TUser>.ResetPassword)
             .WithSummary("Resets the user's password using the provided token.")
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .Track(endpoints, mapMethod);
     }
 
-    public static RouteGroupBuilder MapConfirmEmail<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName)
+    public static IEndpointConventionBuilder MapConfirmEmail<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName, string mapMethod)
         where TUser : class, new()
     {
-        var routeGroup = endpoints.MapGroup("");
-
-        routeGroup.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
+        // Map on the caller's builder. A nested group would land in a later data source, so
+        // confirm and resend would follow forgot and reset instead of the 3.3.0 order.
+        var confirm = endpoints.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
             .WithSummary("Confirms a user's email address.")
-            .WithName(confirmEmailEndpointName);
+            .WithName(confirmEmailEndpointName)
+            .Track(endpoints, mapMethod);
 
-        routeGroup.MapPost("/resendConfirmationEmail", (
+        var resend = endpoints.MapPost("/resendConfirmationEmail", (
             ResendConfirmationEmailRequest resendRequest,
             ClaimsPrincipal claimsPrincipal,
             HttpContext context,
@@ -79,12 +85,13 @@ internal static class IdentityEndpointRoutes
             .WithSummary("Resends the confirmation email for the signed-in account.")
             .RequireAuthEndpointsUser()
             .RequireAntiforgery()
-            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .Track(endpoints, mapMethod);
 
-        return routeGroup;
+        return new CompositeEndpointConventionBuilder(confirm, resend);
     }
 
-    public static void MapConfirmIdentity<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery)
+    public static void MapConfirmIdentity<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
         where TUser : class, new()
     {
         var confirm = endpoints.MapPost("/confirmIdentity", ReAuthEndpoints<TUser>.ConfirmIdentity)
@@ -103,9 +110,11 @@ internal static class IdentityEndpointRoutes
         {
             confirm.RequireAntiforgery();
         }
+
+        confirm.Track(endpoints, mapMethod);
     }
 
-    public static void MapPasskeyOptions<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery)
+    public static void MapPasskeyOptions<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
         where TUser : class, new()
     {
         var passkeyOptions = endpoints.MapPost("/confirmIdentity/passkeyOptions", ReAuthEndpoints<TUser>.PasskeyOptions)
@@ -118,28 +127,34 @@ internal static class IdentityEndpointRoutes
         {
             passkeyOptions.RequireAntiforgery();
         }
+
+        passkeyOptions.Track(endpoints, mapMethod);
     }
 
-    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints)
+    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {
         var manage = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
         manage.MapGet("/authMethods", ReAuthEndpoints<TUser>.AuthMethods)
-            .WithSummary("List available step-up / reauthentication methods for the current user.");
+            .WithSummary("List available step-up / reauthentication methods for the current user.")
+            .Track(endpoints, mapMethod);
     }
 
-    public static void MapManageInfoAndTwoFactor<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName)
+    public static void MapManageInfoAndTwoFactor<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName, string mapMethod)
         where TUser : class, new()
     {
         var accountGroup = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
 
         accountGroup.MapGet("/2fa", IdentityApiEndpoints<TUser>.TwoFactorStatus)
-            .WithSummary("Get two-factor authentication status.");
+            .WithSummary("Get two-factor authentication status.")
+            .Track(endpoints, mapMethod);
         accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
             .WithSummary("Enables or disables two-factor authentication.")
             .RequireAntiforgery()
-            .RequireReauth();
-        accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet);
+            .RequireReauth()
+            .Track(endpoints, mapMethod);
+        accountGroup.MapGet("/info", IdentityApiEndpoints<TUser>.ManageInfoGet)
+            .Track(endpoints, mapMethod);
         accountGroup.MapPost("/info", (
             ClaimsPrincipal claimsPrincipal,
             InfoRequest infoRequest,
@@ -152,27 +167,32 @@ internal static class IdentityEndpointRoutes
                 confirmEmailEndpointName))
             .WithSummary("Updates the current user account information.")
             .RequireAntiforgery()
-            .RequireReauth();
+            .RequireReauth()
+            .Track(endpoints, mapMethod);
     }
 
-    public static void MapCookieSession<TUser>(IEndpointRouteBuilder endpoints)
+    public static void MapCookieSession<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {
         endpoints.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
             .WithSummary("Clear cookies and logout user")
             .RequireAuthorization()
-            .RequireAntiforgery();
+            .RequireAntiforgery()
+            .Track(endpoints, mapMethod);
 
-        endpoints.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken);
+        endpoints.MapGet("/csrfToken", IdentityApiEndpoints<TUser>.GetAntiforgeryToken)
+            .Track(endpoints, mapMethod);
     }
 
-    public static void MapBearerSession<TUser>(IEndpointRouteBuilder endpoints)
+    public static void MapBearerSession<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {
-        endpoints.MapPost("/refresh", IdentityApiEndpoints<TUser>.Refresh);
+        endpoints.MapPost("/refresh", IdentityApiEndpoints<TUser>.Refresh)
+            .Track(endpoints, mapMethod);
 
         endpoints.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
             .WithSummary("Clear cookies and logout user")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .Track(endpoints, mapMethod);
     }
 }

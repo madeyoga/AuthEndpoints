@@ -10,7 +10,8 @@ public static class ConfirmEmailEndpointRouteBuilderExtensions
     /// Maps <c>GET /confirmEmail</c> and <c>POST /resendConfirmationEmail</c>.
     /// The confirm route is named <paramref name="confirmEmailEndpointName"/>, or
     /// <see cref="AuthEndpointsEndpointNames.ConfirmEmail{TUser}"/> when the argument is null.
-    /// A name that is already mapped in this app is left in place.
+    /// A name that is already mapped in this app is left in place, and this method returns a no-op builder.
+    /// Conventions added to that no-op builder, such as <c>WithTags</c> or <c>RequireCors</c>, do not reach the existing route.
     /// </summary>
     public static IEndpointConventionBuilder MapConfirmEmailEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -32,14 +33,6 @@ public static class ConfirmEmailEndpointRouteBuilderExtensions
                 "AddAccountAbuseRateLimiting was not called before MapConfirmEmailEndpoints.");
         }
 
-        return IdentityEndpointRoutes.MapConfirmEmail<TUser>(endpoints, name);
-    }
-
-    internal static void EnsureConfirmEmailMapped<TUser>(
-        IEndpointRouteBuilder endpoints,
-        string? confirmEmailEndpointName)
-        where TUser : class, new()
-    {
-        endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
+        return IdentityEndpointRoutes.MapConfirmEmail<TUser>(endpoints, name, nameof(MapConfirmEmailEndpoints));
     }
 }
