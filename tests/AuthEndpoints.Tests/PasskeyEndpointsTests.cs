@@ -190,10 +190,7 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task Register_NewUnconfirmedUser_SendsConfirmationEmailWithoutSession()
     {
-        using var factory = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "true");
-        });
+        using var factory = _factory.WithRequireConfirmedAccount();
 
         var email = $"passkey-confirm-{Guid.NewGuid():N}@test.local";
         using var client = TestHelpers.CreateClientWithCookies(factory);
@@ -584,9 +581,8 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
     public async Task UnconfirmedRegisterAndLogin_DoesNotInvokeCompleterOrIssueSession()
     {
         var recorder = new RecordingAlwaysSignInCompleter<TestAppUser>();
-        using var factory = _factory.WithWebHostBuilder(builder =>
+        using var factory = _factory.WithRequireConfirmedAccount().WithWebHostBuilder(builder =>
         {
-            builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "true");
             builder.ConfigureServices(services =>
             {
                 services.RemoveAll<IPasskeySignInCompleter<TestAppUser>>();

@@ -70,6 +70,8 @@ public sealed class JwtPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<T
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
         _refreshTokenCookieWriter.Write(httpContext, refreshToken);
 
+        // Same body as JWT /create for register and login. credentialId stays off this response:
+        // the token JSON is the body, including when the caller passed a register credential id.
         return Results.Ok(response);
     }
 }

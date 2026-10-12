@@ -190,9 +190,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             .WithDescription("""
                 After a successful user create, sends the same confirmation email as password register.
                 Sign-in is completed by IPasskeySignInCompleter.
-                Default IdentityPasskeySignInCompleter: useCookies / useSessionCookies select the application cookie;
-                otherwise Identity bearer tokens are issued. Register JwtPasskeySignInCompleter for Simple JWT
-                (access token + refresh cookie). CSRF (antiforgery) is required.
+                Default IdentityPasskeySignInCompleter: useCookies / useSessionCookies select the application cookie
+                and the body is credentialId; otherwise Identity bearer tokens are issued and that token body is the response.
+                Register JwtPasskeySignInCompleter for Simple JWT (access token + refresh cookie, no credentialId).
+                When sign-in is not allowed, the body is credentialId and no session is issued.
+                CSRF (antiforgery) is required.
                 """)
             .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
             .RequireAntiforgery()
