@@ -46,8 +46,10 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [CSRF on cookie mutations](./csrf.md) covers token issue and the requirement on cookie logout.
 - [Identity bearer](./identity-bearer.md) covers token login, refresh, and the `useCookies` query flag on the compose host prefix `/identity/bearer`.
 - [Identity bearer facade](./bearer-facade.md) covers `MapAuthEndpoints` with `AuthEndpointsSignIn.IdentityBearer` (`AE_HOST_MODE=bearer-facade`) at `/identity/login`.
-- [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, and refresh-cookie refresh.
+- [Cookie facade](./cookie-facade.md) covers `MapAuthEndpoints` with the default cookie sign-in (`AE_HOST_MODE=cookie-facade`).
+- [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, refresh-cookie refresh, and logout.
 - [ReAuth step-up](./reauth.md) covers `confirmIdentity` and a protected manage mutation.
-- [Passkeys](./passkeys.md) covers passwordless register/login, confirmation mail under `AE_REQUIRE_CONFIRMED_ACCOUNT=true`, and the test-only WebAuthn helper.
-- [Confirm email](./confirm-email.md) covers `GET /identity/confirmEmail` thank-you / 401 and the optional SPA redirect (`AE_CONFIRM_EMAIL_REDIRECT_URI`).
+- [Passkeys](./passkeys.md) covers passwordless register/login, the 3.4.1 Identity completer bodies (bearer token only, cookie `credentialId`), confirmation mail, and passkey list/delete.
+- [Confirm email](./confirm-email.md) covers `GET /identity/confirmEmail` thank-you / 401, resend, and the optional SPA redirect (`AE_CONFIRM_EMAIL_REDIRECT_URI`).
+- [Password reset](./password-reset.md) covers `POST /identity/forgotPassword` and `POST /identity/resetPassword`.
 - [Email code](./email-code.md) covers `POST /identity/emailCode/send` and `POST /identity/emailCode/verify` when `AE_EMAIL_CODE=true`, plus sign-up (`AE_EMAIL_CODE_SIGNUP`) and a magic link (`AE_EMAIL_CODE_LINK`).

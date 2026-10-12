@@ -7,7 +7,7 @@
 - `send-known` returns `200` `{ expiresInSeconds, resendAfterSeconds }` and a mailbox item `kind` `email-code`
 - `send-unknown` returns the same `200` body and no mailbox item while `AE_EMAIL_CODE_SIGNUP` is unset
 - `verify-bearer` with no query flag returns `200` JSON `accessToken`
-- `verify-cookie` with `useSessionCookies=true` sets `.AspNetCore.Identity.Application`
+- `verify-cookie` with `useSessionCookies=true` sets a session `.AspNetCore.Identity.Application` cookie. `useCookies=true` sets a persistent application cookie. The drive below runs the session-cookie form.
 - `verify-replay` of the same code returns `401` detail `Invalid or expired code.`
 - `signup` with `AE_EMAIL_CODE_SIGNUP=true` creates a confirmed user from an unknown address and sets no password
 - `magic-link` with `AE_EMAIL_CODE_LINK` puts the token in `linkUrl` after `#token=` and accepts a token-only POST
@@ -17,7 +17,8 @@
 
 - `POST /identity/emailCode/send` JSON `{ "email" }`
 - `POST /identity/emailCode/verify` JSON `{ "email", "code" }`
-- `POST /identity/emailCode/verify?useSessionCookies=true` for an application cookie
+- `POST /identity/emailCode/verify?useSessionCookies=true` for a session application cookie
+- `POST /identity/emailCode/verify?useCookies=true` for a persistent application cookie
 - `POST /identity/emailCode/verify` JSON `{ "token" }` when the magic link is on
 - `GET /test/mailbox` lists `{ email, kind, body, linkUrl, purpose }`. `body` is the raw code. `purpose` is `0` (`SignIn`) or `1` (`SignUp`)
 
@@ -49,6 +50,7 @@ Preconditions:
 ## Gotchas
 
 - The compose host maps email-code verify with `IdentityEmailCodeSignInCompleter`. No query flag returns a bearer token, not the application cookie. Cookie login's `useCookies` flag is a different route.
+- This host still maps password register and login when email code is on. The email-code-only recipe (no password routes) is not this process.
 - Verifying an unconfirmed account that has a password, an external login, or a passkey removes those credentials and then confirms the email. Confirm the address first when that credential must stay. Those user-row writes are not email-code consumes; the trace assert counts only `AuthEndpointsEmailCodes`.
 - `GET /test/mailbox` is not a library route. Cite `/identity/emailCode/send` and `/identity/emailCode/verify` as the product proof.
 - Do not log or commit the code, the token, or `linkUrl`.

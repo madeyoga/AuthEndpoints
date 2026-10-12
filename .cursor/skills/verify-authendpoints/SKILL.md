@@ -1,6 +1,6 @@
 ---
 name: verify-authendpoints
-description: Drive the AuthEndpoints HTTP API via the in-repo test host (cookie sessions, Identity bearer, Simple JWT, CSRF, ReAuth). Use when verifying a change to src/AuthEndpoints or tests/AuthEndpoints.Tests, proving register/login/session/token behavior, or when a task needs a live auth API instead of only `dotnet test`.
+description: Drive the AuthEndpoints HTTP API via the in-repo test host (cookie sessions, cookie and bearer facades, Identity bearer, Simple JWT, CSRF, ReAuth, passkeys, email code). Use when verifying a change to src/AuthEndpoints or tests/AuthEndpoints.Tests, proving register/login/session/token behavior, or when a task needs a live auth API instead of only `dotnet test`.
 ---
 
 # Verify AuthEndpoints
@@ -37,6 +37,8 @@ Ready signal for the default **compose** host: `GET {AE_BASE_URL}/identity/csrfT
 
 Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready signal is `GET /identity/manage/info` returning **401**. Doctor prints `mode=bearer-facade`. See [bearer-facade.md](features/bearer-facade.md).
 
+Cookie facade: set `AE_HOST_MODE=cookie-facade` before `launch`. Ready signal is the same `GET /identity/csrfToken` **200** as compose. Doctor prints `mode=cookie-facade`. See [cookie-facade.md](features/cookie-facade.md). Facade hosts map `/auth` unless `AE_FACADE_JWT=false`.
+
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.
 
 What the host actually is (`tests/AuthEndpoints.Tests/Program.cs`):
@@ -60,6 +62,35 @@ Default `AE_HOST_MODE=compose`:
 | `/account` | Passkey routes |
 | `/test/*` | Same test-only probes |
 
+`AE_HOST_MODE=cookie-facade` uses `AddAuthEndpoints` / `MapAuthEndpoints` with the default cookie sign-in (`LoginCookie`):
+
+| Prefix | Mapped surface |
+| --- | --- |
+| `/identity` | Identity management + **cookie** login + logout + `/csrfToken` (no `/identity/bearer`, no `/identity/refresh`) |
+| `/auth` | Simple JWT, unless `AE_FACADE_JWT=false` |
+| `/account` | Passkey routes |
+| `/test/*` | Same test-only probes |
+
+### 3.4.0 building blocks
+
+The compose host calls the composite maps. Those composites call the 3.4.0 blocks, and the HTTP routes stay the 3.3.0 set. Driving the feature map covers those routes. A host that mapped one block alone is a different process.
+
+| Composite this host calls | Blocks |
+| --- | --- |
+| `MapIdentityManagementApi` | `MapPasswordEndpoints` (`PasswordLoginMode.None`: register, confirm-email, forgot, reset), `MapConfirmEmailEndpoints` (no-op when that endpoint name is already mapped), `MapAccountManagementEndpoints` |
+| `MapCookieAuthEndpoints` | cookie `POST /login` + `MapCookieSessionEndpoints` (logout, `csrfToken`) |
+| `MapBearerAuthEndpoints` | bearer `POST /login` + `MapBearerSessionEndpoints` (refresh, logout) |
+| `MapJwtAuthEndpoints` | `MapJwtPasswordEndpoints` (`POST /create`) + `MapJwtSessionEndpoints` (refresh, verify, logout, `csrfToken`) |
+| `MapPasskeyEndpoints` | the sign-in routes of `MapPasskeySignInEndpoints` (this composite does not map confirm-email) plus `MapPasskeyManagementEndpoints` |
+
+`MapAuthEndpoints` on either facade calls those same composites for the configured sign-in.
+
+Not on this host, so do not mark them verified from a compose or facade drive:
+
+- Email-code-only recipe (`MapEmailCodeEndpoints` without password register/login). When `AE_EMAIL_CODE=true`, this host still maps password routes.
+- `JwtPasskeySignInCompleter`. Passkey register/login use `IdentityPasskeySignInCompleter`. Bearer register returns the token body only. Cookie register returns `credentialId`. The JWT completer always returns a token and ignores `useCookies`; that body is not produced here.
+- External OAuth (`tests/AuthEndpoints.External.OAuth.Tests`).
+
 Host defaults that **differ from production library defaults**:
 
 - `SignIn.RequireConfirmedAccount = false` (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in.
@@ -68,7 +99,7 @@ Host defaults that **differ from production library defaults**:
 - EF Core **SQLite** file under the temp directory (`TestDbName`). All users vanish when that file is removed; a new `AE_RUN_ID` uses a new file.
 - JWT signing key is the test-only value in `Program.cs`. Never treat it as a production secret.
 - `IEmailSender<TUser>` is a capturing sender. `GET /test/mailbox` lists `{email,kind,body}` (confirmation links are HTML-encoded). Email-code items also include `linkUrl` and `purpose`. This is a **test-only** probe.
-- Email-code routes are unmapped unless `AE_EMAIL_CODE=true`. `AE_EMAIL_CODE_SIGNUP=true` sets `AllowSignUp`. `AE_EMAIL_CODE_LINK` is the magic-link base URL and enables the link. Drive them from [features/email-code.md](features/email-code.md). Verify with no query flag returns a bearer `accessToken`. `useSessionCookies=true` sets the application cookie.
+- Email-code routes are unmapped unless `AE_EMAIL_CODE=true`. `AE_EMAIL_CODE_SIGNUP=true` sets `AllowSignUp`. `AE_EMAIL_CODE_LINK` is the magic-link base URL and enables the link. Drive them from [features/email-code.md](features/email-code.md). Verify with no query flag returns a bearer `accessToken`. `useSessionCookies=true` sets a session application cookie. `useCookies=true` sets a persistent application cookie.
 - Software WebAuthn: `POST /test/webauthn/attestation` and `POST /test/webauthn/assertion` turn options JSON into `credentialJson`. These are **test-only** probes. The library still verifies attestation/assertion on `/account/passkeys/register` and `/login`.
 
 Isolation: two hosts may run on **different ports**. Refuse to drive a port that was already listening when `launch` ran. Never kill by process name (`pkill`, `killall`).
@@ -79,7 +110,7 @@ Run `"$HARNESS" doctor` before the first drive, after any failed drive, and when
 
 1. `$AE_RUN_DIR/host.pid` exists and that PID is alive.
 2. `AE_BASE_URL` accepts connections (the port we chose).
-3. Compose host: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade host: `GET /identity/manage/info` is 401.
+3. Compose and cookie-facade: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade: `GET /identity/manage/info` is 401.
 
 If doctor fails, `stop` (if we started the process) and `launch` again. Do not keep driving a surprising instance.
 
@@ -205,6 +236,7 @@ Never `pkill -f AuthEndpoints` or similar.
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |
 | `post [--csrf] <path> [json] [--out N]` | POST JSON; `--csrf` fetches a token first (JWT paths use `/auth/csrfToken`) |
+| `delete [--csrf] <path> [--out N]` | DELETE; `--csrf` uses the same token path as `post` |
 | `traces [summary\|errors\|sql\|timing\|probe\|mark\|self-test]` | Read Aspire dashboard traces into `$AE_EVIDENCE_DIR/traces-summary.txt` |
 | `stop` | SIGTERM the launch PID |
 
