@@ -29,7 +29,8 @@ Preconditions:
 - **Logout with header.** POST logout through the harness CSRF helper. Run `ae-http.sh post --csrf /identity/logout --out logout-csrf`. Status is `200` or `204`.
 - **Session gone.** Run `ae-http.sh get /identity/manage/info --out info-after-csrf-logout`. Status is `401`.
 - **JWT CSRF endpoint.** Run `ae-http.sh get /auth/csrfToken --out jwt-csrf`. Status is `200` with `csrfToken`.
-- **Proof.** Keep `csrf.body` (token), `logout-no-csrf.status` (failure) plus `info` still 200, then `logout-csrf.status` and `info-after-csrf-logout.status` (`401`).
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for the logout and token requests and flags a repeated identical statement in one trace.
+- **Proof.** Keep `csrf.body` (token), `logout-no-csrf.status` (failure) plus `info` still 200, then `logout-csrf.status`, `info-after-csrf-logout.status` (`401`), and `traces-summary.txt`.
 
 ## Gotchas
 

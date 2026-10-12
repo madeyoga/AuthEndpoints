@@ -31,7 +31,8 @@ Preconditions:
 - **Verify.** `export AE_BEARER` to the access token. Run `ae-http.sh get /auth/verify --out jwt-verify`. Status is `204`.
 - **Refresh.** Keep the jar from create. Run `ae-http.sh post --csrf /auth/refresh --out jwt-refresh`. Status is `200`. Body has a new `accessToken`.
 - **Missing cookie.** New jar, no create. Run `ae-http.sh post --csrf /auth/refresh --out jwt-refresh-missing`. Status is not 200 (typically 400) and the body mentions a missing refresh token cookie.
-- **Proof.** Keep `jwt-create.body` + `jwt-create.headers` (refresh cookie), `jwt-verify.status` (`204`), and `jwt-refresh.body` (new access token).
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `POST /auth/create` and flags a repeated identical statement in one trace.
+- **Proof.** Keep `jwt-create.body` + `jwt-create.headers` (refresh cookie), `jwt-verify.status` (`204`), `jwt-refresh.body` (new access token), and `traces-summary.txt`.
 
 ## Gotchas
 

@@ -32,7 +32,8 @@ Preconditions:
 - **Mutation without ReAuth.** Unset `AE_REAUTH`. Run `ae-http.sh post --csrf /identity/manage/info "{\"oldPassword\":\"${PASS}\",\"newPassword\":\"ChangedPass1!\"}" --out info-no-reauth`. Status is `401` or `403`.
 - **Mutation with ReAuth.** `export AE_REAUTH` from the successful confirm. Run `ae-http.sh post --csrf /identity/manage/info "{\"oldPassword\":\"${PASS}\",\"newPassword\":\"ChangedPass1!\"}" --out info-reauth`. Status is `200`.
 - **New password works.** New jar. Run `ae-http.sh post /identity/login "{\"email\":\"${EMAIL}\",\"password\":\"ChangedPass1!\"}" --out login-new`. Status is `200` or `204`. Then `ae-http.sh get /identity/manage/info --out info-new` is `200`.
-- **Proof.** Keep `auth-methods.body`, `confirm.body` (`reauthToken`), `info-no-reauth.status` (401/403), `info-reauth.status` (`200`), and `login-new.status`.
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `confirmIdentity` and the manage mutation and flags a repeated identical statement in one trace.
+- **Proof.** Keep `auth-methods.body`, `confirm.body` (`reauthToken`), `info-no-reauth.status` (401/403), `info-reauth.status` (`200`), `login-new.status`, and `traces-summary.txt`.
 
 ## Gotchas
 

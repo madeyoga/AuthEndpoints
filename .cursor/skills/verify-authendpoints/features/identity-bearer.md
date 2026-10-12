@@ -30,7 +30,8 @@ Preconditions:
 - **Refresh.** Run `ae-http.sh post /identity/bearer/refresh "{\"refreshToken\":\"${REFRESH}\"}" --out bearer-refresh`. Status is `200`. Body has a new `accessToken`.
 - **Bad refresh.** Run `ae-http.sh post /identity/bearer/refresh '{"refreshToken":"not-a-real-refresh-token"}' --out bearer-refresh-bad`. Status is `401`.
 - **Cookie flag.** New jar. Run `ae-http.sh post "/identity/bearer/login?useCookies=true" "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}" --out bearer-cookie`. Status is `200` or `204`. Then `ae-http.sh get /identity/bearer/manage/info --out bearer-cookie-info` is `200` **without** `AE_BEARER`.
-- **Proof.** Keep `bearer-login.body` (both tokens), `bearer-info.body` (email), `bearer-refresh.body` (new access token), and `bearer-cookie-info.status` (`200`).
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `POST /identity/bearer/login` and flags a repeated identical statement in one trace. Per-route durations are in the timing section.
+- **Proof.** Keep `bearer-login.body` (both tokens), `bearer-info.body` (email), `bearer-refresh.body` (new access token), `bearer-cookie-info.status` (`200`), and `traces-summary.txt`.
 
 ## Gotchas
 

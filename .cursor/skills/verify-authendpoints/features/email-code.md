@@ -43,12 +43,14 @@ Preconditions:
 - **Sign-up.** Relaunch with `AE_EMAIL_CODE=true` and `AE_EMAIL_CODE_SIGNUP=true`. Send to an unused address. Mailbox `purpose` is `1`. Verify that code with no query flag. Status is `200` with `accessToken`. `GET /identity/manage/info` shows the address and `isEmailConfirmed` true. `POST /identity/login` with a password for that address is `401` (no password was set).
 - **Magic link.** Relaunch with `AE_EMAIL_CODE=true` and `AE_EMAIL_CODE_LINK` set. After send, read the token after `#token=` in `linkUrl`. POST `/identity/emailCode/verify` with JSON `{ "token" }` only. Status is `200`. A second POST of that token is `401`. `GET /identity/emailCode/verify?token=` is `405` and does not sign in.
 - **Disabled token.** With `AE_EMAIL_CODE_LINK` unset, POST `{ "token" }` . Status is `400`. Body contains `InvalidEmailCodeRequest`.
+- **Traces.** Run `ae-http.sh traces` after a successful verify. The HTTP 200 `POST /identity/emailCode/verify` trace must show exactly one conditional `UPDATE` of `AuthEndpointsEmailCodes` that sets `ConsumedAt` and whose `WHERE` includes `ConsumedAt IS NULL`. The only other write to that table is one `Attempts` reservation `UPDATE`. No `INSERT`, `DELETE`, unconsume, or second consume. `ae-http.sh traces sql` prints those `db.statement` lines. A repeated identical statement in that trace is an N+1 flag; the consume `UPDATE` must appear once. `ae-http.sh traces probe` compares `POST /identity/emailCode/send` for an existing user vs an unknown address (two runs each, under the 5/minute cap).
+- **Proof.** Keep the verify status, the bearer or cookie follow-up, and `traces-summary.txt` with `email-code verify: pass`.
 
 ## Gotchas
 
 - The compose host maps email-code verify with `IdentityEmailCodeSignInCompleter`. No query flag returns a bearer token, not the application cookie. Cookie login's `useCookies` flag is a different route.
-- Verifying an unconfirmed account that has a password, an external login, or a passkey removes those credentials and then confirms the email. Confirm the address first when that credential must stay.
+- Verifying an unconfirmed account that has a password, an external login, or a passkey removes those credentials and then confirms the email. Confirm the address first when that credential must stay. Those user-row writes are not email-code consumes; the trace assert counts only `AuthEndpointsEmailCodes`.
 - `GET /test/mailbox` is not a library route. Cite `/identity/emailCode/send` and `/identity/emailCode/verify` as the product proof.
 - Do not log or commit the code, the token, or `linkUrl`.
-- A second send inside 60 seconds returns `200` and does not add a mailbox item.
+- A second send inside 60 seconds returns `200` and does not add a mailbox item. Send is also limited to 5/minute per IP. `traces probe` uses two different existing users and two unknown addresses, one send each.
 - `AE_EMAIL_CODE`, `AE_EMAIL_CODE_SIGNUP`, and `AE_EMAIL_CODE_LINK` are read at process start. Set them before `launch`.

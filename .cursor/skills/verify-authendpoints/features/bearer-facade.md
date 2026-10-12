@@ -33,7 +33,8 @@ Preconditions:
 - **Manage with bearer.** Export `AE_BEARER` to that access token. Run `ae-http.sh get /identity/manage/info --out facade-info`. Status is `200`. `email` matches `EMAIL`.
 - **Refresh.** Unset is not required. Run `ae-http.sh post /identity/refresh "{\"refreshToken\":\"${REFRESH}\"}" --out facade-refresh`. Status is `200`. Body has a new `accessToken`.
 - **CSRF absent.** Unset `AE_BEARER`. Run `ae-http.sh get /identity/csrfToken --out facade-csrf-absent`. Status is `404`.
-- **Proof.** Keep `facade-login.body` (both tokens), `facade-info.body` (email), `facade-refresh.body` (new access token), and `facade-csrf-absent.status` (`404`).
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `POST /identity/login` and flags a repeated identical statement in one trace. The built-in `traces probe` targets the compose host; on this facade, use `traces timing` for per-route duration after the drive.
+- **Proof.** Keep `facade-login.body` (both tokens), `facade-info.body` (email), `facade-refresh.body` (new access token), `facade-csrf-absent.status` (`404`), and `traces-summary.txt`.
 
 ## Gotchas
 

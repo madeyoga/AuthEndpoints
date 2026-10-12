@@ -34,13 +34,14 @@ Preconditions:
 - **Session info.** Read the signed-in account. Run `ae-http.sh get /identity/manage/info --out info`. Status is `200`. Body `email` matches `EMAIL`.
 - **Logout.** End the session. Run `ae-http.sh post --csrf /identity/logout --out logout`. Status is `200` or `204`.
 - **Logged out.** Read info again. Run `ae-http.sh get /identity/manage/info --out info-after-logout`. Status is `401`.
-- **Proof.** Keep `register.*`, `login.headers` (cookie), `info.body` (email), and `info-after-logout.status` (`401`).
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `POST /identity/register` and `POST /identity/login` and flags any statement repeated in one trace. On a fresh host, `ae-http.sh traces probe` compares login (wrong password vs unknown email) and register (new email vs duplicate email) over several runs. A large median gap is a timing side-channel flag in `traces-summary.txt`.
+- **Proof.** Keep `register.*`, `login.headers` (cookie), `info.body` (email), `info-after-logout.status` (`401`), and `traces-summary.txt`.
 
 ## Gotchas
 
 - This path is `LoginCookie` on `/identity/login`. `useCookies=true` does nothing here. Persistent vs session is only `useSessionCookies=false` vs omitted/true.
 - Register does not sign the user in. Always login after register before calling `/manage/info`.
 - Duplicate email register is 200 by design. Use a new email when you need a distinct user.
-- Login is rate-limited (token bucket). Bursting logins from one IP yields 429.
+- Login is rate-limited (token bucket). Bursting logins from one IP yields 429. `traces probe` already spends that budget; run it on its own host, not after a long login drive.
 - Logout without CSRF is a CSRF failure, not a successful logout. See [CSRF on cookie mutations](./csrf.md).
 - Test host allows unconfirmed users to sign in. Production facade default does not.

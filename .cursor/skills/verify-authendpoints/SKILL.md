@@ -33,7 +33,7 @@ chmod +x "$HARNESS"
 
 Ready signal for the default **compose** host: `GET {AE_BASE_URL}/identity/csrfToken` returns **200** and JSON with `csrfToken` (Pascal `CsrfToken` is also accepted). The helper polls that URL after start.
 
-`launch` turns on OpenTelemetry export when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset (`http://localhost:4317`, service name `authendpoints-demo`). Set `OTEL_EXPORTER_OTLP_ENDPOINT` to empty before `launch` to skip export. How to read those traces is in the repository `AGENTS.md`.
+`launch` turns on OpenTelemetry export when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset (`http://localhost:4317`, service name `authendpoints-demo`). Set `OTEL_EXPORTER_OTLP_ENDPOINT` to empty before `launch` to skip export. After the host is ready, `launch` writes `$AE_RUN_DIR/traces.since` so later trace checks ignore spans from earlier processes. Read those spans with `ae-http.sh traces` (below), not by route name alone. The dashboard URL and resource query are also in the repository `AGENTS.md`.
 
 Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready signal is `GET /identity/manage/info` returning **401**. Doctor prints `mode=bearer-facade`. See [bearer-facade.md](features/bearer-facade.md).
 
@@ -144,6 +144,44 @@ Proof standards:
 
 Cloud Agent walkthroughs may **copy** evidence files to `/opt/cursor/artifacts` after the drive. Copying is extra; the named evidence dir is the source of truth.
 
+Do not commit `traces-summary.txt` or `trace-labels.jsonl`. They are harness dumps under the evidence directory.
+
+## Traces
+
+Live verification reads **inside** spans from the Aspire dashboard:
+
+`GET http://localhost:18888/api/telemetry/traces?resource=authendpoints-demo`
+
+The response is `{ data, totalCount, returnedCount }` with OTLP spans in `data.resourceSpans`. Route names are not enough. The helper in `scripts/ae-traces.py` (invoked as `ae-http.sh traces`) uses span status, exception events, `db.statement` (or `db.query.text` when that is the only statement attribute), and server-span duration. It keeps spans whose `server.port` is `AE_PORT` and whose start is at or after `traces.since`.
+
+```bash
+"$HARNESS" traces
+```
+
+That waits `AE_TRACE_FLUSH_SECONDS` (default 6) so the batch exporter can flush, then writes `$AE_EVIDENCE_DIR/traces-summary.txt` and prints the same text. `stop` does not delete it.
+
+| Command | What it writes |
+| --- | --- |
+| `traces` / `traces summary` | Errors, SQL, and timing for this run |
+| `traces errors` | Error spans and exception events only |
+| `traces sql` | `db.statement` lines grouped under each request trace |
+| `traces timing` | Per-route duration, plus existing-vs-unknown pairs when a probe has labeled them |
+| `traces probe` | Drives the enumeration pairs below, then writes the full summary |
+| `traces mark` | Sets `traces.since` to now |
+| `traces self-test` | Checks the summary logic without a dashboard |
+
+Checks:
+
+1. **Errors.** After each live run, the summary must show zero spans with error status and zero exception events for this service. Any hit is listed with the span name and message. That fails the command (exit 1).
+2. **SQL.** `traces sql` lists each request trace's `db.statement` values. A statement text that occurs two or more times in one trace is an N+1 flag. A successful `POST /identity/emailCode/verify` (HTTP 200) must consume the code exactly once: one conditional `UPDATE` of `AuthEndpointsEmailCodes` that sets `ConsumedAt` and whose `WHERE` includes `ConsumedAt IS NULL`. The only other write to that table is the single `Attempts` reservation `UPDATE`. An `INSERT`, `DELETE`, unconsume, or second consume fails the command (exit 1).
+3. **Timing.** The summary reports min, median, and max server-span duration per route. `traces probe` compares existing-user vs unknown-user durations over several runs for login (wrong password), email-code send, forgot password, register (existing email vs new email), and passkey login options (`POST /account/passkeys/requestOptions`). A median gap of at least `AE_TIMING_GAP_MS` (default 25) and a ratio of at least `AE_TIMING_GAP_RATIO` (default 2) is flagged as a possible timing side channel. A request span at or above `AE_SLOW_SPAN_MS` (default 750) is flagged as unexpectedly slow.
+
+Exit codes: `0` nothing failed and nothing was flagged; `1` error span, exception event, broken email-code consume assert, or no spans in the window; `2` only N+1, timing-gap, or slow-span flags. `AE_TRACES_STRICT=true` turns flags into exit 1.
+
+`traces probe` stays inside the test host's rate limits: login 3+3 (token bucket of 10, shared with one email-code verify), email-code send 2+2 (5 per minute per IP), forgot password 2+2 and register 3 new + 2 duplicate (account-abuse window of 10 per minute), passkey options 2+2 (5 per minute). It confirms the known users before send, verify, and forgot-password so those paths are the confirmed-account paths. Launch with `AE_EMAIL_CODE=true` or the email-code pair is skipped. Each probe request sends `traceparent`, and the summary joins that trace id to the server span.
+
+Run `traces` after every feature drive in this skill. The feature map states the SQL and timing asserts that apply to that drive. `traces probe` is the enumeration comparison; it is a separate host from a feature drive that already spent the login or send budget.
+
 ## Cleanup
 
 ```bash
@@ -167,6 +205,7 @@ Never `pkill -f AuthEndpoints` or similar.
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |
 | `post [--csrf] <path> [json] [--out N]` | POST JSON; `--csrf` fetches a token first (JWT paths use `/auth/csrfToken`) |
+| `traces [summary\|errors\|sql\|timing\|probe\|mark\|self-test]` | Read Aspire dashboard traces into `$AE_EVIDENCE_DIR/traces-summary.txt` |
 | `stop` | SIGTERM the launch PID |
 
 The script is executable (`chmod +x` if git lost the bit).

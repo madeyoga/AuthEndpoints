@@ -29,7 +29,8 @@ Preconditions:
 - **Confirm (unset host).** GET the HTML-decoded confirm URL. Status is `200`. Body contains `confirming`.
 - **Confirm (redirect host).** GET the same URL. Status is `302`. `Location` has `status=confirmed` and `flow=confirm`. Do not follow the redirect.
 - **Failure (redirect host).** GET `/identity/confirmEmail?userId=${USER_ID}&code=not-a-valid-code`. Status is `302`. `Location` has `status=failed` and `flow=confirm`.
-- **Proof.** Keep register, mailbox, and the confirm GET status plus headers (`Location` when redirected).
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `GET /identity/confirmEmail` and flags a repeated identical statement in one trace.
+- **Proof.** Keep register, mailbox, the confirm GET status plus headers (`Location` when redirected), and `traces-summary.txt`.
 
 ## Gotchas
 

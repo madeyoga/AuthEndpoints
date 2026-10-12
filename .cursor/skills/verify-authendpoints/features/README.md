@@ -20,12 +20,14 @@ This directory is the maintained source for verifying the HTTP API the library e
 - On 429, let the helper retry. Do not hammer `/identity/login` or `/auth/create`.
 - Restore nothing in the database. Start a new email or a new host if state is dirty. The host uses a SQLite file named from `TestDbName`.
 - Do not delete proof files during cleanup.
+- After the drive, run `ae-http.sh traces`. That reads span status, `db.statement`, and duration from `http://localhost:18888/api/telemetry/traces`. Keep `traces-summary.txt`. Error spans and exception events must be zero.
 
 ## Proof and skip reporting
 
 - Capture the request, status, headers, and body for each step (`--out`).
 - Mutation proof includes a later GET (or a failed GET after logout).
 - Record the feature ID and the exact path used.
+- Keep `traces-summary.txt` from `ae-http.sh traces`. Do not commit it. Route names alone are not the trace proof.
 - If an entry point cannot be reached, report the command and the unmet precondition. Do not mark it verified via a different path.
 - `/test/*` routes are not library entry points.
 

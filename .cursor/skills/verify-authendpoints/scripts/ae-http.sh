@@ -14,6 +14,7 @@ Commands:
   csrf [path]         Print csrfToken JSON field (default /identity/csrfToken).
   get <path>          GET a path. Writes status/headers/body under AE_EVIDENCE_DIR when --out is set.
   post <path> [json]  POST JSON. Add --csrf to send RequestVerificationToken. Optional --out NAME.
+  traces [command]    Read Aspire traces (summary, errors, sql, timing, probe, mark, self-test).
 
 Environment:
   AE_RUN_ID         Unique id for this run (default: timestamp-pid)
@@ -33,6 +34,13 @@ Environment:
   AE_EMAIL_CODE_LINK    Absolute http(s) magic-link URI with no '#'. Set to enable the link.
   OTEL_EXPORTER_OTLP_ENDPOINT  When unset, launch sets http://localhost:4317. Empty skips export.
   OTEL_SERVICE_NAME  When unset, launch sets authendpoints-demo.
+  AE_DASHBOARD_URL Dashboard UI origin for traces (default http://localhost:18888).
+  AE_TRACE_FLUSH_SECONDS  Seconds to wait before reading traces (default 6).
+  AE_TRACE_LIMIT   Max traces to request from the dashboard (default 1000).
+  AE_SLOW_SPAN_MS  Flag a request span at or above this duration (default 750).
+  AE_TIMING_GAP_MS Absolute median gap that can flag a timing side channel (default 25).
+  AE_TIMING_GAP_RATIO  Median ratio required together with AE_TIMING_GAP_MS (default 2).
+  AE_TRACES_STRICT When true, N+1 and timing flags exit 1 instead of 2.
 
 Examples:
   AE_RUN_ID=demo ./ae-http.sh launch
@@ -41,6 +49,8 @@ Examples:
   ./ae-http.sh post /identity/login '{"email":"a@test.local","password":"Passw0rd!"}' --out login
   ./ae-http.sh get /identity/manage/info --out info
   ./ae-http.sh post --csrf /identity/logout --out logout
+  ./ae-http.sh traces
+  ./ae-http.sh traces probe
   ./ae-http.sh stop
 EOF
 }
@@ -288,8 +298,26 @@ cmd_launch() {
     cmd_stop || true
     exit 1
   fi
+  python3 -c 'import time; print(time.time_ns())' > "$AE_RUN_DIR/traces.since"
   echo "Ready at ${AE_BASE_URL} (pid $(cat "$AE_PID_FILE"))" >&2
   echo "$AE_BASE_URL"
+}
+
+cmd_traces() {
+  local py="${AE_REPO_ROOT}/.cursor/skills/verify-authendpoints/scripts/ae-traces.py"
+  if [[ ! -f "$py" ]]; then
+    echo "Missing $py" >&2
+    exit 1
+  fi
+  export AE_RUN_ID AE_PORT AE_BASE_URL AE_RUN_DIR AE_EVIDENCE_DIR AE_COOKIE_JAR AE_HOST_MODE AE_REPO_ROOT
+  export OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-authendpoints-demo}"
+  export AE_DASHBOARD_URL="${AE_DASHBOARD_URL:-http://localhost:18888}"
+  if [[ -z "${OTEL_EXPORTER_OTLP_ENDPOINT+x}" ]]; then
+    export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
+  else
+    export OTEL_EXPORTER_OTLP_ENDPOINT
+  fi
+  python3 "$py" "$@"
 }
 
 cmd_doctor() {
@@ -400,6 +428,13 @@ case "$cmd" in
   csrf) cmd_csrf "$@" ;;
   get) cmd_get "$@" ;;
   post) cmd_post "$@" ;;
+  traces)
+    if [[ $# -eq 0 ]]; then
+      cmd_traces summary
+    else
+      cmd_traces "$@"
+    fi
+    ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: $cmd" >&2; usage; exit 1 ;;
 esac
