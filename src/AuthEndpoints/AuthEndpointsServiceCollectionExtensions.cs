@@ -33,7 +33,7 @@ public static class AuthEndpointsServiceCollectionExtensions
         where TUser : class, new()
         where TContext : DbContext
     {
-        return AddAuthEndpointsCore<TUser, TContext>(services, configure, addRoles: null);
+        return AddAuthEndpointsCore<TUser, TContext>(services, configure, addRoles: null, roleType: null);
     }
 
     /// <summary>
@@ -51,7 +51,8 @@ public static class AuthEndpointsServiceCollectionExtensions
         return AddAuthEndpointsCore<TUser, TContext>(
             services,
             WrapSignIn(signIn, configure),
-            addRoles: null);
+            addRoles: null,
+            roleType: null);
     }
 
     /// <summary>
@@ -69,7 +70,8 @@ public static class AuthEndpointsServiceCollectionExtensions
         return AddAuthEndpointsCore<TUser, TContext>(
             services,
             configure,
-            builder => builder.AddRoles<TRole>());
+            builder => builder.AddRoles<TRole>(),
+            typeof(TRole));
     }
 
     /// <summary>
@@ -88,7 +90,8 @@ public static class AuthEndpointsServiceCollectionExtensions
         return AddAuthEndpointsCore<TUser, TContext>(
             services,
             WrapSignIn(signIn, configure),
-            builder => builder.AddRoles<TRole>());
+            builder => builder.AddRoles<TRole>(),
+            typeof(TRole));
     }
 
     private static Action<AuthEndpointsOptions> WrapSignIn(
@@ -105,7 +108,8 @@ public static class AuthEndpointsServiceCollectionExtensions
     private static IdentityBuilder AddAuthEndpointsCore<TUser, TContext>(
         IServiceCollection services,
         Action<AuthEndpointsOptions>? configure,
-        Func<IdentityBuilder, IdentityBuilder>? addRoles)
+        Func<IdentityBuilder, IdentityBuilder>? addRoles,
+        Type? roleType)
         where TUser : class, new()
         where TContext : DbContext
     {
@@ -132,7 +136,8 @@ public static class AuthEndpointsServiceCollectionExtensions
                 identity.SignIn.RequireConfirmedAccount = bootstrap.RequireConfirmedAccount;
                 bootstrap.ConfigureIdentity?.Invoke(identity);
             },
-            addRoles);
+            addRoles,
+            roleType);
 
         services.AddCookieAuthEndpoints();
         if (bootstrap.SignIn == AuthEndpointsSignIn.IdentityBearer)

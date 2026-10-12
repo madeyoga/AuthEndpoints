@@ -11,7 +11,8 @@ public static class AuthEndpointsIdentityServiceCollectionExtensions
     /// <see cref="IdentityOptions.SignIn.RequireConfirmedAccount"/> defaults to <see langword="true"/> and
     /// <see cref="IdentityOptions.Stores.SchemaVersion"/> defaults to <see cref="IdentitySchemaVersions.Version3"/>.
     /// The <paramref name="configure"/> callback runs after those defaults.
-    /// Safe to call once per <typeparamref name="TUser"/>; a later call is ignored.
+    /// A later call for the same <typeparamref name="TUser"/> applies <paramref name="configure"/> through
+    /// options configuration and does not reset <see cref="IdentityOptions.SignIn.RequireConfirmedAccount"/>.
     /// </summary>
     public static IdentityBuilder AddAuthEndpointsIdentity<TUser, TContext>(
         this IServiceCollection services,
@@ -19,13 +20,14 @@ public static class AuthEndpointsIdentityServiceCollectionExtensions
         where TUser : class, new()
         where TContext : DbContext
     {
-        return AddAuthEndpointsIdentity<TUser, TContext>(services, configure, addRoles: null);
+        return AddAuthEndpointsIdentity<TUser, TContext>(services, configure, addRoles: null, roleType: null);
     }
 
     internal static IdentityBuilder AddAuthEndpointsIdentity<TUser, TContext>(
         this IServiceCollection services,
         Action<IdentityOptions>? configure,
-        Func<IdentityBuilder, IdentityBuilder>? addRoles)
+        Func<IdentityBuilder, IdentityBuilder>? addRoles,
+        Type? roleType)
         where TUser : class, new()
         where TContext : DbContext
     {
@@ -33,7 +35,10 @@ public static class AuthEndpointsIdentityServiceCollectionExtensions
 
         if (services.Any(descriptor => descriptor.ServiceType == typeof(AuthEndpointsIdentityMarker<TUser>)))
         {
-            return new IdentityBuilder(typeof(TUser), services);
+            ApplyLaterIdentityCall<TUser, TContext>(services, configure, addRoles, roleType);
+            return roleType is null
+                ? new IdentityBuilder(typeof(TUser), services)
+                : new IdentityBuilder(typeof(TUser), roleType, services);
         }
 
         services.AddSingleton<AuthEndpointsIdentityMarker<TUser>>();
@@ -56,6 +61,45 @@ public static class AuthEndpointsIdentityServiceCollectionExtensions
 
         services.AddAuthEndpointsAuthorizationAndAntiforgery();
         return identityBuilder;
+    }
+
+    private static void ApplyLaterIdentityCall<TUser, TContext>(
+        IServiceCollection services,
+        Action<IdentityOptions>? configure,
+        Func<IdentityBuilder, IdentityBuilder>? addRoles,
+        Type? roleType)
+        where TUser : class
+        where TContext : DbContext
+    {
+        if (configure is not null)
+        {
+            services.Configure(configure);
+        }
+
+        if (roleType is null)
+        {
+            return;
+        }
+
+        var registered = services
+            .Select(descriptor => descriptor.ServiceType)
+            .FirstOrDefault(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(RoleManager<>));
+        if (registered is not null)
+        {
+            var registeredRole = registered.GetGenericArguments()[0];
+            if (registeredRole == roleType)
+            {
+                return;
+            }
+
+            throw new InvalidOperationException(
+                $"RoleManager<{registeredRole.Name}> is already registered. A later AddAuthEndpoints call requested RoleManager<{roleType.Name}>.");
+        }
+
+        var builder = addRoles is null
+            ? new IdentityBuilder(typeof(TUser), roleType, services)
+            : addRoles(new IdentityBuilder(typeof(TUser), services));
+        builder.AddEntityFrameworkStores<TContext>();
     }
 }
 
