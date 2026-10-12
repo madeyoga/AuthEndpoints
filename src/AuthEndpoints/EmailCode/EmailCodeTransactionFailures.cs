@@ -22,7 +22,7 @@ internal static class EmailCodeTransactionFailures
         Type type = exception.GetType();
         string name = type.Name;
 
-        // 1205 is SQL Server deadlock. 1213 is MySQL deadlock.
+        // 1205 is SQL Server deadlock and MySQL lock-wait timeout. 1213 is MySQL deadlock.
         // MySqlException's name contains "SqlException".
         if (name.Contains("SqlException", StringComparison.Ordinal)
             && (PropertyEquals(exception, "Number", 1205) || PropertyEquals(exception, "Number", 1213)))
