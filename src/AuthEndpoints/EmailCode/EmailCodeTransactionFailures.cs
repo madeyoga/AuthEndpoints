@@ -20,13 +20,24 @@ internal static class EmailCodeTransactionFailures
     private static bool IsProviderFailure(Exception exception)
     {
         Type type = exception.GetType();
-        if (type.Name.Contains("SqlException", StringComparison.Ordinal)
-            && PropertyEquals(exception, "Number", 1205))
+        string name = type.Name;
+
+        // 1205 is SQL Server deadlock. 1213 is MySQL deadlock.
+        // MySqlException's name contains "SqlException".
+        if (name.Contains("SqlException", StringComparison.Ordinal)
+            && (PropertyEquals(exception, "Number", 1205) || PropertyEquals(exception, "Number", 1213)))
         {
             return true;
         }
 
-        return type.Name.Contains("Postgres", StringComparison.Ordinal)
+        // SQLITE_BUSY is 5. SQLITE_LOCKED is 6.
+        if (name.Contains("Sqlite", StringComparison.Ordinal)
+            && (PropertyEquals(exception, "SqliteErrorCode", 5) || PropertyEquals(exception, "SqliteErrorCode", 6)))
+        {
+            return true;
+        }
+
+        return name.Contains("Postgres", StringComparison.Ordinal)
             && (PropertyEquals(exception, "SqlState", "40001")
                 || PropertyEquals(exception, "SqlState", "40P01"));
     }

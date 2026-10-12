@@ -15,6 +15,16 @@ internal static class EmailCodeFailureExceptions
         return new DbUpdateException("serialization failure", new FakePostgresException("40001"));
     }
 
+    public static Exception Sqlite(int sqliteErrorCode)
+    {
+        return new DbUpdateException("sqlite", new FakeSqliteException(sqliteErrorCode));
+    }
+
+    public static Exception MySql(int number)
+    {
+        return new DbUpdateException("mysql", new FakeMySqlException(number));
+    }
+
     private sealed class FakeSqlException : DbException
     {
         public FakeSqlException(int number)
@@ -35,5 +45,27 @@ internal static class EmailCodeFailureExceptions
         }
 
         public override string SqlState { get; }
+    }
+
+    private sealed class FakeSqliteException : DbException
+    {
+        public FakeSqliteException(int sqliteErrorCode)
+            : base("sqlite result")
+        {
+            SqliteErrorCode = sqliteErrorCode;
+        }
+
+        public int SqliteErrorCode { get; }
+    }
+
+    private sealed class FakeMySqlException : DbException
+    {
+        public FakeMySqlException(int number)
+            : base("mysql result")
+        {
+            Number = number;
+        }
+
+        public int Number { get; }
     }
 }

@@ -81,15 +81,11 @@ internal sealed class EmailCodeOptionsValidator : IValidateOptions<EmailCodeOpti
 
     private ValidateOptionsResult ValidateLinkUri(EmailCodeMagicLinkOptions magicLink)
     {
-        if (ConfirmEmailRedirect.IsIllegal(magicLink.LinkUri))
+        string linkUri = magicLink.LinkUri!;
+        if (linkUri.Contains('#') || !ConfirmEmailRedirect.TryGetAbsolute(linkUri, out Uri absolute))
         {
             return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailCode.MagicLink.LinkUri must be a rooted path or an absolute http(s) URI.");
-        }
-
-        if (!ConfirmEmailRedirect.TryGetAbsolute(magicLink.LinkUri, out Uri absolute))
-        {
-            return ValidateOptionsResult.Success;
+                "AuthEndpoints: EmailCode.MagicLink.LinkUri must be an absolute http(s) URI and must not contain '#'.");
         }
 
         if (!_environment.IsProduction())
@@ -107,7 +103,7 @@ internal sealed class EmailCodeOptionsValidator : IValidateOptions<EmailCodeOpti
         if (allowed.Count == 0)
         {
             return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailCode.MagicLink.AllowedOrigins must be set in Production when LinkUri is an absolute URI.");
+                "AuthEndpoints: EmailCode.MagicLink.AllowedOrigins must be set in Production.");
         }
 
         if (!ConfirmEmailRedirect.IsOriginAllowlisted(absolute, allowed))

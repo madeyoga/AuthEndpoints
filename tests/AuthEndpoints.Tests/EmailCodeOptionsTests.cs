@@ -188,7 +188,7 @@ public class EmailCodeOptionsTests
     }
 
     [Fact]
-    public void Validator_AcceptsAllowlistedHttpsAndRootedPathInProduction()
+    public void Validator_AcceptsAllowlistedAbsoluteHttpsInProduction()
     {
         Assert.False(Validate(new EmailCodeOptions
         {
@@ -205,9 +205,26 @@ public class EmailCodeOptionsTests
             MagicLink = new EmailCodeMagicLinkOptions
             {
                 Enabled = true,
-                LinkUri = "/auth/email-link"
+                LinkUri = "https://app.example.com/auth/email-link?next=/home",
+                AllowedOrigins = ["https://app.example.com"]
             }
         }, production: true).Failed);
+    }
+
+    [Theory]
+    [InlineData("/auth/email-link")]
+    [InlineData("auth/email-link")]
+    [InlineData("//app.example.com/auth/email-link")]
+    [InlineData("https://app.example.com/auth/email-link#token=already")]
+    [InlineData("https://app.example.com/auth/email-link#")]
+    public void Validator_RejectsRootedPathAndHash(string linkUri)
+    {
+        AssertRejected(o =>
+        {
+            o.MagicLink.Enabled = true;
+            o.MagicLink.LinkUri = linkUri;
+            o.MagicLink.AllowedOrigins = ["https://app.example.com"];
+        }, "#");
     }
 
     [Fact]
