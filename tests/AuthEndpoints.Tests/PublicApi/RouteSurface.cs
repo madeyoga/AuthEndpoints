@@ -1,4 +1,8 @@
+using AuthEndpoints.Identity;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
@@ -41,21 +45,35 @@ internal static class RouteSurface
         };
         lines.AddRange(auth.Schemes.Select(scheme => scheme.Name).OrderBy(name => name, StringComparer.Ordinal));
         lines.Add("---");
-        lines.AddRange(ListRoutes(app));
+        lines.AddRange(ListRoutes(app, includeMetadata: true));
         return string.Join('\n', lines) + "\n";
     }
 
     public static IReadOnlyList<string> ListRoutes(WebApplication app)
     {
-        return ((IEndpointRouteBuilder)app).DataSources
-            .SelectMany(source => source.Endpoints)
-            .Select(Format)
+        return ListRoutes(app, includeMetadata: false);
+    }
+
+    public static IReadOnlyList<string> ListInMapOrder(WebApplication app)
+    {
+        return Enumerate(app).Select(endpoint => Format(endpoint, includeMetadata: false)).ToArray();
+    }
+
+    private static IReadOnlyList<string> ListRoutes(WebApplication app, bool includeMetadata)
+    {
+        return Enumerate(app)
+            .Select(endpoint => Format(endpoint, includeMetadata))
             .Distinct(StringComparer.Ordinal)
             .OrderBy(line => line, StringComparer.Ordinal)
             .ToArray();
     }
 
-    private static string Format(Endpoint endpoint)
+    private static IEnumerable<Endpoint> Enumerate(WebApplication app)
+    {
+        return ((IEndpointRouteBuilder)app).DataSources.SelectMany(source => source.Endpoints);
+    }
+
+    private static string Format(Endpoint endpoint, bool includeMetadata)
     {
         var methods = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()?.HttpMethods;
         var method = methods is { Count: > 0 }
@@ -64,7 +82,35 @@ internal static class RouteSurface
         var raw = endpoint is RouteEndpoint route
             ? route.RoutePattern.RawText ?? route.RoutePattern.ToString()
             : endpoint.DisplayName ?? "";
-        return method + " " + raw;
+        var line = method + " " + raw;
+        if (!includeMetadata)
+        {
+            return line;
+        }
+
+        var name = endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName;
+        var rateLimit = endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
+        var antiforgery = endpoint.Metadata.GetOrderedMetadata<IAntiforgeryMetadata>()
+                .Any(metadata => metadata.RequiresValidation)
+            || endpoint.Metadata.OfType<AuthEndpointsAntiforgeryMetadata>().Any();
+        return line
+            + " name=" + Display(name)
+            + " auth=" + FormatAuth(endpoint)
+            + " antiforgery=" + (antiforgery ? "true" : "false")
+            + " rateLimit=" + (string.IsNullOrEmpty(rateLimit) ? "(none)" : rateLimit);
+    }
+
+    private static string FormatAuth(Endpoint endpoint)
+    {
+        var authorize = endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>();
+        if (authorize.Count == 0)
+        {
+            return "(none)";
+        }
+
+        return string.Join(
+            ";",
+            authorize.Select(item => string.IsNullOrEmpty(item.AuthenticationSchemes) ? "(default)" : item.AuthenticationSchemes));
     }
 
     private static string Display(string? value) => string.IsNullOrEmpty(value) ? "(none)" : value;

@@ -3,6 +3,7 @@ using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
@@ -406,15 +407,197 @@ public class BuildingBlockRouteTests
             var identity = app.MapGroup("/identity");
             identity.MapPasswordEndpoints<TestAppUser>();
             identity.MapCookieSessionEndpoints<TestAppUser>();
-            identity.MapBearerSessionEndpoints<TestAppUser>();
             identity.MapAccountManagementEndpoints<TestAppUser>();
             identity.MapConfirmEmailEndpoints<TestAppUser>();
+            app.MapGroup("/identity/bearer").MapBearerSessionEndpoints<TestAppUser>();
             app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>();
             app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
-            app.MapGroup("/account").MapPasskeySignInEndpoints<TestAppUser>();
+            app.MapGroup("/account/signin").MapPasskeySignInEndpoints<TestAppUser>();
         }, logs);
 
+        _ = RouteSurface.ListRoutes(app);
         Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PasskeyOnlyHost_ManagementAndCookie_LogsNoMissingAddWarning()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddPasskeyEndpoints<TestAppUser>(), app =>
+        {
+            var identity = app.MapGroup("/identity");
+            identity.MapIdentityManagementApi<TestAppUser>();
+            identity.MapCookieAuthEndpoints<TestAppUser>();
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CookieAndBearerSessions_OnTheSamePrefix_WarnAboutLogout()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services =>
+        {
+            services.AddCookieSessionEndpoints();
+            services.AddBearerSessionEndpoints();
+        }, app =>
+        {
+            var identity = app.MapGroup("/identity");
+            identity.MapCookieSessionEndpoints<TestAppUser>();
+            identity.MapBearerSessionEndpoints<TestAppUser>();
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.Contains(
+            logs.Messages,
+            message => message.Contains("MapCookieSessionEndpoints and MapBearerSessionEndpoints both map POST /identity/logout.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PasswordCookieMode_WithCookieAuth_WarnsAboutLogin()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        {
+            var identity = app.MapGroup("/identity");
+            identity.MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.Cookie);
+            identity.MapCookieAuthEndpoints<TestAppUser>();
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.Contains(
+            logs.Messages,
+            message => message.Contains("MapPasswordEndpoints and MapCookieAuthEndpoints both map POST /identity/login.", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void ManagementPlusCookie_DoesNotWarnAboutDuplicateRoutes()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        {
+            var identity = app.MapGroup("/identity");
+            identity.MapIdentityManagementApi<TestAppUser>();
+            identity.MapCookieAuthEndpoints<TestAppUser>();
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MapAccountManagementEndpoints_WithTags_ReachesConfirmAndResend()
+    {
+        using var app = BuildIdentity(services => services.AddAccountManagementEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>().WithTags("account");
+        });
+
+        Assert.Contains("account", Tags(Find(app, "GET /identity/confirmEmail")));
+        Assert.Contains("account", Tags(Find(app, "POST /identity/resendConfirmationEmail")));
+    }
+
+    [Fact]
+    public void MapPasskeySignInEndpoints_WithTags_ReachesConfirmAndResend()
+    {
+        using var app = BuildIdentity(services => services.AddPasskeyEndpoints<TestAppUser>(), app =>
+        {
+            app.MapGroup("/account").MapPasskeySignInEndpoints<TestAppUser>().WithTags("passkey");
+        });
+
+        Assert.Contains("passkey", Tags(Find(app, "GET /account/confirmEmail")));
+        Assert.Contains("passkey", Tags(Find(app, "POST /account/resendConfirmationEmail")));
+    }
+
+    [Fact]
+    public void MapConfirmEmailEndpoints_TakenName_WithTagsDoesNotReachExistingRoute()
+    {
+        using var app = BuildIdentity(services => services.AddAccountAbuseRateLimiting(), app =>
+        {
+            var group = app.MapGroup("/identity");
+            group.MapConfirmEmailEndpoints<TestAppUser>();
+            group.MapConfirmEmailEndpoints<TestAppUser>().WithTags("late");
+        });
+
+        Assert.Equal(1, RouteSurface.ListRoutes(app).Count(route => route == "GET /identity/confirmEmail"));
+        Assert.DoesNotContain("late", Tags(Find(app, "GET /identity/confirmEmail")));
+        Assert.DoesNotContain("late", Tags(Find(app, "POST /identity/resendConfirmationEmail")));
+    }
+
+    [Fact]
+    public void MapIdentityManagementApi_Keeps330OpenApiOrder()
+    {
+        using var app = BuildIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapIdentityManagementApi<TestAppUser>();
+        });
+
+        Assert.Equal(
+            [
+                "POST /identity/register",
+                "GET /identity/confirmEmail",
+                "POST /identity/resendConfirmationEmail",
+                "POST /identity/forgotPassword",
+                "POST /identity/resetPassword",
+                "POST /identity/confirmIdentity",
+                "POST /identity/confirmIdentity/passkeyOptions",
+                "GET /identity/manage/authMethods",
+                "GET /identity/manage/2fa",
+                "POST /identity/manage/2fa",
+                "GET /identity/manage/info",
+                "POST /identity/manage/info",
+            ],
+            RouteSurface.ListInMapOrder(app));
+    }
+
+    [Fact]
+    public void MapPasskeyEndpoints_Keeps330OpenApiOrder()
+    {
+        using var app = BuildIdentity(services => services.AddPasskeyEndpoints<TestAppUser>(), app =>
+        {
+            app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
+        });
+
+        // The secured group is created first, so its data source is listed before the anonymous
+        // ceremonies. Endpoints added to that group later stay in the first data source.
+        Assert.Equal(
+            [
+                "POST /account/passkeys/creationOptions",
+                "POST /account/passkeys/",
+                "GET /account/passkeys/",
+                "PATCH /account/passkeys/",
+                "DELETE /account/passkeys/{credentialIdUrl}",
+                "POST /account/passkeys/requestOptions",
+                "POST /account/passkeys/register/options",
+                "POST /account/passkeys/register",
+                "POST /account/passkeys/login",
+            ],
+            RouteSurface.ListInMapOrder(app));
+    }
+
+    [Fact]
+    public void Capture_IncludesNameAuthAntiforgeryAndRateLimit()
+    {
+        var surface = RouteSurface.Capture(
+            builder => builder.Services.AddPasswordEndpoints(),
+            app => app.MapGroup("/identity").MapPasswordEndpoints<TestAppUser>());
+
+        Assert.Contains(
+            "POST /identity/login name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Login",
+            surface,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "GET /identity/confirmEmail name=MapIdentityManagementApi-TestAppUser-confirmEmail auth=(none) antiforgery=false rateLimit=(none)",
+            surface,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "POST /identity/resendConfirmationEmail name=(none) auth=(default) antiforgery=true rateLimit=AuthEndpoints.AccountAbuse",
+            surface,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -433,8 +616,70 @@ public class BuildingBlockRouteTests
         identity.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("identity-once"));
         identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
         var identityCount = identity.Count;
-        identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>(o => o.Password.RequiredLength = 8);
+        identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
         Assert.Equal(identityCount, identity.Count);
+        identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>(o => o.Password.RequiredLength = 8);
+        using var provider = identity.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<IdentityOptions>>().Value;
+        Assert.Equal(8, options.Password.RequiredLength);
+        Assert.True(options.SignIn.RequireConfirmedAccount);
+    }
+
+    [Fact]
+    public void SecondFacadeCall_AppliesConfirmedAccountAndPasswordOptions()
+    {
+        var services = new ServiceCollection();
+        services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("identity-second-facade"));
+        services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+        services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+        {
+            o.Passkeys.Enabled = false;
+            o.RequireConfirmedAccount = false;
+            o.ConfigureIdentity = identity => identity.Password.RequiredLength = 8;
+        });
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<IdentityOptions>>().Value;
+        Assert.False(options.SignIn.RequireConfirmedAccount);
+        Assert.Equal(8, options.Password.RequiredLength);
+    }
+
+    [Fact]
+    public void SecondFacadeCall_RegistersRolesWhenTheFirstCallDidNot()
+    {
+        var services = new ServiceCollection();
+        services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-late-roles"));
+        services.AddAuthEndpointsIdentity<TestAppUser, TestRolesDbContext>();
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+
+        using var provider = services.BuildServiceProvider();
+        Assert.NotNull(provider.GetService<RoleManager<IdentityRole>>());
+        Assert.NotNull(provider.GetService<IRoleStore<IdentityRole>>());
+    }
+
+    [Fact]
+    public void SecondFacadeCall_SameRoleType_DoesNotThrow()
+    {
+        var services = new ServiceCollection();
+        services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-same-role"));
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+
+        using var provider = services.BuildServiceProvider();
+        Assert.NotNull(provider.GetService<RoleManager<IdentityRole>>());
+    }
+
+    [Fact]
+    public void SecondFacadeCall_ConflictingRoleType_Throws()
+    {
+        var services = new ServiceCollection();
+        services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-role-conflict"));
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+
+        var conflict = Assert.Throws<InvalidOperationException>(() =>
+            services.AddAuthEndpoints<TestAppUser, OtherRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false));
+        Assert.Contains("RoleManager<IdentityRole>", conflict.Message, StringComparison.Ordinal);
+        Assert.Contains("RoleManager<OtherRole>", conflict.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -525,6 +770,11 @@ public class BuildingBlockRouteTests
         return matches[0];
     }
 
+    private static IReadOnlyList<string> Tags(Endpoint endpoint)
+    {
+        return endpoint.Metadata.GetMetadata<ITagsMetadata>()?.Tags ?? [];
+    }
+
     private static string Format(Endpoint endpoint)
     {
         var methods = endpoint.Metadata.GetMetadata<IHttpMethodMetadata>()?.HttpMethods;
@@ -585,4 +835,6 @@ public class BuildingBlockRouteTests
             }
         }
     }
+
+    private sealed class OtherRole;
 }
