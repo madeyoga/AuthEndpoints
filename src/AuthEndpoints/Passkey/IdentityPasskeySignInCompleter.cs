@@ -8,6 +8,8 @@ namespace AuthEndpoints.Passkey;
 /// <summary>
 /// Completes passkey sign-in with Identity application cookie or bearer tokens
 /// (same <c>useCookies</c> / <c>useSessionCookies</c> rules as Identity login).
+/// Cookie register returns <c>credentialId</c>. Bearer register returns the token body
+/// <c>SignInAsync</c> already wrote.
 /// </summary>
 public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<TUser>
     where TUser : class
@@ -38,13 +40,17 @@ public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInComple
 
         await _signInManager.SignInAsync(user, isPersistent);
 
-        if (context.Kind == PasskeySignInKind.Register && context.CredentialId is { Length: > 0 })
+        // Cookie sign-in only sets the application cookie, so register can still write credentialId.
+        // Bearer sign-in writes AccessTokenResponse inside SignInAsync. A second body throws
+        // "response has already started", so register returns that token response alone.
+        if (context.Kind == PasskeySignInKind.Register
+            && context.CredentialId is { Length: > 0 }
+            && _signInManager.AuthenticationScheme == IdentityConstants.ApplicationScheme)
         {
             return TypedResults.Ok(new PasskeyCredentialResponse(
                 Base64Url.EncodeToString(context.CredentialId)));
         }
 
-        // SignInManager already produced the cookie or Identity bearer token response.
         return TypedResults.Empty;
     }
 

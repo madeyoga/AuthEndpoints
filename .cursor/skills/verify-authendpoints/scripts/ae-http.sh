@@ -30,7 +30,7 @@ Environment:
   AE_CONFIRM_EMAIL_ALLOWED_ORIGINS  Comma-separated AllowedRedirectOrigins.
   AE_EMAIL_CODE         When true, maps email-code send and verify.
   AE_EMAIL_CODE_SIGNUP  When true, AllowSignUp creates a user from an unknown address.
-  AE_EMAIL_CODE_LINK    Magic-link base URL. Set to enable the link.
+  AE_EMAIL_CODE_LINK    Absolute http(s) magic-link URI with no '#'. Set to enable the link.
   OTEL_EXPORTER_OTLP_ENDPOINT  When unset, launch sets http://localhost:4317. Empty skips export.
   OTEL_SERVICE_NAME  When unset, launch sets authendpoints-demo.
 

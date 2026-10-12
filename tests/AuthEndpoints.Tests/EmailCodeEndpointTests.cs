@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Text.Json;
 using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
@@ -625,6 +626,7 @@ public class EmailCodeEndpointTests
         var results = await Task.WhenAll(
             PostAsync(clientA, "/identity/emailCode/verify", new { email, code }),
             PostAsync(clientB, "/identity/emailCode/verify", new { email, code }));
+        await AssertNoServerErrorAsync(results);
         Assert.Equal(1, results.Count(response => response.StatusCode == HttpStatusCode.OK));
         Assert.Equal(1, results.Count(response => response.StatusCode == HttpStatusCode.Unauthorized));
         Assert.Equal(1, await CountUsersAsync(host.App, email));
@@ -659,7 +661,11 @@ public class EmailCodeEndpointTests
             var results = await Task.WhenAll(
                 PostAsync(clientA, "/identity/emailCode/verify", new { token = tokenA }),
                 PostAsync(clientB, "/identity/emailCode/verify", new { token = tokenB }));
+            await AssertNoServerErrorAsync(results);
             Assert.Contains(results, response => response.StatusCode == HttpStatusCode.OK);
+            Assert.All(results, response => Assert.True(
+                response.StatusCode is HttpStatusCode.OK or HttpStatusCode.Unauthorized,
+                response.StatusCode.ToString()));
             Assert.Equal(1, await CountUsersAsync(host.App, email));
             Assert.True(await IsConfirmedAsync(host.App, email));
             Assert.False(await HasPasswordAsync(host.App, email));
@@ -676,6 +682,169 @@ public class EmailCodeEndpointTests
         Assert.Equal(userId, await UserIdAsync(later.App, existingEmail));
         Assert.True(await HasPasswordAsync(later.App, existingEmail));
         Assert.Equal(1, await CountUsersAsync(later.App, existingEmail));
+    }
+
+    [Fact]
+    public async Task AllowSignUp_DbUpdateException_UsesTheExistingUser_OrReturns401()
+    {
+        var race = new SignupCreateGate { Mode = SignupCreateMode.UniqueConflict };
+        await using (var host = await EmailCodeHost.StartAsync(
+            options => options.AllowSignUp = true,
+            configureServices: services =>
+            {
+                services.AddSingleton(race);
+                services.RemoveAll<IUserValidator<TestAppUser>>();
+                services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, ConflictSignupUserManager>());
+            }))
+        {
+            var email = UniqueEmail("signup-conflict");
+            await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+            race.Email = email;
+            var response = await PostAsync(
+                host.Client,
+                "/identity/emailCode/verify",
+                new { email, code = Codes(host.Mail, email).Single() });
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.True(response.StatusCode == HttpStatusCode.OK, body);
+            Assert.True(race.Claimed);
+            Assert.Equal(1, await CountUsersAsync(host.App, email));
+            Assert.Equal(race.CreatedUserId, await UserIdAsync(host.App, email));
+            Assert.True(await IsConfirmedAsync(host.App, email));
+            Assert.True(await HasPasswordAsync(host.App, email));
+        }
+
+        var missing = new SignupCreateGate { Mode = SignupCreateMode.RequiredColumn };
+        await using var failed = await EmailCodeHost.StartAsync(
+            options => options.AllowSignUp = true,
+            configureServices: services =>
+            {
+                services.AddSingleton(missing);
+                services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, ConflictSignupUserManager>());
+            });
+        var unknown = UniqueEmail("signup-required");
+        await PostAsync(failed.Client, "/identity/emailCode/send", new { email = unknown });
+        missing.Email = unknown;
+        var rejected = await PostAsync(
+            failed.Client,
+            "/identity/emailCode/verify",
+            new { email = unknown, code = Codes(failed.Mail, unknown).Single() });
+        Assert.Equal(HttpStatusCode.Unauthorized, rejected.StatusCode);
+        Assert.Equal("Unauthorized", await ProblemTitleAsync(rejected));
+        Assert.True(missing.Claimed);
+        Assert.Equal(0, await CountUsersAsync(failed.App, unknown));
+        var row = (await RowsAsync(failed.App, unknown)).Single();
+        Assert.NotNull(row.ConsumedAt);
+        Assert.Equal(1, row.Attempts);
+    }
+
+    [Fact]
+    public async Task AllowSignUp_DuplicateRequiresTwoFactor_ReleasesTheReservedAttempt()
+    {
+        var race = new SignupCreateGate { Mode = SignupCreateMode.UniqueConflict, TwoFactor = true };
+        await using var host = await EmailCodeHost.StartAsync(
+            options => options.AllowSignUp = true,
+            configureServices: services =>
+            {
+                services.AddSingleton(race);
+                services.RemoveAll<IUserValidator<TestAppUser>>();
+                services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, ConflictSignupUserManager>());
+            });
+        var email = UniqueEmail("signup-2fa-race");
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+        race.Email = email;
+
+        var missing = await PostAsync(host.Client, "/identity/emailCode/verify", new { email, code });
+        var missingBody = await missing.Content.ReadAsStringAsync();
+        Assert.True(missing.StatusCode == HttpStatusCode.Unauthorized, missingBody);
+        using (var doc = JsonDocument.Parse(missingBody))
+        {
+            Assert.Equal("RequiresTwoFactor", doc.RootElement.GetProperty("title").GetString());
+        }
+
+        Assert.True(race.Claimed);
+        var reserved = (await RowsAsync(host.App, email)).Single();
+        Assert.Null(reserved.ConsumedAt);
+        Assert.Equal(0, reserved.Attempts);
+        Assert.Equal(1, await CountUsersAsync(host.App, email));
+        Assert.True(await HasPasswordAsync(host.App, email));
+        Assert.Equal(race.CreatedUserId, await UserIdAsync(host.App, email));
+
+        var key = await AuthenticatorKeyAsync(host.App, email);
+        var accepted = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code, twoFactorCode = TotpHelper.GenerateCode(key) });
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        Assert.NotNull((await RowsAsync(host.App, email)).Single().ConsumedAt);
+        Assert.True(await HasPasswordAsync(host.App, email));
+    }
+
+    [Fact]
+    public async Task AllowSignUp_DuplicateWrongTotp_UnconsumesAndKeepsTheAttempt()
+    {
+        var race = new SignupCreateGate { Mode = SignupCreateMode.UniqueConflict, TwoFactor = true };
+        await using var host = await EmailCodeHost.StartAsync(
+            options => options.AllowSignUp = true,
+            configureServices: services =>
+            {
+                services.AddSingleton(race);
+                services.RemoveAll<IUserValidator<TestAppUser>>();
+                services.Replace(ServiceDescriptor.Scoped<UserManager<TestAppUser>, ConflictSignupUserManager>());
+            });
+        var email = UniqueEmail("signup-2fa-wrong");
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var code = Codes(host.Mail, email).Single();
+        race.Email = email;
+
+        var wrong = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code, twoFactorCode = "000000" });
+        Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+        Assert.Equal("Unauthorized", await ProblemTitleAsync(wrong));
+        var reserved = (await RowsAsync(host.App, email)).Single();
+        Assert.Null(reserved.ConsumedAt);
+        Assert.Equal(1, reserved.Attempts);
+
+        var key = await AuthenticatorKeyAsync(host.App, email);
+        Assert.NotEqual("000000", TotpHelper.GenerateCode(key));
+        var accepted = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code, twoFactorCode = TotpHelper.GenerateCode(key) });
+        Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        Assert.NotNull((await RowsAsync(host.App, email)).Single().ConsumedAt);
+    }
+
+    [Fact]
+    public async Task AllowSignUp_ConfirmsEmailWithoutATokenProvider()
+    {
+        await using var host = await EmailCodeHost.StartAsync(
+            options => options.AllowSignUp = true,
+            configureServices: services => services.PostConfigure<IdentityOptions>(options =>
+            {
+                options.Tokens.ProviderMap.Clear();
+                options.Tokens.EmailConfirmationTokenProvider = "Missing";
+            }));
+        var email = UniqueEmail("signup-notoken");
+        await PostAsync(host.Client, "/identity/emailCode/send", new { email });
+        var created = await PostAsync(
+            host.Client,
+            "/identity/emailCode/verify",
+            new { email, code = Codes(host.Mail, email).Single() });
+        var body = await created.Content.ReadAsStringAsync();
+        Assert.True(created.StatusCode == HttpStatusCode.OK, body);
+        Assert.Equal(1, await CountUsersAsync(host.App, email));
+        Assert.True(await IsConfirmedAsync(host.App, email));
+        Assert.False(await HasPasswordAsync(host.App, email));
+        Assert.DoesNotContain(host.Mail.Snapshot(), item => item.Kind == "confirm" && item.Email == email);
+
+        using var scope = host.App.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = await userManager.FindByEmailAsync(email);
+        var tokenError = await Assert.ThrowsAnyAsync<Exception>(() => userManager.GenerateEmailConfirmationTokenAsync(user!));
+        Assert.Contains("Token", tokenError.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -1350,6 +1519,20 @@ public class EmailCodeEndpointTests
             .ToList();
     }
 
+    private static async Task AssertNoServerErrorAsync(IEnumerable<HttpResponseMessage> responses)
+    {
+        foreach (var response in responses)
+        {
+            if ((int)response.StatusCode < 500)
+            {
+                continue;
+            }
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.Fail($"{(int)response.StatusCode} {body}");
+        }
+    }
+
     private static string UniqueEmail(string label) => $"{label}-{Guid.NewGuid():N}@test.local";
 
     private static string WrongCode(string code)
@@ -2019,6 +2202,102 @@ public class EmailCodeEndpointTests
 
         public Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
             => _inner.HasReachedSendCapAsync(email, cancellationToken);
+    }
+
+    private enum SignupCreateMode
+    {
+        UniqueConflict,
+        RequiredColumn
+    }
+
+    private sealed class SignupCreateGate
+    {
+        private int _claimed;
+
+        public SignupCreateMode Mode { get; init; }
+
+        public bool TwoFactor { get; init; }
+
+        public string? Email { get; set; }
+
+        public string? CreatedUserId { get; set; }
+
+        public bool Claimed => Volatile.Read(ref _claimed) == 1;
+
+        public bool TryClaim(string? email)
+        {
+            if (email is null || !string.Equals(email, Email, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return Interlocked.Exchange(ref _claimed, 1) == 0;
+        }
+    }
+
+    private sealed class ConflictSignupUserManager : UserManager<TestAppUser>
+    {
+        private readonly IServiceProvider _services;
+
+        public ConflictSignupUserManager(
+            IUserStore<TestAppUser> store,
+            IOptions<IdentityOptions> optionsAccessor,
+            IPasswordHasher<TestAppUser> passwordHasher,
+            IEnumerable<IUserValidator<TestAppUser>> userValidators,
+            IEnumerable<IPasswordValidator<TestAppUser>> passwordValidators,
+            ILookupNormalizer keyNormalizer,
+            IdentityErrorDescriber errors,
+            IServiceProvider services,
+            ILogger<UserManager<TestAppUser>> logger)
+            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
+        {
+            _services = services;
+        }
+
+        public override async Task<IdentityResult> CreateAsync(TestAppUser user)
+        {
+            var gate = _services.GetRequiredService<SignupCreateGate>();
+            if (!gate.TryClaim(user.Email))
+            {
+                return await base.CreateAsync(user);
+            }
+
+            if (gate.Mode == SignupCreateMode.RequiredColumn)
+            {
+                var context = (DbContext)Store.GetType().GetProperty("Context")!.GetValue(Store)!;
+                context.Add(user);
+                throw new DbUpdateException(
+                    "required column",
+                    new InvalidOperationException("NOT NULL constraint failed"));
+            }
+
+            await using var scope = _services.CreateAsyncScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var raced = new TestAppUser
+            {
+                UserName = user.Email,
+                Email = user.Email,
+                EmailConfirmed = true
+            };
+            var created = await users.CreateAsync(raced, TestHelpers.DefaultPassword);
+            if (!created.Succeeded)
+            {
+                throw new InvalidOperationException(string.Join("; ", created.Errors.Select(error => error.Description)));
+            }
+
+            if (gate.TwoFactor)
+            {
+                var key = await users.ResetAuthenticatorKeyAsync(raced);
+                var enabled = await users.SetTwoFactorEnabledAsync(raced, true);
+                if (!key.Succeeded || !enabled.Succeeded)
+                {
+                    throw new InvalidOperationException("Could not enable two-factor authentication.");
+                }
+            }
+
+            gate.CreatedUserId = raced.Id;
+            return await base.CreateAsync(user);
+        }
     }
 
     private sealed class FailingPasswordUserManager : UserManager<TestAppUser>

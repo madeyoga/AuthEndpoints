@@ -20,14 +20,32 @@ public static class AntiforgeryRouteBuilderExtensions
 
     public static RouteHandlerBuilder RequireAntiforgery(this RouteHandlerBuilder builder)
     {
-        // Filter-only: do not attach ValidationRequired metadata, otherwise UseAntiforgery /
-        // AntiforgeryEnforcementMiddleware reject before the bearer-skip logic in the filter runs.
-        return builder.AddEndpointFilter<EnforceAntiforgeryEndpointFilters>();
+        // Filter-only for the framework metadata: do not attach ValidationRequired, otherwise
+        // UseAntiforgery rejects before the bearer-skip logic in the filter runs.
+        return builder
+            .WithMetadata(AuthEndpointsAntiforgeryMetadata.Instance)
+            .AddEndpointFilter<EnforceAntiforgeryEndpointFilters>();
     }
 
     public static RouteGroupBuilder RequireAntiforgery(this RouteGroupBuilder builder)
     {
-        return builder.AddEndpointFilter<EnforceAntiforgeryEndpointFilters>();
+        return builder
+            .WithMetadata(AuthEndpointsAntiforgeryMetadata.Instance)
+            .AddEndpointFilter<EnforceAntiforgeryEndpointFilters>();
+    }
+}
+
+/// <summary>
+/// Marks routes that run <see cref="EnforceAntiforgeryEndpointFilters"/>.
+/// This is not <see cref="IAntiforgeryMetadata"/>, so the antiforgery middleware does not
+/// reject bearer calls before that filter can skip them.
+/// </summary>
+internal sealed class AuthEndpointsAntiforgeryMetadata
+{
+    public static readonly AuthEndpointsAntiforgeryMetadata Instance = new();
+
+    private AuthEndpointsAntiforgeryMetadata()
+    {
     }
 }
 

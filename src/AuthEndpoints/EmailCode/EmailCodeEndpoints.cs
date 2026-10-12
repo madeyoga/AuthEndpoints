@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -264,12 +266,14 @@ public static class EmailCodeEndpoints<TUser>
                 var raced = await EvaluateSecondFactorAsync(userManager, options, user, request!);
                 if (raced.Outcome == SecondFactor.Missing)
                 {
+                    await ReleaseConsumedReservationAsync(store, row, cancellationToken);
                     EmailCodeLog.VerifyRequiresTwoFactor(logger, userId, hashPrefix);
                     return TwoFactorRequired();
                 }
 
                 if (raced.Outcome == SecondFactor.Failed)
                 {
+                    await store.TryUnconsumeAsync(row, cancellationToken);
                     if (options.CountFailuresTowardLockout)
                     {
                         await userManager.AccessFailedAsync(user);
@@ -447,21 +451,69 @@ public static class EmailCodeEndpoints<TUser>
         var user = new TUser();
         await userStore.SetUserNameAsync(user, email, cancellationToken);
         await emailStore.SetEmailAsync(user, email, cancellationToken);
-        var created = await userManager.CreateAsync(user);
-        if (!created.Succeeded)
+        await emailStore.SetEmailConfirmedAsync(user, true, cancellationToken);
+
+        try
         {
+            var created = await userManager.CreateAsync(user);
+            if (created.Succeeded)
+            {
+                return SignupCreateResult.Created(user);
+            }
+
             if (created.Errors.Any(error => error.Code is "DuplicateUserName" or "DuplicateEmail"))
             {
-                var existing = await userManager.FindByEmailAsync(email);
-                return existing is null ? SignupCreateResult.Fail() : SignupCreateResult.Duplicate(existing);
+                return await DuplicateOrFailAsync(userManager, userStore, user, email);
             }
 
             return SignupCreateResult.Fail();
         }
+        catch (DbUpdateException)
+        {
+            return await DuplicateOrFailAsync(userManager, userStore, user, email);
+        }
+    }
 
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        var confirmed = await userManager.ConfirmEmailAsync(user, token);
-        return confirmed.Succeeded ? SignupCreateResult.Created(user) : SignupCreateResult.Fail();
+    private static async Task<SignupCreateResult> DuplicateOrFailAsync(
+        UserManager<TUser> userManager,
+        IUserStore<TUser> userStore,
+        TUser user,
+        string email)
+    {
+        DetachTrackedUser(userStore, user);
+        var existing = await userManager.FindByEmailAsync(email);
+        if (existing is null || ReferenceEquals(existing, user))
+        {
+            return SignupCreateResult.Fail();
+        }
+
+        return SignupCreateResult.Duplicate(existing);
+    }
+
+    private static void DetachTrackedUser(IUserStore<TUser> userStore, TUser user)
+    {
+        PropertyInfo? contextProperty = userStore.GetType().GetProperty("Context");
+        if (contextProperty?.GetValue(userStore) is not DbContext context)
+        {
+            return;
+        }
+
+        var entry = context.Entry(user);
+        if (entry.State != EntityState.Detached)
+        {
+            entry.State = EntityState.Detached;
+        }
+    }
+
+    private static async Task ReleaseConsumedReservationAsync(
+        IEmailCodeStore store,
+        EmailCodeEntry row,
+        CancellationToken cancellationToken)
+    {
+        if (await store.TryUnconsumeAsync(row, cancellationToken))
+        {
+            await store.TryReleaseAttemptAsync(row, cancellationToken);
+        }
     }
 
     private static async Task<IResult> FinishSignInAsync(

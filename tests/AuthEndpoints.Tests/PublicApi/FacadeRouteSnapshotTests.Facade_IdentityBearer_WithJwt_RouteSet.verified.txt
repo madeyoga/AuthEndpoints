@@ -1,0 +1,46 @@
+﻿DefaultScheme: Identity.BearerAndApplication
+DefaultAuthenticateScheme: (none)
+DefaultChallengeScheme: (none)
+DefaultSignInScheme: (none)
+DefaultForbidScheme: (none)
+DefaultSignOutScheme: (none)
+Schemes:
+AuthEndpoints.ReAuth
+AuthEndpoints.ReAuth.Bearer
+Bearer
+Identity.Application
+Identity.Bearer
+Identity.BearerAndApplication
+Identity.External
+Identity.TwoFactorRememberMe
+Identity.TwoFactorUserId
+---
+DELETE /account/passkeys/{credentialIdUrl} name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=(none)
+GET /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
+GET /auth/csrfToken name=(none) auth=(none) antiforgery=false rateLimit=(none)
+GET /auth/verify name=(none) auth=Bearer antiforgery=false rateLimit=(none)
+GET /identity/confirmEmail name=MapIdentityManagementApi-TestAppUser-confirmEmail auth=(none) antiforgery=false rateLimit=(none)
+GET /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
+GET /identity/manage/authMethods name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
+GET /identity/manage/info name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
+PATCH /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=(none)
+POST /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=AuthEndpoints.Passkey.Register
+POST /account/passkeys/creationOptions name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=AuthEndpoints.Passkey.ObtainOptions
+POST /account/passkeys/login name=(none) auth=(none) antiforgery=true rateLimit=AuthEndpoints.Login
+POST /account/passkeys/register name=(none) auth=(none) antiforgery=true rateLimit=AuthEndpoints.Passkey.Register
+POST /account/passkeys/register/options name=(none) auth=(none) antiforgery=true rateLimit=AuthEndpoints.Passkey.ObtainOptions
+POST /account/passkeys/requestOptions name=(none) auth=(none) antiforgery=true rateLimit=AuthEndpoints.Passkey.ObtainOptions
+POST /auth/create name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Login
+POST /auth/logout name=(none) auth=(none) antiforgery=true rateLimit=(none)
+POST /auth/refresh name=(none) auth=(none) antiforgery=true rateLimit=AuthEndpoints.Login
+POST /identity/confirmIdentity name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=true rateLimit=AuthEndpoints.ConfirmIdentity
+POST /identity/confirmIdentity/passkeyOptions name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=true rateLimit=AuthEndpoints.ConfirmIdentity
+POST /identity/forgotPassword name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse
+POST /identity/login name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Login
+POST /identity/logout name=(none) auth=(default) antiforgery=false rateLimit=(none)
+POST /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=(none)
+POST /identity/manage/info name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=(none)
+POST /identity/refresh name=(none) auth=(none) antiforgery=false rateLimit=(none)
+POST /identity/register name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse
+POST /identity/resendConfirmationEmail name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=true rateLimit=AuthEndpoints.AccountAbuse
+POST /identity/resetPassword name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse

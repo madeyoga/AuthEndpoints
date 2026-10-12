@@ -7,6 +7,7 @@ Passwordless passkey register and login on `/account/passkeys`. Register creates
 - `register-options` returns WebAuthn creation options for an email, including an existing email (no enumeration).
 - `register-create` creates an unconfirmed user, stores the passkey, and sends a confirmation email.
 - `register-unconfirmed-no-session` returns 200 with `credentialId` and no application cookie when `RequireConfirmedAccount` is true.
+- `register-confirmed-bearer` (`RequireConfirmedAccount` false, no `useCookies`) returns 200 with `accessToken` and no `credentialId`. `GET /identity/manage/info` with that bearer is 200. Cookie flags still return `credentialId` plus the application cookie.
 - `register-duplicate` returns 400 `Unable to complete registration` for an existing email and does not send mail.
 - `register-existing-id` returns 400 `Unable to complete registration` when attestation `userEntity.Id` already exists and does not attach a passkey. Add credentials on an existing account with authenticated `creationOptions` + `POST /passkeys/`.
 - `confirm-then-login` confirms the emailed link, then passkey login with `?useCookies=true` establishes a session.

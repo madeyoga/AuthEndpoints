@@ -22,9 +22,11 @@ public static class EmailCodeEndpointRouteBuilderExtensions
 
         var group = endpoints.MapGroup("");
         group.MapPost("/emailCode/send", EmailCodeEndpoints<TUser>.Send)
-            .RequireRateLimiting(AuthEndpointsConstants.EmailCodeSendPolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.EmailCodeSendPolicy)
+            .Track(endpoints, nameof(MapEmailCodeEndpoints));
         group.MapPost("/emailCode/verify", EmailCodeEndpoints<TUser>.Verify)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
+            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+            .Track(endpoints, nameof(MapEmailCodeEndpoints));
         return group;
     }
 

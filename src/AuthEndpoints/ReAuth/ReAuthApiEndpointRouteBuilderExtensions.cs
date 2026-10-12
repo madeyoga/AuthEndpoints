@@ -1,6 +1,5 @@
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace AuthEndpoints.ReAuth;
@@ -19,36 +18,9 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var group = endpoints.MapGroup("");
-        var authorize = ManagementAuthorization.CreateAuthorizeAttribute(endpoints);
-
-        var confirm = group.MapPost("/confirmIdentity", ReAuthEndpoints<TUser>.ConfirmIdentity)
-            .WithSummary("Confirm the user's identity and issue short-lived reauthentication credentials.")
-            .WithDescription("""
-                Provide exactly one proof: Password, TwoFactorCode, TwoFactorRecoveryCode, or CredentialJson (passkey assertion).
-                On success, returns reauthToken for the X-AuthEndpoints-Reauth header.
-                Cookie sign-ins also receive a temporary AuthEndpoints.ReAuth cookie.
-                A caller authenticated with Authorization: Bearer receives the token only.
-                Both carry the user's security stamp and share ReAuth.Lifetime (default 5 minutes).
-                """)
-            .RequireAuthorization(authorize)
-            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);
-
-        var passkeyOptions = group.MapPost("/confirmIdentity/passkeyOptions", ReAuthEndpoints<TUser>.PasskeyOptions)
-            .WithSummary("Generate WebAuthn request options for reauthentication with a passkey.")
-            .WithDescription("Scoped to the currently signed-in user (no username query).")
-            .RequireAuthorization(authorize)
-            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);
-
-        if (requireAntiforgery)
-        {
-            confirm.RequireAntiforgery();
-            passkeyOptions.RequireAntiforgery();
-        }
-
-        var manage = group.MapGroup("/manage").RequireAuthorization(authorize);
-        manage.MapGet("/authMethods", ReAuthEndpoints<TUser>.AuthMethods)
-            .WithSummary("List available step-up / reauthentication methods for the current user.");
-
+        IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
+        IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
+        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, nameof(MapReAuthEndpoints));
         return group;
     }
 }
