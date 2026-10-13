@@ -37,6 +37,8 @@ Ready signal for the default **compose** host: `GET {AE_BASE_URL}/identity/csrfT
 
 Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready signal is `GET /identity/manage/info` returning **401**. Doctor prints `mode=bearer-facade`. See [bearer-facade.md](features/bearer-facade.md).
 
+Per-session and shared routes: set `AE_HOST_MODE=split` before `launch`. Ready signal is `GET /web/csrfToken` returning **200**. Doctor prints `mode=split`. Cookie sign-in is under `/web`, JWT sign-in is under `/app`, and shared routes (register, recovery, email-code send, passkey register options, account management, confirm-email) are at the root. Email-code routes are mapped in this mode without `AE_EMAIL_CODE`. See [per-session-shared.md](features/per-session-shared.md).
+
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.
 
 What the host actually is (`tests/AuthEndpoints.Tests/Program.cs`):
@@ -60,6 +62,15 @@ Default `AE_HOST_MODE=compose`:
 | `/account` | Passkey routes |
 | `/test/*` | Same test-only probes |
 
+`AE_HOST_MODE=split` maps `MapSignInEndpoints` twice and `MapSharedAuthEndpoints` once (not the frozen `MapAuthEndpoints` facade):
+
+| Prefix | Mapped surface |
+| --- | --- |
+| `/web` | Cookie session: `POST /login`, `POST /logout`, `GET /csrfToken`, email-code verify, passkey request options / register / login |
+| `/app` | JWT session: `POST /create`, `POST /refresh`, `GET /verify`, `POST /logout`, `GET /csrfToken`, email-code verify, passkey request options / register / login |
+| `/` | Shared: `POST /register`, forgot/reset password, `POST /emailCode/send`, `POST /passkeys/register/options`, passkey management, account management, confirm-email |
+| `/test/*` | Same test-only probes |
+
 Host defaults that **differ from production library defaults**:
 
 - `SignIn.RequireConfirmedAccount = false` (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in.
@@ -68,7 +79,7 @@ Host defaults that **differ from production library defaults**:
 - EF Core **SQLite** file under the temp directory (`TestDbName`). All users vanish when that file is removed; a new `AE_RUN_ID` uses a new file.
 - JWT signing key is the test-only value in `Program.cs`. Never treat it as a production secret.
 - `IEmailSender<TUser>` is a capturing sender. `GET /test/mailbox` lists `{email,kind,body}` (confirmation links are HTML-encoded). Email-code items also include `linkUrl` and `purpose`. This is a **test-only** probe.
-- Email-code routes are unmapped unless `AE_EMAIL_CODE=true`. `AE_EMAIL_CODE_SIGNUP=true` sets `AllowSignUp`. `AE_EMAIL_CODE_LINK` is the magic-link base URL and enables the link. Drive them from [features/email-code.md](features/email-code.md). Verify with no query flag returns a bearer `accessToken`. `useSessionCookies=true` sets the application cookie.
+- On the compose host, email-code routes are unmapped unless `AE_EMAIL_CODE=true`. `AE_EMAIL_CODE_SIGNUP=true` sets `AllowSignUp`. `AE_EMAIL_CODE_LINK` is the magic-link base URL and enables the link. Drive them from [features/email-code.md](features/email-code.md). Verify with no query flag returns a bearer `accessToken`. `useSessionCookies=true` sets the application cookie. The split host always maps email-code send and verify; see [per-session-shared.md](features/per-session-shared.md).
 - Software WebAuthn: `POST /test/webauthn/attestation` and `POST /test/webauthn/assertion` turn options JSON into `credentialJson`. These are **test-only** probes. The library still verifies attestation/assertion on `/account/passkeys/register` and `/login`.
 
 Isolation: two hosts may run on **different ports**. Refuse to drive a port that was already listening when `launch` ran. Never kill by process name (`pkill`, `killall`).
@@ -79,7 +90,7 @@ Run `"$HARNESS" doctor` before the first drive, after any failed drive, and when
 
 1. `$AE_RUN_DIR/host.pid` exists and that PID is alive.
 2. `AE_BASE_URL` accepts connections (the port we chose).
-3. Compose host: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade host: `GET /identity/manage/info` is 401.
+3. Compose host: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade host: `GET /identity/manage/info` is 401. Split host: `GET /web/csrfToken` is 200 with a non-empty `csrfToken`.
 
 If doctor fails, `stop` (if we started the process) and `launch` again. Do not keep driving a surprising instance.
 
@@ -162,7 +173,7 @@ Never `pkill -f AuthEndpoints` or similar.
 
 | Command | What it does |
 | --- | --- |
-| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until `/identity/csrfToken` is 200 (or `/identity/manage/info` is 401 when `AE_HOST_MODE=bearer-facade`) |
+| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until `/identity/csrfToken` is 200 (or `/identity/manage/info` is 401 when `AE_HOST_MODE=bearer-facade`, or `/web/csrfToken` is 200 when `AE_HOST_MODE=split`) |
 | `doctor` | PID + port + ready signal for the current `AE_HOST_MODE` |
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |
