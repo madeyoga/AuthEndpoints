@@ -1842,7 +1842,9 @@ public partial class EmailCodeEndpointTests
             builder.WebHost.UseTestServer();
             builder.Services.AddDbContext<TestDbContext>(options =>
                 options.UseSqlite(
-                    $"Data Source={path};Default Timeout=30",
+                    // Pooling races SQLite function registration when the attempt-cap barrier
+                    // releases many connections at once (Error 5: unable to delete/modify user-function).
+                    $"Data Source={path};Default Timeout=30;Pooling=False",
                     sqlite => configureSqlite?.Invoke(sqlite)));
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton(sender ?? mail);
