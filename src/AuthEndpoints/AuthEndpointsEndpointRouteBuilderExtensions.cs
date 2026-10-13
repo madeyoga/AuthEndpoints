@@ -21,6 +21,8 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
     /// <see cref="AuthEndpointsSignIn.IdentityBearer"/> (Identity <c>Login</c>).
     /// For a single module use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
     /// <c>MapBearerAuthEndpoints</c>, <c>MapPasskeyEndpoints</c>, or <c>MapJwtAuthEndpoints</c>.
+    /// This facade ignores <see cref="SignInCompletionOptions.Default"/> and keeps the 3.4.1 sign-in handlers,
+    /// including email-code verify.
     /// </summary>
     public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -51,7 +53,7 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
 
         if (options.EmailCode.Enabled)
         {
-            identity.MapEmailCodeEndpoints<TUser>();
+            identity.MapEmailCodeEndpointsPreserving3x<TUser>();
         }
 
         if (options.Passkeys.Enabled)

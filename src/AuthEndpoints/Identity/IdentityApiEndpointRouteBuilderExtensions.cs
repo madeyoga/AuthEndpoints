@@ -10,7 +10,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth).
-    /// This is <see cref="MapPasswordEndpoints{TUser}"/> with <see cref="PasswordLoginMode.None"/>,
+    /// This is <c>MapPasswordEndpoints&lt;TUser&gt;(PasswordLoginMode.None)</c>,
     /// <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>,
     /// and <see cref="AccountManagementEndpointRouteBuilderExtensions.MapAccountManagementEndpoints{TUser}"/>.
     /// Passkey reauthentication options stay mapped, including when passkey services are not registered.
@@ -40,18 +40,35 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps password register, login, forgot-password, and reset-password routes.
+    /// Login uses <see cref="PasswordLoginMode.Cookie"/> unless
+    /// <see cref="SignInCompletionOptions.Default"/> names a completer for this user.
+    /// Also maps confirm-email when the default endpoint name is not mapped yet.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        return MapPasswordCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            completer: null,
+            confirmEmailEndpointName: null,
+            honorDefault: true);
+    }
+
+    /// <summary>
+    /// Maps password routes with an explicit <paramref name="login"/> mode.
     /// Also maps confirm-email when <paramref name="confirmEmailEndpointName"/> is not mapped yet.
     /// <see cref="PasswordLoginMode.None"/> omits <c>POST /login</c> so a session map can own that route.
-    /// Login stays on the 3.4.1 <c>PasswordSignInAsync</c> handlers unless
-    /// <see cref="SignInCompletionOptions.Default"/> names a completer.
+    /// An explicit mode keeps the 3.4.1 <c>PasswordSignInAsync</c> handler and does not apply
+    /// <see cref="SignInCompletionOptions.Default"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
-        PasswordLoginMode login = PasswordLoginMode.Cookie,
+        PasswordLoginMode login,
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
-        return MapPasswordCore<TUser>(endpoints, login, completer: null, confirmEmailEndpointName);
+        return MapPasswordCore<TUser>(endpoints, login, completer: null, confirmEmailEndpointName, honorDefault: false);
     }
 
     /// <summary>
@@ -69,7 +86,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             endpoints,
             PasswordLoginMode.Cookie,
             SignInCompleterMap.FromSession(session),
-            confirmEmailEndpointName);
+            confirmEmailEndpointName,
+            honorDefault: false);
     }
 
     /// <summary>
@@ -84,14 +102,20 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrWhiteSpace(completer);
-        return MapPasswordCore<TUser>(endpoints, PasswordLoginMode.Cookie, completer, confirmEmailEndpointName);
+        return MapPasswordCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            completer,
+            confirmEmailEndpointName,
+            honorDefault: false);
     }
 
     private static IEndpointConventionBuilder MapPasswordCore<TUser>(
         IEndpointRouteBuilder endpoints,
         PasswordLoginMode login,
         string? completer,
-        string? confirmEmailEndpointName)
+        string? confirmEmailEndpointName,
+        bool honorDefault)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -103,7 +127,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var selected = completer;
-        if (selected is null && login != PasswordLoginMode.None)
+        if (selected is null && honorDefault && login != PasswordLoginMode.None)
         {
             var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
             if (!string.IsNullOrWhiteSpace(configured))

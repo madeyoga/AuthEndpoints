@@ -20,7 +20,17 @@ public static class EmailCodeEndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
-        return MapEmailCodeCore<TUser>(endpoints, completer: null);
+        return MapEmailCodeCore<TUser>(endpoints, completer: null, honorDefault: true);
+    }
+
+    /// <summary>
+    /// Facade email-code map. Keeps the 3.4.1 Identity bearer verify path and ignores
+    /// <see cref="SignInCompletionOptions.Default"/>.
+    /// </summary>
+    internal static IEndpointConventionBuilder MapEmailCodeEndpointsPreserving3x<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        return MapEmailCodeCore<TUser>(endpoints, completer: null, honorDefault: false);
     }
 
     /// <summary>
@@ -32,7 +42,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        return MapEmailCodeCore<TUser>(endpoints, SignInCompleterMap.FromSession(session));
+        return MapEmailCodeCore<TUser>(endpoints, SignInCompleterMap.FromSession(session), honorDefault: false);
     }
 
     /// <summary>
@@ -45,10 +55,13 @@ public static class EmailCodeEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrWhiteSpace(completer);
-        return MapEmailCodeCore<TUser>(endpoints, completer);
+        return MapEmailCodeCore<TUser>(endpoints, completer, honorDefault: false);
     }
 
-    private static IEndpointConventionBuilder MapEmailCodeCore<TUser>(IEndpointRouteBuilder endpoints, string? completer)
+    private static IEndpointConventionBuilder MapEmailCodeCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? completer,
+        bool honorDefault)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -56,10 +69,13 @@ public static class EmailCodeEndpointRouteBuilderExtensions
 
         if (completer is null)
         {
-            SignInCompleterMap.EnsureConfiguredDefault(
-                endpoints,
-                nameof(MapEmailCodeEndpoints),
-                LegacySignInCompleters.EmailCodeWins<TUser>(endpoints.ServiceProvider));
+            if (honorDefault)
+            {
+                SignInCompleterMap.EnsureConfiguredDefault<TUser>(
+                    endpoints,
+                    nameof(MapEmailCodeEndpoints),
+                    LegacySignInCompleters.EmailCodeWins<TUser>(endpoints.ServiceProvider));
+            }
         }
         else
         {
@@ -77,7 +93,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         {
             verify.WithMetadata(new SignInCompleterSelection(completer));
         }
-        else
+        else if (honorDefault)
         {
             verify.WithMetadata(new HonorSignInCompletionDefault());
         }

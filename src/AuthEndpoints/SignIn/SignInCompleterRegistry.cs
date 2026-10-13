@@ -4,12 +4,19 @@ namespace AuthEndpoints.SignIn;
 
 internal sealed class SignInCompleterNameRegistration
 {
-    public SignInCompleterNameRegistration(string name)
+    public SignInCompleterNameRegistration(string name, Type? userType)
     {
         Name = name;
+        UserType = userType;
     }
 
     public string Name { get; }
+
+    /// <summary>
+    /// Closed user type for <c>AddSignInCompleter&lt;TUser, T&gt;</c>.
+    /// Null is an open-generic built-in that applies to every user type.
+    /// </summary>
+    public Type? UserType { get; }
 }
 
 internal static class SignInCompleterRegistry
@@ -29,23 +36,38 @@ internal static class SignInCompleterRegistry
         services.AddOptions<SignInCompletionOptions>();
     }
 
-    public static void AddName(IServiceCollection services, string name)
+    public static void AddName(IServiceCollection services, string name, Type? userType)
     {
         if (services.Any(descriptor =>
                 descriptor.ServiceType == typeof(SignInCompleterNameRegistration)
                 && descriptor.ImplementationInstance is SignInCompleterNameRegistration existing
-                && string.Equals(existing.Name, name, StringComparison.Ordinal)))
+                && string.Equals(existing.Name, name, StringComparison.Ordinal)
+                && existing.UserType == userType))
         {
             return;
         }
 
-        services.AddSingleton(new SignInCompleterNameRegistration(name));
+        services.AddSingleton(new SignInCompleterNameRegistration(name, userType));
     }
 
-    public static bool Contains(IServiceProvider services, string name)
+    public static bool Contains<TUser>(IServiceProvider services, string name)
+        where TUser : class
+    {
+        return services.GetServices<SignInCompleterNameRegistration>()
+            .Any(registration => AppliesTo<TUser>(registration, name));
+    }
+
+    public static bool MatchesAny(IServiceProvider services, string name)
     {
         return services.GetServices<SignInCompleterNameRegistration>()
             .Any(registration => string.Equals(registration.Name, name, StringComparison.Ordinal));
+    }
+
+    private static bool AppliesTo<TUser>(SignInCompleterNameRegistration registration, string name)
+        where TUser : class
+    {
+        return string.Equals(registration.Name, name, StringComparison.Ordinal)
+            && (registration.UserType is null || registration.UserType == typeof(TUser));
     }
 
     private static void TryAddOpenGeneric(IServiceCollection services, Type implementationType, string name)
@@ -56,6 +78,6 @@ internal static class SignInCompleterRegistry
             services.AddKeyedScoped(serviceType, name, implementationType);
         }
 
-        AddName(services, name);
+        AddName(services, name, userType: null);
     }
 }

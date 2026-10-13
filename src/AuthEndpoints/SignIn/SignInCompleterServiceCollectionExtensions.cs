@@ -30,7 +30,7 @@ public static class SignInCompleterServiceCollectionExtensions
         }
 
         services.AddKeyedScoped<ISignInCompleter<TUser>, TCompleter>(name);
-        SignInCompleterRegistry.AddName(services, name);
+        SignInCompleterRegistry.AddName(services, name, typeof(TUser));
         return services;
     }
 }

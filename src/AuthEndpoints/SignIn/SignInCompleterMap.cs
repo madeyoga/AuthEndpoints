@@ -33,18 +33,19 @@ internal static class SignInCompleterMap
             }
         }
 
-        if (!SignInCompleterRegistry.Contains(endpoints.ServiceProvider, name))
+        if (!SignInCompleterRegistry.Contains<TUser>(endpoints.ServiceProvider, name))
         {
-            throw new InvalidOperationException(
-                $"No ISignInCompleter named '{name}' is registered (AddSignInCompleter).");
+            throw new InvalidOperationException(MissingMessage<TUser>(name));
         }
     }
 
     /// <summary>
     /// When the map passed no name, validate <see cref="SignInCompletionOptions.Default"/> if it will be used.
     /// A 3.x legacy completer wins over that default, so a missing keyed service is not an error in that case.
+    /// The name must be registered for <typeparamref name="TUser"/> or as an open generic.
     /// </summary>
-    public static void EnsureConfiguredDefault(IEndpointRouteBuilder endpoints, string mapMethod, bool legacyWins)
+    public static void EnsureConfiguredDefault<TUser>(IEndpointRouteBuilder endpoints, string mapMethod, bool legacyWins)
+        where TUser : class
     {
         if (legacyWins)
         {
@@ -66,10 +67,12 @@ internal static class SignInCompleterMap
             }
         }
 
-        if (!SignInCompleterRegistry.Contains(endpoints.ServiceProvider, configured))
+        if (!SignInCompleterRegistry.Contains<TUser>(endpoints.ServiceProvider, configured))
         {
-            throw new InvalidOperationException(
-                $"No ISignInCompleter named '{configured}' is registered (AddSignInCompleter).");
+            throw new InvalidOperationException(MissingMessage<TUser>(configured));
         }
     }
+
+    private static string MissingMessage<TUser>(string name)
+        => $"No ISignInCompleter<{typeof(TUser).Name}> named '{name}' is registered (AddSignInCompleter).";
 }

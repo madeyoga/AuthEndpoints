@@ -58,12 +58,17 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// contributes a no-op builder and those conventions do not reach the existing route.
     /// Register and login keep the 3.x completer: an explicitly registered
     /// <see cref="IPasskeySignInCompleter{TUser}"/>, otherwise Identity bearer.
+    /// A single string is the confirm-email endpoint name, not a completer.
+    /// When that string matches a registered completer name, this method logs a warning and still
+    /// treats it as the confirm-email name. Pass <see cref="AuthEndpointsSession"/> to select a session.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        WarnIfConfirmNameMatchesCompleter(endpoints, confirmEmailEndpointName);
         return MapPasskeySignInCore<TUser>(endpoints, confirmEmailEndpointName, completer: null);
     }
 
@@ -108,7 +113,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         WarnIfPasskeysMissing(endpoints, nameof(MapPasskeySignInEndpoints));
         if (completer is null)
         {
-            SignInCompleterMap.EnsureConfiguredDefault(
+            SignInCompleterMap.EnsureConfiguredDefault<TUser>(
                 endpoints,
                 nameof(MapPasskeySignInEndpoints),
                 LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider));
@@ -154,6 +159,19 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             completer: null,
             honorDefault: false);
         return group;
+    }
+
+    private static void WarnIfConfirmNameMatchesCompleter(IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName)
+    {
+        if (string.IsNullOrWhiteSpace(confirmEmailEndpointName)
+            || !SignInCompleterRegistry.MatchesAny(endpoints.ServiceProvider, confirmEmailEndpointName))
+        {
+            return;
+        }
+
+        AuthEndpointsModules.Log(
+            endpoints,
+            $"MapPasskeySignInEndpoints treated '{confirmEmailEndpointName}' as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass completer: \"{confirmEmailEndpointName}\" together with confirmEmailEndpointName.");
     }
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
