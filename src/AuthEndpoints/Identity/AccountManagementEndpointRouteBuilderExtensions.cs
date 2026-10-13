@@ -20,13 +20,18 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
-        return MapAccountManagementEndpoints<TUser>(endpoints, confirmEmailEndpointName, alwaysMapPasskeyOptions: false);
+        return MapAccountManagementEndpoints<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            alwaysMapPasskeyOptions: false,
+            emailCodeReAuth: true);
     }
 
     internal static IEndpointConventionBuilder MapAccountManagementEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName,
-        bool alwaysMapPasskeyOptions)
+        bool alwaysMapPasskeyOptions,
+        bool emailCodeReAuth)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -42,13 +47,17 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         var group = endpoints.MapGroup("");
         const string mapMethod = nameof(MapAccountManagementEndpoints);
         IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery: true, mapMethod);
-        IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
+        if (emailCodeReAuth)
+        {
+            IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
+        }
+
         if (alwaysMapPasskeyOptions || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
         {
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
-        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod);
+        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod, includeEmailCode: emailCodeReAuth);
         IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName, mapMethod);
         return new CompositeEndpointConventionBuilder(confirm, group);
     }

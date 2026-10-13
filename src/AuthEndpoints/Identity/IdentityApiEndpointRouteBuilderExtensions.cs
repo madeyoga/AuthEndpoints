@@ -26,11 +26,34 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
+        return MapIdentityManagementCore<TUser>(endpoints, confirmEmailEndpointName, emailCodeReAuth: true);
+    }
+
+    /// <summary>
+    /// Facade management map. Keeps the 3.4.1 step-up surface: no email-code send route, and
+    /// <c>authMethods.emailCode</c> stays false.
+    /// </summary>
+    internal static IEndpointConventionBuilder MapIdentityManagementApiPreserving3x<TUser>(
+        this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        return MapIdentityManagementCore<TUser>(endpoints, confirmEmailEndpointName: null, emailCodeReAuth: false);
+    }
+
+    private static IEndpointConventionBuilder MapIdentityManagementCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName,
+        bool emailCodeReAuth)
+        where TUser : class, new()
+    {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var password = endpoints.MapPasswordEndpoints<TUser>(PasswordLoginMode.None, confirmEmailEndpointName);
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
-        var account = endpoints.MapAccountManagementEndpoints<TUser>(confirmEmailEndpointName, alwaysMapPasskeyOptions: true);
+        var account = endpoints.MapAccountManagementEndpoints<TUser>(
+            confirmEmailEndpointName,
+            alwaysMapPasskeyOptions: true,
+            emailCodeReAuth: emailCodeReAuth);
         return new CompositeEndpointConventionBuilder(password, confirm, account);
     }
 

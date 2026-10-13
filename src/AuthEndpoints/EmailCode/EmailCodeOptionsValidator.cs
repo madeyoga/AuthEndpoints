@@ -79,12 +79,6 @@ internal sealed class EmailCodeOptionsValidator : IValidateOptions<EmailCodeOpti
                 "AuthEndpoints: EmailCode.ReAuth.CodeLifetime must be from 1 minute through 10 minutes.");
         }
 
-        if (!Enum.IsDefined(options.ReAuth.Availability))
-        {
-            return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailCode.ReAuth.Availability is not a defined value.");
-        }
-
         if (!options.MagicLink.Enabled)
         {
             return ValidateOptionsResult.Success;

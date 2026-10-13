@@ -38,11 +38,6 @@ internal static class EmailCodeReAuthGate
             return false;
         }
 
-        if (options.ReAuth.Availability == EmailCodeReAuthAvailability.Always)
-        {
-            return true;
-        }
-
         if (userManager.SupportsUserPassword && await userManager.HasPasswordAsync(user))
         {
             return false;

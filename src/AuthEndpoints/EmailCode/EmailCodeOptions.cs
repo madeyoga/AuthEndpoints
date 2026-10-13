@@ -29,8 +29,7 @@ public sealed class EmailCodeOptions
 
     /// <summary>
     /// Step-up codes for <c>POST /confirmIdentity</c>. Offered only when this user has no
-    /// password, authenticator, or passkey, unless <see cref="EmailCodeReAuthOptions.Availability"/>
-    /// is <see cref="EmailCodeReAuthAvailability.Always"/>.
+    /// password, authenticator, or passkey. An external login is not a stronger factor.
     /// </summary>
     public EmailCodeReAuthOptions ReAuth { get; set; } = new();
 
@@ -40,17 +39,9 @@ public sealed class EmailCodeOptions
     public bool RequireSenderOutsideDevelopment { get; set; } = true;
 }
 
-public enum EmailCodeReAuthAvailability
-{
-    WhenNoOtherProof,
-    Always
-}
-
 public sealed class EmailCodeReAuthOptions
 {
     public bool Enabled { get; set; } = true;
-
-    public EmailCodeReAuthAvailability Availability { get; set; } = EmailCodeReAuthAvailability.WhenNoOtherProof;
 
     public TimeSpan CodeLifetime { get; set; } = TimeSpan.FromMinutes(5);
 }

@@ -4,8 +4,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using AuthEndpoints.EmailCode;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace AuthEndpoints.Tests;
 
@@ -282,38 +287,100 @@ public partial class EmailCodeEndpointTests
     }
 
     [Fact]
-    public async Task EmailCodeProof_AllowsExternalOnlyUsers_AndAlwaysAllowsPasswordUsers()
+    public async Task EmailCodeProof_AllowsExternalOnlyUsers()
     {
-        await using (var host = await EmailCodeHost.StartAsync())
-        {
-            var email = UniqueEmail("external");
-            await SeedAsync(host.App, email, password: null);
-            await AddLoginAsync(host.App, email);
-            var jar = await SignInEmailCodeAsync(host, email);
-            Assert.True(await EmailCodeOfferedAsync(host, jar));
-            Assert.NotEmpty(await LoginsAsync(host.App, email));
-            Assert.False(await HasPasswordAsync(host.App, email));
-            var sent = await SendReAuthAsync(host, jar);
-            await AssertStatusAsync(sent, HttpStatusCode.OK);
-            var confirmed = await ConfirmAsync(host, jar, new { emailCode = CodeFor(host.Mail, email, EmailCodePurpose.ReAuth) });
-            await AssertStatusAsync(confirmed, HttpStatusCode.OK);
-            AssertNoSession(confirmed);
-            Assert.Equal(HttpStatusCode.OK, (await GetAsync(host.Client, "/test/reauth", jar)).StatusCode);
-        }
+        await using var host = await EmailCodeHost.StartAsync();
+        var email = UniqueEmail("external");
+        await SeedAsync(host.App, email, password: null);
+        await AddLoginAsync(host.App, email);
+        var jar = await SignInEmailCodeAsync(host, email);
+        Assert.True(await EmailCodeOfferedAsync(host, jar));
+        Assert.NotEmpty(await LoginsAsync(host.App, email));
+        Assert.False(await HasPasswordAsync(host.App, email));
+        var sent = await SendReAuthAsync(host, jar);
+        await AssertStatusAsync(sent, HttpStatusCode.OK);
+        var confirmed = await ConfirmAsync(host, jar, new { emailCode = CodeFor(host.Mail, email, EmailCodePurpose.ReAuth) });
+        await AssertStatusAsync(confirmed, HttpStatusCode.OK);
+        AssertNoSession(confirmed);
+        Assert.Equal(HttpStatusCode.OK, (await GetAsync(host.Client, "/test/reauth", jar)).StatusCode);
+    }
 
-        await using var always = await EmailCodeHost.StartAsync(options =>
-            options.ReAuth.Availability = EmailCodeReAuthAvailability.Always);
-        var passwordEmail = UniqueEmail("always");
-        await SeedAsync(always.App, passwordEmail);
-        var passwordJar = await LoginAsync(always, passwordEmail);
-        Assert.True(await EmailCodeOfferedAsync(always, passwordJar));
-        var alwaysSent = await SendReAuthAsync(always, passwordJar);
-        await AssertStatusAsync(alwaysSent, HttpStatusCode.OK);
-        var alwaysConfirmed = await ConfirmAsync(
-            always,
-            passwordJar,
-            new { emailCode = CodeFor(always.Mail, passwordEmail, EmailCodePurpose.ReAuth) });
-        await AssertStatusAsync(alwaysConfirmed, HttpStatusCode.OK);
+    [Fact]
+    public async Task Facade_EmailCodeEnabled_OmitsReAuthSend_AndKeepsEmailCodeFalse()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ae-facade-reauth-{Guid.NewGuid():N}.sqlite");
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development
+        });
+        builder.WebHost.UseTestServer();
+        builder.Services.AddDbContext<TestDbContext>(options =>
+            options.UseSqlite($"Data Source={path};Pooling=False"));
+        builder.Services.AddSingleton<CapturingEmailSender>();
+        builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
+        builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options =>
+        {
+            options.Passkeys.ServerDomain = "localhost";
+            options.RequireConfirmedAccount = false;
+            options.EmailCode.Enabled = true;
+            options.ConfigureIdentity = identity =>
+            {
+                identity.SignIn.RequireConfirmedAccount = false;
+                identity.Password.RequireDigit = false;
+                identity.Password.RequireLowercase = false;
+                identity.Password.RequireUppercase = false;
+                identity.Password.RequireNonAlphanumeric = false;
+                identity.Password.RequiredLength = 6;
+            };
+        });
+
+        await using var app = builder.Build();
+        try
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync();
+            }
+
+            app.UseAuthEndpoints();
+            app.MapAuthEndpoints<TestAppUser>();
+            await app.StartAsync();
+
+            var email = UniqueEmail("facade-reauth");
+            await SeedAsync(app, email, password: null);
+            using var client = app.GetTestClient();
+            var mail = app.Services.GetRequiredService<CapturingEmailSender>();
+            var sent = await PostAsync(client, "/identity/emailCode/send", new { email });
+            Assert.True(sent.StatusCode == HttpStatusCode.OK, await sent.Content.ReadAsStringAsync());
+            var code = mail.Snapshot().Single(item => item.Kind == "email-code" && item.Email == email).Body;
+            var jar = new CookieJar();
+            var verify = await PostAsync(
+                client,
+                "/identity/emailCode/verify?useSessionCookies=true",
+                new { email, code },
+                jar);
+            await AssertStatusAsync(verify, HttpStatusCode.OK);
+
+            var methods = await GetAsync(client, "/identity/manage/authMethods", jar);
+            await AssertStatusAsync(methods, HttpStatusCode.OK);
+            using var doc = JsonDocument.Parse(await methods.Content.ReadAsStringAsync());
+            var emailCode = doc.RootElement.TryGetProperty("emailCode", out var camel)
+                ? camel.GetBoolean()
+                : doc.RootElement.GetProperty("EmailCode").GetBoolean();
+            Assert.False(emailCode);
+
+            var send = await PostAsync(client, "/identity/confirmIdentity/emailCode/send", new { }, jar);
+            Assert.Equal(HttpStatusCode.NotFound, send.StatusCode);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
     }
 
     [Fact]

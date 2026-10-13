@@ -226,15 +226,9 @@ namespace AuthEndpoints.EmailCode
         SignUp = 1,
         ReAuth = 2,
     }
-    public enum EmailCodeReAuthAvailability
-    {
-        WhenNoOtherProof = 0,
-        Always = 1,
-    }
     public sealed class EmailCodeReAuthOptions
     {
         public EmailCodeReAuthOptions() { }
-        public AuthEndpoints.EmailCode.EmailCodeReAuthAvailability Availability { get; set; }
         public System.TimeSpan CodeLifetime { get; set; }
         public bool Enabled { get; set; }
     }
@@ -824,6 +818,7 @@ namespace AuthEndpoints.ReAuth
     public static class ReAuthEndpoints<TUser>
         where TUser :  class, new ()
     {
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.AuthMethodsResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>> AuthMethods(System.Security.Claims.ClaimsPrincipal principal, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.AuthMethodsResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>> AuthMethods(System.Security.Claims.ClaimsPrincipal principal, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.IServiceProvider services) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.ConfirmIdentityResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.BadRequest<string>, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> ConfirmIdentity([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.ReAuth.ConfirmIdentityRequest request, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Http.HttpContext context) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.NotFound>> PasskeyOptions(Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }

@@ -30,7 +30,6 @@ public class EmailCodeOptionsTests
         Assert.True(options.RequireSenderOutsideDevelopment);
         Assert.NotNull(options.ReAuth);
         Assert.True(options.ReAuth.Enabled);
-        Assert.Equal(EmailCodeReAuthAvailability.WhenNoOtherProof, options.ReAuth.Availability);
         Assert.Equal(TimeSpan.FromMinutes(5), options.ReAuth.CodeLifetime);
     }
 
@@ -91,7 +90,7 @@ public class EmailCodeOptionsTests
     }
 
     [Fact]
-    public void Validator_RejectsReAuthLifetimeAvailabilityAndNull()
+    public void Validator_RejectsReAuthLifetimeAndNull()
     {
         AssertRejected(o => o.ReAuth.CodeLifetime = TimeSpan.FromSeconds(59), "ReAuth.CodeLifetime");
         AssertRejected(o => o.ReAuth.CodeLifetime = TimeSpan.FromMinutes(10) + TimeSpan.FromTicks(1), "ReAuth.CodeLifetime");
@@ -100,7 +99,6 @@ public class EmailCodeOptionsTests
             o.ReAuth.Enabled = false;
             o.ReAuth.CodeLifetime = TimeSpan.Zero;
         }, "ReAuth.CodeLifetime");
-        AssertRejected(o => o.ReAuth.Availability = (EmailCodeReAuthAvailability)99, "Availability");
         AssertRejected(o => o.ReAuth = null!, "ReAuth is required");
     }
 

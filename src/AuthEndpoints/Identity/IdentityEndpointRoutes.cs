@@ -5,6 +5,7 @@ using AuthEndpoints.SignIn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -183,11 +184,19 @@ internal static class IdentityEndpointRoutes
         passkeyOptions.Track(endpoints, mapMethod);
     }
 
-    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
+    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod, bool includeEmailCode = true)
         where TUser : class, new()
     {
         var manage = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
-        manage.MapGet("/authMethods", ReAuthEndpoints<TUser>.AuthMethods)
+        RouteHandlerBuilder authMethods = includeEmailCode
+            ? manage.MapGet("/authMethods", (
+                ClaimsPrincipal principal,
+                UserManager<TUser> userManager,
+                IServiceProvider services) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager, services))
+            : manage.MapGet("/authMethods", (
+                ClaimsPrincipal principal,
+                UserManager<TUser> userManager) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager));
+        authMethods
             .WithSummary("List available step-up / reauthentication methods for the current user.")
             .Track(endpoints, mapMethod);
     }

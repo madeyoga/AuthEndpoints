@@ -14,10 +14,22 @@ namespace AuthEndpoints.ReAuth;
 public static class ReAuthEndpoints<TUser>
     where TUser : class, new()
 {
-    public static async Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> AuthMethods(
+    public static Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> AuthMethods(
+        ClaimsPrincipal principal,
+        UserManager<TUser> userManager)
+        => ListAuthMethods(principal, userManager, includeEmailCode: false, services: null);
+
+    public static Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> AuthMethods(
         ClaimsPrincipal principal,
         UserManager<TUser> userManager,
         IServiceProvider services)
+        => ListAuthMethods(principal, userManager, includeEmailCode: true, services);
+
+    private static async Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> ListAuthMethods(
+        ClaimsPrincipal principal,
+        UserManager<TUser> userManager,
+        bool includeEmailCode,
+        IServiceProvider? services)
     {
         var user = await userManager.GetUserAsync(principal);
         if (user is null)
@@ -29,7 +41,7 @@ public static class ReAuthEndpoints<TUser>
         var passkeyCount = passkeys.Count;
         var recoveryCodesLeft = await userManager.CountRecoveryCodesAsync(user);
         var emailCode = false;
-        if (services.GetService<IEmailCodeStore>() is not null)
+        if (includeEmailCode && services is not null && services.GetService<IEmailCodeStore>() is not null)
         {
             var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
             emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options);
