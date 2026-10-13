@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- B17: IExternalLoginCompleter stays registered until external sign-in moves to ISignInCompleter. -->
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
     <PackageId>AuthEndpoints.External.OAuth</PackageId>
     <Description>Minimal API endpoints for external OAuth authentication with ASP.NET Core Identity. GitHub and Google handlers ship in separate packages.</Description>
     <Version>3.0.0-preview.5</Version>

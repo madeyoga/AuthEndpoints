@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using AuthEndpoints.ReAuth;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace AuthEndpoints.Identity;
@@ -22,9 +24,32 @@ internal static class IdentityEndpointRoutes
             .Track(endpoints, mapMethod);
     }
 
-    public static void MapPasswordLogin<TUser>(IEndpointRouteBuilder endpoints, PasswordLoginMode login, string mapMethod)
+    public static void MapPasswordLogin<TUser>(
+        IEndpointRouteBuilder endpoints,
+        PasswordLoginMode login,
+        string mapMethod,
+        string? completer = null)
         where TUser : class, new()
     {
+        if (completer is not null)
+        {
+            SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
+            endpoints.MapPost("/login", (
+                    [FromBody] LoginRequest loginRequest,
+                    [FromQuery] bool? useCookies,
+                    [FromQuery] bool? useSessionCookies,
+                    HttpContext httpContext) => PasswordCompleterSignIn<TUser>.Handle(
+                        loginRequest,
+                        useCookies,
+                        useSessionCookies,
+                        httpContext,
+                        completer))
+                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                .WithMetadata(new SignInCompleterSelection(completer))
+                .Track(endpoints, mapMethod);
+            return;
+        }
+
         switch (login)
         {
             case PasswordLoginMode.None:

@@ -1,5 +1,6 @@
 ﻿using System.Threading.RateLimiting;
 using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -48,6 +49,7 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<IOptions<EmailCodeOptions>>().Value,
             sp.GetRequiredService<ILookupNormalizer>()));
         services.TryAddScoped<IEmailCodeSignInCompleter<TUser>, IdentityEmailCodeSignInCompleter<TUser>>();
+        SignInCompleterRegistry.AddIdentityCompleters(services);
         services.TryAddScoped<IEmailCodeSender<TUser>>(sp =>
         {
             var environment = sp.GetRequiredService<IHostEnvironment>();
@@ -66,12 +68,14 @@ public static class ServiceCollectionExtensions
     /// Replaces the default <see cref="IEmailCodeSignInCompleter{TUser}"/>
     /// (for example with <c>JwtEmailCodeSignInCompleter&lt;TUser&gt;</c>).
     /// </summary>
+    [Obsolete(LegacyCompleterMessages.Obsolete)]
     public static IServiceCollection AddEmailCodeSignInCompleter<TUser, TCompleter>(this IServiceCollection services)
         where TUser : class
         where TCompleter : class, IEmailCodeSignInCompleter<TUser>
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddScoped<IEmailCodeSignInCompleter<TUser>, TCompleter>();
+        LegacySignInCompleters.MarkEmailCode<TUser>(services);
         return services;
     }
 

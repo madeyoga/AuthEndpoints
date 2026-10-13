@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +9,7 @@ namespace AuthEndpoints.External.OAuth;
 /// <summary>
 /// Completes external login by signing into the Identity application cookie (or configured scheme).
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class CookieExternalLoginCompleter<TUser> : IExternalLoginCompleter<TUser>
     where TUser : class
 {

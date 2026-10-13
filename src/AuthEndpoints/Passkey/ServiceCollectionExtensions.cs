@@ -1,6 +1,7 @@
 using System.Threading.RateLimiting;
 using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -82,11 +83,13 @@ public static class ServiceCollectionExtensions
     /// Replaces the default <see cref="IPasskeySignInCompleter{TUser}"/> (e.g. with
     /// <c>JwtPasskeySignInCompleter&lt;TUser&gt;</c>).
     /// </summary>
+    [Obsolete(LegacyCompleterMessages.Obsolete)]
     public static IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this IServiceCollection services)
         where TUser : class
         where TCompleter : class, IPasskeySignInCompleter<TUser>
     {
         services.AddScoped<IPasskeySignInCompleter<TUser>, TCompleter>();
+        LegacySignInCompleters.MarkPasskey<TUser>(services);
         return services;
     }
 

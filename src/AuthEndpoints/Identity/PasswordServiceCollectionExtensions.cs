@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Identity;
@@ -19,6 +20,7 @@ public static class PasswordServiceCollectionExtensions
         }
 
         services.AddModule<PasswordEndpointsModule>();
+        SignInCompleterRegistry.AddIdentityCompleters(services);
         services.AddLoginRateLimiting();
         services.AddAccountAbuseRateLimiting();
         services.AddAuthEndpointsAuthorizationAndAntiforgery();

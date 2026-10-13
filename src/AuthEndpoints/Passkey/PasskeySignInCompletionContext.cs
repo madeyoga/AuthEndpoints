@@ -1,3 +1,5 @@
+using AuthEndpoints.SignIn;
+
 namespace AuthEndpoints.Passkey;
 
 public enum PasskeySignInKind
@@ -9,6 +11,7 @@ public enum PasskeySignInKind
 /// <summary>
 /// Context for <see cref="IPasskeySignInCompleter{TUser}"/> after a successful WebAuthn ceremony.
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class PasskeySignInCompletionContext
 {
     public required PasskeySignInKind Kind { get; init; }

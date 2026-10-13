@@ -4,6 +4,8 @@
     <TargetFrameworks>net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- B17: per-method completers stay callable through 4.x. Internal adapters reference them on purpose. -->
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
     <Version>3.4.1</Version>

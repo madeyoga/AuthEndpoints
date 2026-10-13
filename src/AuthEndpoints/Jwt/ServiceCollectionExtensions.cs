@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         where TContext : DbContext
     {
         services.AddModule<JwtEndpointsModule>();
+        SignInCompleterRegistry.AddJwtCompleter(services);
 
         var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>))
             ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser");

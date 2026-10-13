@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AuthEndpoints.Jwt;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +13,7 @@ namespace AuthEndpoints.External.OAuth;
 /// The access token is not placed in the redirect. Requires <c>AddJwtEndpoints</c>
 /// (<see cref="IRefreshTokenService"/> and <see cref="RefreshTokenCookieWriter"/>).
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<TUser>
     where TUser : class
 {

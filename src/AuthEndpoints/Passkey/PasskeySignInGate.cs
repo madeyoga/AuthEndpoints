@@ -1,4 +1,5 @@
 using System.Buffers.Text;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
@@ -46,6 +47,11 @@ internal static class PasskeySignInGate
             return Denied(context.Kind, context.CredentialId);
         }
 
-        return await completer.CompleteAsync(httpContext, user, context, cancellationToken);
+        return await SignInCompletion.CompletePasskeyAsync(
+            httpContext,
+            user,
+            context,
+            completer,
+            cancellationToken);
     }
 }

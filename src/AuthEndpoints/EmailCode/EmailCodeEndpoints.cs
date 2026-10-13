@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using AuthEndpoints.SignIn;
 using System.Reflection;
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Http;
@@ -568,15 +569,13 @@ public static class EmailCodeEndpoints<TUser>
         }
 
         await userManager.ResetAccessFailedCountAsync(user);
-        var result = await completer.CompleteAsync(
+        var result = await SignInCompletion.CompleteEmailCodeAsync(
             httpContext,
             user,
-            new EmailCodeSignInContext
-            {
-                UseCookies = useCookies,
-                UseSessionCookies = useSessionCookies,
-                IsNewUser = isNewUser
-            },
+            completer,
+            isNewUser,
+            useCookies,
+            useSessionCookies,
             cancellationToken);
         if (isNewUser)
         {

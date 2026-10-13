@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using AuthEndpoints.EmailCode;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
@@ -10,6 +11,7 @@ namespace AuthEndpoints.Jwt;
 /// Ignores <c>useCookies</c> and <c>useSessionCookies</c>.
 /// Requires <c>AddJwtEndpoints</c> (or equivalent JWT services) to be registered.
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class JwtEmailCodeSignInCompleter<TUser> : IEmailCodeSignInCompleter<TUser>
     where TUser : class
 {

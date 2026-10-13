@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using AuthEndpoints.Passkey;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
@@ -10,6 +11,7 @@ namespace AuthEndpoints.Jwt;
 /// (same response shape as JWT <c>/create</c>). Ignores <c>useCookies</c> / <c>useSessionCookies</c>.
 /// Requires <c>AddJwtEndpoints</c> (or equivalent JWT services) to be registered.
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class JwtPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<TUser>
     where TUser : class
 {

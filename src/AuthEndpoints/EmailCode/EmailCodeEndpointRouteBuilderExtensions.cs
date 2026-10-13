@@ -1,4 +1,5 @@
 ﻿using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
@@ -13,20 +14,74 @@ public static class EmailCodeEndpointRouteBuilderExtensions
     /// Send uses <see cref="AuthEndpointsConstants.EmailCodeSendPolicy"/>.
     /// Verify uses <see cref="AuthEndpointsConstants.LoginPolicy"/>.
     /// Neither route requires antiforgery.
+    /// Verify keeps the 3.x completer: an explicitly registered
+    /// <see cref="IEmailCodeSignInCompleter{TUser}"/>, otherwise Identity bearer.
     /// </summary>
     public static IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        return MapEmailCodeCore<TUser>(endpoints, completer: null);
+    }
+
+    /// <summary>
+    /// Maps email-code send and verify, and finishes verify with the built-in completer for <paramref name="session"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        return MapEmailCodeCore<TUser>(endpoints, SignInCompleterMap.FromSession(session));
+    }
+
+    /// <summary>
+    /// Maps email-code send and verify, and finishes verify with the keyed completer <paramref name="completer"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string completer)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(completer);
+        return MapEmailCodeCore<TUser>(endpoints, completer);
+    }
+
+    private static IEndpointConventionBuilder MapEmailCodeCore<TUser>(IEndpointRouteBuilder endpoints, string? completer)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         EnsureEmailCodesMapped(endpoints.ServiceProvider);
 
+        if (completer is null)
+        {
+            SignInCompleterMap.EnsureConfiguredDefault(
+                endpoints,
+                nameof(MapEmailCodeEndpoints),
+                LegacySignInCompleters.EmailCodeWins<TUser>(endpoints.ServiceProvider));
+        }
+        else
+        {
+            SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, nameof(MapEmailCodeEndpoints));
+        }
+
         var group = endpoints.MapGroup("");
         group.MapPost("/emailCode/send", EmailCodeEndpoints<TUser>.Send)
             .RequireRateLimiting(AuthEndpointsConstants.EmailCodeSendPolicy)
             .Track(endpoints, nameof(MapEmailCodeEndpoints));
-        group.MapPost("/emailCode/verify", EmailCodeEndpoints<TUser>.Verify)
+        var verify = group.MapPost("/emailCode/verify", EmailCodeEndpoints<TUser>.Verify)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
             .Track(endpoints, nameof(MapEmailCodeEndpoints));
+        if (completer is not null)
+        {
+            verify.WithMetadata(new SignInCompleterSelection(completer));
+        }
+        else
+        {
+            verify.WithMetadata(new HonorSignInCompletionDefault());
+        }
+
         return group;
     }
 

@@ -1,5 +1,8 @@
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
 
@@ -39,11 +42,56 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// Maps password register, login, forgot-password, and reset-password routes.
     /// Also maps confirm-email when <paramref name="confirmEmailEndpointName"/> is not mapped yet.
     /// <see cref="PasswordLoginMode.None"/> omits <c>POST /login</c> so a session map can own that route.
+    /// Login stays on the 3.4.1 <c>PasswordSignInAsync</c> handlers unless
+    /// <see cref="SignInCompletionOptions.Default"/> names a completer.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         PasswordLoginMode login = PasswordLoginMode.Cookie,
         string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        return MapPasswordCore<TUser>(endpoints, login, completer: null, confirmEmailEndpointName);
+    }
+
+    /// <summary>
+    /// Maps password routes and finishes <c>POST /login</c> with the built-in completer for <paramref name="session"/>.
+    /// A session always maps <c>POST /login</c>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        return MapPasswordCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            SignInCompleterMap.FromSession(session),
+            confirmEmailEndpointName);
+    }
+
+    /// <summary>
+    /// Maps password routes and finishes <c>POST /login</c> with the keyed completer <paramref name="completer"/>.
+    /// A completer name always maps <c>POST /login</c>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string completer,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(completer);
+        return MapPasswordCore<TUser>(endpoints, PasswordLoginMode.Cookie, completer, confirmEmailEndpointName);
+    }
+
+    private static IEndpointConventionBuilder MapPasswordCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        PasswordLoginMode login,
+        string? completer,
+        string? confirmEmailEndpointName)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -54,10 +102,20 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "MapPasswordEndpoints");
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
+        var selected = completer;
+        if (selected is null && login != PasswordLoginMode.None)
+        {
+            var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                selected = configured;
+            }
+        }
+
         var routeGroup = endpoints.MapGroup("");
         IdentityEndpointRoutes.MapRegister<TUser>(routeGroup, confirmEmailEndpointName, nameof(MapPasswordEndpoints));
         routeGroup.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login, nameof(MapPasswordEndpoints));
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login, nameof(MapPasswordEndpoints), selected);
         IdentityEndpointRoutes.MapForgotPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
         IdentityEndpointRoutes.MapResetPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
         return routeGroup;

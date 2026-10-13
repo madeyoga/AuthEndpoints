@@ -1,5 +1,6 @@
 using System.Buffers.Text;
 using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
@@ -11,6 +12,7 @@ namespace AuthEndpoints.Passkey;
 /// Cookie register returns <c>credentialId</c>. Bearer register returns the token body
 /// <c>SignInAsync</c> already wrote.
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<TUser>
     where TUser : class
 {

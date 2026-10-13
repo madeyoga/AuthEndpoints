@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.External.OAuth;
@@ -20,6 +21,7 @@ public sealed class ExternalAuthBuilder
     /// <summary>
     /// Replaces the default <see cref="IExternalLoginCompleter{TUser}"/> registration.
     /// </summary>
+    [Obsolete(LegacyCompleterMessages.Obsolete)]
     public ExternalAuthBuilder AddCompleter<TCompleter>()
         where TCompleter : class
     {
