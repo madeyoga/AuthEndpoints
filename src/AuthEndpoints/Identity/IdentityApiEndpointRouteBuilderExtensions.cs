@@ -63,6 +63,9 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps password register, login, forgot-password, and reset-password routes.
+    /// This is <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpEndpoints{TUser}"/>,
+    /// <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignInEndpoints{TUser}()"/>,
+    /// and <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryEndpoints{TUser}"/>.
     /// Login uses <see cref="PasswordLoginMode.Cookie"/> unless
     /// <see cref="SignInCompletionOptions.Default"/> names a completer for this user.
     /// Also maps confirm-email when the default endpoint name is not mapped yet.
@@ -159,13 +162,23 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             }
         }
 
-        var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapRegister<TUser>(routeGroup, confirmEmailEndpointName, nameof(MapPasswordEndpoints));
-        routeGroup.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login, nameof(MapPasswordEndpoints), selected);
-        IdentityEndpointRoutes.MapForgotPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
-        IdentityEndpointRoutes.MapResetPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
-        return routeGroup;
+        var signUp = PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            nameof(MapPasswordEndpoints),
+            warn: false);
+        var signIn = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
+            endpoints,
+            login,
+            selected,
+            nameof(MapPasswordEndpoints),
+            warn: false,
+            honorDefault: false);
+        var recovery = PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryCore<TUser>(
+            endpoints,
+            nameof(MapPasswordEndpoints),
+            warn: false);
+        return new CompositeEndpointConventionBuilder(signUp, signIn, recovery);
     }
 
     /// <summary>
@@ -183,10 +196,15 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "AddPasswordEndpoints",
             "MapBearerAuthEndpoints");
 
-        var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.IdentityBearer, nameof(MapBearerAuthEndpoints));
-        routeGroup.MapBearerSessionEndpoints<TUser>();
-        return routeGroup;
+        var login = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
+            endpoints,
+            PasswordLoginMode.IdentityBearer,
+            completer: null,
+            nameof(MapBearerAuthEndpoints),
+            warn: false,
+            honorDefault: false);
+        var session = endpoints.MapBearerSessionEndpoints<TUser>();
+        return new CompositeEndpointConventionBuilder(login, session);
     }
 
     /// <summary>
@@ -222,10 +240,15 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "AddPasswordEndpoints",
             "MapCookieAuthEndpoints");
 
-        var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.Cookie, nameof(MapCookieAuthEndpoints));
-        routeGroup.MapCookieSessionEndpoints<TUser>();
-        return routeGroup;
+        var login = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            completer: null,
+            nameof(MapCookieAuthEndpoints),
+            warn: false,
+            honorDefault: false);
+        var session = endpoints.MapCookieSessionEndpoints<TUser>();
+        return new CompositeEndpointConventionBuilder(login, session);
     }
 
     /// <summary>

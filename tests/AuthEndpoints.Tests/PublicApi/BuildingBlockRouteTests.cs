@@ -699,9 +699,16 @@ public class BuildingBlockRouteTests
     public void AddMethods_AreIdempotent()
     {
         AssertIdempotent(services => services.AddPasswordEndpoints());
+        AssertIdempotent(services => services.AddPasswordSignUpEndpoints());
+        AssertIdempotent(services => services.AddPasswordSignInEndpoints());
+        AssertIdempotent(services => services.AddPasswordRecoveryEndpoints());
         AssertIdempotent(services => services.AddCookieSessionEndpoints());
         AssertIdempotent(services => services.AddBearerSessionEndpoints());
         AssertIdempotent(services => services.AddAccountManagementEndpoints());
+        AssertIdempotent(services => services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddPasskeySignUpEndpoints());
+        AssertIdempotent(services => services.AddPasskeyRegisterOptionsEndpoints());
         AssertIdempotent(services => services.AddLoginRateLimiting());
         AssertIdempotent(services => services.AddAccountAbuseRateLimiting());
         AssertIdempotent(services => services.AddConfirmIdentityRateLimiting());

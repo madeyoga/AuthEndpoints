@@ -1,0 +1,19 @@
+﻿DefaultScheme: Identity.BearerAndApplication
+DefaultAuthenticateScheme: (none)
+DefaultChallengeScheme: (none)
+DefaultSignInScheme: (none)
+DefaultForbidScheme: (none)
+DefaultSignOutScheme: (none)
+Schemes:
+AuthEndpoints.ReAuth
+AuthEndpoints.ReAuth.Bearer
+Identity.Application
+Identity.Bearer
+Identity.BearerAndApplication
+Identity.External
+Identity.TwoFactorRememberMe
+Identity.TwoFactorUserId
+---
+GET /identity/csrfToken name=(none) auth=(none) antiforgery=false rateLimit=(none)
+POST /identity/login name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Login
+POST /identity/logout name=(none) auth=(default) antiforgery=true rateLimit=(none)
