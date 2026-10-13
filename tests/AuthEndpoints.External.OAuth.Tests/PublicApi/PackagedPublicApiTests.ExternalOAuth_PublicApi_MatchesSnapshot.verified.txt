@@ -1,5 +1,8 @@
 ﻿namespace AuthEndpoints.External.OAuth
 {
+    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
+        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
+        "ions.Default. Removed in 5.0.")]
     public sealed class CookieExternalLoginCompleter<TUser> : AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser>
         where TUser :  class
     {
@@ -19,6 +22,9 @@
         public ExternalAuthBuilder(System.Type userType, Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
         public System.Type UserType { get; }
+        [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
+            "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
+            "ions.Default. Removed in 5.0.")]
         public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddCompleter<TCompleter>()
             where TCompleter :  class { }
         public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddProvider(AuthEndpoints.External.OAuth.IExternalAuthProvider provider) { }
@@ -97,11 +103,17 @@
         string LoginPath { get; }
         string Scheme { get; }
     }
+    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
+        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
+        "ions.Default. Removed in 5.0.")]
     public interface IExternalLoginCompleter<TUser>
         where TUser :  class
     {
         System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default);
     }
+    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
+        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
+        "ions.Default. Removed in 5.0.")]
     public sealed class JwtExternalLoginCompleter<TUser> : AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser>
         where TUser :  class
     {
