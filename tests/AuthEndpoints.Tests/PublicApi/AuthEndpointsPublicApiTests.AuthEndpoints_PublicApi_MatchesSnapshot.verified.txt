@@ -374,9 +374,11 @@ namespace AuthEndpoints.Identity
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapIdentityManagementApi<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
-        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.Identity.PasswordLoginMode login = 0, string? confirmEmailEndpointName = null)
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.Identity.PasswordLoginMode login, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string completer, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }

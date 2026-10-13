@@ -137,7 +137,7 @@ public class SignInCompleterTests
             o.DefaultCompleter = SignInCompleters.Jwt;
             o.Map = app =>
             {
-                app.MapGroup("/password").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.Cookie, "default-password-confirm");
+                app.MapGroup("/password").MapPasswordEndpoints<TestAppUser>();
                 app.MapGroup("/none").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.None, "default-none-confirm");
                 app.MapGroup("/cookie").MapCookieAuthEndpoints<TestAppUser>();
                 app.MapGroup("/bearer").MapBearerAuthEndpoints<TestAppUser>();
@@ -374,7 +374,9 @@ public class SignInCompleterTests
             services => services.AddPasswordEndpoints(),
             app => app.MapPasswordEndpoints<TestAppUser>("missing")));
 
-        Assert.Equal("No ISignInCompleter named 'missing' is registered (AddSignInCompleter).", ex.Message);
+        Assert.Equal(
+            "No ISignInCompleter<TestAppUser> named 'missing' is registered (AddSignInCompleter).",
+            ex.Message);
     }
 
     [Fact]
@@ -447,6 +449,271 @@ public class SignInCompleterTests
         Assert.NotNull(Find(app, "POST /passkeys/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
         Assert.Equal("MySession", Find(app, "POST /named/passkeys/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
         Assert.Equal("MySession", Find(app, "POST /named/passkeys/register").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+    }
+
+    [Fact]
+    public void PasskeyStringOverload_WarnsWhenStringMatchesRegisteredCompleter()
+    {
+        var logs = new WarningLoggerProvider();
+        using var app = MapForMetadata(services =>
+        {
+            services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
+                .AddEntityFrameworkStores<TestDbContext>();
+            services.AddPasskeyEndpoints<TestAppUser>();
+            services.Configure<IdentityPasskeyOptions>(o => o.ServerDomain = "localhost");
+            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            });
+            services.AddSignInCompleter<TestAppUser, AlphaCompleter>("MySession");
+            services.AddSingleton<ILoggerProvider>(logs);
+        }, app =>
+        {
+            app.MapGroup("/mine").MapPasskeySignInEndpoints<TestAppUser>("MySession");
+            app.MapGroup("/jwt").MapPasskeySignInEndpoints<TestAppUser>(SignInCompleters.Jwt);
+            app.MapGroup("/plain").MapPasskeySignInEndpoints<TestAppUser>("confirm-only");
+        });
+
+        AssertConfirmNameStillDefault(app, "/mine", "MySession");
+        AssertConfirmNameStillDefault(app, "/jwt", SignInCompleters.Jwt);
+        AssertConfirmNameStillDefault(app, "/plain", "confirm-only");
+        Assert.Contains(logs.Messages, message => message.Contains("MySession", StringComparison.Ordinal)
+            && message.Contains("confirm-email", StringComparison.Ordinal)
+            && message.Contains("AuthEndpointsSession", StringComparison.Ordinal));
+        Assert.Contains(logs.Messages, message => message.Contains("'Jwt'", StringComparison.Ordinal)
+            && message.Contains("AuthEndpointsSession", StringComparison.Ordinal));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("confirm-only", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task ExplicitPasswordLoginMode_BeatsSignInCompletionDefault()
+    {
+        await using var host = await SignInHost.StartAsync(o =>
+        {
+            o.DefaultCompleter = SignInCompleters.Jwt;
+            o.Map = app =>
+            {
+                app.MapGroup("/open").MapPasswordEndpoints<TestAppUser>();
+                app.MapGroup("/cookie").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.Cookie, "mode-cookie-confirm");
+                app.MapGroup("/bearer").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.IdentityBearer, "mode-bearer-confirm");
+            };
+        });
+
+        Assert.Equal(SignInCompleters.Jwt, Find(host.App, "POST /open/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Equal("LoginCookie", HandlerName(Find(host.App, "POST /cookie/login")));
+        Assert.Null(Find(host.App, "POST /cookie/login").Metadata.GetMetadata<SignInCompleterSelection>());
+        Assert.Null(Find(host.App, "POST /cookie/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
+        Assert.Equal("Login", HandlerName(Find(host.App, "POST /bearer/login")));
+        Assert.Null(Find(host.App, "POST /bearer/login").Metadata.GetMetadata<SignInCompleterSelection>());
+        Assert.Null(Find(host.App, "POST /bearer/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
+
+        var open = UniqueEmail("open-default");
+        await host.SeedAsync(open);
+        await AssertSession(
+            await host.Client.PostAsync("/open/login", new { email = open, password = TestHelpers.DefaultPassword }),
+            SessionKind.Jwt,
+            passkeyRegister: false);
+
+        var cookie = UniqueEmail("mode-cookie");
+        await host.SeedAsync(cookie);
+        await AssertSession(
+            await host.Client.PostAsync("/cookie/login", new { email = cookie, password = TestHelpers.DefaultPassword }),
+            SessionKind.Cookie,
+            passkeyRegister: false);
+
+        var bearer = UniqueEmail("mode-bearer");
+        await host.SeedAsync(bearer);
+        await AssertSession(
+            await host.Client.PostAsync("/bearer/login", new { email = bearer, password = TestHelpers.DefaultPassword }),
+            SessionKind.IdentityBearer,
+            passkeyRegister: false);
+    }
+
+    [Fact]
+    public async Task Facade_IgnoresSignInCompletionDefault()
+    {
+        var mail = new CapturingEmailSender();
+        WebApplication? cookieApp = null;
+        WebApplication? bearerApp = null;
+        try
+        {
+            cookieApp = await StartFacadeAsync(AuthEndpointsSignIn.Cookie, mail);
+            using var cookieClient = new ApiClient(cookieApp);
+
+            Assert.Equal("LoginCookie", HandlerName(Find(cookieApp, "POST /identity/login")));
+            Assert.Null(Find(cookieApp, "POST /identity/login").Metadata.GetMetadata<SignInCompleterSelection>());
+            Assert.Null(Find(cookieApp, "POST /identity/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
+            var verify = Find(cookieApp, "POST /identity/emailCode/verify");
+            Assert.Null(verify.Metadata.GetMetadata<HonorSignInCompletionDefault>());
+            Assert.Null(verify.Metadata.GetMetadata<SignInCompleterSelection>());
+            var passkey = Find(cookieApp, "POST /account/passkeys/login");
+            Assert.Null(passkey.Metadata.GetMetadata<HonorSignInCompletionDefault>());
+            Assert.Null(passkey.Metadata.GetMetadata<SignInCompleterSelection>());
+
+            var cookieEmail = UniqueEmail("facade-cookie");
+            Assert.Equal(HttpStatusCode.OK, (await cookieClient.PostAsync("/identity/register", new { email = cookieEmail, password = TestHelpers.DefaultPassword })).StatusCode);
+            await AssertSession(
+                await cookieClient.PostAsync("/identity/login", new { email = cookieEmail, password = TestHelpers.DefaultPassword }),
+                SessionKind.Cookie,
+                passkeyRegister: false);
+
+            Assert.Equal(HttpStatusCode.OK, (await cookieClient.PostAsync("/identity/emailCode/send", new { email = cookieEmail })).StatusCode);
+            await AssertSession(
+                await cookieClient.PostAsync("/identity/emailCode/verify", new { email = cookieEmail, code = CodeFor(mail, cookieEmail) }),
+                SessionKind.IdentityBearer,
+                passkeyRegister: false);
+
+            bearerApp = await StartFacadeAsync(AuthEndpointsSignIn.IdentityBearer, new CapturingEmailSender());
+            using var bearerClient = new ApiClient(bearerApp);
+            Assert.Equal("Login", HandlerName(Find(bearerApp, "POST /identity/login")));
+            Assert.Null(Find(bearerApp, "POST /identity/login").Metadata.GetMetadata<SignInCompleterSelection>());
+            Assert.Null(Find(bearerApp, "POST /identity/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
+            Assert.Null(Find(bearerApp, "POST /identity/emailCode/verify").Metadata.GetMetadata<HonorSignInCompletionDefault>());
+            var bearerEmail = UniqueEmail("facade-bearer");
+            Assert.Equal(HttpStatusCode.OK, (await bearerClient.PostAsync("/identity/register", new { email = bearerEmail, password = TestHelpers.DefaultPassword })).StatusCode);
+            await AssertSession(
+                await bearerClient.PostAsync("/identity/login", new { email = bearerEmail, password = TestHelpers.DefaultPassword }),
+                SessionKind.IdentityBearer,
+                passkeyRegister: false);
+        }
+        finally
+        {
+            await DisposeFacadeAsync(cookieApp);
+            await DisposeFacadeAsync(bearerApp);
+        }
+    }
+
+    [Fact]
+    public void CompleterName_IsCheckedPerUserType()
+    {
+        OtherUserCompleter.Constructions = 0;
+        var missing = Assert.Throws<InvalidOperationException>(() => MapForMetadata(
+            services =>
+            {
+                services.AddPasswordEndpoints();
+                services.AddSignInCompleter<OtherSignInUser, OtherUserCompleter>("MySession");
+            },
+            app => app.MapPasswordEndpoints<TestAppUser>("MySession")));
+        Assert.Equal(
+            "No ISignInCompleter<TestAppUser> named 'MySession' is registered (AddSignInCompleter).",
+            missing.Message);
+        Assert.Equal(0, OtherUserCompleter.Constructions);
+
+        using var sameUser = MapForMetadata(services =>
+        {
+            services.AddPasswordEndpoints();
+            services.AddSignInCompleter<OtherSignInUser, OtherUserCompleter>("MySession");
+            services.AddSignInCompleter<TestAppUser, AlphaCompleter>("MySession");
+        }, app => app.MapPasswordEndpoints<TestAppUser>("MySession"));
+        Assert.Equal("MySession", Find(sameUser, "POST /login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Equal(0, OtherUserCompleter.Constructions);
+
+        using var openGeneric = MapForMetadata(
+            services => services.AddPasswordEndpoints(),
+            app => app.MapPasswordEndpoints<TestAppUser>(SignInCompleters.Cookie));
+        Assert.Equal(SignInCompleters.Cookie, Find(openGeneric, "POST /login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+
+        var wrongDefault = Assert.Throws<InvalidOperationException>(() => MapForMetadata(services =>
+        {
+            services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
+                .AddEntityFrameworkStores<TestDbContext>();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(_ => { });
+            services.AddSignInCompleter<OtherSignInUser, OtherUserCompleter>("MySession");
+            services.Configure<SignInCompletionOptions>(o => o.Default = "MySession");
+        }, app => app.MapEmailCodeEndpoints<TestAppUser>()));
+        Assert.Equal(
+            "No ISignInCompleter<TestAppUser> named 'MySession' is registered (AddSignInCompleter).",
+            wrongDefault.Message);
+        Assert.Equal(0, OtherUserCompleter.Constructions);
+    }
+
+    private static void AssertConfirmNameStillDefault(WebApplication app, string prefix, string confirmName)
+    {
+        Assert.Equal(confirmName, Find(app, "GET " + prefix + "/confirmEmail").Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName);
+        var login = Find(app, "POST " + prefix + "/passkeys/login");
+        Assert.Null(login.Metadata.GetMetadata<SignInCompleterSelection>());
+        Assert.NotNull(login.Metadata.GetMetadata<HonorSignInCompletionDefault>());
+        var register = Find(app, "POST " + prefix + "/passkeys/register");
+        Assert.Null(register.Metadata.GetMetadata<SignInCompleterSelection>());
+        Assert.NotNull(register.Metadata.GetMetadata<HonorSignInCompletionDefault>());
+    }
+
+    private static async Task<WebApplication> StartFacadeAsync(AuthEndpointsSignIn signIn, CapturingEmailSender mail)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ae-facade-{Guid.NewGuid():N}.sqlite");
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development,
+        });
+        builder.WebHost.UseTestServer();
+        builder.Services.AddDbContext<TestDbContext>(db => db.UseSqlite($"Data Source={path}"));
+        builder.Services.AddSingleton(new FacadeDatabase(path));
+        builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
+        builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(signIn, options =>
+        {
+            options.Passkeys.ServerDomain = "localhost";
+            options.RequireConfirmedAccount = false;
+            options.RequireEmailSenderInProduction = false;
+            options.ConfigureIdentity = identity =>
+            {
+                identity.SignIn.RequireConfirmedAccount = false;
+            };
+            options.EmailCode.Enabled = true;
+            options.Jwt.Enabled = true;
+            options.Jwt.Configure = jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            };
+        });
+        builder.Services.Configure<SignInCompletionOptions>(completion => completion.Default = SignInCompleters.Jwt);
+
+        var app = builder.Build();
+        using (var scope = app.Services.CreateScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync();
+        }
+
+        app.UseAuthEndpoints();
+        app.MapAuthEndpoints<TestAppUser>();
+        await app.StartAsync();
+        return app;
+    }
+
+    private sealed class FacadeDatabase(string path)
+    {
+        public string Path { get; } = path;
+    }
+
+    private static async Task DisposeFacadeAsync(WebApplication? app)
+    {
+        if (app is null)
+        {
+            return;
+        }
+
+        var path = app.Services.GetRequiredService<FacadeDatabase>().Path;
+        await app.DisposeAsync();
+        SqliteConnection.ClearAllPools();
+        foreach (var suffix in new[] { "", "-wal", "-shm" })
+        {
+            try
+            {
+                var file = path + suffix;
+                if (File.Exists(file))
+                {
+                    File.Delete(file);
+                }
+            }
+            catch (IOException)
+            {
+            }
+        }
+    }
+
+    private static string CodeFor(CapturingEmailSender mail, string email)
+    {
+        return mail.Snapshot().Last(item => item.Kind == "email-code" && item.Email == email).Body;
     }
 
     private static WebApplication MapForMetadata(Action<IServiceCollection> configure, Action<WebApplication> map)
@@ -672,6 +939,25 @@ internal sealed class AlphaCompleter : ISignInCompleter<TestAppUser>
     public Task<IResult> CompleteAsync(
         HttpContext httpContext,
         TestAppUser user,
+        SignInCompletionContext context,
+        CancellationToken cancellationToken = default)
+        => Task.FromResult<IResult>(TypedResults.Empty);
+}
+
+internal sealed class OtherSignInUser;
+
+internal sealed class OtherUserCompleter : ISignInCompleter<OtherSignInUser>
+{
+    public static int Constructions;
+
+    public OtherUserCompleter()
+    {
+        Interlocked.Increment(ref Constructions);
+    }
+
+    public Task<IResult> CompleteAsync(
+        HttpContext httpContext,
+        OtherSignInUser user,
         SignInCompletionContext context,
         CancellationToken cancellationToken = default)
         => Task.FromResult<IResult>(TypedResults.Empty);
