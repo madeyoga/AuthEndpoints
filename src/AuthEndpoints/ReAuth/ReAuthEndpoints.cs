@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +16,8 @@ public static class ReAuthEndpoints<TUser>
 {
     public static async Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> AuthMethods(
         ClaimsPrincipal principal,
-        UserManager<TUser> userManager)
+        UserManager<TUser> userManager,
+        IServiceProvider services)
     {
         var user = await userManager.GetUserAsync(principal);
         if (user is null)
@@ -26,14 +28,26 @@ public static class ReAuthEndpoints<TUser>
         var passkeys = await userManager.GetPasskeysAsync(user);
         var passkeyCount = passkeys.Count;
         var recoveryCodesLeft = await userManager.CountRecoveryCodesAsync(user);
+        var emailCode = false;
+        if (services.GetService<IEmailCodeStore>() is not null)
+        {
+            var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
+            emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options);
+        }
 
         return TypedResults.Ok(new AuthMethodsResponse(
             Password: await userManager.HasPasswordAsync(user),
             Authenticator: await userManager.GetTwoFactorEnabledAsync(user),
             RecoveryCodes: recoveryCodesLeft > 0,
             Passkeys: passkeyCount > 0,
-            PasskeyCount: passkeyCount));
+            PasskeyCount: passkeyCount,
+            EmailCode: emailCode));
     }
+
+    public static Task<Results<Ok<EmailCodeSendResponse>, UnauthorizedHttpResult, ProblemHttpResult>> SendEmailCode(
+        HttpContext context,
+        CancellationToken cancellationToken)
+        => EmailCodeReAuthEndpoints<TUser>.Send(context, cancellationToken);
 
     public static async Task<Results<ContentHttpResult, UnauthorizedHttpResult, NotFound>> PasskeyOptions(
         HttpContext context,
@@ -69,12 +83,13 @@ public static class ReAuthEndpoints<TUser>
             (string.IsNullOrEmpty(request.Password) ? 0 : 1)
             + (string.IsNullOrEmpty(request.TwoFactorCode) ? 0 : 1)
             + (string.IsNullOrEmpty(request.TwoFactorRecoveryCode) ? 0 : 1)
-            + (string.IsNullOrEmpty(request.CredentialJson) ? 0 : 1);
+            + (string.IsNullOrEmpty(request.CredentialJson) ? 0 : 1)
+            + (string.IsNullOrEmpty(request.EmailCode) ? 0 : 1);
 
         if (proofCount != 1)
         {
             return TypedResults.BadRequest(
-                "Provide exactly one of Password, TwoFactorCode, TwoFactorRecoveryCode, or CredentialJson.");
+                "Provide exactly one of Password, TwoFactorCode, TwoFactorRecoveryCode, CredentialJson, or EmailCode.");
         }
 
         var valid = false;
@@ -125,6 +140,21 @@ public static class ReAuthEndpoints<TUser>
         {
             var passwordResult = await signInManager.CheckPasswordSignInAsync(user, request.Password, lockoutOnFailure: true);
             valid = passwordResult.Succeeded;
+        }
+        else if (!string.IsNullOrEmpty(request.EmailCode))
+        {
+            var outcome = await EmailCodeReAuthEndpoints<TUser>.Verify(
+                context,
+                userManager,
+                user,
+                request.EmailCode,
+                context.RequestAborted);
+            if (outcome == EmailCodeReAuthVerifyStatus.Unavailable)
+            {
+                return EmailCodeReAuthEndpoints<TUser>.Unavailable();
+            }
+
+            valid = outcome == EmailCodeReAuthVerifyStatus.Valid;
         }
 
         if (!valid)

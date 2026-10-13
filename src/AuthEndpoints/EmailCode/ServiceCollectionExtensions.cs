@@ -41,6 +41,7 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>();
         services.AddLoginRateLimiting();
         AddEmailCodeSendRateLimiting(services);
+        services.AddConfirmIdentityEmailCodeRateLimiting();
 
         services.TryAddSingleton<IEmailCodeModelCheck, EmailCodeModelCheck<TContext>>();
         services.TryAddScoped<IEmailCodeStore>(sp => new EmailCodeStore<TContext>(

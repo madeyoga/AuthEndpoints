@@ -8,6 +8,8 @@ internal sealed class EmailCodeOptionsValidator : IValidateOptions<EmailCodeOpti
 {
     internal static readonly TimeSpan MinimumCodeLifetime = TimeSpan.FromMinutes(1);
     internal static readonly TimeSpan MaximumCodeLifetime = TimeSpan.FromMinutes(60);
+    internal static readonly TimeSpan MinimumReAuthCodeLifetime = TimeSpan.FromMinutes(1);
+    internal static readonly TimeSpan MaximumReAuthCodeLifetime = TimeSpan.FromMinutes(10);
     internal static readonly TimeSpan MaximumResendCooldown = TimeSpan.FromMinutes(10);
     internal const int MinimumCodeLength = 6;
     internal const int MaximumCodeLength = 10;
@@ -63,6 +65,24 @@ internal sealed class EmailCodeOptionsValidator : IValidateOptions<EmailCodeOpti
         {
             return ValidateOptionsResult.Fail(
                 "AuthEndpoints: EmailCode.SendsPerIpPerMinute must be at least 1.");
+        }
+
+        if (options.ReAuth is null)
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailCode.ReAuth is required.");
+        }
+
+        if (options.ReAuth.CodeLifetime < MinimumReAuthCodeLifetime || options.ReAuth.CodeLifetime > MaximumReAuthCodeLifetime)
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailCode.ReAuth.CodeLifetime must be from 1 minute through 10 minutes.");
+        }
+
+        if (!Enum.IsDefined(options.ReAuth.Availability))
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: EmailCode.ReAuth.Availability is not a defined value.");
         }
 
         if (!options.MagicLink.Enabled)

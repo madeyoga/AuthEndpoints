@@ -14,4 +14,5 @@ public class AuthEndpointsConstants
     public const string EmailCodeSendPolicy = Prefix + ".EmailCode.Send";
     public const string AccountAbusePolicy = Prefix + ".AccountAbuse";
     public const string ConfirmIdentityPolicy = Prefix + ".ConfirmIdentity";
+    public const string ConfirmIdentityEmailCodePolicy = Prefix + ".ConfirmIdentity.EmailCode";
 }

@@ -24,7 +24,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Tests;
 
-public class EmailCodeEndpointTests
+public partial class EmailCodeEndpointTests
 {
     [Fact]
     public async Task Send_SameStatusAndBody_ForKnownUnknownLockedCooldownRejectAndSenderFailure()
@@ -498,7 +498,11 @@ public class EmailCodeEndpointTests
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
                 var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
                 var user = await userManager.FindByEmailAsync(email);
-                var issued = await store.IssueAsync(email, user!.Id, await userManager.GetSecurityStampAsync(user));
+                var issued = await store.IssueAsync(
+                    email,
+                    user!.Id,
+                    await userManager.GetSecurityStampAsync(user),
+                    EmailCodeRowPurpose.SignIn);
                 Assert.False(issued.Suppressed);
                 code = issued.Code;
             }
@@ -542,7 +546,7 @@ public class EmailCodeEndpointTests
             using (var scope = off.App.Services.CreateScope())
             {
                 var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
-                var issued = await store.IssueAsync(email, null, null);
+                var issued = await store.IssueAsync(email, null, null, EmailCodeRowPurpose.SignIn);
                 Assert.False(issued.Suppressed);
                 code = issued.Code;
             }
@@ -1967,12 +1971,14 @@ public class EmailCodeEndpointTests
 
         public void Apply(HttpRequestMessage request, Uri baseAddress)
         {
-            var header = _cookies.GetCookieHeader(baseAddress);
+            var header = Header(baseAddress);
             if (!string.IsNullOrEmpty(header))
             {
                 request.Headers.TryAddWithoutValidation("Cookie", header);
             }
         }
+
+        public string Header(Uri baseAddress) => _cookies.GetCookieHeader(baseAddress);
     }
 
     private sealed class SelectiveEmailCodeSender : IEmailCodeSender<TestAppUser>
@@ -2087,6 +2093,7 @@ public class EmailCodeEndpointTests
             string email,
             string? userId,
             string? securityStamp,
+            EmailCodeRowPurpose purpose,
             bool rememberSignupEmail = false,
             CancellationToken cancellationToken = default)
         {
@@ -2094,7 +2101,11 @@ public class EmailCodeEndpointTests
             throw EmailCodeFailureExceptions.SqlDeadlock();
         }
 
-        public Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
+        public Task<EmailCodeEntry?> FindLiveByEmailAsync(
+            string email,
+            EmailCodeRowPurpose purpose,
+            string? userId = null,
+            CancellationToken cancellationToken = default)
             => Task.FromResult<EmailCodeEntry?>(null);
 
         public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
@@ -2117,10 +2128,16 @@ public class EmailCodeEndpointTests
         public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
             => Task.FromResult(false);
 
-        public Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default)
+        public Task<bool> IsWithinResendCooldownAsync(
+            string email,
+            EmailCodeRowPurpose purpose,
+            CancellationToken cancellationToken = default)
             => Task.FromResult(false);
 
-        public Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
+        public Task<bool> HasReachedSendCapAsync(
+            string email,
+            EmailCodeRowPurpose purpose,
+            CancellationToken cancellationToken = default)
             => Task.FromResult(false);
     }
 
@@ -2138,26 +2155,37 @@ public class EmailCodeEndpointTests
         private readonly EmailCodeStore<TestDbContext> _inner;
         private readonly CompareCounter _compares;
         private readonly Barrier _afterLoad;
+        private readonly EmailCodeRowPurpose? _gatePurpose;
 
-        public GatedEmailCodeStore(EmailCodeStore<TestDbContext> inner, CompareCounter compares, Barrier afterLoad)
+        public GatedEmailCodeStore(
+            EmailCodeStore<TestDbContext> inner,
+            CompareCounter compares,
+            Barrier afterLoad,
+            EmailCodeRowPurpose? gatePurpose = null)
         {
             _inner = inner;
             _compares = compares;
             _afterLoad = afterLoad;
+            _gatePurpose = gatePurpose;
         }
 
         public Task<EmailCodeIssueResult> IssueAsync(
             string email,
             string? userId,
             string? securityStamp,
+            EmailCodeRowPurpose purpose,
             bool rememberSignupEmail = false,
             CancellationToken cancellationToken = default)
-            => _inner.IssueAsync(email, userId, securityStamp, rememberSignupEmail, cancellationToken);
+            => _inner.IssueAsync(email, userId, securityStamp, purpose, rememberSignupEmail, cancellationToken);
 
-        public async Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
+        public async Task<EmailCodeEntry?> FindLiveByEmailAsync(
+            string email,
+            EmailCodeRowPurpose purpose,
+            string? userId = null,
+            CancellationToken cancellationToken = default)
         {
-            var row = await _inner.FindLiveByEmailAsync(email, cancellationToken);
-            if (row is not null)
+            var row = await _inner.FindLiveByEmailAsync(email, purpose, userId, cancellationToken);
+            if (row is not null && Gates(row))
             {
                 Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
@@ -2168,7 +2196,7 @@ public class EmailCodeEndpointTests
         public async Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
         {
             var row = await _inner.FindLiveByLinkTokenAsync(token, cancellationToken);
-            if (row is not null)
+            if (row is not null && Gates(row))
             {
                 Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
@@ -2176,9 +2204,15 @@ public class EmailCodeEndpointTests
             return row;
         }
 
+        private bool Gates(EmailCodeEntry row) => _gatePurpose is null || row.Purpose == _gatePurpose;
+
         public bool CodeMatches(EmailCodeEntry row, string submittedCode)
         {
-            _compares.Increment();
+            if (_gatePurpose is null || row.Purpose == _gatePurpose)
+            {
+                _compares.Increment();
+            }
+
             return _inner.CodeMatches(row, submittedCode);
         }
 
@@ -2197,11 +2231,17 @@ public class EmailCodeEndpointTests
         public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
             => _inner.TryUnconsumeAsync(row, cancellationToken);
 
-        public Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default)
-            => _inner.IsWithinResendCooldownAsync(email, cancellationToken);
+        public Task<bool> IsWithinResendCooldownAsync(
+            string email,
+            EmailCodeRowPurpose purpose,
+            CancellationToken cancellationToken = default)
+            => _inner.IsWithinResendCooldownAsync(email, purpose, cancellationToken);
 
-        public Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
-            => _inner.HasReachedSendCapAsync(email, cancellationToken);
+        public Task<bool> HasReachedSendCapAsync(
+            string email,
+            EmailCodeRowPurpose purpose,
+            CancellationToken cancellationToken = default)
+            => _inner.HasReachedSendCapAsync(email, purpose, cancellationToken);
     }
 
     private enum SignupCreateMode

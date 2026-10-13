@@ -24,11 +24,24 @@ public class EmailCodeStoreTests
         Assert.NotNull(entity);
         Assert.Equal("AuthEndpointsEmailCodes", entity.GetTableName());
         Assert.Equal("AuthEndpoints", entity.GetSchema());
+        var purpose = entity.FindProperty(nameof(EmailCodeEntity.Purpose));
+        Assert.NotNull(purpose);
+        Assert.Equal((int)EmailCodeRowPurpose.SignIn, Convert.ToInt32(purpose.GetDefaultValue()));
         var emailIndex = entity.GetIndexes().Single(i =>
+            i.Properties.Count == 3
+            && i.Properties[0].Name == nameof(EmailCodeEntity.EmailHash)
+            && i.Properties[1].Name == nameof(EmailCodeEntity.Purpose)
+            && i.Properties[2].Name == nameof(EmailCodeEntity.CreatedAt));
+        Assert.False(emailIndex.IsUnique);
+        Assert.Equal("IX_AuthEndpointsEmailCodes_EmailHash_Purpose_CreatedAt", emailIndex.GetDatabaseName());
+        Assert.DoesNotContain(entity.GetIndexes(), i =>
             i.Properties.Count == 2
             && i.Properties[0].Name == nameof(EmailCodeEntity.EmailHash)
             && i.Properties[1].Name == nameof(EmailCodeEntity.CreatedAt));
-        Assert.False(emailIndex.IsUnique);
+        var script = mapped.Database.GenerateCreateScript();
+        Assert.Contains("Purpose", script, StringComparison.Ordinal);
+        Assert.Contains("IX_AuthEndpointsEmailCodes_EmailHash_Purpose_CreatedAt", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("IX_AuthEndpointsEmailCodes_EmailHash_CreatedAt", script, StringComparison.Ordinal);
         var linkIndex = entity.GetIndexes().Single(i => i.IsUnique && i.Properties.Any(p => p.Name == nameof(EmailCodeEntity.LinkTokenHash)));
         Assert.Null(linkIndex.GetFilter());
 
@@ -63,7 +76,7 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         await using var context = db.Open();
         var store = NewStore(context);
-        EmailCodeIssueResult issued = await store.IssueAsync("A@X.com ", "user-1", "stamp-1");
+        EmailCodeIssueResult issued = await store.IssueAsync("A@X.com ", "user-1", "stamp-1", EmailCodeRowPurpose.SignIn);
 
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync();
         Assert.Equal(issued.Id, row.Id);
@@ -72,6 +85,7 @@ public class EmailCodeStoreTests
         Assert.NotEqual(issued.Code, row.CodeHash);
         Assert.Equal("user-1", row.UserId);
         Assert.Equal("stamp-1", row.SecurityStamp);
+        Assert.Equal(EmailCodeRowPurpose.SignIn, row.Purpose);
         Assert.Null(row.LinkTokenHash);
         Assert.Null(row.SignupEmail);
         Assert.Null(row.ConsumedAt);
@@ -79,12 +93,12 @@ public class EmailCodeStoreTests
         Assert.Equal(0, row.Attempts);
         Assert.Equal(6, issued.Code.Length);
 
-        EmailCodeEntity? live = await store.FindLiveByEmailAsync("a@x.com");
+        EmailCodeEntity? live = await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.SignIn);
         Assert.NotNull(live);
         Assert.Equal(issued.Id, live.Id);
         Assert.True(store.CodeMatches(live, issued.Code));
         Assert.False(store.CodeMatches(live, issued.Code == "000000" ? "000001" : "000000"));
-        Assert.Null(await store.FindLiveByEmailAsync("other@x.com"));
+        Assert.Null(await store.FindLiveByEmailAsync("other@x.com", EmailCodeRowPurpose.SignIn));
     }
 
     [Fact]
@@ -97,7 +111,7 @@ public class EmailCodeStoreTests
             MagicLink = new EmailCodeMagicLinkOptions { Enabled = true, LinkUri = "/auth/email-link" }
         };
         var store = NewStore(context, options);
-        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", null, null);
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", null, null, EmailCodeRowPurpose.SignIn);
 
         Assert.NotNull(issued.LinkToken);
         byte[] tokenBytes = Base64Url.DecodeFromChars(issued.LinkToken);
@@ -123,7 +137,7 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         await using var context = db.Open();
         var store = NewStore(context);
-        EmailCodeIssueResult issued = await store.IssueAsync(" A@X.com ", null, null, rememberSignupEmail: true);
+        EmailCodeIssueResult issued = await store.IssueAsync(" A@X.com ", null, null, EmailCodeRowPurpose.SignIn, rememberSignupEmail: true);
 
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync();
         Assert.Equal("A@X.com", row.SignupEmail);
@@ -138,8 +152,8 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         await using var context = db.Open();
         var store = NewStore(context);
-        EmailCodeIssueResult first = await store.IssueAsync("a@x.com", "user", "stamp");
-        EmailCodeIssueResult second = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult first = await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
+        EmailCodeIssueResult second = await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
 
         List<EmailCodeEntity> rows = await context.Set<EmailCodeEntity>().AsNoTracking().OrderBy(e => e.CreatedAt).ToListAsync();
         Assert.Equal(2, rows.Count);
@@ -147,7 +161,7 @@ public class EmailCodeStoreTests
         Assert.Null(rows[1].SupersededAt);
         Assert.Equal(second.Id, rows[1].Id);
 
-        EmailCodeEntity? live = await store.FindLiveByEmailAsync("a@x.com");
+        EmailCodeEntity? live = await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.SignIn);
         Assert.NotNull(live);
         Assert.Equal(second.Id, live.Id);
         Assert.True(store.CodeMatches(live, second.Code));
@@ -165,14 +179,14 @@ public class EmailCodeStoreTests
         string firstId;
         await using (var seed = db.Open())
         {
-            EmailCodeIssueResult first = await NewStore(seed).IssueAsync("a@x.com", "user", "stamp");
+            EmailCodeIssueResult first = await NewStore(seed).IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
             firstId = first.Id;
         }
 
         await using (var failing = db.Open(new ThrowOnSaveChangesInterceptor()))
         {
             var store = NewStore(failing);
-            Exception ex = await Assert.ThrowsAnyAsync<Exception>(() => store.IssueAsync("a@x.com", "user", "stamp"));
+            Exception ex = await Assert.ThrowsAnyAsync<Exception>(() => store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn));
             Assert.Contains("fail save", ex.ToString(), StringComparison.Ordinal);
         }
 
@@ -191,7 +205,7 @@ public class EmailCodeStoreTests
         await using var context = db.Open();
         var options = new EmailCodeOptions { MaxAttempts = 5 };
         var store = NewStore(context, options);
-        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
 
         for (var i = 0; i < 5; i++)
         {
@@ -205,7 +219,7 @@ public class EmailCodeStoreTests
         Assert.Equal(5, (await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == issued.Id)).Attempts);
         Assert.True(EmailCodeHasher.CodeMatches(issued.Id, issued.Code, exhausted.CodeHash));
         Assert.False(await store.TryConsumeAsync(exhausted));
-        Assert.Null(await store.FindLiveByEmailAsync("a@x.com"));
+        Assert.Null(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.SignIn));
         Assert.Null((await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == issued.Id)).ConsumedAt);
     }
 
@@ -216,7 +230,7 @@ public class EmailCodeStoreTests
         await using var context = db.Open();
         var clock = new MutableTimeProvider(Start);
         var store = NewStore(context, time: clock);
-        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
 
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
         Assert.True(await store.TryConsumeAsync(row));
@@ -224,14 +238,14 @@ public class EmailCodeStoreTests
 
         EmailCodeEntity again = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
         Assert.False(await store.TryConsumeAsync(again));
-        Assert.Null(await store.FindLiveByEmailAsync("a@x.com"));
+        Assert.Null(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.SignIn));
 
         clock.Advance(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
-        EmailCodeIssueResult later = await store.IssueAsync("b@x.com", "user", "stamp");
+        EmailCodeIssueResult later = await store.IssueAsync("b@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
         EmailCodeEntity expired = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == later.Id);
         clock.Advance(TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
         Assert.False(await store.TryConsumeAsync(expired));
-        Assert.Null(await store.FindLiveByEmailAsync("b@x.com"));
+        Assert.Null(await store.FindLiveByEmailAsync("b@x.com", EmailCodeRowPurpose.SignIn));
         Assert.Null((await context.Set<EmailCodeEntity>().AsNoTracking().SingleAsync(e => e.Id == later.Id)).ConsumedAt);
     }
 
@@ -242,7 +256,7 @@ public class EmailCodeStoreTests
         string id;
         await using (var seed = db.Open())
         {
-            EmailCodeIssueResult issued = await NewStore(seed).IssueAsync("a@x.com", "user", "stamp");
+            EmailCodeIssueResult issued = await NewStore(seed).IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
             id = issued.Id;
         }
 
@@ -290,25 +304,25 @@ public class EmailCodeStoreTests
         var clock = new MutableTimeProvider(Start);
         var store = NewStore(context, time: clock);
 
-        EmailCodeIssueResult stale = await store.IssueAsync("a@x.com", null, null);
-        EmailCodeIssueResult other = await store.IssueAsync("b@x.com", null, null);
+        EmailCodeIssueResult stale = await store.IssueAsync("a@x.com", null, null, EmailCodeRowPurpose.SignIn);
+        EmailCodeIssueResult other = await store.IssueAsync("b@x.com", null, null, EmailCodeRowPurpose.SignIn);
         clock.Advance(TimeSpan.FromHours(24) + TimeSpan.FromMinutes(10) + TimeSpan.FromSeconds(1));
-        EmailCodeIssueResult fresh = await store.IssueAsync("a@x.com", null, null);
+        EmailCodeIssueResult fresh = await store.IssueAsync("a@x.com", null, null, EmailCodeRowPurpose.SignIn);
 
         List<string> ids = await context.Set<EmailCodeEntity>().AsNoTracking().Select(e => e.Id).ToListAsync();
         Assert.DoesNotContain(stale.Id, ids);
         Assert.Contains(other.Id, ids);
         Assert.Contains(fresh.Id, ids);
 
-        EmailCodeIssueResult recent = await store.IssueAsync("c@x.com", null, null);
+        EmailCodeIssueResult recent = await store.IssueAsync("c@x.com", null, null, EmailCodeRowPurpose.SignIn);
         clock.Advance(TimeSpan.FromHours(23));
-        EmailCodeIssueResult resent = await store.IssueAsync("c@x.com", null, null);
+        EmailCodeIssueResult resent = await store.IssueAsync("c@x.com", null, null, EmailCodeRowPurpose.SignIn);
         ids = await context.Set<EmailCodeEntity>().AsNoTracking().Select(e => e.Id).ToListAsync();
         Assert.Contains(recent.Id, ids);
         Assert.Contains(resent.Id, ids);
         Assert.Contains(other.Id, ids);
 
-        EmailCodeIssueResult replaced = await store.IssueAsync("b@x.com", null, null);
+        EmailCodeIssueResult replaced = await store.IssueAsync("b@x.com", null, null, EmailCodeRowPurpose.SignIn);
         ids = await context.Set<EmailCodeEntity>().AsNoTracking().Select(e => e.Id).ToListAsync();
         Assert.DoesNotContain(other.Id, ids);
         Assert.Contains(replaced.Id, ids);
@@ -329,24 +343,24 @@ public class EmailCodeStoreTests
         };
         var store = NewStore(context, options, clock);
 
-        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com"));
-        Assert.False(await store.HasReachedSendCapAsync("a@x.com"));
+        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.SignIn));
 
-        await store.IssueAsync("a@x.com", null, null);
-        Assert.True(await store.IsWithinResendCooldownAsync("A@X.com "));
-        Assert.False(await store.IsWithinResendCooldownAsync("b@x.com"));
-        Assert.False(await store.HasReachedSendCapAsync("a@x.com"));
+        await store.IssueAsync("a@x.com", null, null, EmailCodeRowPurpose.SignIn);
+        Assert.True(await store.IsWithinResendCooldownAsync("A@X.com ", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.IsWithinResendCooldownAsync("b@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.SignIn));
 
         clock.Advance(TimeSpan.FromSeconds(60));
-        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com"));
+        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.SignIn));
 
-        await store.IssueAsync("a@x.com", null, null);
-        Assert.True(await store.HasReachedSendCapAsync("a@x.com"));
-        Assert.False(await store.HasReachedSendCapAsync("b@x.com"));
+        await store.IssueAsync("a@x.com", null, null, EmailCodeRowPurpose.SignIn);
+        Assert.True(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.HasReachedSendCapAsync("b@x.com", EmailCodeRowPurpose.SignIn));
 
         clock.Advance(TimeSpan.FromHours(1));
-        Assert.False(await store.HasReachedSendCapAsync("a@x.com"));
-        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com"));
+        Assert.False(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.SignIn));
     }
 
     [Fact]
@@ -356,11 +370,11 @@ public class EmailCodeStoreTests
         await using var context = db.Open();
         var normalizer = new MarkerNormalizer();
         var store = NewStore(context, normalizer: normalizer);
-        EmailCodeIssueResult issued = await store.IssueAsync("A@X.com ", null, null);
+        EmailCodeIssueResult issued = await store.IssueAsync("A@X.com ", null, null, EmailCodeRowPurpose.SignIn);
 
         Assert.Equal(EmailCodeHasher.HashEmail("mark:A@X.com"), issued.EmailHash);
-        Assert.NotNull(await store.FindLiveByEmailAsync("A@X.com "));
-        Assert.Null(await store.FindLiveByEmailAsync("other@x.com"));
+        Assert.NotNull(await store.FindLiveByEmailAsync("A@X.com ", EmailCodeRowPurpose.SignIn));
+        Assert.Null(await store.FindLiveByEmailAsync("other@x.com", EmailCodeRowPurpose.SignIn));
     }
 
     [Fact]
@@ -369,7 +383,7 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         await using var context = db.Open();
         var store = NewStore(context, new EmailCodeOptions { MaxAttempts = 1, ResendCooldown = TimeSpan.Zero });
-        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
 
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
         Assert.True(await store.TryReserveAttemptAsync(row));
@@ -386,7 +400,7 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         await using var context = db.Open();
         var store = NewStore(context);
-        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
         EmailCodeEntity row = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == issued.Id);
         Assert.True(await store.TryConsumeAsync(row));
         Assert.NotNull(row.ConsumedAt);
@@ -412,7 +426,7 @@ public class EmailCodeStoreTests
         {
             await using var context = db.Open();
             var store = NewStore(context, options, clock);
-            return await store.IssueAsync("a@x.com", "user", "stamp");
+            return await store.IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
         }
 
         EmailCodeIssueResult[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Issue()));
@@ -431,7 +445,7 @@ public class EmailCodeStoreTests
             sqlite.ExecutionStrategy(dependencies => new RetryingExecutionStrategy(dependencies)));
         Assert.True(context.Database.CreateExecutionStrategy().RetriesOnFailure);
 
-        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
         Assert.False(issued.Suppressed);
         Assert.Equal(6, issued.Code.Length);
         Assert.Equal(1, await context.Set<EmailCodeEntity>().CountAsync());
@@ -453,7 +467,7 @@ public class EmailCodeStoreTests
 
         var interceptor = new FailSavesInterceptor(times: 1, Conflict(kind));
         await using var context = db.Open(interceptor);
-        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
         Assert.False(issued.Suppressed);
         Assert.Equal(2, interceptor.Attempts);
         Assert.Equal(1, await context.Set<EmailCodeEntity>().CountAsync());
@@ -467,7 +481,7 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         var interceptor = new FailSavesInterceptor(times: 1, Conflict(kind));
         await using var context = db.Open(interceptor);
-        await Assert.ThrowsAnyAsync<Exception>(() => NewStore(context).IssueAsync("a@x.com", "user", "stamp"));
+        await Assert.ThrowsAnyAsync<Exception>(() => NewStore(context).IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn));
         Assert.Equal(1, interceptor.Attempts);
     }
 
@@ -505,11 +519,93 @@ public class EmailCodeStoreTests
         using var db = new SqliteDatabase();
         var interceptor = new FailSavesInterceptor(times: 5, EmailCodeFailureExceptions.SqlDeadlock());
         await using var context = db.Open(interceptor);
-        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp");
+        EmailCodeIssueResult issued = await NewStore(context).IssueAsync("a@x.com", "user", "stamp", EmailCodeRowPurpose.SignIn);
         Assert.True(issued.Suppressed);
         Assert.Equal("conflict", issued.SuppressedReason);
         Assert.Equal(2, interceptor.Attempts);
         Assert.Equal(0, await context.Set<EmailCodeEntity>().CountAsync());
+    }
+
+    [Fact]
+    public async Task ReAuth_UsesFiveMinuteLifetime_AndStoresNoLinkOrSignupEmail()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var clock = new MutableTimeProvider(Start);
+        var options = new EmailCodeOptions
+        {
+            ResendCooldown = TimeSpan.Zero,
+            MagicLink = { Enabled = true }
+        };
+        var store = NewStore(context, options, clock);
+
+        EmailCodeIssueResult reauth = await store.IssueAsync("a@x.com", "user-a", "stamp-a", EmailCodeRowPurpose.ReAuth, rememberSignupEmail: true);
+        EmailCodeIssueResult signIn = await store.IssueAsync("a@x.com", "user-a", "stamp-a", EmailCodeRowPurpose.SignIn);
+
+        Assert.Null(reauth.LinkToken);
+        Assert.NotNull(signIn.LinkToken);
+        EmailCodeEntity reauthRow = await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == reauth.Id);
+        Assert.Equal(EmailCodeRowPurpose.ReAuth, reauthRow.Purpose);
+        Assert.Equal("user-a", reauthRow.UserId);
+        Assert.Equal("stamp-a", reauthRow.SecurityStamp);
+        Assert.Null(reauthRow.LinkTokenHash);
+        Assert.Null(reauthRow.SignupEmail);
+        Assert.Equal(Start.UtcDateTime.AddMinutes(5), reauthRow.ExpiresAt);
+        Assert.Equal(Start.UtcDateTime.AddMinutes(10), (await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == signIn.Id)).ExpiresAt);
+        reauthRow.LinkTokenHash = EmailCodeHasher.HashLinkToken("reauth-token");
+        await context.SaveChangesAsync();
+        Assert.Null(await store.FindLiveByLinkTokenAsync("reauth-token"));
+        Assert.NotNull(await store.FindLiveByLinkTokenAsync(signIn.LinkToken!));
+
+        clock.Advance(TimeSpan.FromMinutes(5) + TimeSpan.FromSeconds(1));
+        Assert.Null(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.ReAuth, "user-a"));
+        Assert.NotNull(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+    }
+
+    [Fact]
+    public async Task Purpose_IsolatesCooldownCapSupersedeRetentionAndUser()
+    {
+        using var db = new SqliteDatabase();
+        await using var context = db.Open();
+        var clock = new MutableTimeProvider(Start);
+        var options = new EmailCodeOptions
+        {
+            ResendCooldown = TimeSpan.FromSeconds(60),
+            MaxSendsPerEmail = 1
+        };
+        var store = NewStore(context, options, clock);
+
+        EmailCodeIssueResult signIn = await store.IssueAsync("a@x.com", "user-a", "stamp", EmailCodeRowPurpose.SignIn);
+        Assert.True(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.ReAuth));
+        Assert.True(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.ReAuth));
+
+        EmailCodeIssueResult reauth = await store.IssueAsync("a@x.com", "user-a", "stamp", EmailCodeRowPurpose.ReAuth);
+        Assert.False(reauth.Suppressed);
+        Assert.Null((await context.Set<EmailCodeEntity>().SingleAsync(e => e.Id == signIn.Id)).SupersededAt);
+
+        EmailCodeIssueResult blockedSignIn = await store.IssueAsync("a@x.com", "user-a", "stamp", EmailCodeRowPurpose.SignIn);
+        EmailCodeIssueResult blockedReAuth = await store.IssueAsync("a@x.com", "user-a", "stamp", EmailCodeRowPurpose.ReAuth);
+        Assert.True(blockedSignIn.Suppressed);
+        Assert.True(blockedReAuth.Suppressed);
+        Assert.Equal("cooldown", blockedReAuth.SuppressedReason);
+
+        clock.Advance(TimeSpan.FromSeconds(61));
+        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.False(await store.IsWithinResendCooldownAsync("a@x.com", EmailCodeRowPurpose.ReAuth));
+        Assert.True(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+        Assert.True(await store.HasReachedSendCapAsync("a@x.com", EmailCodeRowPurpose.ReAuth));
+
+        Assert.NotNull(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.ReAuth, "user-a"));
+        Assert.Null(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.ReAuth, "user-b"));
+        Assert.NotNull(await store.FindLiveByEmailAsync("a@x.com", EmailCodeRowPurpose.SignIn));
+
+        clock.Advance(TimeSpan.FromHours(25));
+        EmailCodeIssueResult later = await store.IssueAsync("a@x.com", "user-a", "stamp", EmailCodeRowPurpose.ReAuth);
+        Assert.False(later.Suppressed);
+        Assert.NotNull(await context.Set<EmailCodeEntity>().SingleOrDefaultAsync(e => e.Id == signIn.Id));
+        Assert.Null(await context.Set<EmailCodeEntity>().SingleOrDefaultAsync(e => e.Id == reauth.Id));
     }
 
     private static EmailCodeStore<MappedEmailCodeDbContext> NewStore(

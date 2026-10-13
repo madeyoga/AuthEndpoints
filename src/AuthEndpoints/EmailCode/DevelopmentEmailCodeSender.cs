@@ -18,6 +18,12 @@ public sealed class DevelopmentEmailCodeSender<TUser> : IEmailCodeSender<TUser>
     public Task SendSignInCodeAsync(EmailCodeMessage<TUser> message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
+        if (message.Purpose == EmailCodePurpose.ReAuth)
+        {
+            _logger.LogWarning("DEV ONLY email reauthentication code {Code}.", message.Code);
+            return Task.CompletedTask;
+        }
+
         _logger.LogWarning("DEV ONLY email sign-in code {Code}.", message.Code);
         return Task.CompletedTask;
     }

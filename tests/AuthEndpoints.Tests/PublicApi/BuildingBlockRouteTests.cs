@@ -1,4 +1,6 @@
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
+using AuthEndpoints.ReAuth;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Authentication;
@@ -187,6 +189,50 @@ public class BuildingBlockRouteTests
 
         Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
         Assert.Equal(1, routes.Count(route => route == "POST /identity/confirmIdentity/passkeyOptions"));
+    }
+
+    [Fact]
+    public void MapAccountManagementEndpoints_WithEmailCode_MapsReAuthSend()
+    {
+        using var app = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+        });
+
+        var send = Find(app, "POST /identity/confirmIdentity/emailCode/send");
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            send.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
+        Assert.NotNull(send.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
+    }
+
+    [Fact]
+    public void MapReAuthEndpoints_MapsEmailCodeSendOnlyWhenTheStoreIsRegistered()
+    {
+        var without = MapIdentity(services => services.AddAccountManagementEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: false);
+        });
+        Assert.DoesNotContain("POST /identity/confirmIdentity/emailCode/send", without);
+
+        using var app = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: true);
+        });
+
+        var send = Find(app, "POST /identity/confirmIdentity/emailCode/send");
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            send.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
+        Assert.NotNull(send.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
     }
 
     [Fact]

@@ -9,6 +9,7 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps reauthentication endpoints onto the current route group
     /// (<c>/confirmIdentity</c>, <c>/confirmIdentity/passkeyOptions</c>, <c>/manage/authMethods</c>).
+    /// <c>POST /confirmIdentity/emailCode/send</c> is included when <c>AddEmailCodeEndpoints</c> was called.
     /// </summary>
     public static IEndpointConventionBuilder MapReAuthEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -19,6 +20,7 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
 
         var group = endpoints.MapGroup("");
         IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
+        IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
         IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
         IdentityEndpointRoutes.MapAuthMethods<TUser>(group, nameof(MapReAuthEndpoints));
         return group;

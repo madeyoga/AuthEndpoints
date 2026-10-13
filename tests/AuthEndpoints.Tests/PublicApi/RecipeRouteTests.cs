@@ -45,6 +45,7 @@ public class RecipeRouteTests
                 "GET /identity/manage/authMethods",
                 "GET /identity/manage/info",
                 "POST /identity/confirmIdentity",
+                "POST /identity/confirmIdentity/emailCode/send",
                 "POST /identity/emailCode/send",
                 "POST /identity/emailCode/verify",
                 "POST /identity/logout",

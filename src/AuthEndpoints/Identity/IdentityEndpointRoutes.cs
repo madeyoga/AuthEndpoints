@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.SignIn;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
@@ -122,7 +124,7 @@ internal static class IdentityEndpointRoutes
         var confirm = endpoints.MapPost("/confirmIdentity", ReAuthEndpoints<TUser>.ConfirmIdentity)
             .WithSummary("Confirm the user's identity and issue short-lived reauthentication credentials.")
             .WithDescription("""
-                Provide exactly one proof: Password, TwoFactorCode, TwoFactorRecoveryCode, or CredentialJson (passkey assertion).
+                Provide exactly one proof: Password, TwoFactorCode, TwoFactorRecoveryCode, CredentialJson (passkey assertion), or EmailCode.
                 On success, returns reauthToken for the X-AuthEndpoints-Reauth header.
                 Cookie sign-ins also receive a temporary AuthEndpoints.ReAuth cookie.
                 A caller authenticated with Authorization: Bearer receives the token only.
@@ -137,6 +139,31 @@ internal static class IdentityEndpointRoutes
         }
 
         confirm.Track(endpoints, mapMethod);
+    }
+
+    public static void MapEmailCodeReAuthSend<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
+        where TUser : class, new()
+    {
+        if (endpoints.ServiceProvider.GetService<IEmailCodeModelCheck>() is null)
+        {
+            return;
+        }
+
+        var send = endpoints.MapPost("/confirmIdentity/emailCode/send", ReAuthEndpoints<TUser>.SendEmailCode)
+            .WithSummary("Send an email code that confirms the signed-in user's identity.")
+            .WithDescription("""
+                No body. Sends a code to the signed-in user's current confirmed email when email-code step-up is available.
+                Returns expiresInSeconds and resendAfterSeconds. Does not sign the user in.
+                """)
+            .RequireAuthEndpointsUser()
+            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy);
+
+        if (requireAntiforgery)
+        {
+            send.RequireAntiforgery();
+        }
+
+        send.Track(endpoints, mapMethod);
     }
 
     public static void MapPasskeyOptions<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)

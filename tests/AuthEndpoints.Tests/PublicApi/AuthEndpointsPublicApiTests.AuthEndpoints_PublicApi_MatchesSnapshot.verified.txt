@@ -166,6 +166,7 @@ namespace AuthEndpoints.EmailCode
         public System.DateTime ExpiresAt { get; set; }
         public string Id { get; set; }
         public string? LinkTokenHash { get; set; }
+        public AuthEndpoints.EmailCode.EmailCodeRowPurpose Purpose { get; set; }
         public string? SecurityStamp { get; set; }
         public string? SignupEmail { get; set; }
         public System.DateTime? SupersededAt { get; set; }
@@ -211,6 +212,7 @@ namespace AuthEndpoints.EmailCode
         public AuthEndpoints.EmailCode.EmailCodeMagicLinkOptions MagicLink { get; set; }
         public int MaxAttempts { get; set; }
         public int MaxSendsPerEmail { get; set; }
+        public AuthEndpoints.EmailCode.EmailCodeReAuthOptions ReAuth { get; set; }
         public bool RequireSenderOutsideDevelopment { get; set; }
         public bool RequireTwoFactor { get; set; }
         public System.TimeSpan ResendCooldown { get; set; }
@@ -222,6 +224,24 @@ namespace AuthEndpoints.EmailCode
     {
         SignIn = 0,
         SignUp = 1,
+        ReAuth = 2,
+    }
+    public enum EmailCodeReAuthAvailability
+    {
+        WhenNoOtherProof = 0,
+        Always = 1,
+    }
+    public sealed class EmailCodeReAuthOptions
+    {
+        public EmailCodeReAuthOptions() { }
+        public AuthEndpoints.EmailCode.EmailCodeReAuthAvailability Availability { get; set; }
+        public System.TimeSpan CodeLifetime { get; set; }
+        public bool Enabled { get; set; }
+    }
+    public enum EmailCodeRowPurpose
+    {
+        SignIn = 0,
+        ReAuth = 1,
     }
     public sealed class EmailCodeSendRequest
     {
@@ -331,6 +351,7 @@ namespace AuthEndpoints.Identity
     public class AuthEndpointsConstants
     {
         public const string AccountAbusePolicy = "AuthEndpoints.AccountAbuse";
+        public const string ConfirmIdentityEmailCodePolicy = "AuthEndpoints.ConfirmIdentity.EmailCode";
         public const string ConfirmIdentityPolicy = "AuthEndpoints.ConfirmIdentity";
         public const string EmailCodeSendPolicy = "AuthEndpoints.EmailCode.Send";
         public const string LoginPolicy = "AuthEndpoints.Login";
@@ -416,6 +437,7 @@ namespace AuthEndpoints.Identity
     {
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddAccountAbuseRateLimiting(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddBearerAuthEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddConfirmIdentityEmailCodeRateLimiting(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddConfirmIdentityRateLimiting(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddCookieAuthEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddIdentityEndpointRateLimiting(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
@@ -772,8 +794,9 @@ namespace AuthEndpoints.ReAuth
 {
     public sealed record AuthMethodsResponse : System.IEquatable<AuthEndpoints.ReAuth.AuthMethodsResponse>
     {
-        public AuthMethodsResponse(bool Password, bool Authenticator, bool RecoveryCodes, bool Passkeys, int PasskeyCount) { }
+        public AuthMethodsResponse(bool Password, bool Authenticator, bool RecoveryCodes, bool Passkeys, int PasskeyCount, bool EmailCode) { }
         public bool Authenticator { get; init; }
+        public bool EmailCode { get; init; }
         public int PasskeyCount { get; init; }
         public bool Passkeys { get; init; }
         public bool Password { get; init; }
@@ -783,6 +806,7 @@ namespace AuthEndpoints.ReAuth
     {
         public ConfirmIdentityRequest() { }
         public string? CredentialJson { get; init; }
+        public string? EmailCode { get; init; }
         public string? Password { get; init; }
         public string? TwoFactorCode { get; init; }
         public string? TwoFactorRecoveryCode { get; init; }
@@ -800,9 +824,10 @@ namespace AuthEndpoints.ReAuth
     public static class ReAuthEndpoints<TUser>
         where TUser :  class, new ()
     {
-        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.AuthMethodsResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>> AuthMethods(System.Security.Claims.ClaimsPrincipal principal, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.AuthMethodsResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult>> AuthMethods(System.Security.Claims.ClaimsPrincipal principal, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.IServiceProvider services) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.ReAuth.ConfirmIdentityResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.BadRequest<string>, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> ConfirmIdentity([Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.ReAuth.ConfirmIdentityRequest request, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Http.HttpContext context) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.ContentHttpResult, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.NotFound>> PasskeyOptions(Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<AuthEndpoints.EmailCode.EmailCodeSendResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult>> SendEmailCode(Microsoft.AspNetCore.Http.HttpContext context, System.Threading.CancellationToken cancellationToken) { }
     }
     public static class ServiceCollectionExtensions
     {
