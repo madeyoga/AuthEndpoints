@@ -11,7 +11,11 @@ public class EmailCodeConfiguration : IEntityTypeConfiguration<EmailCodeEntry>
         builder.HasKey(e => e.Id);
         builder.Property(e => e.EmailHash).IsRequired();
         builder.Property(e => e.CodeHash).IsRequired();
-        builder.HasIndex(e => new { e.EmailHash, e.CreatedAt });
+        builder.Property(e => e.Purpose)
+            .HasDefaultValue(EmailCodeRowPurpose.SignIn)
+            .HasSentinel((EmailCodeRowPurpose)(-1));
+        builder.HasIndex(e => new { e.EmailHash, e.Purpose, e.CreatedAt })
+            .HasDatabaseName("IX_AuthEndpointsEmailCodes_EmailHash_Purpose_CreatedAt");
         builder.HasIndex(e => e.LinkTokenHash).IsUnique();
     }
 }

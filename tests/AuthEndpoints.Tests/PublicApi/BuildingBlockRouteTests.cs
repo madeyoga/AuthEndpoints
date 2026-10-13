@@ -1,12 +1,19 @@
+using System.Net;
+using System.Net.Http;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
+using AuthEndpoints.ReAuth;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -187,6 +194,94 @@ public class BuildingBlockRouteTests
 
         Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
         Assert.Equal(1, routes.Count(route => route == "POST /identity/confirmIdentity/passkeyOptions"));
+    }
+
+    [Fact]
+    public async Task AddAccountManagementEndpoints_DoesNotRegisterEmailCodeConfirmPolicy()
+    {
+        await using var management = RouteSurface.Build(
+            builder => builder.Services.AddAccountManagementEndpoints(),
+            app =>
+            {
+                app.UseRateLimiter();
+                app.MapPost("/probe", () => Results.Ok())
+                    .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy);
+            });
+        await management.StartAsync();
+        using (var client = management.GetTestClient())
+        {
+            var missing = await client.PostAsync("/probe", new StringContent(string.Empty));
+            var body = await missing.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.InternalServerError, missing.StatusCode);
+            Assert.Contains(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy, body, StringComparison.Ordinal);
+        }
+
+        await using var emailCode = RouteSurface.Build(
+            builder =>
+            {
+                builder.Services
+                    .AddIdentityApiEndpoints<TestAppUser>(options =>
+                    {
+                        options.SignIn.RequireConfirmedAccount = true;
+                        options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+                    })
+                    .AddEntityFrameworkStores<TestDbContext>()
+                    .AddDefaultTokenProviders();
+                builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+            },
+            app =>
+            {
+                app.UseRateLimiter();
+                app.MapPost("/probe", () => Results.Ok())
+                    .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy);
+            });
+        await emailCode.StartAsync();
+        using var allowed = emailCode.GetTestClient();
+        Assert.Equal(HttpStatusCode.OK, (await allowed.PostAsync("/probe", new StringContent(string.Empty))).StatusCode);
+    }
+
+    [Fact]
+    public void MapAccountManagementEndpoints_WithEmailCode_MapsReAuthSend()
+    {
+        using var app = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+        });
+
+        var send = Find(app, "POST /identity/confirmIdentity/emailCode/send");
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            send.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
+        Assert.NotNull(send.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
+    }
+
+    [Fact]
+    public void MapReAuthEndpoints_MapsEmailCodeSendOnlyWhenTheStoreIsRegistered()
+    {
+        var without = MapIdentity(services => services.AddAccountManagementEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: false);
+        });
+        Assert.DoesNotContain("POST /identity/confirmIdentity/emailCode/send", without);
+
+        using var app = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: true);
+        });
+
+        var send = Find(app, "POST /identity/confirmIdentity/emailCode/send");
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            send.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
+        Assert.NotNull(send.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
     }
 
     [Fact]

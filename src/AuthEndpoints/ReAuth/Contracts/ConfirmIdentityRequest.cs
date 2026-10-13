@@ -6,4 +6,5 @@ public sealed class ConfirmIdentityRequest
     public string? TwoFactorCode { get; init; }
     public string? TwoFactorRecoveryCode { get; init; }
     public string? CredentialJson { get; init; }
+    public string? EmailCode { get; init; }
 }

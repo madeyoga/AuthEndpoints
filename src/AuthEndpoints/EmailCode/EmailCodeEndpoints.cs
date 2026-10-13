@@ -39,7 +39,7 @@ public static class EmailCodeEndpoints<TUser>
         }
 
         var hashPrefix = HashPrefix(userManager, email);
-        if (await store.HasReachedSendCapAsync(email, cancellationToken))
+        if (await store.HasReachedSendCapAsync(email, EmailCodeRowPurpose.SignIn, cancellationToken))
         {
             EmailCodeLog.SendSuppressed(logger, null, hashPrefix, "cap");
             return TypedResults.Ok(response);
@@ -77,6 +77,7 @@ public static class EmailCodeEndpoints<TUser>
                 email,
                 eligible ? userId : null,
                 eligible ? stamp : null,
+                EmailCodeRowPurpose.SignIn,
                 rememberSignupEmail,
                 cancellationToken);
         }
@@ -88,6 +89,7 @@ public static class EmailCodeEndpoints<TUser>
                     email,
                     eligible ? userId : null,
                     eligible ? stamp : null,
+                    EmailCodeRowPurpose.SignIn,
                     rememberSignupEmail,
                     cancellationToken);
             }
@@ -157,7 +159,10 @@ public static class EmailCodeEndpoints<TUser>
 
         var row = proof.IsToken
             ? await store.FindLiveByLinkTokenAsync(proof.Token, cancellationToken)
-            : await store.FindLiveByEmailAsync(proof.Email, cancellationToken);
+            : await store.FindLiveByEmailAsync(
+                proof.Email,
+                EmailCodeRowPurpose.SignIn,
+                cancellationToken: cancellationToken);
         if (row is null)
         {
             EmailCodeLog.VerifyFailed(logger, null, ProofHashPrefix(userManager, proof), EmailCodeVerifyFailure.NotFound);

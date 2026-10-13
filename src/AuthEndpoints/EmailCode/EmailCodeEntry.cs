@@ -1,10 +1,18 @@
 ﻿namespace AuthEndpoints.EmailCode;
 
+public enum EmailCodeRowPurpose
+{
+    SignIn = 0,
+    ReAuth = 1
+}
+
 public class EmailCodeEntry
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
     public required string EmailHash { get; set; }
+
+    public EmailCodeRowPurpose Purpose { get; set; } = EmailCodeRowPurpose.SignIn;
 
     public string? UserId { get; set; }
 
