@@ -20,7 +20,6 @@ public class DocumentationContractTests
         "JWT `POST /create` runs the shared password pipeline",
         "Password `/login` no longer calls `SignInManager.PasswordSignInAsync` / `TwoFactorAuthenticatorSignInAsync` / `TwoFactorRecoveryCodeSignInAsync`",
         "JWT refresh rotation and body transport",
-        "Enumeration-safe responses",
         "External OAuth types live in AuthEndpoints.dll",
         "External.OAuth below 4.0.0 fails the build (AE4000)",
         "OAuthTicketChain is public",
@@ -30,6 +29,9 @@ public class DocumentationContractTests
         "A missing Add* throws at map time",
         "Account-abuse and confirm-identity rate limits are public",
     ];
+
+    private const string RegisterTakenEmail =
+        "There is no migration for `DuplicateUserName` or `DuplicateEmail`.";
 
     private static readonly Dictionary<string, (string File, string Prefix)> Snapshots = new(StringComparer.Ordinal)
     {
@@ -109,6 +111,21 @@ public class DocumentationContractTests
             guide,
             StringComparison.Ordinal);
         Assert.Contains("Cookie-mode refresh detects reuse", guide, StringComparison.Ordinal);
+        Assert.Contains("A taken email on `POST /register` is not one of them.", guide, StringComparison.Ordinal);
+        Assert.Contains(RegisterTakenEmail, guide, StringComparison.Ordinal);
+        Assert.DoesNotContain("Stop matching `DuplicateUserName`", guide, StringComparison.Ordinal);
+        Assert.Contains(RegisterTakenEmail, File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "Documentation",
+            "content",
+            "versions",
+            "v4.0.0.md")), StringComparison.Ordinal);
+        Assert.Contains("date: 2026-10-14", File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "Documentation",
+            "content",
+            "versions",
+            "v4.0.0.md")), StringComparison.Ordinal);
         Assert.DoesNotMatch(PlanId, guide);
 
         var docs = Path.Combine(FindRepoRoot(), "Documentation", "content");
@@ -130,6 +147,15 @@ public class DocumentationContractTests
                 : guide[start..];
             Assert.Contains("Migration.", section, StringComparison.Ordinal);
         }
+
+        var enumeration = Regex.Match(guide, "^## Enumeration-safe responses$", RegexOptions.Multiline);
+        Assert.True(enumeration.Success);
+        var enumerationNext = Regex.Match(guide[(enumeration.Index + enumeration.Length)..], @"^## ", RegexOptions.Multiline);
+        var enumerationSection = enumerationNext.Success
+            ? guide.Substring(enumeration.Index, enumeration.Length + enumerationNext.Index)
+            : guide[enumeration.Index..];
+        Assert.Contains("No breaking change.", enumerationSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("Migration.", enumerationSection, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -151,30 +177,86 @@ public class DocumentationContractTests
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
         var usings = CSharpSyntaxTree.ParseText(WebSdkGlobalUsings, parseOptions);
 
+        var guide = Path.Combine(docs, "content", "2.guides", "14.upgrading-to-4.md");
+        var guideSamples = ExtractFences(guide, "cs").ToList();
+        Assert.Equal(3, guideSamples.Count);
+
         var failures = new List<string>();
         for (var index = 0; index < recipes.Count; index++)
         {
             var (path, source) = recipes[index];
-            var tree = CSharpSyntaxTree.ParseText(source, parseOptions, path);
-            var compilation = CSharpCompilation.Create(
-                $"recipe{index}",
-                [usings, tree],
-                references,
-                new CSharpCompilationOptions(
-                    OutputKind.ConsoleApplication,
-                    nullableContextOptions: NullableContextOptions.Enable));
+            CollectCompileErrors(failures, path, index, source, usings, parseOptions, references);
+        }
 
-            var errors = compilation.GetDiagnostics()
-                .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
-                .Select(diagnostic => diagnostic.ToString())
-                .ToList();
-            if (errors.Count > 0)
-            {
-                failures.Add($"{path} recipe {index + 1}:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
-            }
+        for (var index = 0; index < guideSamples.Count; index++)
+        {
+            CollectCompileErrors(
+                failures,
+                guide,
+                index,
+                WrapGuideSample(guideSamples[index]),
+                usings,
+                parseOptions,
+                references);
         }
 
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine + Environment.NewLine, failures));
+    }
+
+    private static void CollectCompileErrors(
+        List<string> failures,
+        string path,
+        int index,
+        string source,
+        SyntaxTree usings,
+        CSharpParseOptions parseOptions,
+        IEnumerable<MetadataReference> references)
+    {
+        var tree = CSharpSyntaxTree.ParseText(source, parseOptions, path);
+        var compilation = CSharpCompilation.Create(
+            $"sample{index}",
+            [usings, tree],
+            references,
+            new CSharpCompilationOptions(
+                OutputKind.ConsoleApplication,
+                nullableContextOptions: NullableContextOptions.Enable));
+
+        var errors = compilation.GetDiagnostics()
+            .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+            .Select(diagnostic => diagnostic.ToString())
+            .ToList();
+        if (errors.Count > 0)
+        {
+            failures.Add($"{path} sample {index + 1}:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+        }
+    }
+
+    private static string WrapGuideSample(string snippet)
+    {
+        var usesBuilder = snippet.Contains("builder.", StringComparison.Ordinal);
+        var usesApp = snippet.Contains("app.", StringComparison.Ordinal);
+        Assert.False(usesBuilder && usesApp, "A guide sample uses both builder and app.");
+
+        var services = usesBuilder ? snippet : string.Empty;
+        var maps = usesApp ? snippet : string.Empty;
+        return $$"""
+            using AuthEndpoints;
+            using AuthEndpoints.External.OAuth;
+            using AuthEndpoints.Jwt;
+            using Microsoft.AspNetCore.Identity;
+            using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+            using Microsoft.EntityFrameworkCore;
+
+            var builder = WebApplication.CreateBuilder(args);
+            var key = "0123456789abcdef0123456789abcdef";
+            {{services}}
+            var app = builder.Build();
+            {{maps}}
+
+            public class AppUser : IdentityUser { }
+
+            public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser>(options) { }
+            """;
     }
 
     private static List<CompositionRow> ParseCompositionRows(string markdown)
@@ -258,9 +340,16 @@ public class DocumentationContractTests
 
     private static List<(string Path, string Source)> ExtractRecipes(string path)
     {
+        return ExtractFences(path, "cs recipe")
+            .Select(source => (path, source))
+            .ToList();
+    }
+
+    private static List<string> ExtractFences(string path, string info)
+    {
         var text = File.ReadAllText(path);
-        return Regex.Matches(text, @"```cs recipe\r?\n(.*?)```", RegexOptions.Singleline)
-            .Select(match => (path, match.Groups[1].Value))
+        return Regex.Matches(text, $@"```{Regex.Escape(info)}\r?\n(.*?)```", RegexOptions.Singleline)
+            .Select(match => match.Groups[1].Value)
             .ToList();
     }
 
