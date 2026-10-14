@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.OAuth.GitHub\AuthEndpoints.OAuth.GitHub.csproj" />
   </ItemGroup>
 
   <ItemGroup>

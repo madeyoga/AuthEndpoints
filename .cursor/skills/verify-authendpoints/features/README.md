@@ -54,3 +54,4 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Set a password](./set-password.md) covers `POST /identity/manage/password` for an account that has none.
 - [Enumeration-safe responses](./enumeration.md) covers identical known and unknown responses for register, forgot password, resend confirmation, email-code send, and passkey register options.
 - [Password facade](./password-auth.md) covers `AE_HOST_MODE=password-cookie` and `password-jwt`: register, confirm, login or `POST /auth/create`, manage, logout or refresh under `/auth`.
+- [External GitHub](./external-github.md) covers `AE_HOST_MODE=external`: GitHub sign-up, set password with ReAuth, password login, and unlink.

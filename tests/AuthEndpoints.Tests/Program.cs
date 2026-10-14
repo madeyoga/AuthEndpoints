@@ -1,11 +1,15 @@
+using System.Security.Claims;
 using AuthEndpoints;
 using AuthEndpoints.EmailCode;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
+using AuthEndpoints.OAuth.GitHub;
 using AuthEndpoints.Passkey;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.Tests;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -23,6 +27,7 @@ var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.
 var useSplit = string.Equals(hostMode, "split", StringComparison.OrdinalIgnoreCase);
 var usePasswordCookie = string.Equals(hostMode, "password-cookie", StringComparison.OrdinalIgnoreCase);
 var usePasswordJwt = string.Equals(hostMode, "password-jwt", StringComparison.OrdinalIgnoreCase);
+var useExternal = string.Equals(hostMode, "external", StringComparison.OrdinalIgnoreCase);
 var usePassword = usePasswordCookie || usePasswordJwt;
 var useFacade = useBearerFacade || useCookieFacade;
 var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
@@ -107,6 +112,28 @@ else if (useFacade)
         builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(ConfigureFacade);
     }
 }
+else if (useExternal)
+{
+    builder.Services
+        .AddIdentityApiEndpoints<TestAppUser>(identity => ConfigureTestIdentity(identity, requireConfirmedAccount))
+        .AddEntityFrameworkStores<TestDbContext>()
+        .AddDefaultTokenProviders();
+    builder.Services.AddPasswordSignInEndpoints();
+    builder.Services.AddCookieSessionEndpoints();
+    builder.Services.AddAccountManagementEndpoints();
+    builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+        ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
+    builder.Services.AddExternalAuthEndpoints<TestAppUser>(options =>
+        {
+            options.DefaultReturnUrl = "/";
+            options.AllowedReturnUrlOrigins.Add("https://app.example.com");
+        })
+        .AddGitHub(github =>
+        {
+            github.ClientId = "test-client";
+            github.ClientSecret = "test-secret";
+        });
+}
 else if (useSplit)
 {
     builder.Services
@@ -173,6 +200,22 @@ else if (useFacade)
 {
     app.UseAuthEndpoints();
     app.MapAuthEndpoints<TestAppUser>();
+}
+else if (useExternal)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseRateLimiter();
+    app.UseAntiforgery();
+
+    var external = app.MapGroup("/auth/external");
+    external.MapExternalAuthProvider<TestAppUser>("GitHub");
+    external.MapExternalAccountEndpoints<TestAppUser>();
+
+    var auth = app.MapGroup("/auth");
+    auth.MapPasswordSignInEndpoints<TestAppUser>();
+    auth.MapCookieSessionEndpoints<TestAppUser>();
+    auth.MapAccountManagementEndpoints<TestAppUser>();
 }
 else if (useSplit)
 {
@@ -344,6 +387,26 @@ static void MapTestOnlyEndpoints(WebApplication app)
 
     app.MapGet("/test/mailbox", (CapturingEmailSender mailbox) => Results.Ok(mailbox.Snapshot()));
 
+    app.MapPost("/test/external-cookie", async (TestExternalCookie body, HttpContext http) =>
+    {
+        var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, body.Key) };
+        if (!string.IsNullOrEmpty(body.Email))
+        {
+            claims.Add(new Claim(ClaimTypes.Email, body.Email));
+        }
+
+        if (body.Verified)
+        {
+            claims.Add(new Claim(ExternalEmailClaims.EmailVerifiedClaimType, "true"));
+        }
+
+        var identity = new ClaimsIdentity(claims, IdentityConstants.ExternalScheme);
+        var properties = new AuthenticationProperties();
+        properties.Items["LoginProvider"] = body.Provider;
+        await http.SignInAsync(IdentityConstants.ExternalScheme, new ClaimsPrincipal(identity), properties);
+        return Results.NoContent();
+    });
+
     app.MapPost("/test/webauthn/attestation", (
         TestWebAuthnRequest body,
         HttpContext context,
@@ -371,5 +434,7 @@ static string ResolveOrigin(string? origin, HttpContext context) =>
         : origin;
 
 internal sealed record TestWebAuthnRequest(string OptionsJson, string? Origin, string? CredentialId);
+
+internal sealed record TestExternalCookie(string Provider, string Key, string? Email, bool Verified);
 
 public partial class Program;
