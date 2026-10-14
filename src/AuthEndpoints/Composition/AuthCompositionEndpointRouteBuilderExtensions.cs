@@ -14,8 +14,9 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
     /// Maps the per-session routes for the modules that are registered, plus that session's own routes.
     /// Password login is <c>POST /login</c> for cookie and Identity bearer, and <c>POST /create</c> for JWT.
     /// Email-code verify, passkey request options, passkey login, and passkey register are included when those
-    /// modules are registered. Shared routes (register, recovery, send, passkey options, management, confirm-email)
-    /// stay on <see cref="MapSharedAuthEndpoints{TUser}"/>.
+    /// modules are registered. Logs a warning when none of those sign-in modules are registered.
+    /// Passkey register does not map confirm-email; call <see cref="MapSharedAuthEndpoints{TUser}"/> or the link
+    /// targets a missing route. Shared routes stay on <see cref="MapSharedAuthEndpoints{TUser}"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapSignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -26,6 +27,19 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
 
         var builders = new List<IEndpointConventionBuilder>();
         var completer = SignInCompleterMap.FromSession(session);
+        var passkeyBundle = Registered<PasskeyEndpointsModule>(endpoints);
+        var passkeySignIn = passkeyBundle || Registered<PasskeySignInEndpointsModule>(endpoints);
+        var passkeySignUp = passkeyBundle || Registered<PasskeySignUpEndpointsModule>(endpoints);
+
+        if (!Registered<PasswordSignInEndpointsModule>(endpoints)
+            && !Registered<EmailCodeSignInEndpointsModule>(endpoints)
+            && !passkeySignIn
+            && !passkeySignUp)
+        {
+            AuthEndpointsModules.Log(
+                endpoints,
+                "MapSignInEndpoints mapped no sign-in method. Call AddPasswordSignInEndpoints, AddEmailCodeSignInEndpoints, AddPasskeySignInEndpoints, or AddPasskeySignUpEndpoints before MapSignInEndpoints.");
+        }
 
         if (Registered<PasswordSignInEndpointsModule>(endpoints))
         {
@@ -39,22 +53,15 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
             builders.Add(endpoints.MapEmailCodeSignInEndpoints<TUser>(session));
         }
 
-        if (Registered<PasskeyEndpointsModule>(endpoints))
+        if (passkeySignIn)
         {
             builders.Add(PasskeyApiEndpointRouteBuilderExtensions.MapPasskeyAuthenticationCore<TUser>(
                 endpoints,
                 completer,
                 nameof(MapSignInEndpoints)));
-            builders.Add(PasskeyApiEndpointRouteBuilderExtensions.MapPasskeyRegisterCore<TUser>(
-                endpoints,
-                confirmEmailEndpointName: null,
-                completer,
-                ensureConfirmEmail: false,
-                honorDefault: false,
-                nameof(MapSignInEndpoints),
-                warn: false));
         }
-        else if (Registered<PasskeySignUpEndpointsModule>(endpoints))
+
+        if (passkeySignUp)
         {
             builders.Add(PasskeyApiEndpointRouteBuilderExtensions.MapPasskeyRegisterCore<TUser>(
                 endpoints,
@@ -97,13 +104,13 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
         var builders = new List<IEndpointConventionBuilder>();
         var mappedConfirm = false;
 
-        if (Registered<PasswordSignUpEndpointsModule>(target) || Registered<PasswordEndpointsModule>(target))
+        if (Registered<PasswordSignUpEndpointsModule>(target))
         {
             builders.Add(target.MapPasswordSignUpEndpoints<TUser>());
             mappedConfirm = true;
         }
 
-        if (Registered<PasswordRecoveryEndpointsModule>(target) || Registered<PasswordEndpointsModule>(target))
+        if (Registered<PasswordRecoveryEndpointsModule>(target))
         {
             builders.Add(target.MapPasswordRecoveryEndpoints<TUser>());
         }
@@ -118,7 +125,7 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
             builders.Add(target.MapPasskeyRegisterOptionsEndpoints<TUser>());
         }
 
-        if (Registered<PasskeyEndpointsModule>(target))
+        if (Registered<PasskeyEndpointsModule>(target) || Registered<PasskeyManagementEndpointsModule>(target))
         {
             builders.Add(target.MapPasskeyManagementEndpoints<TUser>());
         }

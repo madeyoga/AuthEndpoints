@@ -110,7 +110,10 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeySignInEndpoints));
+        WarnIfNeitherPasskeyModule<PasskeySignInEndpointsModule>(
+            endpoints,
+            "AddPasskeySignInEndpoints",
+            nameof(MapPasskeySignInEndpoints));
         if (completer is null)
         {
             SignInCompleterMap.EnsureConfiguredDefault<TUser>(
@@ -147,7 +150,10 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeyManagementEndpoints));
+        WarnIfNeitherPasskeyModule<PasskeyManagementEndpointsModule>(
+            endpoints,
+            "AddPasskeyManagementEndpoints",
+            nameof(MapPasskeyManagementEndpoints));
 
         var group = endpoints.MapGroup("/passkeys");
         MapPasskeyRoutes<TUser>(

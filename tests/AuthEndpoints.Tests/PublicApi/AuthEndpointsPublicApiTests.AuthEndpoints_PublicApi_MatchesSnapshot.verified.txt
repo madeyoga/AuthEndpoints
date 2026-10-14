@@ -820,6 +820,7 @@ namespace AuthEndpoints.Passkey
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyManagementEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyRegisterOptionsEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
             "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
@@ -827,6 +828,9 @@ namespace AuthEndpoints.Passkey
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class
             where TCompleter :  class, AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser> { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignUpEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignUpEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class { }

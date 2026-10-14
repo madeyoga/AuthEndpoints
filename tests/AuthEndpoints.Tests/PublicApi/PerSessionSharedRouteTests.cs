@@ -210,12 +210,45 @@ public class PerSessionSharedRouteTests
         Assert.Contains("POST /app/passkeys/register", keys);
         Assert.Contains("POST /web/passkeys/login", keys);
         Assert.Contains("POST /app/passkeys/login", keys);
+        Assert.Contains("POST /web/passkeys/requestOptions", keys);
+        Assert.Contains("POST /app/passkeys/requestOptions", keys);
+        Assert.DoesNotContain("POST /passkeys/requestOptions", keys);
         Assert.DoesNotContain("POST /app/login", keys);
         Assert.DoesNotContain("POST /web/create", keys);
         Assert.DoesNotContain("POST /web/passkeys/register/options", keys);
         Assert.DoesNotContain("POST /app/passkeys/register/options", keys);
         Assert.DoesNotContain("POST /web/register", keys);
         Assert.DoesNotContain("POST /app/register", keys);
+
+        Assert.Equal(SignInCompleters.Cookie, Completer(Find(app, "POST /web/login")));
+        Assert.Equal(SignInCompleters.Cookie, Completer(Find(app, "POST /web/emailCode/verify")));
+        Assert.Equal(SignInCompleters.Cookie, Completer(Find(app, "POST /web/passkeys/login")));
+        Assert.Equal(SignInCompleters.Cookie, Completer(Find(app, "POST /web/passkeys/register")));
+        Assert.Equal(SignInCompleters.Jwt, Completer(Find(app, "POST /app/emailCode/verify")));
+        Assert.Equal(SignInCompleters.Jwt, Completer(Find(app, "POST /app/passkeys/login")));
+        Assert.Equal(SignInCompleters.Jwt, Completer(Find(app, "POST /app/passkeys/register")));
+
+        var selections = endpoints
+            .Select(endpoint => (Route: Format(endpoint), Name: endpoint.Metadata.GetMetadata<SignInCompleterSelection>()?.Name))
+            .Where(item => item.Name is not null)
+            .ToArray();
+        Assert.Contains(selections, item => item.Route.Contains(" /web/", StringComparison.Ordinal));
+        Assert.Contains(selections, item => item.Route.Contains(" /app/", StringComparison.Ordinal));
+        Assert.All(selections, item =>
+        {
+            if (item.Route.Contains(" /web/", StringComparison.Ordinal))
+            {
+                Assert.Equal(SignInCompleters.Cookie, item.Name);
+            }
+            else if (item.Route.Contains(" /app/", StringComparison.Ordinal))
+            {
+                Assert.Equal(SignInCompleters.Jwt, item.Name);
+            }
+            else
+            {
+                Assert.Fail($"Shared route {item.Route} selected completer {item.Name}.");
+            }
+        });
     }
 
     [Fact]
@@ -345,6 +378,11 @@ public class PerSessionSharedRouteTests
     {
         using var app = RouteSurface.Build(configure, map);
         return RouteSurface.ListRoutes(app);
+    }
+
+    private static string? Completer(Endpoint endpoint)
+    {
+        return endpoint.Metadata.GetMetadata<SignInCompleterSelection>()?.Name;
     }
 
     private static Endpoint Find(WebApplication app, string route)
