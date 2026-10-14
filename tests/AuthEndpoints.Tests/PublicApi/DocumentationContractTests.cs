@@ -9,10 +9,26 @@ namespace AuthEndpoints.Tests.PublicApi;
 
 public class DocumentationContractTests
 {
-    private static readonly string[] BreakingRows =
+    private static readonly string[] BreakingHeadings =
     [
-        "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12",
-        "B13", "B16", "B17", "B18", "B19", "B20", "B21", "B22",
+        "Email-code table gains Purpose",
+        "Email-code messages include ReAuth",
+        "Confirm identity accepts an email code",
+        "authMethods adds emailCode",
+        "Email-code cooldown and send cap are per purpose",
+        "Per-method sign-in completers are obsolete",
+        "JWT `POST /create` runs the shared password pipeline",
+        "Password `/login` no longer calls `SignInManager.PasswordSignInAsync` / `TwoFactorAuthenticatorSignInAsync` / `TwoFactorRecoveryCodeSignInAsync`",
+        "JWT refresh rotation and body transport",
+        "Enumeration-safe responses",
+        "External OAuth types live in AuthEndpoints.dll",
+        "External.OAuth below 4.0.0 fails the build (AE4000)",
+        "OAuthTicketChain is public",
+        "List and link routes use AuthEndpoints sign-in schemes",
+        "Email code counts as a sign-in method",
+        "Provider packages only register handlers",
+        "A missing Add* throws at map time",
+        "Account-abuse and confirm-identity rate limits are public",
     ];
 
     private static readonly Dictionary<string, (string File, string Prefix)> Snapshots = new(StringComparer.Ordinal)
@@ -78,23 +94,34 @@ public class DocumentationContractTests
             "2.guides",
             "14.upgrading-to-4.md"));
 
-        Assert.Contains("B1, B2, B14, and B15 are withdrawn", guide, StringComparison.Ordinal);
+        Assert.Contains(
+            "This page lists every breaking change from 3.4.1 to 4.0.0 and its migration.",
+            guide,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "`AddAuthEndpoints` keeps the 3.4.1 options and the `AuthEndpointsSignIn` and `EmailCode.Enabled` names. Nothing to migrate there.",
+            guide,
+            StringComparison.Ordinal);
         Assert.Contains("Opt-in body transport", guide, StringComparison.Ordinal);
         Assert.Contains("Unknown-email password-hash verify", guide, StringComparison.Ordinal);
-        Assert.Contains("Facade login has no dummy hash", guide, StringComparison.Ordinal);
-        Assert.Contains("B21. Cookie-mode refresh detects reuse", guide, StringComparison.Ordinal);
+        Assert.Contains(
+            "Facade login does not run the unknown-email hash verify, so an unknown email can return faster than a wrong password.",
+            guide,
+            StringComparison.Ordinal);
+        Assert.Contains("Cookie-mode refresh detects reuse", guide, StringComparison.Ordinal);
+        Assert.DoesNotMatch(PlanId, guide);
 
-        foreach (var withdrawn in new[] { "B1", "B2", "B14", "B15" })
+        var docs = Path.Combine(FindRepoRoot(), "Documentation", "content");
+        foreach (var path in Directory.EnumerateFiles(docs, "*.md", SearchOption.AllDirectories))
         {
-            Assert.DoesNotMatch(
-                new Regex($@"^## {withdrawn}\b", RegexOptions.Multiline),
-                guide);
+            var text = File.ReadAllText(path);
+            Assert.False(PlanId.IsMatch(text), $"{path} still names an internal plan id.");
         }
 
-        foreach (var row in BreakingRows)
+        foreach (var title in BreakingHeadings)
         {
-            var heading = Regex.Match(guide, $@"^## {row} .*$", RegexOptions.Multiline);
-            Assert.True(heading.Success, $"Missing heading for {row}.");
+            var heading = Regex.Match(guide, $"^## {Regex.Escape(title)}$", RegexOptions.Multiline);
+            Assert.True(heading.Success, $"Missing heading '{title}'.");
 
             var start = heading.Index;
             var next = Regex.Match(guide[(start + heading.Length)..], @"^## ", RegexOptions.Multiline);
@@ -274,6 +301,8 @@ public class DocumentationContractTests
 
         throw new InvalidOperationException("AuthEndpoints.sln was not found above the test output directory.");
     }
+
+    private static readonly Regex PlanId = new(@"\bB(?:[1-9]|1\d|2[0-2])\b", RegexOptions.Compiled);
 
     private const string WebSdkGlobalUsings = """
         global using System;
