@@ -146,7 +146,7 @@ public sealed class AuthEndpointsFindExternalOAuthBelow4 : Task
     </AuthEndpointsFindExternalOAuthBelow4>
     <Error
       Code="AE4000"
-      Text="AuthEndpoints.External.OAuth %(_AuthEndpointsExternalOAuthPreview.Version) cannot be used with AuthEndpoints 4.0 because that package defines the same types (CS0433). Remove the package reference, or upgrade AuthEndpoints.External.OAuth to 4.0.0."
+      Text="AuthEndpoints.External.OAuth %(_AuthEndpointsExternalOAuthPreview.Version) is below 4.0.0 and cannot be used with AuthEndpoints 4.0 because that package defines the same types (CS0433). Remove the package reference, or upgrade AuthEndpoints.External.OAuth to 4.0.0."
       Condition="'@(_AuthEndpointsExternalOAuthPreview)' != ''" />
   </Target>
 </Project>

@@ -31,4 +31,6 @@
     <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
   </ItemGroup>
 
+  <Import Project="..\AuthEndpoints.DependencyRange.targets" />
+
 </Project>

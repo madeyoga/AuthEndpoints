@@ -155,7 +155,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
             endpoints,
             "AddPasswordEndpoints",
             "MapPasswordEndpoints");
@@ -191,7 +191,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
             endpoints,
             "AddPasswordEndpoints",
             "MapBearerAuthEndpoints");
@@ -215,7 +215,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<BearerSessionEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<BearerSessionEndpointsModule>(
             endpoints,
             "AddBearerSessionEndpoints",
             "MapBearerSessionEndpoints");
@@ -235,7 +235,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
             endpoints,
             "AddPasswordEndpoints",
             "MapCookieAuthEndpoints");
@@ -259,7 +259,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<CookieSessionEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<CookieSessionEndpointsModule>(
             endpoints,
             "AddCookieSessionEndpoints",
             "MapCookieSessionEndpoints");

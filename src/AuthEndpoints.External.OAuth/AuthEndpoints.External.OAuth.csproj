@@ -27,4 +27,6 @@
     <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
   </ItemGroup>
 
+  <Import Project="..\AuthEndpoints.DependencyRange.targets" />
+
 </Project>

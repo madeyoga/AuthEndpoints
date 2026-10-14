@@ -55,7 +55,7 @@ public static class PasswordAuthServiceCollectionExtensions
     /// services.AddAccountManagementEndpoints();
     /// // Cookie:
     /// services.AddCookieSessionEndpoints();
-    /// // Jwt (options.Jwt is required). AddJwtEndpoints applies SimpleJwtOptions.RefreshTokenTransport:
+    /// // Jwt (options.Jwt is required). AddJwtEndpoints copies a non-default SimpleJwtOptions.RefreshTokenTransport:
     /// services.AddJwtEndpoints&lt;TUser, TContext&gt;(options.Jwt);
     /// // When Passkeys.ServerDomain is set:
     /// services.AddPasskeyEndpoints&lt;TUser&gt;();

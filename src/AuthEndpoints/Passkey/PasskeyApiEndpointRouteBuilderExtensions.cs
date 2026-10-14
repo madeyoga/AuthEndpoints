@@ -182,7 +182,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
     {
-        AuthEndpointsModules.WarnIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
+        AuthEndpointsModules.ThrowIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
     }
 
     private static void MapPasskeyRoutes<TUser>(

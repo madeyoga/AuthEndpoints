@@ -52,6 +52,7 @@ public class ExternalOAuthShimTests
         var result = RunMsBuild(project, "AuthEndpointsRejectExternalOAuthPreview");
         Assert.NotEqual(0, result.ExitCode);
         Assert.Contains("AE4000", result.Text, StringComparison.Ordinal);
+        Assert.Contains("below 4.0.0", result.Text, StringComparison.Ordinal);
         Assert.Contains(version, result.Text, StringComparison.Ordinal);
         Assert.Contains("upgrade AuthEndpoints.External.OAuth to 4.0.0", result.Text, StringComparison.Ordinal);
     }
