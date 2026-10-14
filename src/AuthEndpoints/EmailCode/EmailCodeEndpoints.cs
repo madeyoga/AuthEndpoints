@@ -2,6 +2,7 @@
 using AuthEndpoints.SignIn;
 using System.Reflection;
 using AuthEndpoints.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -108,6 +109,14 @@ public static class EmailCodeEndpoints<TUser>
 
         if (!eligible)
         {
+            // Unknown and ineligible addresses skip the sender. Protect the address so this branch
+            // still does the same class of work as a send.
+            var dataProtection = services.GetService<IDataProtectionProvider>();
+            if (dataProtection is not null)
+            {
+                EnumerationPadding.Protect(dataProtection, email);
+            }
+
             EmailCodeLog.SendSuppressed(logger, userId, EmailCodeHasher.HashPrefix(issued.EmailHash), "ineligible");
             return TypedResults.Ok(response);
         }

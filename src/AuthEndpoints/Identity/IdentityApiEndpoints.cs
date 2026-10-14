@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -53,14 +54,34 @@ public class IdentityApiEndpoints<TUser>
         var user = new TUser();
         await userStore.SetUserNameAsync(user, email, CancellationToken.None);
         await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+        // Unknown email: CreateAsync hashes the password and inserts the user. The confirmation mail follows.
+        // An existing email fails that insert, then matches the token work and emails the owner.
         var result = await userManager.CreateAsync(user, registration.Password);
 
         if (!result.Succeeded)
         {
-            // Avoid email enumeration: duplicate accounts look like a successful registration.
+            // Duplicate accounts look like a new registration: empty 200, no DuplicateUserName.
+            // A password-rule failure still returns 400, and that body does not depend on whether the email exists.
             if (result.Errors.Any(e =>
                     e.Code is "DuplicateUserName" or "DuplicateEmail"))
             {
+                var existing = await userManager.FindByEmailAsync(email);
+                if (existing is not null)
+                {
+                    // Match the confirmation-token work the new-account branch does, then tell the owner.
+                    _ = await userManager.GenerateEmailConfirmationTokenAsync(existing);
+                    await NotifyRegistrationAttemptAsync(sp, existing, email, context.RequestAborted);
+                }
+                else
+                {
+                    // The username collided and this email is not an account. Mint a confirmation token anyway.
+                    _ = await EnumerationPadding.CreateDecoyEmailConfirmationTokenAsync(
+                        userManager,
+                        userStore,
+                        sp.GetRequiredService<IDataProtectionProvider>(),
+                        email);
+                }
+
                 return TypedResults.Ok();
             }
 
@@ -279,17 +300,19 @@ public class IdentityApiEndpoints<TUser>
         [FromServices] IServiceProvider sp,
         string confirmEmailEndpointName)
     {
-        // Ignore the request body email — only resend for the signed-in user.
-        _ = resendRequest;
+        // The body email is ignored. A known address and an unknown address share this path,
+        // so the status, body, and timing match. Only the signed-in account is mailed.
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
         {
+            PadUnknownResend(sp, resendRequest?.Email);
             return TypedResults.Ok();
         }
 
         var email = await userManager.GetEmailAsync(user);
         if (string.IsNullOrEmpty(email))
         {
+            PadUnknownResend(sp, resendRequest?.Email);
             return TypedResults.Ok();
         }
 
@@ -297,24 +320,65 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
+    private static void PadUnknownResend(IServiceProvider sp, string? email)
+    {
+        var dataProtection = sp.GetService<IDataProtectionProvider>();
+        if (dataProtection is null)
+        {
+            return;
+        }
+
+        EnumerationPadding.Protect(dataProtection, string.IsNullOrEmpty(email) ? "unknown" : email);
+    }
+
     public static async Task<Results<Ok, ValidationProblem>> ForgotPassword
         ([FromBody] ForgotPasswordRequest resetRequest, [FromServices] IServiceProvider sp)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
-        var user = await userManager.FindByEmailAsync(resetRequest.Email);
+        var email = resetRequest.Email;
+        var user = string.IsNullOrEmpty(email) ? null : await userManager.FindByEmailAsync(email);
+        var sendReset = user is not null && await userManager.IsEmailConfirmedAsync(user);
 
-        if (user is not null && await userManager.IsEmailConfirmedAsync(user))
+        // Unknown and unconfirmed addresses still mint a token so this branch matches a confirmed account.
+        // The token is discarded unless the account exists and the email is confirmed.
+        var dataProtection = sp.GetRequiredService<IDataProtectionProvider>();
+        var code = user is not null
+            ? await userManager.GeneratePasswordResetTokenAsync(user)
+            : string.IsNullOrEmpty(email)
+                ? EnumerationPadding.Protect(dataProtection, "unknown")
+                : await EnumerationPadding.CreateDecoyPasswordResetTokenAsync(
+                    userManager,
+                    sp.GetRequiredService<IUserStore<TUser>>(),
+                    dataProtection,
+                    email);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var encoded = HtmlEncoder.Default.Encode(code);
+        if (sendReset)
         {
-            var code = await userManager.GeneratePasswordResetTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
             var emailSender = sp.GetRequiredService<IEmailSender<TUser>>();
-            await emailSender.SendPasswordResetCodeAsync(user, resetRequest.Email, HtmlEncoder.Default.Encode(code));
+            await emailSender.SendPasswordResetCodeAsync(user!, email!, encoded);
         }
 
-        // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have
-        // returned a 400 for an invalid code given a valid user email.
+        // Don't reveal that the user does not exist or is not confirmed.
         return TypedResults.Ok();
+    }
+
+    private static async Task NotifyRegistrationAttemptAsync(
+        IServiceProvider sp,
+        TUser user,
+        string email,
+        CancellationToken cancellationToken)
+    {
+        var userManager = sp.GetRequiredService<UserManager<TUser>>();
+        var ownerEmail = await userManager.GetEmailAsync(user);
+        if (string.IsNullOrEmpty(ownerEmail))
+        {
+            ownerEmail = email;
+        }
+
+        var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>()
+            ?? CreateLoggingSecurityEmailSender(sp);
+        await sender.SendRegistrationAttemptedAsync(user, ownerEmail, cancellationToken);
     }
 
     public static async Task<Results<Ok, ValidationProblem>> ResetPassword

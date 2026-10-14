@@ -402,6 +402,7 @@ namespace AuthEndpoints.Identity
         where TUser :  class
     {
         System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task SendRegistrationAttemptedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
     }
     public static class IdentityApiEndpointRouteBuilderExtensions
     {
@@ -449,6 +450,7 @@ namespace AuthEndpoints.Identity
     {
         public LoggingAccountSecurityEmailSender(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.Identity.LoggingAccountSecurityEmailSender<TUser>> logger) { }
         public System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task SendRegistrationAttemptedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class PasswordEndpointRouteBuilderExtensions
     {

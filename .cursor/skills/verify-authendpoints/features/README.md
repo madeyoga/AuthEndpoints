@@ -52,3 +52,4 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Email code](./email-code.md) covers `POST /identity/emailCode/send` and `POST /identity/emailCode/verify` when `AE_EMAIL_CODE=true`, plus sign-up (`AE_EMAIL_CODE_SIGNUP`), a magic link (`AE_EMAIL_CODE_LINK`), and `POST /identity/confirmIdentity/emailCode/send` for step-up.
 - [Per-session and shared routes](./per-session-shared.md) covers `AE_HOST_MODE=split`: cookie sign-in under `/web`, JWT sign-in under `/app`, and one shared map at the root.
 - [Set a password](./set-password.md) covers `POST /identity/manage/password` for an account that has none.
+- [Enumeration-safe responses](./enumeration.md) covers identical known and unknown responses for register, forgot password, resend confirmation, email-code send, and passkey register options.

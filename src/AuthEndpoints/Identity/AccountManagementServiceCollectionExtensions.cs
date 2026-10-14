@@ -113,7 +113,7 @@ internal sealed class AccountSecurityEmailSenderStartup : IHostedService
         }
 
         _logger.LogWarning(
-            "IAccountSecurityEmailSender is LoggingAccountSecurityEmailSender, which logs password-set notices and does not send mail. Register an implementation to deliver them.");
+            "IAccountSecurityEmailSender is LoggingAccountSecurityEmailSender, which logs password-set and registration-attempt notices and does not send mail. Register an implementation to deliver them.");
         return Task.CompletedTask;
     }
 
