@@ -2,12 +2,12 @@ name: Docs
 
 on:
   push:
-    branches: [main, release/4.0]
+    branches: [main, "release/**", cursor/unified-sign-in-completer-6f06]
     paths:
       - 'Documentation/**'
       - '.github/workflows/docs.yml'
   pull_request:
-    branches: [main, release/4.0]
+    branches: [main, "release/**", cursor/unified-sign-in-completer-6f06]
     paths:
       - 'Documentation/**'
       - '.github/workflows/docs.yml'
