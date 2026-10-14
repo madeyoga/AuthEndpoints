@@ -21,7 +21,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
 
     /// <summary>
     /// Verifies credentials. Failed results use a generic invalid-credentials error (no enumeration).
-    /// An unknown user still runs a password-hash verify so that path matches a wrong password.
+    /// An unknown user runs a password-hash verify, new in 4.0, so that path matches a wrong password.
     /// </summary>
     public async Task<AuthenticationResult<TUser>> AuthenticateAsync(string username, string password)
     {
