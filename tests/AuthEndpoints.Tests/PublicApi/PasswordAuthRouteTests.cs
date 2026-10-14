@@ -142,6 +142,51 @@ public class PasswordAuthRouteTests
     }
 
     [Fact]
+    public void ConfigureJwtSessionOptions_BeforeAddJwtEndpoints_KeepsBodyWhenJwtOptionsStayCookie()
+    {
+        using var app = RouteSurface.Build(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.Configure<JwtSessionOptions>(session =>
+                    session.RefreshTokenTransport = RefreshTokenTransport.Body);
+                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                    jwt.SigningOptions.SymmetricKey = SigningKey);
+            },
+            app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
+
+        Assert.Equal(
+            RefreshTokenTransport.Body,
+            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+        Assert.DoesNotContain(
+            "csrfToken",
+            string.Join('\n', RouteSurface.ListRoutes(app)),
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AddJwtEndpoints_BodyTransport_ReplacesEarlierCookieConfigure()
+    {
+        using var app = RouteSurface.Build(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.Configure<JwtSessionOptions>(session =>
+                    session.RefreshTokenTransport = RefreshTokenTransport.Cookie);
+                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                {
+                    jwt.SigningOptions.SymmetricKey = SigningKey;
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                });
+            },
+            app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
+
+        Assert.Equal(
+            RefreshTokenTransport.Body,
+            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+    }
+
+    [Fact]
     public void ConfigureJwtSessionOptions_AfterAddJwtEndpoints_ReplacesTransport()
     {
         using var app = RouteSurface.Build(
