@@ -68,6 +68,36 @@ public class PerSessionSharedRouteTests
     }
 
     [Fact]
+    public void MapJwtAuthEndpoints_BodyTransport_OmitsCsrfAndAntiforgery()
+    {
+        var surface = RouteSurface.Capture(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.AddAntiforgery();
+                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                {
+                    jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+                });
+                builder.Services.Configure<JwtSessionOptions>(options =>
+                    options.RefreshTokenTransport = RefreshTokenTransport.Body);
+            },
+            app => app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>());
+
+        Assert.DoesNotContain("csrfToken", surface, StringComparison.Ordinal);
+        Assert.Contains(
+            "POST /auth/refresh name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Login",
+            surface,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "POST /auth/logout name=(none) auth=(none) antiforgery=false rateLimit=(none)",
+            surface,
+            StringComparison.Ordinal);
+        Assert.Contains("POST /auth/create", surface, StringComparison.Ordinal);
+        Assert.Contains("GET /auth/verify", surface, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public Task MapPasskeyEndpoints_Matches341RouteTable()
     {
         var surface = RouteSurface.Capture(

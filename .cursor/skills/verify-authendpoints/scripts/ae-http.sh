@@ -31,6 +31,8 @@ Environment:
   AE_EMAIL_CODE         When true, maps email-code send and verify.
   AE_EMAIL_CODE_SIGNUP  When true, AllowSignUp creates a user from an unknown address.
   AE_EMAIL_CODE_LINK    Absolute http(s) magic-link URI with no '#'. Set to enable the link.
+  AE_JWT_REFRESH_TRANSPORT  Cookie (default) or Body. Body returns refreshToken in JSON and skips JWT CSRF.
+  AE_JWT_ABSOLUTE_LIFETIME  Positive TimeSpan (for example 00:00:03) overriding the refresh-family cap.
   OTEL_EXPORTER_OTLP_ENDPOINT  When unset, launch sets http://localhost:4317. Empty skips export.
   OTEL_SERVICE_NAME  When unset, launch sets authendpoints-demo.
 
@@ -280,6 +282,8 @@ cmd_launch() {
       AE_EMAIL_CODE="${AE_EMAIL_CODE:-}" \
       AE_EMAIL_CODE_SIGNUP="${AE_EMAIL_CODE_SIGNUP:-}" \
       AE_EMAIL_CODE_LINK="${AE_EMAIL_CODE_LINK:-}" \
+      AE_JWT_REFRESH_TRANSPORT="${AE_JWT_REFRESH_TRANSPORT:-}" \
+      AE_JWT_ABSOLUTE_LIFETIME="${AE_JWT_ABSOLUTE_LIFETIME:-}" \
       OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT}" \
       OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME}" \
       dotnet "$AE_DLL"

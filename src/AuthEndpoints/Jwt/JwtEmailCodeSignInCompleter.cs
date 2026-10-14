@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Identity;
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Completes email-code sign-in by issuing a Simple JWT access token and HttpOnly refresh cookie.
+/// Completes email-code sign-in by issuing a Simple JWT access token and a refresh token.
+/// Cookie transport writes the HttpOnly refresh cookie. Body transport returns <c>refreshToken</c>.
 /// Ignores <c>useCookies</c> and <c>useSessionCookies</c>.
 /// Requires <c>AddJwtEndpoints</c> (or equivalent JWT services) to be registered.
 /// </summary>
@@ -52,8 +53,10 @@ public sealed class JwtEmailCodeSignInCompleter<TUser> : IEmailCodeSignInComplet
             TokenType = "Bearer",
         };
 
+        var session = JwtRefreshDelivery.Session(httpContext);
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
-        _refreshTokenCookieWriter.Write(httpContext, refreshToken);
+        JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
+        JwtRefreshDelivery.ApplyBody(response, refreshToken, session);
         return Results.Ok(response);
     }
 }
