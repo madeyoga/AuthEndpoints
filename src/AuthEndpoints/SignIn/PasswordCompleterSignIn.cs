@@ -136,7 +136,7 @@ internal static class PasswordCompleterSignIn<TUser>
                     if (!redeemed.Succeeded)
                     {
                         // TwoFactorRecoveryCodeSignInAsync does not count a bad code. The shared pipeline does,
-                        // so JWT /create and password login agree (design section 2.7, B18).
+                        // so JWT /create and password login agree.
                         await RecordAccessFailedAsync(userManager, user);
                         return InvalidCredentials();
                     }
