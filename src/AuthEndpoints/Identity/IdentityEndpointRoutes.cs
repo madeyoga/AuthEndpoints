@@ -22,7 +22,7 @@ internal static class IdentityEndpointRoutes
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
             .WithSummary("Registers a new user account.")
-            .WithDescription("Creates a new user and sends a confirmation email if configured.")
+            .WithDescription("Creates a new user and sends a confirmation email. An email that is already registered returns the same empty 200 and emails that owner.")
             .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
             .Track(endpoints, mapMethod);
     }

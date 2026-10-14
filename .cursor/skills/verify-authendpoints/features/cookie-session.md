@@ -40,7 +40,7 @@ Preconditions:
 
 - This path is `LoginCookie` on `/identity/login`. `useCookies=true` does nothing here. Persistent vs session is only `useSessionCookies=false` vs omitted/true.
 - Register does not sign the user in. Always login after register before calling `/manage/info`.
-- Duplicate email register is 200 by design. Use a new email when you need a distinct user.
+- Duplicate email register is 200 by design and emails the existing owner (`registration-attempt` in `/test/mailbox`). Use a new email when you need a distinct user.
 - Login is rate-limited (token bucket). Bursting logins from one IP yields 429.
 - Logout without CSRF is a CSRF failure, not a successful logout. See [CSRF on cookie mutations](./csrf.md).
 - Test host allows unconfirmed users to sign in. Production facade default does not.

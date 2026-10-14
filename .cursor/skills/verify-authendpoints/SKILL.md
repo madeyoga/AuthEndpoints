@@ -154,7 +154,7 @@ Proof standards:
 - Capture the **action and the resulting state**. Example: login headers (`Set-Cookie`) **and** a later `GET /identity/manage/info` (200 + email), not only the login status.
 - For mutations, prove a second read: after register+login, `manage/info`; after logout, `manage/info` is 401; after JWT create, `GET /auth/verify` with `Authorization: Bearer` is **204**.
 - 429 is not success. Retry via the helper; if still 429, wait 10s and retry the step. Do not record a rate-limit as a product failure unless it persists on a fresh host.
-- Duplicate register emails return **200** (no enumeration). Do not treat that 200 as “a second user was created” without a distinct email.
+- Duplicate register emails return **200** (no enumeration) and the test mailbox records `registration-attempt` for the existing owner. Do not treat that 200 as “a second user was created” without a distinct email.
 
 Cloud Agent walkthroughs may **copy** evidence files to `/opt/cursor/artifacts` after the drive. Copying is extra; the named evidence dir is the source of truth.
 

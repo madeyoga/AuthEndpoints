@@ -35,6 +35,12 @@ internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>, IEmailCo
         return Task.CompletedTask;
     }
 
+    public Task SendRegistrationAttemptedAsync(TestAppUser user, string email, CancellationToken cancellationToken = default)
+    {
+        _sent.Enqueue(new CapturedMail(email, "registration-attempt", "existing-account"));
+        return Task.CompletedTask;
+    }
+
     public Task SendSignInCodeAsync(EmailCodeMessage<TestAppUser> message, CancellationToken cancellationToken = default)
     {
         _sent.Enqueue(new CapturedMail(message.Email, "email-code", message.Code)

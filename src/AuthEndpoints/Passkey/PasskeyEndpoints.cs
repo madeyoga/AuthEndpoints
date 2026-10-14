@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using AuthEndpoints.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Passkey;
@@ -215,7 +217,14 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
-        // Always return creation options (even if the email exists) to avoid account enumeration.
+        // Known and unknown emails both receive creation options. There is no shorter branch and no switch.
+        if (signInManager.UserManager.SupportsUserEmail
+            && await signInManager.UserManager.FindByEmailAsync(email) is null
+            && signInManager.Context.RequestServices.GetService<IDataProtectionProvider>() is { } dataProtection)
+        {
+            EnumerationPadding.Protect(dataProtection, email);
+        }
+
         var userId = UserIdHelper.CreateUserIdString(typeof(TUser), userIdFactory);
         var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new()
         {

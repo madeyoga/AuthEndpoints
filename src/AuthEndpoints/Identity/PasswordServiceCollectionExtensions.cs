@@ -28,9 +28,10 @@ public static class PasswordServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers the account-abuse rate-limit policy, authorization, and antiforgery
-    /// used by password register and confirm-email.
+    /// Registers the account-abuse rate-limit policy, authorization, antiforgery,
+    /// and the logging account-security email sender used when <c>POST /register</c> finds an existing email.
     /// Safe to call more than once. Hosts must call <c>UseRateLimiter()</c> for the policy to apply.
+    /// Startup logs a warning while <see cref="LoggingAccountSecurityEmailSender{TUser}"/> is the registered sender.
     /// </summary>
     public static IServiceCollection AddPasswordSignUpEndpoints(this IServiceCollection services)
     {
@@ -44,6 +45,7 @@ public static class PasswordServiceCollectionExtensions
         services.AddModule<PasswordSignUpEndpointsModule>();
         services.AddAccountAbuseRateLimiting();
         services.AddAuthEndpointsAuthorizationAndAntiforgery();
+        services.AddAccountSecurityEmailSender();
         return services;
     }
 
