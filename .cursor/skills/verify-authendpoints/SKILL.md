@@ -81,6 +81,7 @@ Host defaults that **differ from production library defaults**:
 - EF Core **SQLite** file under the temp directory (`TestDbName`). All users vanish when that file is removed; a new `AE_RUN_ID` uses a new file.
 - JWT signing key is the test-only value in `Program.cs`. Never treat it as a production secret.
 - `IEmailSender<TUser>` is a capturing sender. `GET /test/mailbox` lists `{email,kind,body}` (confirmation links are HTML-encoded). Email-code items also include `linkUrl` and `purpose`. This is a **test-only** probe.
+- Compose and split map `POST /manage/password` with account management. It returns `404` when password sign-in is not mapped. The frozen facade (`bearer-facade`) does not map it. Drive it from [features/set-password.md](features/set-password.md).
 - On the compose host, email-code routes are unmapped unless `AE_EMAIL_CODE=true`. `AE_EMAIL_CODE_SIGNUP=true` sets `AllowSignUp`. `AE_EMAIL_CODE_LINK` is the magic-link base URL and enables the link. Drive them from [features/email-code.md](features/email-code.md). Verify with no query flag returns a bearer `accessToken`. `useSessionCookies=true` sets the application cookie. The split host always maps email-code send and verify; see [per-session-shared.md](features/per-session-shared.md).
 - Software WebAuthn: `POST /test/webauthn/attestation` and `POST /test/webauthn/assertion` turn options JSON into `credentialJson`. These are **test-only** probes. The library still verifies attestation/assertion on `/account/passkeys/register` and `/login`.
 
