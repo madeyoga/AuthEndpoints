@@ -23,9 +23,11 @@ Environment:
   AE_EVIDENCE_DIR  Proof output dir; never deleted by stop (default: $AE_RUN_DIR/evidence)
   AE_COOKIE_JAR    curl cookie jar (default: $AE_RUN_DIR/cookies.txt)
   AE_REPO_ROOT     Repository root (default: git root or cwd)
-  AE_HOST_MODE     Test host mapping: compose (default), bearer-facade, cookie-facade, or split
+  AE_HOST_MODE     Test host mapping: compose (default), bearer-facade, cookie-facade, split,
+                   password-cookie, or password-jwt
   AE_REQUIRE_CONFIRMED_ACCOUNT  When true, the test host sets SignIn.RequireConfirmedAccount.
-                                Library default is true; this host defaults to false.
+                                Library default is true; compose/bearer/split default to false.
+                                password-cookie and password-jwt default to true when this is unset.
   AE_CONFIRM_EMAIL_REDIRECT_URI  Maps to AuthEndpointsOptions.EmailConfirmation.ConfirmEmailRedirectUri.
   AE_CONFIRM_EMAIL_ALLOWED_ORIGINS  Comma-separated AllowedRedirectOrigins.
   AE_EMAIL_CODE         When true, maps email-code send and verify.
@@ -212,6 +214,17 @@ wait_ready() {
   elif [[ "$AE_HOST_MODE" == "split" ]]; then
     ready_path="/web/csrfToken"
     ready_code="200"
+  elif [[ "$AE_HOST_MODE" == "password-cookie" ]]; then
+    ready_path="/auth/csrfToken"
+    ready_code="200"
+  elif [[ "$AE_HOST_MODE" == "password-jwt" ]]; then
+    if [[ "${AE_JWT_REFRESH_TRANSPORT:-}" == "Body" ]]; then
+      ready_path="/auth/manage/info"
+      ready_code="401"
+    else
+      ready_path="/auth/csrfToken"
+      ready_code="200"
+    fi
   fi
   for i in $(seq 1 60); do
     status="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 1 "${AE_BASE_URL}${ready_path}" 2>/dev/null || true)"
@@ -291,6 +304,7 @@ cmd_launch() {
   echo $! > "$AE_PID_FILE"
   echo "$AE_BASE_URL" > "$AE_URL_FILE"
   echo "$AE_HOST_MODE" > "$AE_RUN_DIR/host.mode"
+  printf '%s' "${AE_JWT_REFRESH_TRANSPORT:-}" > "$AE_RUN_DIR/jwt.refresh-transport"
   if ! wait_ready; then
     cmd_stop || true
     exit 1
@@ -307,6 +321,10 @@ cmd_doctor() {
   if [[ -f "$AE_RUN_DIR/host.mode" ]]; then
     AE_HOST_MODE="$(cat "$AE_RUN_DIR/host.mode")"
   fi
+  if [[ -f "$AE_RUN_DIR/jwt.refresh-transport" ]]; then
+    AE_JWT_REFRESH_TRANSPORT="$(cat "$AE_RUN_DIR/jwt.refresh-transport")"
+  fi
+  AE_JWT_REFRESH_TRANSPORT="${AE_JWT_REFRESH_TRANSPORT:-}"
   local pid
   pid="$(cat "$AE_PID_FILE")"
   if ! kill -0 "$pid" 2>/dev/null; then
@@ -326,6 +344,27 @@ cmd_doctor() {
       exit 1
     fi
     echo "ok pid=$pid url=${AE_BASE_URL} mode=bearer-facade manage/info=401"
+    return 0
+  fi
+  if [[ "$AE_HOST_MODE" == "password-cookie" || ( "$AE_HOST_MODE" == "password-jwt" && "$AE_JWT_REFRESH_TRANSPORT" != "Body" ) ]]; then
+    status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/auth/csrfToken")"
+    if [[ "$status" != "200" ]]; then
+      echo "GET /auth/csrfToken returned HTTP $status (want 200 for ${AE_HOST_MODE})." >&2
+      cat "${AE_RUN_DIR}/doctor.body" >&2 || true
+      exit 1
+    fi
+    json_get csrfToken CsrfToken < "${AE_RUN_DIR}/doctor.body" >/dev/null
+    echo "ok pid=$pid url=${AE_BASE_URL} mode=${AE_HOST_MODE} csrfToken=present"
+    return 0
+  fi
+  if [[ "$AE_HOST_MODE" == "password-jwt" && "$AE_JWT_REFRESH_TRANSPORT" == "Body" ]]; then
+    status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/auth/manage/info")"
+    if [[ "$status" != "401" ]]; then
+      echo "GET /auth/manage/info returned HTTP $status (want 401 for password-jwt body refresh)." >&2
+      cat "${AE_RUN_DIR}/doctor.body" >&2 || true
+      exit 1
+    fi
+    echo "ok pid=$pid url=${AE_BASE_URL} mode=password-jwt refresh=Body manage/info=401"
     return 0
   fi
   if [[ "$AE_HOST_MODE" == "split" ]]; then

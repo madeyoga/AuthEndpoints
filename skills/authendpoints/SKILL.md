@@ -1,10 +1,10 @@
 ---
 name: authendpoints
-description: Compose AuthEndpoints 3.x in an ASP.NET Core host — AddAuthEndpoints, UseAuthEndpoints, MapAuthEndpoints, cookie vs Identity bearer vs Simple JWT, passkeys, CSRF, ReAuth, and production options. Use when the project has the AuthEndpoints NuGet package, the user asks to add Identity auth API endpoints, or an agent is wiring login/register/session/token flows for a first-party web or mobile client.
+description: Compose AuthEndpoints in an ASP.NET Core host — AddPasswordAuth for one password session, or the 3.x AddAuthEndpoints facade, cookie vs JWT vs Identity bearer, passkeys, CSRF, ReAuth, and production options. Use when the project has the AuthEndpoints NuGet package, the user asks to add Identity auth API endpoints, or an agent is wiring login/register/session/token flows for a first-party web or mobile client.
 license: MIT
 ---
 
-# AuthEndpoints 3.x (library users)
+# AuthEndpoints (library users)
 
 Ready-made Identity auth API endpoints for first-party web and mobile clients. This skill is for **apps that consume the NuGet package**, not for changing the AuthEndpoints source repo.
 
@@ -29,9 +29,28 @@ dotnet add package AuthEndpoints.OAuth.Google --prerelease
 
 Docs: https://authendpoints.harten.id/modules/external-oauth
 
-## Prefer the facade
+## Password facade (4.0)
 
-One Add / Use / Map triad. Cookie is the default sign-in. Native/mobile uses `AuthEndpointsSignIn.IdentityBearer`. Compose modules yourself only for JWT-only hosts, custom prefixes, or a mix the facade does not cover.
+New hosts that want one password session use `AddPasswordAuth` / `UseAuthEndpoints` / `MapPasswordAuth`. Cookie is the default (`Session` unset). JWT is `AuthEndpointsSession.Jwt` plus a `Jwt` callback. Identity bearer is not offered here. Do not also call `AddAuthEndpoints`.
+
+```cs
+builder.Services.AddPasswordAuth<AppUser, AppDbContext>(o =>
+{
+    o.Passkeys.ServerDomain = "example.com"; // omit to leave passkeys off
+    // o.Session = AuthEndpointsSession.Jwt;
+    // o.Jwt = jwt => { jwt.SigningOptions.SymmetricKey = key; };
+});
+builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
+
+app.UseAuthEndpoints();
+app.MapPasswordAuth<AppUser>(); // default prefix /auth
+```
+
+`Path` defaults to `/auth`. `RequireConfirmedAccount` defaults to true. Passkey routes are mapped only when `Passkeys.ServerDomain` is set. JWT login is `POST /auth/create`. Cookie login is `POST /auth/login`. `SimpleJwtOptions.RefreshTokenTransport` is copied onto `JwtSessionOptions` by this facade only. The call expands to the building blocks documented at https://authendpoints.harten.id/getting-started/password-auth — copy that list to leave the facade. Email-code sign-in and external sign-in are not mapped. There is no role overload.
+
+## 3.x compatibility facade
+
+`AddAuthEndpoints` / `MapAuthEndpoints` stay on the 3.4.1 route set. Cookie is the default sign-in. Native/mobile on this facade uses `AuthEndpointsSignIn.IdentityBearer`. Compose modules yourself for email-code sign-in, more than one session, or a mix neither facade covers. Do not combine with `AddPasswordAuth`.
 
 ### Cookie web
 

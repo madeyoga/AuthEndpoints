@@ -39,6 +39,8 @@ Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready 
 
 Per-session and shared routes: set `AE_HOST_MODE=split` before `launch`. Ready signal is `GET /web/csrfToken` returning **200**. Doctor prints `mode=split`. Cookie sign-in is under `/web`, JWT sign-in is under `/app`, and shared routes (register, recovery, email-code send, passkey register options, account management, confirm-email) are at the root. Email-code routes are mapped in this mode without `AE_EMAIL_CODE`. See [per-session-shared.md](features/per-session-shared.md).
 
+Password facade: set `AE_HOST_MODE=password-cookie` or `AE_HOST_MODE=password-jwt` before `launch`. Routes are under `/auth` (`AddPasswordAuth` / `MapPasswordAuth`). Passkeys are on (`ServerDomain=localhost`). `RequireConfirmedAccount` defaults to **true** when `AE_REQUIRE_CONFIRMED_ACCOUNT` is unset (the library default). Cookie ready signal is `GET /auth/csrfToken` **200**. JWT cookie refresh uses the same signal. JWT body refresh (`AE_JWT_REFRESH_TRANSPORT=Body`) is ready when `GET /auth/manage/info` is **401**. See [password-auth.md](features/password-auth.md).
+
 JWT body refresh: set `AE_JWT_REFRESH_TRANSPORT=Body` before `launch`. Login, email-code verify, and refresh return `refreshToken` and set no `AuthEndpoints.Jwt.RefreshToken` cookie. `POST /refresh` and `POST /logout` take `{ "refreshToken" }` and do not use antiforgery. `GET /csrfToken` on the JWT prefix is unmapped. `AE_JWT_ABSOLUTE_LIFETIME` (a positive TimeSpan such as `00:00:03`) shortens the family cap for a live check. See [jwt-body-refresh.md](features/jwt-body-refresh.md).
 
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.
@@ -64,6 +66,13 @@ Default `AE_HOST_MODE=compose`:
 | `/account` | Passkey routes |
 | `/test/*` | Same test-only probes |
 
+`AE_HOST_MODE=password-cookie` and `AE_HOST_MODE=password-jwt` use `AddPasswordAuth` / `MapPasswordAuth` (not the frozen `MapAuthEndpoints` facade):
+
+| Prefix | Mapped surface |
+| --- | --- |
+| `/auth` | Password register, recovery, confirm-email, account management (`manage/info`, `manage/2fa`, `manage/authMethods`, `manage/password`, `confirmIdentity`), passkeys. Cookie session adds `POST /login`, `POST /logout`, `GET /csrfToken`. JWT session adds `POST /create`, `POST /refresh`, `GET /verify`, `POST /logout`, and `GET /csrfToken` unless refresh transport is `Body`. |
+| `/test/*` | Same test-only probes |
+
 `AE_HOST_MODE=split` maps `MapSignInEndpoints` twice and `MapSharedAuthEndpoints` once (not the frozen `MapAuthEndpoints` facade):
 
 | Prefix | Mapped surface |
@@ -75,7 +84,7 @@ Default `AE_HOST_MODE=compose`:
 
 Host defaults that **differ from production library defaults**:
 
-- `SignIn.RequireConfirmedAccount = false` (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in.
+- `SignIn.RequireConfirmedAccount = false` on compose, bearer-facade, cookie-facade, and split (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in. `password-cookie` and `password-jwt` already default to true when that variable is unset.
 - Confirm-email SPA redirect is unset. Set `AE_CONFIRM_EMAIL_REDIRECT_URI` (and `AE_CONFIRM_EMAIL_ALLOWED_ORIGINS` for an absolute URI) before `launch`. The launch whitelist passes both through `exec env`.
 - Password rules are relaxed (`RequiredLength = 6`, no digit/case/symbol requirements). Use `Passw0rd!`.
 - EF Core **SQLite** file under the temp directory (`TestDbName`). All users vanish when that file is removed; a new `AE_RUN_ID` uses a new file.
@@ -93,7 +102,7 @@ Run `"$HARNESS" doctor` before the first drive, after any failed drive, and when
 
 1. `$AE_RUN_DIR/host.pid` exists and that PID is alive.
 2. `AE_BASE_URL` accepts connections (the port we chose).
-3. Compose host: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade host: `GET /identity/manage/info` is 401. Split host: `GET /web/csrfToken` is 200 with a non-empty `csrfToken`.
+3. Compose host: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade host: `GET /identity/manage/info` is 401. Split host: `GET /web/csrfToken` is 200 with a non-empty `csrfToken`. Password cookie, and password JWT with cookie refresh: `GET /auth/csrfToken` is 200. Password JWT with body refresh: `GET /auth/manage/info` is 401.
 
 If doctor fails, `stop` (if we started the process) and `launch` again. Do not keep driving a surprising instance.
 
@@ -176,7 +185,7 @@ Never `pkill -f AuthEndpoints` or similar.
 
 | Command | What it does |
 | --- | --- |
-| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until `/identity/csrfToken` is 200 (or `/identity/manage/info` is 401 when `AE_HOST_MODE=bearer-facade`, or `/web/csrfToken` is 200 when `AE_HOST_MODE=split`) |
+| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until the ready signal for `AE_HOST_MODE` (`/identity/csrfToken` 200, bearer-facade `/identity/manage/info` 401, split `/web/csrfToken` 200, password-cookie and password-jwt cookie refresh `/auth/csrfToken` 200, password-jwt body refresh `/auth/manage/info` 401) |
 | `doctor` | PID + port + ready signal for the current `AE_HOST_MODE` |
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |

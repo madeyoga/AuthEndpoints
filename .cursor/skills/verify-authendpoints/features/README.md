@@ -9,7 +9,7 @@ This directory is the maintained source for verifying the HTTP API the library e
 - Cookie jar is empty at the start of a feature unless that feature’s preconditions say otherwise.
 - Password for new users is `Passw0rd!`. Emails must be unique per run (`verify-<id>@test.local`).
 - Never drive a host this run did not start.
-- This host has `RequireConfirmedAccount = false` unless you set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch`. That is a **test-host** setting, not the library facade default.
+- This host has `RequireConfirmedAccount = false` unless you set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch`, except `password-cookie` and `password-jwt`, which default to true. That is a **test-host** setting. The library facade default is true.
 
 ## Driving conventions
 
@@ -53,3 +53,4 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Per-session and shared routes](./per-session-shared.md) covers `AE_HOST_MODE=split`: cookie sign-in under `/web`, JWT sign-in under `/app`, and one shared map at the root.
 - [Set a password](./set-password.md) covers `POST /identity/manage/password` for an account that has none.
 - [Enumeration-safe responses](./enumeration.md) covers identical known and unknown responses for register, forgot password, resend confirmation, email-code send, and passkey register options.
+- [Password facade](./password-auth.md) covers `AE_HOST_MODE=password-cookie` and `password-jwt`: register, confirm, login or `POST /auth/create`, manage, logout or refresh under `/auth`.
