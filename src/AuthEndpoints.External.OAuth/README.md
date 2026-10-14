@@ -4,7 +4,7 @@ Forwarding shim for AuthEndpoints 4.0. The external OAuth endpoints now live in 
 
 Remove this package reference. Code that already uses `AuthEndpoints.External.OAuth` compiles unchanged. A project that still references this package gets warning `AE4001`.
 
-`AuthEndpoints.External.OAuth` 3.0.0-preview.5 defines those types itself. Using it with AuthEndpoints 4.0 fails the build with `AE4000`. Upgrade this package to 4.0.0 or remove it.
+`AuthEndpoints.External.OAuth` below 4.0.0 defines those types itself. Using it with AuthEndpoints 4.0 fails the build with `AE4000`. Upgrade this package to 4.0.0 or remove it.
 
 GitHub and Google 4.0.0 only register providers. Map the routes from the core package:
 
