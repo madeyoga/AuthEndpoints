@@ -1,4 +1,5 @@
 ﻿using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -26,22 +27,61 @@ public static class JwtApiEndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Maps password JWT <c>POST /create</c>.
+    /// Maps password JWT <c>POST /create</c> on the shared password pipeline and the Jwt completer.
+    /// A wrong authenticator or recovery code counts toward lockout.
+    /// <c>MapAuthEndpoints</c> keeps the 3.4.1 handler instead.
     /// </summary>
     public static IEndpointConventionBuilder MapJwtPasswordEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+        return MapJwtPasswordCore<TUser>(endpoints, preserve3x: false, nameof(MapJwtPasswordEndpoints), warn: true);
+    }
 
-        AuthEndpointsModules.WarnIfMissing<JwtEndpointsModule>(
-            endpoints,
-            "AddJwtEndpoints",
-            "MapJwtPasswordEndpoints");
+    /// <summary>
+    /// Maps JWT auth endpoints for the frozen facade. <c>POST /create</c> stays on the 3.4.1 handler.
+    /// </summary>
+    internal static IEndpointConventionBuilder MapJwtAuthEndpointsPreserving3x<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
 
+        var create = MapJwtPasswordCore<TUser>(endpoints, preserve3x: true, nameof(MapJwtPasswordEndpoints), warn: true);
+        var session = endpoints.MapJwtSessionEndpoints<TUser>();
+        return new CompositeEndpointConventionBuilder(create, session);
+    }
+
+    internal static IEndpointConventionBuilder MapJwtPasswordCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        bool preserve3x,
+        string mapMethod,
+        bool warn)
+        where TUser : class, new()
+    {
         var routeGroup = endpoints.MapGroup("");
-        routeGroup.MapPost("/create", JwtEndpoints<TUser>.Create)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-            .Track(endpoints, nameof(MapJwtPasswordEndpoints));
+        if (preserve3x)
+        {
+            if (warn)
+            {
+                AuthEndpointsModules.WarnIfMissing<JwtEndpointsModule>(
+                    endpoints,
+                    "AddJwtEndpoints",
+                    mapMethod);
+            }
+
+            routeGroup.MapPost("/create", JwtEndpoints<TUser>.Create)
+                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                .Track(endpoints, mapMethod);
+        }
+        else
+        {
+            SignInCompleterMap.EnsureSelected<TUser>(endpoints, SignInCompleters.Jwt, mapMethod);
+            routeGroup.MapPost("/create", PasswordCompleterSignIn<TUser>.HandleCreate)
+                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                .WithMetadata(new SignInCompleterSelection(SignInCompleters.Jwt))
+                .Track(endpoints, mapMethod);
+        }
+
         PasswordSignInMap.Mark(endpoints.ServiceProvider);
         return routeGroup;
     }

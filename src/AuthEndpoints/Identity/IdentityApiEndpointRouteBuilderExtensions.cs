@@ -1,8 +1,6 @@
 using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
 
@@ -77,7 +75,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// This is <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpEndpoints{TUser}"/>,
     /// <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignInEndpoints{TUser}()"/>,
     /// and <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryEndpoints{TUser}"/>.
-    /// Login uses <see cref="PasswordLoginMode.Cookie"/> unless
+    /// Login finishes through <see cref="SignInCompleters.Cookie"/> unless
     /// <see cref="SignInCompletionOptions.Default"/> names a completer for this user.
     /// Also maps confirm-email when the default endpoint name is not mapped yet.
     /// </summary>
@@ -163,15 +161,6 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             "MapPasswordEndpoints");
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
-        var selected = completer;
-        if (selected is null && honorDefault && login != PasswordLoginMode.None)
-        {
-            var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
-            if (!string.IsNullOrWhiteSpace(configured))
-            {
-                selected = configured;
-            }
-        }
 
         var signUp = PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpCore<TUser>(
             endpoints,
@@ -181,10 +170,10 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         var signIn = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
             endpoints,
             login,
-            selected,
+            completer,
             nameof(MapPasswordEndpoints),
             warn: false,
-            honorDefault: false);
+            honorDefault: honorDefault);
         var recovery = PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryCore<TUser>(
             endpoints,
             nameof(MapPasswordEndpoints),

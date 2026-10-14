@@ -27,7 +27,8 @@ public static class PasswordEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps <c>POST /login</c> for the cookie session.
-    /// Uses the 3.x cookie handler unless <see cref="SignInCompletionOptions.Default"/> names a completer.
+    /// Finishes through <see cref="SignInCompleters.Cookie"/> unless
+    /// <see cref="SignInCompletionOptions.Default"/> names a completer.
     /// Per session: call it on each session prefix.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordSignInEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -158,24 +159,46 @@ public static class PasswordEndpointRouteBuilderExtensions
                 mapMethod);
         }
 
-        var selected = completer;
-        if (selected is null && honorDefault && login != PasswordLoginMode.None)
-        {
-            var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
-            if (!string.IsNullOrWhiteSpace(configured))
-            {
-                selected = configured;
-            }
-        }
+        var choice = honorDefault
+            ? ResolvePasswordCompleter(endpoints, login, completer, honorDefault: true)
+            : new PasswordCompleterChoice(completer, AllowUnregisteredBuiltIn: false);
 
-        if (selected is null && login == PasswordLoginMode.None)
+        if (choice.Name is null && login == PasswordLoginMode.None)
         {
             return EmptyEndpointConventionBuilder.Instance;
         }
 
         var group = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(group, login, mapMethod, selected);
+        IdentityEndpointRoutes.MapPasswordLogin<TUser>(
+            group,
+            login,
+            mapMethod,
+            choice.Name,
+            choice.AllowUnregisteredBuiltIn);
         return group;
+    }
+
+    internal static PasswordCompleterChoice ResolvePasswordCompleter(
+        IEndpointRouteBuilder endpoints,
+        PasswordLoginMode login,
+        string? completer,
+        bool honorDefault)
+    {
+        if (completer is not null || !honorDefault || login == PasswordLoginMode.None)
+        {
+            return new PasswordCompleterChoice(completer, AllowUnregisteredBuiltIn: false);
+        }
+
+        var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            return new PasswordCompleterChoice(configured, AllowUnregisteredBuiltIn: false);
+        }
+
+        var builtIn = login == PasswordLoginMode.IdentityBearer
+            ? SignInCompleters.IdentityBearer
+            : SignInCompleters.Cookie;
+        return new PasswordCompleterChoice(builtIn, AllowUnregisteredBuiltIn: true);
     }
 
     internal static IEndpointConventionBuilder MapPasswordRecoveryCore<TUser>(
@@ -198,3 +221,5 @@ public static class PasswordEndpointRouteBuilderExtensions
         return group;
     }
 }
+
+internal readonly record struct PasswordCompleterChoice(string? Name, bool AllowUnregisteredBuiltIn);

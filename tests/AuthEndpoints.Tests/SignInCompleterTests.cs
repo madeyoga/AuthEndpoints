@@ -627,6 +627,95 @@ public class SignInCompleterTests
         Assert.Equal(0, OtherUserCompleter.Constructions);
     }
 
+    [Fact]
+    public void ParameterlessPasswordMaps_UseCookiePipeline()
+    {
+        using var app = MapForMetadata(services =>
+        {
+            services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
+                .AddEntityFrameworkStores<TestDbContext>();
+            services.AddPasswordEndpoints();
+            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            });
+        }, app =>
+        {
+            app.MapPasswordEndpoints<TestAppUser>();
+            app.MapGroup("/in").MapPasswordSignInEndpoints<TestAppUser>();
+            app.MapGroup("/auth").MapJwtPasswordEndpoints<TestAppUser>();
+            app.MapGroup("/mode").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.Cookie, "mode-confirm");
+        });
+
+        Assert.Equal(SignInCompleters.Cookie, Find(app, "POST /login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Equal(SignInCompleters.Cookie, Find(app, "POST /in/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.NotEqual("LoginCookie", HandlerName(Find(app, "POST /login")));
+        Assert.Equal(SignInCompleters.Jwt, Find(app, "POST /auth/create").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Equal("HandleCreate", HandlerName(Find(app, "POST /auth/create")));
+        Assert.Equal("LoginCookie", HandlerName(Find(app, "POST /mode/login")));
+        Assert.Null(Find(app, "POST /mode/login").Metadata.GetMetadata<SignInCompleterSelection>());
+    }
+
+    [Fact]
+    public async Task Facade_JwtCreate_Keeps341FailureBodies_AndDoesNotCountTwoFactorFailures()
+    {
+        var app = await StartFacadeAsync(AuthEndpointsSignIn.Cookie, new CapturingEmailSender());
+        try
+        {
+            Assert.Equal("Create", HandlerName(Find(app, "POST /auth/create")));
+            Assert.Null(Find(app, "POST /auth/create").Metadata.GetMetadata<SignInCompleterSelection>());
+            Assert.Equal("LoginCookie", HandlerName(Find(app, "POST /identity/login")));
+
+            var email = UniqueEmail("facade-create");
+            string key;
+            using (var scope = app.Services.CreateScope())
+            {
+                var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+                var user = new TestAppUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true,
+                };
+                Assert.True((await users.CreateAsync(user, TestHelpers.DefaultPassword)).Succeeded);
+                Assert.True((await users.ResetAuthenticatorKeyAsync(user)).Succeeded);
+                Assert.True((await users.SetTwoFactorEnabledAsync(user, true)).Succeeded);
+                key = (await users.GetAuthenticatorKeyAsync(user))!;
+            }
+
+            using var client = new ApiClient(app);
+            var wrongCode = await client.PostAsync(
+                "/auth/create",
+                new { email, password = TestHelpers.DefaultPassword, twoFactorCode = WrongTotp(key) });
+            Assert.Equal(HttpStatusCode.Unauthorized, wrongCode.StatusCode);
+            Assert.Contains("Invalid two factor code", await wrongCode.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+            Assert.Equal(0, await FailedCountAsync(app, email));
+
+            var wrongRecovery = await client.PostAsync(
+                "/auth/create",
+                new { email, password = TestHelpers.DefaultPassword, twoFactorRecoveryCode = "not-a-recovery-code" });
+            Assert.Equal(HttpStatusCode.Unauthorized, wrongRecovery.StatusCode);
+            Assert.Contains(
+                "Recovery code redemption failed",
+                await wrongRecovery.Content.ReadAsStringAsync(),
+                StringComparison.Ordinal);
+            Assert.Equal(0, await FailedCountAsync(app, email));
+        }
+        finally
+        {
+            await DisposeFacadeAsync(app);
+        }
+    }
+
+    private static async Task<int> FailedCountAsync(WebApplication app, string email)
+    {
+        using var scope = app.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = await users.FindByEmailAsync(email);
+        Assert.NotNull(user);
+        return await users.GetAccessFailedCountAsync(user);
+    }
+
     private static void AssertConfirmNameStillDefault(WebApplication app, string prefix, string confirmName)
     {
         Assert.Equal(confirmName, Find(app, "GET " + prefix + "/confirmEmail").Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName);
@@ -1122,6 +1211,10 @@ internal sealed class SignInHost : IAsyncDisposable
                 identity.Password.RequireUppercase = false;
                 identity.Password.RequireNonAlphanumeric = false;
                 identity.Password.RequiredLength = 6;
+                if (options.MaxFailedAccessAttempts is int attempts)
+                {
+                    identity.Lockout.MaxFailedAccessAttempts = attempts;
+                }
             })
             .AddEntityFrameworkStores<TestDbContext>()
             .AddDefaultTokenProviders();
@@ -1142,6 +1235,8 @@ internal sealed class SignInHost : IAsyncDisposable
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
         }
+
+        options.ConfigureServices?.Invoke(builder.Services);
 
         if (!string.IsNullOrWhiteSpace(options.DefaultCompleter))
         {
@@ -1295,6 +1390,10 @@ internal sealed class SignInHostOptions
     public bool LegacyEmail { get; set; }
 
     public bool LegacyPasskey { get; set; }
+
+    public int? MaxFailedAccessAttempts { get; set; }
+
+    public Action<IServiceCollection>? ConfigureServices { get; set; }
 
     public Action<WebApplication> Map { get; set; } = static _ => { };
 }
