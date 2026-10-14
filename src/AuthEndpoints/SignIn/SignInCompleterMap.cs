@@ -27,10 +27,6 @@ internal static class SignInCompleterMap
         if (string.Equals(name, SignInCompleters.Jwt, StringComparison.Ordinal))
         {
             AuthEndpointsModules.WarnIfMissing<JwtEndpointsModule>(endpoints, "AddJwtEndpoints", mapMethod);
-            if (!AuthEndpointsModules.IsRegistered<JwtEndpointsModule>(endpoints.ServiceProvider))
-            {
-                return;
-            }
         }
 
         if (!SignInCompleterRegistry.Contains<TUser>(endpoints.ServiceProvider, name))
@@ -61,10 +57,6 @@ internal static class SignInCompleterMap
         if (string.Equals(configured, SignInCompleters.Jwt, StringComparison.Ordinal))
         {
             AuthEndpointsModules.WarnIfMissing<JwtEndpointsModule>(endpoints, "AddJwtEndpoints", mapMethod);
-            if (!AuthEndpointsModules.IsRegistered<JwtEndpointsModule>(endpoints.ServiceProvider))
-            {
-                return;
-            }
         }
 
         if (!SignInCompleterRegistry.Contains<TUser>(endpoints.ServiceProvider, configured))

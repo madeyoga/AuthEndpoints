@@ -222,7 +222,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         var check = services.GetService<IEmailCodeModelCheck>();
         if (check is null)
         {
-            throw new InvalidOperationException($"{addMethod} must be called before {mapMethod}.");
+            throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
         }
 
         check.EnsureMapped();

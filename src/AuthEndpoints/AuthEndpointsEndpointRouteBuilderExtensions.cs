@@ -32,6 +32,11 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
+        if (endpoints.ServiceProvider.GetService<AuthEndpointsRegistration>() is null)
+        {
+            throw new InvalidOperationException("Call AddAuthEndpoints before MapAuthEndpoints.");
+        }
+
         var options = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
         return MapAuthEndpointsCore<TUser>(endpoints, options, options.SignIn);
     }

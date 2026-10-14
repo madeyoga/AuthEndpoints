@@ -1,6 +1,7 @@
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.ReAuth;
 
@@ -17,6 +18,11 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+
+        if (endpoints.ServiceProvider.GetService<ReAuthSchemeMarker>() is null)
+        {
+            throw new InvalidOperationException("Call AddReAuthScheme before MapReAuthEndpoints.");
+        }
 
         var group = endpoints.MapGroup("");
         IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));

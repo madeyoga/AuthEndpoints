@@ -42,7 +42,7 @@ internal static class AuthEndpointsModules
             return;
         }
 
-        Log(endpoints, $"{addMethod} was not called before {mapMethod}.");
+        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     public static void Log(IEndpointRouteBuilder endpoints, string message)

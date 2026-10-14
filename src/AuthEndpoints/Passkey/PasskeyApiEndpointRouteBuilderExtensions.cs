@@ -536,7 +536,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             return;
         }
 
-        AuthEndpointsModules.Log(endpoints, $"{addMethod} was not called before {mapMethod}.");
+        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     /// <summary>
