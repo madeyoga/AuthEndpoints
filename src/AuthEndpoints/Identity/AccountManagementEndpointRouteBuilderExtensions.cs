@@ -8,7 +8,10 @@ public static class AccountManagementEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps signed-in account routes: <c>/manage/info</c>, <c>/manage/2fa</c>, <c>/manage/authMethods</c>,
-    /// and <c>/confirmIdentity</c>. <c>POST /confirmIdentity/emailCode/send</c> is mapped when
+    /// <c>POST /manage/password</c>, and <c>/confirmIdentity</c>.
+    /// <c>POST /manage/password</c> sets a password when the account has none. It returns 404 when password
+    /// sign-in is not mapped, and 400 when a password already exists.
+    /// <c>POST /confirmIdentity/emailCode/send</c> is mapped when
     /// <c>AddEmailCodeEndpoints</c> was called. <c>POST /confirmIdentity/passkeyOptions</c> is mapped when
     /// <c>AddPasskeyEndpoints</c> was called. Also maps confirm-email when that name is not mapped yet.
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
@@ -24,14 +27,16 @@ public static class AccountManagementEndpointRouteBuilderExtensions
             endpoints,
             confirmEmailEndpointName,
             alwaysMapPasskeyOptions: false,
-            emailCodeReAuth: true);
+            emailCodeReAuth: true,
+            includeSetPassword: true);
     }
 
     internal static IEndpointConventionBuilder MapAccountManagementEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName,
         bool alwaysMapPasskeyOptions,
-        bool emailCodeReAuth)
+        bool emailCodeReAuth,
+        bool includeSetPassword)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -59,6 +64,11 @@ public static class AccountManagementEndpointRouteBuilderExtensions
 
         IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod, includeEmailCode: emailCodeReAuth);
         IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName, mapMethod);
+        if (includeSetPassword)
+        {
+            IdentityEndpointRoutes.MapSetPassword<TUser>(group, mapMethod);
+        }
+
         return new CompositeEndpointConventionBuilder(confirm, group);
     }
 }

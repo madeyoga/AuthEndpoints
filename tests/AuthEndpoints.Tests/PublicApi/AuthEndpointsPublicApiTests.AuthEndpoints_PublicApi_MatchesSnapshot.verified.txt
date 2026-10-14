@@ -398,6 +398,11 @@ namespace AuthEndpoints.Identity
         public EnforceAntiforgeryEndpointFilters(Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery) { }
         public virtual System.Threading.Tasks.ValueTask<object?> InvokeAsync(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext context, Microsoft.AspNetCore.Http.EndpointFilterDelegate next) { }
     }
+    public interface IAccountSecurityEmailSender<TUser>
+        where TUser :  class
+    {
+        System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
+    }
     public static class IdentityApiEndpointRouteBuilderExtensions
     {
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapBearerAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
@@ -436,7 +441,14 @@ namespace AuthEndpoints.Identity
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> Register([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.RegisterRequest registration, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Ok> ResendConfirmationEmail([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResendConfirmationEmailRequest resendRequest, System.Security.Claims.ClaimsPrincipal claimsPrincipal, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> ResetPassword([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResetPasswordRequest resetRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> SetPassword(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Identity.SetPasswordRequest request, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> TwoFactorStatus(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.Security.Claims.ClaimsPrincipal user) { }
+    }
+    public sealed class LoggingAccountSecurityEmailSender<TUser> : AuthEndpoints.Identity.IAccountSecurityEmailSender<TUser>
+        where TUser :  class
+    {
+        public LoggingAccountSecurityEmailSender(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.Identity.LoggingAccountSecurityEmailSender<TUser>> logger) { }
+        public System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class PasswordEndpointRouteBuilderExtensions
     {
@@ -480,6 +492,11 @@ namespace AuthEndpoints.Identity
     {
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddBearerSessionEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddCookieSessionEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+    }
+    public sealed class SetPasswordRequest
+    {
+        public SetPasswordRequest() { }
+        public string? NewPassword { get; init; }
     }
 }
 namespace AuthEndpoints.Jwt

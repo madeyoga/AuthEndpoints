@@ -23,6 +23,7 @@ POST /identity/confirmIdentity/passkeyOptions name=(none) auth=Identity.Applicat
 POST /identity/forgotPassword name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse
 POST /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=(none)
 POST /identity/manage/info name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=(none)
+POST /identity/manage/password name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=(none)
 POST /identity/register name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse
 POST /identity/resendConfirmationEmail name=(none) auth=Identity.Application,Identity.Bearer antiforgery=true rateLimit=AuthEndpoints.AccountAbuse
 POST /identity/resetPassword name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse

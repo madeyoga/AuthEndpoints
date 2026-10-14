@@ -1,5 +1,8 @@
 using AuthEndpoints.ReAuth;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AuthEndpoints.Identity;
 
@@ -24,6 +27,26 @@ public static class AccountManagementServiceCollectionExtensions
         services.AddAccountAbuseRateLimiting();
         services.AddConfirmIdentityRateLimiting();
         services.AddAuthEndpointsAuthorizationAndAntiforgery();
+        services.TryAddScoped(typeof(IAccountSecurityEmailSender<>), typeof(LoggingAccountSecurityEmailSender<>));
+        ReplaceDefaultAuthorizationResultHandler(services);
         return services;
+    }
+
+    private static void ReplaceDefaultAuthorizationResultHandler(IServiceCollection services)
+    {
+        var existing = services
+            .Where(descriptor => descriptor.ServiceType == typeof(IAuthorizationMiddlewareResultHandler))
+            .ToArray();
+        if (existing.Any(descriptor => descriptor.ImplementationType != typeof(AuthorizationMiddlewareResultHandler)))
+        {
+            return;
+        }
+
+        foreach (var descriptor in existing)
+        {
+            services.Remove(descriptor);
+        }
+
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, SetPasswordAvailabilityResultHandler>();
     }
 }

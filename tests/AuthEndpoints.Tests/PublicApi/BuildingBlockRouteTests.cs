@@ -176,6 +176,7 @@ public class BuildingBlockRouteTests
                 "POST /identity/confirmIdentity",
                 "POST /identity/manage/2fa",
                 "POST /identity/manage/info",
+                "POST /identity/manage/password",
                 "POST /identity/resendConfirmationEmail",
             ],
             routes);
@@ -727,6 +728,7 @@ public class BuildingBlockRouteTests
                 "POST /identity/manage/2fa",
                 "GET /identity/manage/info",
                 "POST /identity/manage/info",
+                "POST /identity/manage/password",
             ],
             RouteSurface.ListInMapOrder(app));
     }

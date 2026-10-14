@@ -502,6 +502,67 @@ public class IdentityApiEndpoints<TUser>
         });
     }
 
+    /// <summary>
+    /// Sets a password when the account has none.
+    /// Returns 404 when password sign-in is not mapped, and 400 when a password already exists.
+    /// Changing an existing password stays on <c>POST /manage/info</c>.
+    /// </summary>
+    public static async Task<Results<Ok, ValidationProblem, NotFound>> SetPassword(
+        ClaimsPrincipal claimsPrincipal,
+        [FromBody] SetPasswordRequest request,
+        HttpContext context,
+        [FromServices] IServiceProvider sp)
+    {
+        var userManager = sp.GetRequiredService<UserManager<TUser>>();
+        if (!userManager.SupportsUserPassword || !PasswordSignInMap.IsMapped(sp))
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (await userManager.HasPasswordAsync(user))
+        {
+            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.UserAlreadyHasPassword()));
+        }
+
+        if (string.IsNullOrEmpty(request?.NewPassword))
+        {
+            return CreateValidationProblem("PasswordRequired", "A password is required.");
+        }
+
+        var addPasswordResult = await userManager.AddPasswordAsync(user, request.NewPassword);
+        if (!addPasswordResult.Succeeded)
+        {
+            return CreateValidationProblem(addPasswordResult);
+        }
+
+        if (userManager.SupportsUserSecurityStamp)
+        {
+            var stampResult = await userManager.UpdateSecurityStampAsync(user);
+            if (!stampResult.Succeeded)
+            {
+                return CreateValidationProblem(stampResult);
+            }
+        }
+
+        var email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email.");
+        var sender = sp.GetRequiredService<IAccountSecurityEmailSender<TUser>>();
+        await sender.SendPasswordSetAsync(user, email, context.RequestAborted);
+
+        if (await SignInSchemes.IsAuthenticatedAsync(context, IdentityConstants.ApplicationScheme))
+        {
+            var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
+            signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+            await signInManager.RefreshSignInAsync(user);
+        }
+
+        return TypedResults.Ok();
+    }
+
     internal static async Task SendConfirmationEmailAsync(
         TUser user,
         UserManager<TUser> userManager,

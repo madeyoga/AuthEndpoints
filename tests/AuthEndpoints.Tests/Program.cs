@@ -37,6 +37,7 @@ builder.Services.AddDbContext<TestDbContext>(options =>
 builder.Services.AddSingleton<CapturingEmailSender>();
 builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
+builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
 if (useFacade)

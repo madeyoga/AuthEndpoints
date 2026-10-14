@@ -305,6 +305,8 @@ public class PerSessionSharedRouteTests
             app => app.MapPasswordSignInEndpoints<TestAppUser>()))
         {
             Assert.True(PasswordSignInMap.IsMapped(login.Services));
+            using var scope = login.Services.CreateScope();
+            Assert.True(PasswordSignInMap.IsMapped(scope.ServiceProvider));
         }
 
         using (var cookie = RouteSurface.Build(
