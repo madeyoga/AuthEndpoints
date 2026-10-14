@@ -2,6 +2,7 @@ namespace AuthEndpoints.Identity;
 
 /// <summary>
 /// Sends the notice that an authentication method changed, or that registration was attempted for an existing account.
+/// Queue the message and return. Sending it inline over SMTP makes a known address slower than an unknown one.
 /// <see cref="LoggingAccountSecurityEmailSender{TUser}"/> is the default and only logs.
 /// Register an implementation to deliver the message.
 /// </summary>

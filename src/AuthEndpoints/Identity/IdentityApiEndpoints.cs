@@ -74,7 +74,12 @@ public class IdentityApiEndpoints<TUser>
                 }
                 else
                 {
-                    EnumerationPadding.Protect(sp.GetRequiredService<IDataProtectionProvider>(), email);
+                    // The username collided and this email is not an account. Mint a confirmation token anyway.
+                    _ = await EnumerationPadding.CreateDecoyEmailConfirmationTokenAsync(
+                        userManager,
+                        userStore,
+                        sp.GetRequiredService<IDataProtectionProvider>(),
+                        email);
                 }
 
                 return TypedResults.Ok();

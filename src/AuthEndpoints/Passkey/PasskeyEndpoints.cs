@@ -262,40 +262,25 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
+        // Failures before a successful attestation share one problem. The email is not read on this path,
+        // so a known address and an unknown address return the same body.
         if (string.IsNullOrEmpty(request.CredentialJson))
         {
-            return TypedResults.Problem(
-                detail: "The browser did not provide a passkey.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
-        if (await userManager.FindByEmailAsync(email) is not null)
-        {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var (attestationResult, ceremonyProblem) = await PasskeyHttp.TryPerformAsync(
+        var (attestationResult, _) = await PasskeyHttp.TryPerformAsync(
             () => signInManager.PerformPasskeyAttestationAsync(request.CredentialJson));
-        if (ceremonyProblem is not null)
+        if (attestationResult is not { Succeeded: true })
         {
-            return ceremonyProblem;
-        }
-
-        if (!attestationResult!.Succeeded)
-        {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
         var userEntity = attestationResult.UserEntity;
-        if (await userManager.FindByIdAsync(userEntity.Id) is not null)
+        if (await userManager.FindByEmailAsync(email) is not null
+            || await userManager.FindByIdAsync(userEntity.Id) is not null)
         {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
         var user = new TUser();
@@ -306,9 +291,7 @@ public static class PasskeyEndpoints<TUser>
         var createUserResult = await userManager.CreateAsync(user);
         if (!createUserResult.Succeeded)
         {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
         var addPasskeyResult = await userManager.AddOrUpdatePasskeyAsync(user, attestationResult.Passkey);
@@ -399,6 +382,11 @@ public static class PasskeyEndpoints<TUser>
             },
             cancellationToken);
     }
+
+    private static ProblemHttpResult RegistrationNotCompleted() =>
+        TypedResults.Problem(
+            detail: "Unable to complete registration.",
+            statusCode: StatusCodes.Status400BadRequest);
 
     private static async Task<bool> CanRemovePasskeyAsync(UserManager<TUser> userManager, TUser user)
     {

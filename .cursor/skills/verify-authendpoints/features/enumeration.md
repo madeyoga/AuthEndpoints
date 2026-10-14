@@ -10,6 +10,7 @@ Register, forgot password, resend confirmation, email-code send, and passkey reg
 - `resend-match` returns empty 200 for the signed-in email and for another email. The body email is ignored.
 - `email-code-match` returns the same 200 body for a known email and an unknown email when `AE_EMAIL_CODE=true`.
 - `passkey-options-match` returns 200 creation-options JSON for a known email and an unknown email.
+- `passkey-register-match` returns the same 400 `Unable to complete registration.` for a known email and an unknown email when `credentialJson` is `{}`.
 
 ## How to get to it (user POV)
 
@@ -18,6 +19,7 @@ Register, forgot password, resend confirmation, email-code send, and passkey reg
 - `POST /identity/resendConfirmationEmail` JSON `{ "email" }` with the application cookie and CSRF header.
 - `POST /identity/emailCode/send` JSON `{ "email" }` when email code is mapped.
 - `POST /account/passkeys/register/options` JSON `{ "email" }` with CSRF.
+- `POST /account/passkeys/register` JSON `{ "email", "credentialJson" }` with CSRF.
 - `GET /test/mailbox` lists `{ email, kind, body }`.
 
 ## Driving it with ae-http
@@ -38,6 +40,7 @@ Preconditions:
 - **Resend.** Login at `POST /identity/login`, then POST `--csrf /identity/resendConfirmationEmail` with `EMAIL` and with the nobody address. Both statuses are `200` and bodies match.
 - **Email code.** With `AE_EMAIL_CODE=true`, POST `/identity/emailCode/send` for `EMAIL` and for the nobody address. Both statuses are `200`. Bodies match (`expiresInSeconds`, `resendAfterSeconds`).
 - **Passkey options.** POST `--csrf /account/passkeys/register/options` for `EMAIL` and for the nobody address. Both statuses are `200`. Both bodies are creation-options JSON with the same property names.
+- **Passkey register without a ceremony.** POST `--csrf /account/passkeys/register` with `credentialJson` `{}` for `EMAIL` and for the nobody address. Both statuses are `400`. Bodies match and contain `Unable to complete registration.`
 - **Proof.** Keep each pair's status, body, and headers, the mailbox after the duplicate register, and the Aspire span durations for the known and unknown call of each route.
 
 ## Gotchas
@@ -49,3 +52,4 @@ Preconditions:
 - Passkey register options JSON differs by `challenge` and `user.id`. Compare the shape, not the bytes. `Set-Cookie` values differ for the same reason.
 - Account-abuse and passkey option routes are rate-limited. One known call and one unknown call per route stays inside the window. A 429 is not a product failure.
 - There is no option to turn enumeration-safe responses off.
+- Queue confirmation, reset, and registration-attempt mail. A sender that waits on SMTP makes a known address slower than an unknown one.

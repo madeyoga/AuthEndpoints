@@ -51,7 +51,10 @@ public class PasskeyBearerCeremonyTests
             "/account/passkeys/register",
             new { email, credentialJson },
             csrfPath: "/test/csrfToken");
-        await TestHelpers.AssertValidationErrorAsync(missingState, "InvalidPasskeyState");
+        Assert.Equal(HttpStatusCode.BadRequest, missingState.StatusCode);
+        var missingStateBody = await missingState.Content.ReadAsStringAsync();
+        Assert.Contains("Unable to complete registration.", missingStateBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidPasskeyState", missingStateBody, StringComparison.Ordinal);
 
         // useCookies selects the application cookie. The default bearer sign-in writes the
         // token body inside SignInAsync, so this call is the cookie path: it proves the

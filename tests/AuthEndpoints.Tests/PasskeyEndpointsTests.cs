@@ -161,30 +161,39 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
     [Fact]
     public async Task Register_ExistingEmail_ReturnsGenericBadRequest()
     {
+        using var factory = new TestWebApplicationFactory();
         var email = $"passkey-reg-{Guid.NewGuid():N}@test.local";
-        await TestHelpers.SeedUserAsync(_factory, email);
-        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.SeedUserAsync(factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        var origin = client.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
 
-        var csrf = await TestHelpers.GetCsrfTokenAsync(client);
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/account/passkeys/register")
-        {
-            Content = JsonContent.Create(new
-            {
-                email,
-                credentialJson = "{}"
-            })
-        };
-        request.Headers.Add("RequestVerificationToken", csrf);
+        var optionsResponse = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register/options",
+            new { email });
+        Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
+        var credentialJson = authenticator.CreateAttestation(await optionsResponse.Content.ReadAsStringAsync(), origin);
 
-        var response = await client.SendAsync(request);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var register = await TestHelpers.PostWithCsrfAsync(
+            client,
+            "/account/passkeys/register",
+            new { email, credentialJson });
+        Assert.Equal(HttpStatusCode.BadRequest, register.StatusCode);
 
-        var body = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Unable to complete registration", body, StringComparison.OrdinalIgnoreCase);
+        var body = await register.Content.ReadAsStringAsync();
+        Assert.Contains("Unable to complete registration.", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidPasskeyState", body, StringComparison.Ordinal);
         Assert.DoesNotContain("already exists", body, StringComparison.OrdinalIgnoreCase);
 
-        var mailbox = _factory.Services.GetRequiredService<CapturingEmailSender>();
+        var mailbox = factory.Services.GetRequiredService<CapturingEmailSender>();
         Assert.DoesNotContain(mailbox.Snapshot(), mail => mail.Email == email);
+
+        using var scope = factory.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var existing = await users.FindByEmailAsync(email);
+        Assert.NotNull(existing);
+        Assert.Empty(await users.GetPasskeysAsync(existing));
     }
 
     [Fact]
@@ -564,7 +573,7 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
     }
 
     [Fact]
-    public async Task Register_WithoutCreationOptions_ReturnsInvalidPasskeyState()
+    public async Task Register_WithoutCreationOptions_ReturnsGenericBadRequest()
     {
         using var factory = new TestWebApplicationFactory();
         using var client = TestHelpers.CreateClientWithCookies(factory);
@@ -574,7 +583,10 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
             client,
             "/account/passkeys/register",
             new { email, credentialJson = "{}" });
-        await TestHelpers.AssertValidationErrorAsync(register, PasskeyHttp.InvalidPasskeyState);
+        Assert.Equal(HttpStatusCode.BadRequest, register.StatusCode);
+        var body = await register.Content.ReadAsStringAsync();
+        Assert.Contains("Unable to complete registration.", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidPasskeyState", body, StringComparison.Ordinal);
     }
 
     [Fact]

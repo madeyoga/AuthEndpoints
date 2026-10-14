@@ -25,15 +25,47 @@ internal static class EnumerationPadding
     /// Mints a password-reset token for an unsaved user. The token is not for any stored account.
     /// Falls back to <see cref="Protect"/> when the user type has no string or <see cref="Guid"/> key.
     /// </summary>
-    public static async Task<string> CreateDecoyPasswordResetTokenAsync<TUser>(
+    public static Task<string> CreateDecoyPasswordResetTokenAsync<TUser>(
         UserManager<TUser> userManager,
         IUserStore<TUser> store,
         IDataProtectionProvider dataProtection,
         string email)
         where TUser : class, new()
+        => CreateDecoyTokenAsync(
+            userManager,
+            store,
+            dataProtection,
+            email,
+            static (manager, user) => manager.GeneratePasswordResetTokenAsync(user));
+
+    /// <summary>
+    /// Mints an email-confirmation token for an unsaved user. The token is not for any stored account.
+    /// Falls back to <see cref="Protect"/> when the user type has no string or <see cref="Guid"/> key.
+    /// </summary>
+    public static Task<string> CreateDecoyEmailConfirmationTokenAsync<TUser>(
+        UserManager<TUser> userManager,
+        IUserStore<TUser> store,
+        IDataProtectionProvider dataProtection,
+        string email)
+        where TUser : class, new()
+        => CreateDecoyTokenAsync(
+            userManager,
+            store,
+            dataProtection,
+            email,
+            static (manager, user) => manager.GenerateEmailConfirmationTokenAsync(user));
+
+    private static async Task<string> CreateDecoyTokenAsync<TUser>(
+        UserManager<TUser> userManager,
+        IUserStore<TUser> store,
+        IDataProtectionProvider dataProtection,
+        string email,
+        Func<UserManager<TUser>, TUser, Task<string>> generate)
+        where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(userManager);
         ArgumentNullException.ThrowIfNull(store);
+        ArgumentNullException.ThrowIfNull(generate);
         ArgumentException.ThrowIfNullOrEmpty(email);
 
         var user = new TUser();
@@ -49,7 +81,12 @@ internal static class EnumerationPadding
                 await stamps.SetSecurityStampAsync(user, Guid.NewGuid().ToString("N"), CancellationToken.None);
             }
 
-            return await userManager.GeneratePasswordResetTokenAsync(user);
+            if (store is IUserEmailStore<TUser> emails)
+            {
+                await emails.SetEmailAsync(user, email, CancellationToken.None);
+            }
+
+            return await generate(userManager, user);
         }
         catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException or FormatException or ArgumentException)
         {

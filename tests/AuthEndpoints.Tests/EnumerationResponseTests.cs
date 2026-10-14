@@ -20,9 +20,11 @@ namespace AuthEndpoints.Tests;
 public sealed class EnumerationResponseTests : IAsyncLifetime
 {
     /// <summary>
-    /// Median absolute difference allowed between a known-account request and an unknown-account request.
+    /// Median absolute difference allowed between a known-account request and an unknown-account request
+    /// after one warmed pair. The test sender does not perform network I/O.
+    /// Hosts should queue mail and return; inline SMTP is the gap this bound does not cover.
     /// </summary>
-    private static readonly TimeSpan TimingBound = TimeSpan.FromMilliseconds(300);
+    private static readonly TimeSpan TimingBound = TimeSpan.FromMilliseconds(50);
 
     private const int TimedSamples = 4;
 
@@ -204,6 +206,58 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             () => SendAsync(HttpMethod.Post, "/account/passkeys/register/options", new { email = known }, jar, csrf: true),
             () => SendAsync(HttpMethod.Post, "/account/passkeys/register/options", new { email = Email("passkey-time") }, jar, csrf: true),
             compareBody: false);
+    }
+
+    [Fact]
+    public async Task PasskeyRegister_KnownAndUnknown_Match()
+    {
+        var known = Email("passkey-register-known");
+        await _host.SeedAsync(known, confirmed: true);
+        var jar = new Jar();
+        var body = new { email = known, credentialJson = "{}" };
+
+        var knownResponse = await SendAsync(HttpMethod.Post, "/account/passkeys/register", body, jar, csrf: true);
+        var unknownResponse = await SendAsync(
+            HttpMethod.Post,
+            "/account/passkeys/register",
+            new { email = Email("passkey-register-unknown"), credentialJson = "{}" },
+            jar,
+            csrf: true);
+
+        Assert.Equal(HttpStatusCode.BadRequest, knownResponse.Response.StatusCode);
+        AssertSame(knownResponse, unknownResponse, compareBody: true);
+        Assert.Contains("Unable to complete registration.", knownResponse.Body, StringComparison.Ordinal);
+        Assert.DoesNotContain("InvalidPasskeyState", knownResponse.Body, StringComparison.Ordinal);
+        Assert.Equal(1, await _host.CountUsersAsync(known));
+        Assert.DoesNotContain(_host.Mail.Snapshot(), mail => mail.Email == known && mail.Kind == "confirm");
+
+        await AssertTimingAsync(
+            "passkeys/register",
+            () => SendAsync(HttpMethod.Post, "/account/passkeys/register", new { email = known, credentialJson = "{}" }, jar, csrf: true),
+            () => SendAsync(
+                HttpMethod.Post,
+                "/account/passkeys/register",
+                new { email = Email("passkey-register-time"), credentialJson = "{}" },
+                jar,
+                csrf: true));
+    }
+
+    [Fact]
+    public async Task Register_DuplicateUserNameWithoutThatEmail_ReturnsOk()
+    {
+        var email = Email("register-username");
+        var ownerEmail = Email("register-username-owner");
+        await _host.SeedAsync(ownerEmail, confirmed: true, userName: email);
+
+        var response = await PostAsync("/identity/register", new { email, password = TestHelpers.DefaultPassword });
+
+        Assert.Equal(HttpStatusCode.OK, response.Response.StatusCode);
+        Assert.Equal(string.Empty, response.Body);
+        Assert.Equal(0, await _host.CountUsersAsync(email));
+        Assert.Equal(1, await _host.CountUsersAsync(ownerEmail));
+        Assert.DoesNotContain(
+            _host.Mail.Snapshot(),
+            mail => mail.Email == email && mail.Kind == "registration-attempt");
     }
 
     private async Task AssertTimingAsync(
@@ -440,18 +494,22 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             identity.MapPasswordEndpoints<TestAppUser>();
             identity.MapCookieSessionEndpoints<TestAppUser>();
             identity.MapEmailCodeEndpoints<TestAppUser>();
-            app.MapGroup("/account").MapPasskeyRegisterOptionsEndpoints<TestAppUser>();
+            var account = app.MapGroup("/account");
+            account.MapPasskeyRegisterOptionsEndpoints<TestAppUser>();
+            account.MapPasskeySignUpEndpoints<TestAppUser>("EnumerationPasskeyConfirmEmail");
             await app.StartAsync();
             return new Host(app, path, mail);
         }
 
-        public async Task SeedAsync(string email, bool confirmed)
+        public Task SeedAsync(string email, bool confirmed) => SeedAsync(email, confirmed, userName: null);
+
+        public async Task SeedAsync(string email, bool confirmed, string? userName)
         {
             using var scope = App.Services.CreateScope();
             var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
             var user = new TestAppUser
             {
-                UserName = email,
+                UserName = userName ?? email,
                 Email = email,
                 EmailConfirmed = confirmed
             };
