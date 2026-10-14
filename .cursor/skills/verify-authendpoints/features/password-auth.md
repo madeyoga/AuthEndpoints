@@ -15,8 +15,8 @@
 - `GET /test/mailbox` lists captured mail. Confirmation `body` is the HTML-encoded confirm URL
 - `GET /auth/confirmEmail?userId=&code=` from that URL
 - Cookie: `POST /auth/login` JSON `{ "email", "password" }` sets `.AspNetCore.Identity.Application`
-- JWT: `POST /auth/create` JSON `{ "email", "password" }` returns `accessToken` and sets `AuthEndpoints.Jwt.RefreshToken` (cookie transport)
-- `GET /auth/manage/info` with the application cookie, or with `Authorization: Bearer` for JWT
+- JWT: `POST /auth/create` JSON `{ "email", "password" }` returns `accessToken` and `tokenType` `Bearer`. Cookie transport sets `AuthEndpoints.Jwt.RefreshToken` and omits `refreshToken`. Body transport (`AE_JWT_REFRESH_TRANSPORT=Body`) also returns `refreshToken` and sets no refresh cookie
+- `GET /auth/manage/info` with the application cookie, with `Identity.Bearer` in cookie mode, or with `Authorization: Bearer` for JWT
 - `GET /auth/csrfToken` then `POST /auth/logout` with `RequestVerificationToken`
 - JWT also: `GET /auth/verify` with the bearer token, and `POST /auth/refresh` with the CSRF token
 
