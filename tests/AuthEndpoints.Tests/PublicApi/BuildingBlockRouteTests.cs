@@ -5,6 +5,7 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -531,6 +532,87 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
+    public void MapSignInEndpoints_WithNoSignInModule_LogsWarning()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddCookieSessionEndpoints(), app =>
+        {
+            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.Contains(
+            logs.Messages,
+            message => message.Contains(
+                "MapSignInEndpoints mapped no sign-in method.",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MapSignInEndpoints_WithPasswordSignIn_DoesNotLogMissingSignInWarning()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services =>
+        {
+            services.AddPasswordSignInEndpoints();
+            services.AddCookieSessionEndpoints();
+        }, app =>
+        {
+            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(
+            logs.Messages,
+            message => message.Contains("mapped no sign-in method", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PasskeySignInAndManagementAdds_MatchTheirMaps()
+    {
+        var signInLogs = new WarningLog();
+        using var signIn = BuildIdentity(services =>
+        {
+            services.AddPasskeySignInEndpoints<TestAppUser>();
+            services.AddCookieSessionEndpoints();
+        }, app =>
+        {
+            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+        }, signInLogs);
+
+        var signInRoutes = RouteSurface.ListRoutes(signIn);
+        Assert.Contains("POST /web/passkeys/requestOptions", signInRoutes);
+        Assert.Contains("POST /web/passkeys/login", signInRoutes);
+        Assert.DoesNotContain("POST /web/passkeys/register", signInRoutes);
+        Assert.DoesNotContain(signInRoutes, route => route.Contains("register/options", StringComparison.Ordinal));
+        Assert.Equal(
+            SignInCompleters.Cookie,
+            Find(signIn, "POST /web/passkeys/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.DoesNotContain(signInLogs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+        Assert.DoesNotContain(signInLogs.Messages, message => message.Contains("mapped no sign-in method", StringComparison.Ordinal));
+
+        var legacyLogs = new WarningLog();
+        using var legacy = BuildIdentity(services => services.AddPasskeySignInEndpoints<TestAppUser>(), app =>
+        {
+            app.MapPasskeySignInEndpoints<TestAppUser>();
+        }, legacyLogs);
+        _ = RouteSurface.ListRoutes(legacy);
+        Assert.DoesNotContain(legacyLogs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+
+        var managementLogs = new WarningLog();
+        using var management = BuildIdentity(services => services.AddPasskeyManagementEndpoints(), app =>
+        {
+            app.MapPasskeyManagementEndpoints<TestAppUser>();
+        }, managementLogs);
+
+        var managementRoutes = RouteSurface.ListRoutes(management);
+        Assert.Contains("POST /passkeys/creationOptions", managementRoutes);
+        Assert.Contains("GET /passkeys/", managementRoutes);
+        Assert.DoesNotContain("POST /passkeys/login", managementRoutes);
+        Assert.DoesNotContain(managementLogs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void CookieAndBearerSessions_OnTheSamePrefix_WarnAboutLogout()
     {
         var logs = new WarningLog();
@@ -699,9 +781,18 @@ public class BuildingBlockRouteTests
     public void AddMethods_AreIdempotent()
     {
         AssertIdempotent(services => services.AddPasswordEndpoints());
+        AssertIdempotent(services => services.AddPasswordSignUpEndpoints());
+        AssertIdempotent(services => services.AddPasswordSignInEndpoints());
+        AssertIdempotent(services => services.AddPasswordRecoveryEndpoints());
         AssertIdempotent(services => services.AddCookieSessionEndpoints());
         AssertIdempotent(services => services.AddBearerSessionEndpoints());
         AssertIdempotent(services => services.AddAccountManagementEndpoints());
+        AssertIdempotent(services => services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddPasskeySignUpEndpoints());
+        AssertIdempotent(services => services.AddPasskeySignInEndpoints());
+        AssertIdempotent(services => services.AddPasskeyRegisterOptionsEndpoints());
+        AssertIdempotent(services => services.AddPasskeyManagementEndpoints());
         AssertIdempotent(services => services.AddLoginRateLimiting());
         AssertIdempotent(services => services.AddAccountAbuseRateLimiting());
         AssertIdempotent(services => services.AddConfirmIdentityRateLimiting());

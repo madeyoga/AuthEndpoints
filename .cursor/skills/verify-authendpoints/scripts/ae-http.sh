@@ -23,7 +23,7 @@ Environment:
   AE_EVIDENCE_DIR  Proof output dir; never deleted by stop (default: $AE_RUN_DIR/evidence)
   AE_COOKIE_JAR    curl cookie jar (default: $AE_RUN_DIR/cookies.txt)
   AE_REPO_ROOT     Repository root (default: git root or cwd)
-  AE_HOST_MODE     Test host mapping: compose (default) or bearer-facade
+  AE_HOST_MODE     Test host mapping: compose (default), bearer-facade, cookie-facade, or split
   AE_REQUIRE_CONFIRMED_ACCOUNT  When true, the test host sets SignIn.RequireConfirmedAccount.
                                 Library default is true; this host defaults to false.
   AE_CONFIRM_EMAIL_REDIRECT_URI  Maps to AuthEndpointsOptions.EmailConfirmation.ConfirmEmailRedirectUri.
@@ -207,6 +207,9 @@ wait_ready() {
   if [[ "$AE_HOST_MODE" == "bearer-facade" ]]; then
     ready_path="/identity/manage/info"
     ready_code="401"
+  elif [[ "$AE_HOST_MODE" == "split" ]]; then
+    ready_path="/web/csrfToken"
+    ready_code="200"
   fi
   for i in $(seq 1 60); do
     status="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 1 "${AE_BASE_URL}${ready_path}" 2>/dev/null || true)"
@@ -321,6 +324,17 @@ cmd_doctor() {
     echo "ok pid=$pid url=${AE_BASE_URL} mode=bearer-facade manage/info=401"
     return 0
   fi
+  if [[ "$AE_HOST_MODE" == "split" ]]; then
+    status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/web/csrfToken")"
+    if [[ "$status" != "200" ]]; then
+      echo "GET /web/csrfToken returned HTTP $status (want 200 for split)." >&2
+      cat "${AE_RUN_DIR}/doctor.body" >&2 || true
+      exit 1
+    fi
+    json_get csrfToken CsrfToken < "${AE_RUN_DIR}/doctor.body" >/dev/null
+    echo "ok pid=$pid url=${AE_BASE_URL} mode=split csrfToken=present"
+    return 0
+  fi
   status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/identity/csrfToken")"
   if [[ "$status" != "200" ]]; then
     echo "GET /identity/csrfToken returned HTTP $status (want 200)." >&2
@@ -382,6 +396,13 @@ cmd_post() {
     local csrf_path="/identity/csrfToken"
     case "$AE_PATH" in
       /auth/*) csrf_path="/auth/csrfToken" ;;
+      /web/*) csrf_path="/web/csrfToken" ;;
+      /app/*) csrf_path="/app/csrfToken" ;;
+      *)
+        if [[ "$AE_HOST_MODE" == "split" ]]; then
+          csrf_path="/web/csrfToken"
+        fi
+        ;;
     esac
     csrf="$(AE_OUT="" http GET "$csrf_path" "" "" "" >/dev/null; printf '%s' "$AE_LAST_BODY" | json_get csrfToken CsrfToken)"
   fi

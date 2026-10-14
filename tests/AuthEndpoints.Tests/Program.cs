@@ -20,6 +20,7 @@ var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
 var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.OrdinalIgnoreCase);
+var useSplit = string.Equals(hostMode, "split", StringComparison.OrdinalIgnoreCase);
 var useFacade = useBearerFacade || useCookieFacade;
 var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
 var emailCode = IsTruthy(builder.Configuration["AE_EMAIL_CODE"]);
@@ -68,6 +69,25 @@ if (useFacade)
         builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(ConfigureFacade);
     }
 }
+else if (useSplit)
+{
+    builder.Services
+        .AddIdentityApiEndpoints<TestAppUser>(identity => ConfigureTestIdentity(identity, requireConfirmedAccount))
+        .AddEntityFrameworkStores<TestDbContext>()
+        .AddDefaultTokenProviders();
+    builder.Services.AddPasswordEndpoints();
+    builder.Services.AddCookieSessionEndpoints();
+    builder.Services.AddAccountManagementEndpoints();
+    builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+        ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
+    builder.Services.AddPasskeyEndpoints<TestAppUser>();
+    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+    {
+        options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+    });
+    builder.Services.AddOptions<AuthEndpointsOptions>()
+        .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
+}
 else
 {
     builder.Services
@@ -109,6 +129,17 @@ if (useFacade)
 {
     app.UseAuthEndpoints();
     app.MapAuthEndpoints<TestAppUser>();
+}
+else if (useSplit)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseRateLimiter();
+    app.UseAntiforgery();
+
+    app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+    app.MapGroup("/app").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Jwt);
+    app.MapSharedAuthEndpoints<TestAppUser>();
 }
 else
 {

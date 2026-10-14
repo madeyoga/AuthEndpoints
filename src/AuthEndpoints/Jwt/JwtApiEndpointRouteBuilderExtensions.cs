@@ -40,6 +40,7 @@ public static class JwtApiEndpointRouteBuilderExtensions
         routeGroup.MapPost("/create", JwtEndpoints<TUser>.Create)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
             .Track(endpoints, nameof(MapJwtPasswordEndpoints));
+        PasswordSignInMap.Mark(endpoints.ServiceProvider);
         return routeGroup;
     }
 

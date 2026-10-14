@@ -1,5 +1,12 @@
 ﻿namespace AuthEndpoints
 {
+    public static class AuthCompositionEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapSharedAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? sharedPath = null)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session)
+            where TUser :  class, new () { }
+    }
     public static class AuthEndpointsApplicationBuilderExtensions
     {
         public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseAuthEndpoints(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
@@ -147,6 +154,14 @@ namespace AuthEndpoints.EmailCode
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session)
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string completer)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeSendEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapEmailCodeSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string completer)
             where TUser :  class, new () { }
     }
     public static class EmailCodeEndpoints<TUser>
@@ -299,12 +314,18 @@ namespace AuthEndpoints.EmailCode
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
             where TUser :  class, new ()
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSendEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
+            where TUser :  class, new ()
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
         [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
             "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
             "ions.Default. Removed in 5.0.")]
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class
             where TCompleter :  class, AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser> { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
+            where TUser :  class, new ()
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
     }
 }
 namespace AuthEndpoints.Identity
@@ -417,6 +438,21 @@ namespace AuthEndpoints.Identity
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> ResetPassword([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResetPasswordRequest resetRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> TwoFactorStatus(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.Security.Claims.ClaimsPrincipal user) { }
     }
+    public static class PasswordEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordRecoveryEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.Identity.PasswordLoginMode login)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordSignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string completer)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordSignUpEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
+            where TUser :  class, new () { }
+    }
     public enum PasswordLoginMode
     {
         Cookie = 0,
@@ -426,6 +462,9 @@ namespace AuthEndpoints.Identity
     public static class PasswordServiceCollectionExtensions
     {
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasswordEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasswordRecoveryEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasswordSignInEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasswordSignUpEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
     }
     public static class ServiceCollectionExtensions
     {
@@ -687,11 +726,19 @@ namespace AuthEndpoints.Passkey
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyManagementEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
             where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyRegisterOptionsEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string completer, string? confirmEmailEndpointName)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeySignUpEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeySignUpEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session, string? confirmEmailEndpointName = null)
+            where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeySignUpEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string completer, string? confirmEmailEndpointName)
             where TUser :  class, new () { }
     }
     public record PasskeyCredentialResponse : System.IEquatable<AuthEndpoints.Passkey.PasskeyCredentialResponse>
@@ -773,12 +820,20 @@ namespace AuthEndpoints.Passkey
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyManagementEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyRegisterOptionsEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
             "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
             "ions.Default. Removed in 5.0.")]
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class
             where TCompleter :  class, AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser> { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignUpEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignUpEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyUserIdFactory(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Func<string> createUserId) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyUserIdFactory<TFactory>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TFactory :  class, AuthEndpoints.Passkey.IPasskeyUserIdFactory { }

@@ -50,6 +50,7 @@ internal static class IdentityEndpointRoutes
                 .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
                 .WithMetadata(new SignInCompleterSelection(completer))
                 .Track(endpoints, mapMethod);
+            PasswordSignInMap.Mark(endpoints.ServiceProvider);
             return;
         }
 
@@ -61,11 +62,13 @@ internal static class IdentityEndpointRoutes
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.LoginCookie)
                     .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
                     .Track(endpoints, mapMethod);
+                PasswordSignInMap.Mark(endpoints.ServiceProvider);
                 return;
             case PasswordLoginMode.IdentityBearer:
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
                     .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
                     .Track(endpoints, mapMethod);
+                PasswordSignInMap.Mark(endpoints.ServiceProvider);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(login), login, "Unknown password login mode.");
