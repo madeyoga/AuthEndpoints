@@ -1,12 +1,9 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Security.Claims;
 using System.Text.Json;
 using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
-using AuthEndpoints.ReAuth;
 using AuthEndpoints.Tests.PublicApi;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
@@ -193,30 +190,41 @@ public class SetPasswordEndpointTests
     }
 
     [Fact]
-    public async Task SetPassword_JwtManagementWithoutAccountManagementRegistration_SetsPassword()
+    public void SetPassword_JwtManagementWithoutAccountManagementRegistration_ThrowsNamedFix()
     {
-        await using var host = await JwtManagementHost.StartAsync();
-        var email = Email();
-        await host.SeedWithoutPasswordAsync(email);
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development,
+        });
+        builder.WebHost.UseTestServer();
+        builder.Services.AddDbContext<TestDbContext>(options =>
+            options.UseInMemoryDatabase("set-password-jwt-missing-" + Guid.NewGuid().ToString("N")));
+        builder.Services
+            .AddIdentityApiEndpoints<TestAppUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = false;
+                options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+            })
+            .AddEntityFrameworkStores<TestDbContext>()
+            .AddDefaultTokenProviders();
+        builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+        {
+            options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+        });
+        builder.Services.AddPasswordEndpoints();
 
-        using (var scope = host.App.Services.CreateScope())
+        using var app = builder.Build();
+        using (var scope = app.Services.CreateScope())
         {
             Assert.IsType<LoggingAccountSecurityEmailSender<TestAppUser>>(
                 scope.ServiceProvider.GetRequiredService<IAccountSecurityEmailSender<TestAppUser>>());
         }
 
-        var (accessToken, reauthToken) = await host.MintAsync(email);
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/account/manage/password")
-        {
-            Content = JsonContent.Create(new { newPassword = "SetPass1!" }),
-        };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        request.Headers.TryAddWithoutValidation(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
-
-        var response = await host.Client.SendAsync(request);
-        var body = await response.Content.ReadAsStringAsync();
-        Assert.True(response.StatusCode == HttpStatusCode.OK, $"{(int)response.StatusCode} {body}");
-        Assert.True(await host.HasPasswordAsync(email));
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            app.MapGroup("/account").MapIdentityManagementApi<TestAppUser>());
+        Assert.Equal(
+            "Call AddAccountManagementEndpoints before MapAccountManagementEndpoints.",
+            ex.Message);
     }
 
     [Fact]
@@ -562,127 +570,6 @@ public class SetPasswordEndpointTests
             if (!string.IsNullOrEmpty(header))
             {
                 request.Headers.TryAddWithoutValidation("Cookie", header);
-            }
-        }
-    }
-
-    private sealed class JwtManagementHost : IAsyncDisposable
-    {
-        private readonly string _path;
-
-        private JwtManagementHost(WebApplication app, string path)
-        {
-            App = app;
-            _path = path;
-            Client = app.GetTestClient();
-        }
-
-        public WebApplication App { get; }
-
-        public HttpClient Client { get; }
-
-        public static async Task<JwtManagementHost> StartAsync()
-        {
-            var path = Path.Combine(Path.GetTempPath(), $"ae-set-password-jwt-{Guid.NewGuid():N}.sqlite");
-            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-            {
-                EnvironmentName = Environments.Development,
-            });
-            builder.WebHost.UseTestServer();
-            builder.Services.AddDbContext<TestDbContext>(options =>
-                options.UseSqlite($"Data Source={path};Default Timeout=30"));
-            builder.Services
-                .AddIdentityApiEndpoints<TestAppUser>(options =>
-                {
-                    options.SignIn.RequireConfirmedAccount = false;
-                    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-                })
-                .AddEntityFrameworkStores<TestDbContext>()
-                .AddDefaultTokenProviders();
-            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
-            {
-                options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-            });
-            builder.Services.AddReAuthScheme();
-            builder.Services.AddAntiforgery();
-
-            var app = builder.Build();
-            using (var scope = app.Services.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-                await db.Database.EnsureCreatedAsync();
-            }
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseRateLimiter();
-            app.UseAntiforgery();
-            app.MapGroup("/account").MapIdentityManagementApi<TestAppUser>();
-            app.MapGroup("/auth").MapJwtPasswordEndpoints<TestAppUser>();
-            await app.StartAsync();
-            return new JwtManagementHost(app, path);
-        }
-
-        public async Task SeedWithoutPasswordAsync(string email)
-        {
-            using var scope = App.Services.CreateScope();
-            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-            var user = new TestAppUser { UserName = email, Email = email, EmailConfirmed = true };
-            var created = await users.CreateAsync(user);
-            Assert.True(created.Succeeded, string.Join("; ", created.Errors.Select(error => error.Description)));
-        }
-
-        public async Task<bool> HasPasswordAsync(string email)
-        {
-            using var scope = App.Services.CreateScope();
-            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-            var user = await users.FindByEmailAsync(email);
-            return user is not null && await users.HasPasswordAsync(user);
-        }
-
-        public async Task<(string AccessToken, string ReauthToken)> MintAsync(string email)
-        {
-            using var scope = App.Services.CreateScope();
-            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-            var signIn = scope.ServiceProvider.GetRequiredService<SignInManager<TestAppUser>>();
-            var user = await users.FindByEmailAsync(email);
-            Assert.NotNull(user);
-            var principal = await signIn.CreateUserPrincipalAsync(user);
-            var accessToken = scope.ServiceProvider.GetRequiredService<IAccessTokenGenerator>().GenerateAccessToken(principal);
-            var stampType = users.Options.ClaimsIdentity.SecurityStampClaimType;
-            var claims = principal.Claims
-                .Where(claim => !string.Equals(claim.Type, stampType, StringComparison.Ordinal)
-                    && !string.Equals(claim.Type, "Reauth", StringComparison.Ordinal)
-                    && !string.Equals(claim.Type, "ReauthTime", StringComparison.Ordinal))
-                .ToList();
-            claims.Add(new Claim("Reauth", "true"));
-            claims.Add(new Claim(stampType, await users.GetSecurityStampAsync(user)));
-            var reauthToken = scope.ServiceProvider.GetRequiredService<ReAuthTokenService>().CreateToken(claims);
-            return (accessToken, reauthToken);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            Client.Dispose();
-            await App.StopAsync();
-            await App.DisposeAsync();
-            SqliteConnection.ClearAllPools();
-            TryDelete(_path);
-            TryDelete(_path + "-wal");
-            TryDelete(_path + "-shm");
-        }
-
-        private static void TryDelete(string path)
-        {
-            try
-            {
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-            }
-            catch (IOException)
-            {
             }
         }
     }
