@@ -1,4 +1,5 @@
 using AuthEndpoints.EmailCode;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Passkey;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -10,6 +11,16 @@ internal sealed class ExplicitEmailCodeSignInCompleterMarker<TUser>
 
 internal sealed class ExplicitPasskeySignInCompleterMarker<TUser>
     where TUser : class;
+
+internal sealed class ExplicitExternalLoginCompleterMarker
+{
+    public ExplicitExternalLoginCompleterMarker(Type userType)
+    {
+        UserType = userType;
+    }
+
+    public Type UserType { get; }
+}
 
 internal static class LegacySignInCompleters
 {
@@ -23,6 +34,13 @@ internal static class LegacySignInCompleters
         where TUser : class
     {
         services.TryAddSingleton<ExplicitPasskeySignInCompleterMarker<TUser>>();
+    }
+
+    public static void MarkExternal(IServiceCollection services, Type userType)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(userType);
+        services.AddSingleton(new ExplicitExternalLoginCompleterMarker(userType));
     }
 
     public static bool EmailCodeWins<TUser>(IServiceProvider services)
@@ -63,5 +81,25 @@ internal static class LegacySignInCompleters
     {
         return services.GetService<ExplicitPasskeySignInCompleterMarker<TUser>>() is not null
             || completer is not IdentityPasskeySignInCompleter<TUser>;
+    }
+
+    public static bool ExternalWins<TUser>(IServiceProvider services)
+        where TUser : class
+    {
+        if (services.GetServices<ExplicitExternalLoginCompleterMarker>().Any(marker => marker.UserType == typeof(TUser)))
+        {
+            return true;
+        }
+
+        using var scope = services.CreateScope();
+        var completer = scope.ServiceProvider.GetService<IExternalLoginCompleter<TUser>>();
+        return completer is not null && completer is not CookieExternalLoginCompleter<TUser>;
+    }
+
+    public static bool ExternalWins<TUser>(IServiceProvider services, IExternalLoginCompleter<TUser> completer)
+        where TUser : class
+    {
+        return services.GetServices<ExplicitExternalLoginCompleterMarker>().Any(marker => marker.UserType == typeof(TUser))
+            || completer is not CookieExternalLoginCompleter<TUser>;
     }
 }

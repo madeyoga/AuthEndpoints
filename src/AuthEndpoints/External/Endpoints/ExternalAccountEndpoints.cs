@@ -1,3 +1,6 @@
+using AuthEndpoints.EmailCode;
+using AuthEndpoints.SignIn;
+using SignInMethod = AuthEndpoints.SignInMethod;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -177,7 +180,15 @@ public static class ExternalAccountEndpoints<TUser>
         var passkeyCount = await CountPasskeysAsync(userManager, identityOptions.Value, user);
 
         var hasPassword = await userManager.HasPasswordAsync(user);
-        if (!ExternalLoginUnlinkPolicy.CanRemove(hasPassword, passkeyCount, logins.Count))
+        var emailConfirmed = userManager.SupportsUserEmail && await userManager.IsEmailConfirmedAsync(user);
+        if (!SignInMethodPolicy.CanRemove(
+                new SignInMethodFacts(
+                    hasPassword,
+                    passkeyCount,
+                    logins.Count,
+                    EmailCodeSignInMap.IsMapped(httpContext.RequestServices),
+                    emailConfirmed),
+                SignInMethod.External))
         {
             return Results.Problem(
                 title: "last_signin_method",

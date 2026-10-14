@@ -1,0 +1,7 @@
+<Project>
+  <Target Name="AuthEndpointsExternalOAuthMergedWarning" BeforeTargets="Build">
+    <Warning
+      Code="AE4001"
+      Text="AuthEndpoints.External.OAuth is merged into AuthEndpoints 4.0. Remove the package reference; no code changes are needed." />
+  </Target>
+</Project>

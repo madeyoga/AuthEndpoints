@@ -24,7 +24,11 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="AuthEndpoints.Tests" />
-    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth" />
+    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="buildTransitive\AuthEndpoints.targets" Pack="true" PackagePath="buildTransitive\" />
   </ItemGroup>
 
   <ItemGroup>

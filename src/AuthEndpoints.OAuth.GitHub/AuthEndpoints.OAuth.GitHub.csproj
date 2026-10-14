@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>AuthEndpoints.OAuth.GitHub</PackageId>
-    <Description>GitHub OAuth provider for AuthEndpoints.External.OAuth</Description>
-    <Version>3.0.0-preview.4</Version>
+    <Description>GitHub OAuth provider for AuthEndpoints. Registers the GitHub handler only. Map routes with MapExternalAuthProvider.</Description>
+    <Version>4.0.0</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <ProjectReference Include="..\AuthEndpoints.External.OAuth\AuthEndpoints.External.OAuth.csproj" />
+    <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
     <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
   </ItemGroup>
 

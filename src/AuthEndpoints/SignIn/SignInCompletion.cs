@@ -1,6 +1,8 @@
 using AuthEndpoints.EmailCode;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -103,9 +105,40 @@ internal static class SignInCompletion
             cancellationToken);
     }
 
+    public static async Task<IResult> CompleteExternalAsync<TUser>(
+        HttpContext httpContext,
+        TUser user,
+        ExternalLoginInfo info,
+        string? returnUrl,
+        bool isNewUser,
+        IExternalLoginCompleter<TUser> legacy,
+        CancellationToken cancellationToken)
+        where TUser : class
+    {
+        var explicitName = ExplicitName(httpContext);
+        if (explicitName is null && LegacySignInCompleters.ExternalWins(httpContext.RequestServices, legacy))
+        {
+            return await legacy.CompleteAsync(httpContext, user, info, returnUrl, cancellationToken);
+        }
+
+        var name = ResolveName(httpContext, explicitName) ?? SignInCompleters.Cookie;
+        var completer = httpContext.RequestServices.GetRequiredKeyedService<ISignInCompleter<TUser>>(name);
+        return await completer.CompleteAsync(
+            httpContext,
+            user,
+            new SignInCompletionContext
+            {
+                Method = SignInMethod.External,
+                IsNewUser = isNewUser,
+                ExternalLogin = info,
+                ReturnUrl = returnUrl,
+            },
+            cancellationToken);
+    }
+
     /// <summary>
     /// Map argument, then <see cref="SignInCompletionOptions.Default"/>.
-    /// Null keeps the 3.x per-method completer (Identity bearer for email code and passkey).
+    /// Null keeps the 3.x per-method completer (Identity bearer for email code and passkey, cookie for external).
     /// </summary>
     private static string? ResolveName(HttpContext httpContext, string? explicitName)
     {

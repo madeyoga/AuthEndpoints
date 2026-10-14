@@ -190,6 +190,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         string mapMethod)
         where TUser : class, new()
     {
+        EmailCodeSignInMap.Mark(endpoints.ServiceProvider);
         var group = endpoints.MapGroup("");
         var verify = group.MapPost("/emailCode/verify", EmailCodeEndpoints<TUser>.Verify)
             .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)

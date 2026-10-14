@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -72,11 +73,13 @@ public static class ExternalAuthEndpoints<TUser>
 
         try
         {
-            return await completer.CompleteAsync(
+            return await SignInCompletion.CompleteExternalAsync(
                 httpContext,
                 provision.User!,
                 provision.Info!,
                 returnUrl,
+                provision.Created,
+                completer,
                 cancellationToken);
         }
         catch

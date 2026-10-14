@@ -11,7 +11,7 @@ namespace AuthEndpoints.External.OAuth;
 /// Installs library ticket and remote-failure handlers after the host delegate.
 /// A host <c>OnCreatingTicket</c> assignment cannot remove the library step.
 /// </summary>
-internal static class OAuthTicketChain
+public static class OAuthTicketChain
 {
     public static void Seal(OAuthEvents events, Func<OAuthCreatingTicketContext, Task> enrich)
     {
