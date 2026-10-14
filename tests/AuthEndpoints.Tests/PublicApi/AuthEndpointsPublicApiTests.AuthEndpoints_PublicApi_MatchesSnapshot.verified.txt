@@ -90,10 +90,44 @@
         Cookie = 0,
         IdentityBearer = 1,
     }
+    public sealed class EmailConfirmationOptions
+    {
+        public EmailConfirmationOptions() { }
+        public System.Collections.Generic.IList<string> AllowedRedirectOrigins { get; set; }
+        public string? ConfirmEmailRedirectUri { get; set; }
+    }
     public interface ISignInCompleter<TUser>
         where TUser :  class
     {
         System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.SignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public sealed class PasskeyScenarioOptions
+    {
+        public PasskeyScenarioOptions() { }
+        public string? ServerDomain { get; set; }
+    }
+    public static class PasswordAuthEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordAuth<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class, new () { }
+    }
+    public sealed class PasswordAuthOptions
+    {
+        public PasswordAuthOptions() { }
+        public System.Action<Microsoft.AspNetCore.Identity.IdentityOptions>? ConfigureIdentity { get; set; }
+        public AuthEndpoints.EmailConfirmationOptions EmailConfirmation { get; }
+        public System.Action<AuthEndpoints.Jwt.SimpleJwtOptions>? Jwt { get; set; }
+        public AuthEndpoints.PasskeyScenarioOptions Passkeys { get; }
+        public string Path { get; set; }
+        public bool RequireConfirmedAccount { get; set; }
+        public bool RequireEmailSenderInProduction { get; set; }
+        public AuthEndpoints.AuthEndpointsSession Session { get; set; }
+    }
+    public static class PasswordAuthServiceCollectionExtensions
+    {
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddPasswordAuth<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.PasswordAuthOptions>? configure = null)
+            where TUser :  class, new ()
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
     }
     public static class SignInCompleterServiceCollectionExtensions
     {
@@ -684,6 +718,7 @@ namespace AuthEndpoints.Jwt
         public System.TimeSpan AccessTokenLifetime { get; set; }
         public string Audience { get; set; }
         public string Issuer { get; set; }
+        public AuthEndpoints.Jwt.RefreshTokenTransport RefreshTokenTransport { get; set; }
         public AuthEndpoints.Jwt.SimpleJwtSigningOptions SigningOptions { get; set; }
         public Microsoft.IdentityModel.Tokens.TokenValidationParameters? TokenValidationParameters { get; set; }
     }

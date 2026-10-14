@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
                 o.AccessTokenLifetime = options.AccessTokenLifetime;
                 o.SigningOptions = options.SigningOptions;
                 o.TokenValidationParameters = options.TokenValidationParameters;
+                o.RefreshTokenTransport = options.RefreshTokenTransport;
             })
             .ValidateOnStart();
         services.TryAddEnumerable(
@@ -41,6 +42,7 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddOptions<JwtSessionOptions>()
+            .Configure(session => session.RefreshTokenTransport = options.RefreshTokenTransport)
             .ValidateOnStart();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<JwtSessionOptions>, JwtSessionOptionsValidator>());

@@ -21,6 +21,9 @@ var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
 var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.OrdinalIgnoreCase);
 var useSplit = string.Equals(hostMode, "split", StringComparison.OrdinalIgnoreCase);
+var usePasswordCookie = string.Equals(hostMode, "password-cookie", StringComparison.OrdinalIgnoreCase);
+var usePasswordJwt = string.Equals(hostMode, "password-jwt", StringComparison.OrdinalIgnoreCase);
+var usePassword = usePasswordCookie || usePasswordJwt;
 var useFacade = useBearerFacade || useCookieFacade;
 var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
 var emailCode = IsTruthy(builder.Configuration["AE_EMAIL_CODE"]);
@@ -40,7 +43,41 @@ builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequire
 builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
-if (useFacade)
+if (usePassword)
+{
+    var confirmed = string.IsNullOrWhiteSpace(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"])
+        ? true
+        : requireConfirmedAccount;
+    builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
+    {
+        o.RequireConfirmedAccount = confirmed;
+        o.Passkeys.ServerDomain = "localhost";
+        o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, confirmed);
+        if (!string.IsNullOrWhiteSpace(confirmEmailRedirectUri))
+        {
+            o.EmailConfirmation.ConfirmEmailRedirectUri = confirmEmailRedirectUri;
+        }
+
+        if (confirmEmailAllowedOrigins.Count > 0)
+        {
+            o.EmailConfirmation.AllowedRedirectOrigins = confirmEmailAllowedOrigins.ToList();
+        }
+
+        if (usePasswordJwt)
+        {
+            o.Session = AuthEndpointsSession.Jwt;
+            o.Jwt = jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+                if (string.Equals(builder.Configuration["AE_JWT_REFRESH_TRANSPORT"], "Body", StringComparison.OrdinalIgnoreCase))
+                {
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                }
+            };
+        }
+    });
+}
+else if (useFacade)
 {
     void ConfigureFacade(AuthEndpointsOptions o)
     {
@@ -127,7 +164,12 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
 }
 
-if (useFacade)
+if (usePassword)
+{
+    app.UseAuthEndpoints();
+    app.MapPasswordAuth<TestAppUser>();
+}
+else if (useFacade)
 {
     app.UseAuthEndpoints();
     app.MapAuthEndpoints<TestAppUser>();

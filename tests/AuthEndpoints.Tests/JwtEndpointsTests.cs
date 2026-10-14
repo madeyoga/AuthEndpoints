@@ -237,4 +237,21 @@ public class JwtEndpointsTests : IClassFixture<TestWebApplicationFactory>
         Assert.True(result.Failed);
         Assert.Contains(result.Failures, f => f.Contains("256", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void OptionsValidator_RejectsUnknownRefreshTokenTransport()
+    {
+        var options = new SimpleJwtOptions
+        {
+            SigningOptions = new SimpleJwtSigningOptions
+            {
+                SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!",
+            },
+            RefreshTokenTransport = (RefreshTokenTransport)9,
+        };
+
+        var result = new SimpleJwtOptionsValidator().Validate(nameof(SimpleJwtOptions), options);
+        Assert.True(result.Failed);
+        Assert.Contains(result.Failures, f => f.Contains("RefreshTokenTransport", StringComparison.Ordinal));
+    }
 }

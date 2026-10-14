@@ -1,10 +1,10 @@
 ---
 name: authendpoints
-description: Compose AuthEndpoints 3.x in an ASP.NET Core host — AddAuthEndpoints, UseAuthEndpoints, MapAuthEndpoints, cookie vs Identity bearer vs Simple JWT, passkeys, CSRF, ReAuth, and production options. Use when the project has the AuthEndpoints NuGet package, the user asks to add Identity auth API endpoints, or an agent is wiring login/register/session/token flows for a first-party web or mobile client.
+description: Compose AuthEndpoints in an ASP.NET Core host — AddPasswordAuth for one password session, or the 3.x AddAuthEndpoints facade, cookie vs JWT vs Identity bearer, passkeys, CSRF, ReAuth, and production options. Use when the project has the AuthEndpoints NuGet package, the user asks to add Identity auth API endpoints, or an agent is wiring login/register/session/token flows for a first-party web or mobile client.
 license: MIT
 ---
 
-# AuthEndpoints 3.x (library users)
+# AuthEndpoints (library users)
 
 Ready-made Identity auth API endpoints for first-party web and mobile clients. This skill is for **apps that consume the NuGet package**, not for changing the AuthEndpoints source repo.
 
@@ -29,9 +29,28 @@ dotnet add package AuthEndpoints.OAuth.Google --prerelease
 
 Docs: https://authendpoints.harten.id/modules/external-oauth
 
-## Prefer the facade
+## Password facade (4.0)
 
-One Add / Use / Map triad. Cookie is the default sign-in. Native/mobile uses `AuthEndpointsSignIn.IdentityBearer`. Compose modules yourself only for JWT-only hosts, custom prefixes, or a mix the facade does not cover.
+New hosts that want one password session use `AddPasswordAuth` / `UseAuthEndpoints` / `MapPasswordAuth`. Cookie is the default (`Session` unset). JWT is `AuthEndpointsSession.Jwt` plus a `Jwt` callback. Identity bearer is not offered here. Do not also call `AddAuthEndpoints`.
+
+```cs
+builder.Services.AddPasswordAuth<AppUser, AppDbContext>(o =>
+{
+    o.Passkeys.ServerDomain = "example.com"; // omit to leave passkeys off
+    // o.Session = AuthEndpointsSession.Jwt;
+    // o.Jwt = jwt => { jwt.SigningOptions.SymmetricKey = key; };
+});
+builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
+
+app.UseAuthEndpoints();
+app.MapPasswordAuth<AppUser>(); // default prefix /auth
+```
+
+`Path` defaults to `/auth`. `RequireConfirmedAccount` defaults to true. Passkey routes are mapped only when `Passkeys.ServerDomain` is set. JWT login is `POST /auth/create` and returns `accessToken` plus `tokenType` `Bearer` (and `refreshToken` when transport is `Body`). Cookie login is `POST /auth/login`. Cookie-mode `/manage` accepts `Identity.Application` and `Identity.Bearer`. `AddJwtEndpoints` copies `SimpleJwtOptions.RefreshTokenTransport` onto `JwtSessionOptions` (default `Cookie`). A later `Configure<JwtSessionOptions>` replaces it. `Session`, `Path`, and `Passkeys.ServerDomain` are fixed by `AddPasswordAuth`; a later `Configure<PasswordAuthOptions>` that changes them fails validation. The call expands to the building blocks documented at https://authendpoints.harten.id/getting-started/password-auth — copy that list to leave the facade. Email-code sign-in and external sign-in are not mapped. There is no role overload.
+
+## 3.x compatibility facade
+
+`AddAuthEndpoints` / `MapAuthEndpoints` stay on the 3.4.1 route set. Cookie is the default sign-in. Native/mobile on this facade uses `AuthEndpointsSignIn.IdentityBearer`. Compose modules yourself for email-code sign-in, more than one session, or a mix neither facade covers. Do not combine with `AddPasswordAuth`.
 
 ### Cookie web
 
@@ -213,7 +232,7 @@ When `o.Jwt.Enabled = true`:
 
 - Call `modelBuilder.UseRefreshToken()` and migrate (`AuthEndpoints.AuthEndpointsRefreshTokens`). The absolute family lifetime adds non-null `AbsoluteExpiresAt`. Backfill existing rows from `ExpiresAt`.
 - Production: non-default issuer and audience; symmetric key ≥ 32 UTF-8 bytes (or RSA/ECDSA/X509).
-- Refresh transport defaults to the cookie `AuthEndpoints.Jwt.RefreshToken` (HttpOnly). `Configure<JwtSessionOptions>(o => o.RefreshTokenTransport = RefreshTokenTransport.Body)` returns `refreshToken` from create, email-code verify, passkey sign-in, and refresh, and accepts it on refresh and logout with no antiforgery and no `csrfToken` route.
+- Refresh transport defaults to the cookie `AuthEndpoints.Jwt.RefreshToken` (HttpOnly). `AddJwtEndpoints` copies `SimpleJwtOptions.RefreshTokenTransport` (default `Cookie`) onto `JwtSessionOptions`. `POST /create` returns `accessToken` and `tokenType` `Bearer`. `RefreshTokenTransport.Body` also returns `refreshToken` from create, email-code verify, passkey sign-in, and refresh, and accepts it on refresh and logout with no antiforgery and no `csrfToken` route. A `Configure<JwtSessionOptions>` registered after `AddJwtEndpoints` replaces the copied transport.
 - Every refresh rotates. Reuse of an old token revokes the family, including after a parallel refresh with the same token. Logout and a security-stamp change revoke the family on the server. `AbsoluteLifetime` defaults to 14 days from sign-in and rotation does not extend it. `RefreshTokenLifetime` is the per-token window inside that cap (default 14 days).
 - Recreate the table when upgrading from plaintext storage.
 

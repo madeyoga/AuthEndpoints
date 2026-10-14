@@ -17,4 +17,12 @@ public class SimpleJwtOptions
     /// Advanced override: fully custom TokenValidationParameters.
     /// </summary>
     public TokenValidationParameters? TokenValidationParameters { get; set; }
+
+    /// <summary>
+    /// Refresh-token transport applied to <see cref="JwtSessionOptions.RefreshTokenTransport"/> by <c>AddJwtEndpoints</c>.
+    /// <c>AddPasswordAuth</c> and the 3.4.1 facade pass their JWT callback through <c>AddJwtEndpoints</c>, so this value is honoured there too.
+    /// The default <see cref="RefreshTokenTransport.Cookie"/> matches 3.4.1.
+    /// A <c>Configure&lt;JwtSessionOptions&gt;</c> registered after <c>AddJwtEndpoints</c> replaces it.
+    /// </summary>
+    public RefreshTokenTransport RefreshTokenTransport { get; set; } = RefreshTokenTransport.Cookie;
 }

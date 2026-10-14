@@ -10,6 +10,11 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints;
 
+/// <summary>
+/// Marker for <c>AddAuthEndpoints</c>. Startup validation rejects a host that also calls <c>AddPasswordAuth</c>.
+/// </summary>
+internal sealed class AuthEndpointsRegistration;
+
 public static class AuthEndpointsServiceCollectionExtensions
 {
     /// <summary>
@@ -25,6 +30,8 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// without calling <c>AddEntityFrameworkStores</c> again.
     /// For Identity bearer tokens, pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> or set
     /// <see cref="AuthEndpointsOptions.SignIn"/>.
+    /// This is the 3.4.1 compatibility facade. It stays frozen: same options, same routes, and no 4.0-only features.
+    /// Do not also call <c>AddPasswordAuth</c>.
     /// </remarks>
     /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
@@ -114,6 +121,8 @@ public static class AuthEndpointsServiceCollectionExtensions
         where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton<AuthEndpointsRegistration>();
 
         var bootstrap = new AuthEndpointsOptions();
         configure?.Invoke(bootstrap);
