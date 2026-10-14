@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
+using SignInMethod = AuthEndpoints.SignInMethod;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -187,7 +190,7 @@ public static class PasskeyEndpoints<TUser>
             return TypedResults.NotFound();
         }
 
-        if (!await CanRemovePasskeyAsync(userManager, user))
+        if (!await CanRemovePasskeyAsync(userManager, user, context))
         {
             return PasskeyHttp.LastSignInMethodProblem();
         }
@@ -388,7 +391,10 @@ public static class PasskeyEndpoints<TUser>
             detail: "Unable to complete registration.",
             statusCode: StatusCodes.Status400BadRequest);
 
-    private static async Task<bool> CanRemovePasskeyAsync(UserManager<TUser> userManager, TUser user)
+    private static async Task<bool> CanRemovePasskeyAsync(
+        UserManager<TUser> userManager,
+        TUser user,
+        HttpContext httpContext)
     {
         var hasPassword = userManager.SupportsUserPassword && await userManager.HasPasswordAsync(user);
         var externalLoginCount = 0;
@@ -398,6 +404,14 @@ public static class PasskeyEndpoints<TUser>
         }
 
         var passkeyCount = (await userManager.GetPasskeysAsync(user)).Count;
-        return PasskeyRemovalPolicy.CanRemove(hasPassword, passkeyCount, externalLoginCount);
+        var emailConfirmed = userManager.SupportsUserEmail && await userManager.IsEmailConfirmedAsync(user);
+        return SignInMethodPolicy.CanRemove(
+            new SignInMethodFacts(
+                hasPassword,
+                passkeyCount,
+                externalLoginCount,
+                EmailCodeSignInMap.IsMapped(httpContext.RequestServices),
+                emailConfirmed),
+            SignInMethod.Passkey);
     }
 }

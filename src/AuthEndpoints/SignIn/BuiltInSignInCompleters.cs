@@ -1,11 +1,14 @@
 using System.Buffers.Text;
 using System.Security.Claims;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.SignIn;
 
@@ -30,6 +33,11 @@ internal sealed class CookieSignInCompleter<TUser> : ISignInCompleter<TUser>
             return SignInCompletionResults.Denied(context, includePasskeyCredentialId: true);
         }
 
+        if (context.Method == SignInMethod.External)
+        {
+            return await CompleteExternalAsync(httpContext, user, context);
+        }
+
         // LoginCookie: persistent only when useSessionCookies=false. useCookies is ignored.
         var isPersistent = context.UseSessionCookies == false;
         _signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
@@ -39,12 +47,6 @@ internal sealed class CookieSignInCompleter<TUser> : ISignInCompleter<TUser>
         }
 
         await SignInAsync(user, context, isPersistent);
-
-        if (context.Method == SignInMethod.External)
-        {
-            await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-            return Results.Redirect(string.IsNullOrEmpty(context.ReturnUrl) ? "/" : context.ReturnUrl);
-        }
 
         if (context.Method == SignInMethod.Passkey
             && context.PasskeyKind == PasskeySignInKind.Register
@@ -66,6 +68,28 @@ internal sealed class CookieSignInCompleter<TUser> : ISignInCompleter<TUser>
         }
 
         return _signInManager.SignInAsync(user, isPersistent);
+    }
+
+    private async Task<IResult> CompleteExternalAsync(HttpContext httpContext, TUser user, SignInCompletionContext context)
+    {
+        var options = httpContext.RequestServices.GetService<IOptions<ExternalAuthOptions>>()?.Value;
+        if (options is null)
+        {
+            _signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+            await _signInManager.SignInAsync(user, isPersistent: context.UseSessionCookies == false);
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(options.SignInScheme))
+            {
+                _signInManager.AuthenticationScheme = options.SignInScheme;
+            }
+
+            await _signInManager.SignInAsync(user, isPersistent: options.IsPersistent);
+        }
+
+        await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        return Results.Redirect(ExternalSignInRedirect.Url(httpContext, context.ReturnUrl));
     }
 }
 
@@ -101,7 +125,25 @@ internal sealed class IdentityBearerSignInCompleter<TUser> : ISignInCompleter<TU
             await _signInManager.RememberTwoFactorClientAsync(user);
         }
 
+        if (context.Method == SignInMethod.External)
+        {
+            // Bearer SignInAsync writes the token body and starts the response.
+            // Clear the external cookie first so that write is the last header change.
+            await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+
         await SignInAsync(user, context, isPersistent);
+
+        if (context.Method == SignInMethod.External)
+        {
+            if (_signInManager.AuthenticationScheme == IdentityConstants.ApplicationScheme)
+            {
+                return Results.Redirect(ExternalSignInRedirect.Url(httpContext, context.ReturnUrl));
+            }
+
+            // Bearer sign-in already wrote AccessTokenResponse. A redirect cannot carry that body.
+            return TypedResults.Empty;
+        }
 
         // Cookie sign-in only sets the application cookie, so passkey register can still write credentialId.
         // Bearer sign-in writes AccessTokenResponse inside SignInAsync. A second body throws
@@ -168,6 +210,11 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
             return SignInCompletionResults.Denied(context, includePasskeyCredentialId: false);
         }
 
+        if (context.Method == SignInMethod.External)
+        {
+            return await CompleteExternalAsync(httpContext, user, context);
+        }
+
         var claimsPrincipal = await _claimsFactory.CreateAsync(user);
         var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
@@ -175,12 +222,6 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         var session = JwtRefreshDelivery.Session(httpContext);
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
         JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
-
-        if (context.Method == SignInMethod.External)
-        {
-            await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-            return Results.Redirect(string.IsNullOrEmpty(context.ReturnUrl) ? "/" : context.ReturnUrl);
-        }
 
         var response = new SimpleJwtTokenResponse
         {
@@ -191,6 +232,26 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
 
         // Same body as JWT /create. Passkey register does not add credentialId.
         return Results.Ok(response);
+    }
+
+    private async Task<IResult> CompleteExternalAsync(HttpContext httpContext, TUser user, SignInCompletionContext context)
+    {
+        var session = JwtRefreshDelivery.Session(httpContext);
+        if (JwtRefreshDelivery.IsBody(session))
+        {
+            // Redirects cannot carry the refresh token. Refuse before CreateAsync so a body
+            // session never stores a token the browser will not receive.
+            throw new InvalidOperationException(JwtExternalBodyTransportValidator.Message);
+        }
+
+        var claimsPrincipal = await _claimsFactory.CreateAsync(user);
+        var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
+        var securityStamp = await _userManager.GetSecurityStampAsync(user);
+        var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
+        JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
+        await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        return Results.Redirect(ExternalSignInRedirect.Url(httpContext, context.ReturnUrl));
     }
 }
 

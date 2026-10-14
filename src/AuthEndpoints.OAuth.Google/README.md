@@ -1,11 +1,9 @@
 # AuthEndpoints.OAuth.Google
 
-**Docs:** [https://authendpoints.harten.id](https://authendpoints.harten.id)
-
-Google provider for [AuthEndpoints.External.OAuth](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/). Compose-only. Not part of `MapAuthEndpoints`.
+Google provider for [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/). This package registers the handler. It does not map routes.
 
 ```bash
-dotnet add package AuthEndpoints.OAuth.Google --prerelease
+dotnet add package AuthEndpoints.OAuth.Google
 ```
 
 ```csharp
@@ -16,7 +14,7 @@ builder.Services.AddExternalAuthEndpoints<AppUser>()
         o.ClientSecret = "...";
     });
 
-app.MapGroup("/auth/external").MapGoogleAuthEndpoints<AppUser>();
+app.MapGroup("/auth/external").MapExternalAuthProvider<AppUser>("Google");
 ```
 
 `email_verified` is read from the Google userinfo payload.

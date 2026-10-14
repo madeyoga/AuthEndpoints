@@ -1,10 +1,5 @@
 ﻿namespace AuthEndpoints.OAuth.GitHub
 {
-    public static class GitHubEndpointRouteBuilderExtensions
-    {
-        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapGitHubAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
-            where TUser :  class, new () { }
-    }
     public sealed class GitHubExternalAuthProvider : AuthEndpoints.External.OAuth.IExternalAuthProvider
     {
         public GitHubExternalAuthProvider() { }

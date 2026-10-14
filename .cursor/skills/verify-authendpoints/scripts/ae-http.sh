@@ -14,6 +14,7 @@ Commands:
   csrf [path]         Print csrfToken JSON field (default /identity/csrfToken).
   get <path>          GET a path. Writes status/headers/body under AE_EVIDENCE_DIR when --out is set.
   post <path> [json]  POST JSON. Add --csrf to send RequestVerificationToken. Optional --out NAME.
+  delete <path>       DELETE a path. Add --csrf to send RequestVerificationToken. Optional --out NAME.
 
 Environment:
   AE_RUN_ID         Unique id for this run (default: timestamp-pid)
@@ -24,7 +25,7 @@ Environment:
   AE_COOKIE_JAR    curl cookie jar (default: $AE_RUN_DIR/cookies.txt)
   AE_REPO_ROOT     Repository root (default: git root or cwd)
   AE_HOST_MODE     Test host mapping: compose (default), bearer-facade, cookie-facade, split,
-                   password-cookie, or password-jwt
+                   password-cookie, password-jwt, or external.
   AE_REQUIRE_CONFIRMED_ACCOUNT  When true, the test host sets SignIn.RequireConfirmedAccount.
                                 Library default is true; compose/bearer/split default to false.
                                 password-cookie and password-jwt default to true when this is unset.
@@ -214,7 +215,7 @@ wait_ready() {
   elif [[ "$AE_HOST_MODE" == "split" ]]; then
     ready_path="/web/csrfToken"
     ready_code="200"
-  elif [[ "$AE_HOST_MODE" == "password-cookie" ]]; then
+  elif [[ "$AE_HOST_MODE" == "password-cookie" || "$AE_HOST_MODE" == "external" ]]; then
     ready_path="/auth/csrfToken"
     ready_code="200"
   elif [[ "$AE_HOST_MODE" == "password-jwt" ]]; then
@@ -346,7 +347,7 @@ cmd_doctor() {
     echo "ok pid=$pid url=${AE_BASE_URL} mode=bearer-facade manage/info=401"
     return 0
   fi
-  if [[ "$AE_HOST_MODE" == "password-cookie" || ( "$AE_HOST_MODE" == "password-jwt" && "$AE_JWT_REFRESH_TRANSPORT" != "Body" ) ]]; then
+  if [[ "$AE_HOST_MODE" == "external" || "$AE_HOST_MODE" == "password-cookie" || ( "$AE_HOST_MODE" == "password-jwt" && "$AE_JWT_REFRESH_TRANSPORT" != "Body" ) ]]; then
     status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/auth/csrfToken")"
     if [[ "$status" != "200" ]]; then
       echo "GET /auth/csrfToken returned HTTP $status (want 200 for ${AE_HOST_MODE})." >&2
@@ -452,6 +453,30 @@ cmd_post() {
   http POST "$AE_PATH" "$AE_JSON" "$csrf" "$AE_OUT"
 }
 
+cmd_delete() {
+  parse_common "$@"
+  if [[ -z "$AE_PATH" ]]; then
+    echo "delete requires a path" >&2
+    exit 1
+  fi
+  local csrf=""
+  if [[ "$AE_USE_CSRF" == "1" ]]; then
+    local csrf_path="/identity/csrfToken"
+    case "$AE_PATH" in
+      /auth/*) csrf_path="/auth/csrfToken" ;;
+      /web/*) csrf_path="/web/csrfToken" ;;
+      /app/*) csrf_path="/app/csrfToken" ;;
+      *)
+        if [[ "$AE_HOST_MODE" == "split" ]]; then
+          csrf_path="/web/csrfToken"
+        fi
+        ;;
+    esac
+    csrf="$(AE_OUT="" http GET "$csrf_path" "" "" "" >/dev/null; printf '%s' "$AE_LAST_BODY" | json_get csrfToken CsrfToken)"
+  fi
+  http DELETE "$AE_PATH" "" "$csrf" "$AE_OUT"
+}
+
 resolve_paths
 cmd="${1:-}"
 if [[ -n "$cmd" ]]; then
@@ -464,6 +489,7 @@ case "$cmd" in
   csrf) cmd_csrf "$@" ;;
   get) cmd_get "$@" ;;
   post) cmd_post "$@" ;;
+  delete) cmd_delete "$@" ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: $cmd" >&2; usage; exit 1 ;;
 esac

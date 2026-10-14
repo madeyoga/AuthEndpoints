@@ -43,6 +43,7 @@ public sealed class ExternalLoginService<TUser>
         }
 
         var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+        var created = false;
         var email = ExternalEmailClaims.GetEmail(info.Principal);
         var emailVerified = ExternalEmailClaims.IsEmailVerified(info.Principal);
         TUser? localUser = null;
@@ -92,6 +93,8 @@ public sealed class ExternalLoginService<TUser>
                     string.Join(" ", createResult.Errors.Select(e => e.Description)),
                     StatusCodes.Status400BadRequest);
             }
+
+            created = true;
         }
         else if (decision.Kind == ExternalProvisionKind.LinkExistingUser)
         {
@@ -134,7 +137,9 @@ public sealed class ExternalLoginService<TUser>
                 StatusCodes.Status401Unauthorized);
         }
 
-        return ExternalLoginProvisionResult<TUser>.Success(user, info);
+        return created
+            ? ExternalLoginProvisionResult<TUser>.CreatedUser(user, info)
+            : ExternalLoginProvisionResult<TUser>.Success(user, info);
     }
 }
 
@@ -147,6 +152,11 @@ public sealed class ExternalLoginProvisionResult<TUser>
     public bool Succeeded { get; private init; }
     public TUser? User { get; private init; }
     public ExternalLoginInfo? Info { get; private init; }
+
+    /// <summary>
+    /// True when this request created the local account.
+    /// </summary>
+    internal bool Created { get; private init; }
     public string? Error { get; private init; }
     public string? ErrorDescription { get; private init; }
     public int StatusCode { get; private init; }
@@ -156,6 +166,14 @@ public sealed class ExternalLoginProvisionResult<TUser>
         Succeeded = true,
         User = user,
         Info = info,
+    };
+
+    internal static ExternalLoginProvisionResult<TUser> CreatedUser(TUser user, ExternalLoginInfo info) => new()
+    {
+        Succeeded = true,
+        User = user,
+        Info = info,
+        Created = true,
     };
 
     public static ExternalLoginProvisionResult<TUser> Failed(string error, string description, int statusCode) => new()

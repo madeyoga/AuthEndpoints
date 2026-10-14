@@ -28,9 +28,8 @@ public static class ConfirmEmailEndpointRouteBuilderExtensions
 
         if (endpoints.ServiceProvider.GetService<AccountAbuseRateLimitMarker>() is null)
         {
-            AuthEndpointsModules.Log(
-                endpoints,
-                "AddAccountAbuseRateLimiting was not called before MapConfirmEmailEndpoints.");
+            throw new InvalidOperationException(
+                "Call AddAccountAbuseRateLimiting before MapConfirmEmailEndpoints.");
         }
 
         return IdentityEndpointRoutes.MapConfirmEmail<TUser>(endpoints, name, nameof(MapConfirmEmailEndpoints));

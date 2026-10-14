@@ -44,6 +44,7 @@ public sealed class ExternalAuthBuilder
         }
 
         Services.AddScoped(completerType, typeof(TCompleter));
+        LegacySignInCompleters.MarkExternal(Services, UserType);
         if (typeof(TCompleter).IsGenericType
             && typeof(TCompleter).GetGenericTypeDefinition() == typeof(JwtExternalLoginCompleter<>))
         {

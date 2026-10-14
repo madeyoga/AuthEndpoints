@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http;
+using AuthEndpoints;
 using AuthEndpoints.EmailCode;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.Jwt;
@@ -432,19 +434,38 @@ public class BuildingBlockRouteTests
     }
 
     [Theory]
-    [InlineData("MapPasswordEndpoints")]
-    [InlineData("MapCookieSessionEndpoints")]
-    [InlineData("MapBearerSessionEndpoints")]
-    [InlineData("MapAccountManagementEndpoints")]
-    [InlineData("MapConfirmEmailEndpoints")]
-    [InlineData("MapJwtPasswordEndpoints")]
-    [InlineData("MapJwtSessionEndpoints")]
-    [InlineData("MapPasskeySignInEndpoints")]
-    [InlineData("MapPasskeyManagementEndpoints")]
-    public void Map_WithoutMatchingAdd_LogsWarningAndStillMaps(string mapMethod)
+    [InlineData("MapPasswordEndpoints", "AddPasswordEndpoints", "MapPasswordEndpoints")]
+    [InlineData("MapPasswordSignUpEndpoints", "AddPasswordSignUpEndpoints", "MapPasswordSignUpEndpoints")]
+    [InlineData("MapPasswordSignInEndpoints", "AddPasswordSignInEndpoints", "MapPasswordSignInEndpoints")]
+    [InlineData("MapPasswordRecoveryEndpoints", "AddPasswordRecoveryEndpoints", "MapPasswordRecoveryEndpoints")]
+    [InlineData("MapCookieSessionEndpoints", "AddCookieSessionEndpoints", "MapCookieSessionEndpoints")]
+    [InlineData("MapBearerSessionEndpoints", "AddBearerSessionEndpoints", "MapBearerSessionEndpoints")]
+    [InlineData("MapCookieAuthEndpoints", "AddPasswordEndpoints", "MapCookieAuthEndpoints")]
+    [InlineData("MapBearerAuthEndpoints", "AddPasswordEndpoints", "MapBearerAuthEndpoints")]
+    [InlineData("MapIdentityManagementApi", "AddPasswordEndpoints", "MapPasswordEndpoints")]
+    [InlineData("MapAccountManagementEndpoints", "AddAccountManagementEndpoints", "MapAccountManagementEndpoints")]
+    [InlineData("MapConfirmEmailEndpoints", "AddAccountAbuseRateLimiting", "MapConfirmEmailEndpoints")]
+    [InlineData("MapJwtPasswordEndpoints", "AddJwtEndpoints", "MapJwtPasswordEndpoints")]
+    [InlineData("MapJwtSessionEndpoints", "AddJwtEndpoints", "MapJwtSessionEndpoints")]
+    [InlineData("MapJwtAuthEndpoints", "AddJwtEndpoints", "MapJwtPasswordEndpoints")]
+    [InlineData("MapPasskeySignInEndpoints", "AddPasskeySignInEndpoints", "MapPasskeySignInEndpoints")]
+    [InlineData("MapPasskeyManagementEndpoints", "AddPasskeyManagementEndpoints", "MapPasskeyManagementEndpoints")]
+    [InlineData("MapPasskeySignUpEndpoints", "AddPasskeySignUpEndpoints", "MapPasskeySignUpEndpoints")]
+    [InlineData("MapPasskeyRegisterOptionsEndpoints", "AddPasskeyRegisterOptionsEndpoints", "MapPasskeyRegisterOptionsEndpoints")]
+    [InlineData("MapPasskeyEndpoints", "AddPasskeyEndpoints", "MapPasskeyEndpoints")]
+    [InlineData("MapEmailCodeEndpoints", "AddEmailCodeEndpoints", "MapEmailCodeEndpoints")]
+    [InlineData("MapEmailCodeSendEndpoints", "AddEmailCodeSendEndpoints", "MapEmailCodeSendEndpoints")]
+    [InlineData("MapEmailCodeSignInEndpoints", "AddEmailCodeSignInEndpoints", "MapEmailCodeSignInEndpoints")]
+    [InlineData("MapExternalAuthEndpoints", "AddExternalAuthEndpoints", "MapExternalAuthEndpoints")]
+    [InlineData("MapExternalAccountEndpoints", "AddExternalAuthEndpoints", "MapExternalAccountEndpoints")]
+    [InlineData("MapReAuthEndpoints", "AddReAuthScheme", "MapReAuthEndpoints")]
+    [InlineData("MapSignInEndpoints", "AddCookieSessionEndpoints", "MapCookieSessionEndpoints")]
+    [InlineData("MapSharedAuthEndpoints", "AddAccountAbuseRateLimiting", "MapConfirmEmailEndpoints")]
+    [InlineData("MapAuthEndpoints", "AddAuthEndpoints", "MapAuthEndpoints")]
+    [InlineData("MapPasswordAuth", "AddPasswordAuth", "MapPasswordAuth")]
+    public void Map_WithoutMatchingAdd_ThrowsNamedFix(string mapMethod, string addMethod, string namedMap)
     {
-        var logs = new WarningLog();
-        using var app = BuildIdentity(_ => { }, app =>
+        var ex = Assert.Throws<InvalidOperationException>(() => BuildIdentity(_ => { }, app =>
         {
             var identity = app.MapGroup("/identity");
             var auth = app.MapGroup("/auth");
@@ -454,11 +475,29 @@ public class BuildingBlockRouteTests
                 case "MapPasswordEndpoints":
                     identity.MapPasswordEndpoints<TestAppUser>();
                     break;
+                case "MapPasswordSignUpEndpoints":
+                    identity.MapPasswordSignUpEndpoints<TestAppUser>();
+                    break;
+                case "MapPasswordSignInEndpoints":
+                    identity.MapPasswordSignInEndpoints<TestAppUser>();
+                    break;
+                case "MapPasswordRecoveryEndpoints":
+                    identity.MapPasswordRecoveryEndpoints<TestAppUser>();
+                    break;
                 case "MapCookieSessionEndpoints":
                     identity.MapCookieSessionEndpoints<TestAppUser>();
                     break;
                 case "MapBearerSessionEndpoints":
                     identity.MapBearerSessionEndpoints<TestAppUser>();
+                    break;
+                case "MapCookieAuthEndpoints":
+                    identity.MapCookieAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapBearerAuthEndpoints":
+                    identity.MapBearerAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapIdentityManagementApi":
+                    identity.MapIdentityManagementApi<TestAppUser>();
                     break;
                 case "MapAccountManagementEndpoints":
                     identity.MapAccountManagementEndpoints<TestAppUser>();
@@ -472,16 +511,60 @@ public class BuildingBlockRouteTests
                 case "MapJwtSessionEndpoints":
                     auth.MapJwtSessionEndpoints<TestAppUser>();
                     break;
+                case "MapJwtAuthEndpoints":
+                    auth.MapJwtAuthEndpoints<TestAppUser>();
+                    break;
                 case "MapPasskeySignInEndpoints":
                     account.MapPasskeySignInEndpoints<TestAppUser>();
                     break;
                 case "MapPasskeyManagementEndpoints":
                     account.MapPasskeyManagementEndpoints<TestAppUser>();
                     break;
+                case "MapPasskeyEndpoints":
+                    account.MapPasskeyEndpoints<TestAppUser>();
+                    break;
+                case "MapExternalAuthEndpoints":
+                    app.MapExternalAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapExternalAccountEndpoints":
+                    app.MapExternalAccountEndpoints<TestAppUser>();
+                    break;
+                case "MapPasskeySignUpEndpoints":
+                    account.MapPasskeySignUpEndpoints<TestAppUser>();
+                    break;
+                case "MapPasskeyRegisterOptionsEndpoints":
+                    account.MapPasskeyRegisterOptionsEndpoints<TestAppUser>();
+                    break;
+                case "MapEmailCodeEndpoints":
+                    identity.MapEmailCodeEndpoints<TestAppUser>();
+                    break;
+                case "MapEmailCodeSendEndpoints":
+                    identity.MapEmailCodeSendEndpoints<TestAppUser>();
+                    break;
+                case "MapEmailCodeSignInEndpoints":
+                    identity.MapEmailCodeSignInEndpoints<TestAppUser>();
+                    break;
+                case "MapReAuthEndpoints":
+                    identity.MapReAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapSignInEndpoints":
+                    app.MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+                    break;
+                case "MapSharedAuthEndpoints":
+                    app.MapSharedAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapAuthEndpoints":
+                    app.MapAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapPasswordAuth":
+                    app.MapPasswordAuth<TestAppUser>();
+                    break;
             }
-        }, logs);
+        }));
 
-        Assert.Contains(logs.Messages, message => message.Contains(mapMethod, StringComparison.Ordinal));
+        Assert.Contains(addMethod, ex.Message, StringComparison.Ordinal);
+        Assert.Contains(namedMap, ex.Message, StringComparison.Ordinal);
+        Assert.Contains("before", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

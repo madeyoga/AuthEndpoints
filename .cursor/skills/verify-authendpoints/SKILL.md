@@ -41,6 +41,8 @@ Per-session and shared routes: set `AE_HOST_MODE=split` before `launch`. Ready s
 
 Password facade: set `AE_HOST_MODE=password-cookie` or `AE_HOST_MODE=password-jwt` before `launch`. Routes are under `/auth` (`AddPasswordAuth` / `MapPasswordAuth`). Passkeys are on (`ServerDomain=localhost`). `RequireConfirmedAccount` defaults to **true** when `AE_REQUIRE_CONFIRMED_ACCOUNT` is unset (the library default). Cookie ready signal is `GET /auth/csrfToken` **200**. JWT cookie refresh uses the same signal. JWT body refresh (`AE_JWT_REFRESH_TRANSPORT=Body`) is ready when `GET /auth/manage/info` is **401**. See [password-auth.md](features/password-auth.md).
 
+External GitHub: set `AE_HOST_MODE=external` before `launch`. Ready signal is `GET /auth/csrfToken` **200**. Doctor prints `mode=external`. GitHub sign-in and account routes are under `/auth/external`. Password login, set-password, and confirm-identity are under `/auth`. Email-code verify is not mapped. See [external-github.md](features/external-github.md).
+
 JWT body refresh: set `AE_JWT_REFRESH_TRANSPORT=Body` before `launch`. Login, email-code verify, and refresh return `refreshToken` and set no `AuthEndpoints.Jwt.RefreshToken` cookie. `POST /refresh` and `POST /logout` take `{ "refreshToken" }` and do not use antiforgery. `GET /csrfToken` on the JWT prefix is unmapped. `AE_JWT_ABSOLUTE_LIFETIME` (a positive TimeSpan such as `00:00:03`) shortens the family cap for a live check. See [jwt-body-refresh.md](features/jwt-body-refresh.md).
 
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.
@@ -185,7 +187,7 @@ Never `pkill -f AuthEndpoints` or similar.
 
 | Command | What it does |
 | --- | --- |
-| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until the ready signal for `AE_HOST_MODE` (`/identity/csrfToken` 200, bearer-facade `/identity/manage/info` 401, split `/web/csrfToken` 200, password-cookie and password-jwt cookie refresh `/auth/csrfToken` 200, password-jwt body refresh `/auth/manage/info` 401) |
+| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until the ready signal for `AE_HOST_MODE` (`/identity/csrfToken` 200, bearer-facade `/identity/manage/info` 401, split `/web/csrfToken` 200, password-cookie, password-jwt cookie refresh, and external `/auth/csrfToken` 200, password-jwt body refresh `/auth/manage/info` 401) |
 | `doctor` | PID + port + ready signal for the current `AE_HOST_MODE` |
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |

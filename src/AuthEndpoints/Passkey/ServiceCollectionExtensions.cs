@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
     /// Registers ReAuth, Identity rate limiting, and passkey rate-limit policies.
     /// Also registers the password, cookie-session, and account-management modules
     /// so a host that calls only this method can map <c>MapIdentityManagementApi</c>
-    /// and <c>MapCookieAuthEndpoints</c> without missing-<c>Add*</c> warnings.
+    /// and <c>MapCookieAuthEndpoints</c>.
     /// Hosts must call <c>UseRateLimiter()</c>, serve over HTTPS, and configure
     /// <c>IdentityPasskeyOptions</c> (<c>ServerDomain</c>, allowed origins, etc.).
     /// Does not register <see cref="IPasskeySignInCompleter{TUser}"/> — prefer

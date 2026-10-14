@@ -1,11 +1,9 @@
 # AuthEndpoints.OAuth.GitHub
 
-**Docs:** [https://authendpoints.harten.id](https://authendpoints.harten.id)
-
-GitHub provider for [AuthEndpoints.External.OAuth](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/). Compose-only. Not part of `MapAuthEndpoints`.
+GitHub provider for [AuthEndpoints](https://www.nuget.org/packages/AuthEndpoints/). This package registers the handler. It does not map routes.
 
 ```bash
-dotnet add package AuthEndpoints.OAuth.GitHub --prerelease
+dotnet add package AuthEndpoints.OAuth.GitHub
 ```
 
 ```csharp
@@ -16,7 +14,7 @@ builder.Services.AddExternalAuthEndpoints<AppUser>()
         o.ClientSecret = "...";
     });
 
-app.MapGroup("/auth/external").MapGitHubAuthEndpoints<AppUser>();
+app.MapGroup("/auth/external").MapExternalAuthProvider<AppUser>("GitHub");
 ```
 
 Sign-in uses a verified address from GitHub `GET /user/emails`. An unverified profile email is not treated as verified.
