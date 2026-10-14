@@ -39,6 +39,8 @@ Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready 
 
 Per-session and shared routes: set `AE_HOST_MODE=split` before `launch`. Ready signal is `GET /web/csrfToken` returning **200**. Doctor prints `mode=split`. Cookie sign-in is under `/web`, JWT sign-in is under `/app`, and shared routes (register, recovery, email-code send, passkey register options, account management, confirm-email) are at the root. Email-code routes are mapped in this mode without `AE_EMAIL_CODE`. See [per-session-shared.md](features/per-session-shared.md).
 
+JWT body refresh: set `AE_JWT_REFRESH_TRANSPORT=Body` before `launch`. Login, email-code verify, and refresh return `refreshToken` and set no `AuthEndpoints.Jwt.RefreshToken` cookie. `POST /refresh` and `POST /logout` take `{ "refreshToken" }` and do not use antiforgery. `GET /csrfToken` on the JWT prefix is unmapped. `AE_JWT_ABSOLUTE_LIFETIME` (a positive TimeSpan such as `00:00:03`) shortens the family cap for a live check. See [jwt-body-refresh.md](features/jwt-body-refresh.md).
+
 Teardown: `"$HARNESS" stop` kills **only** the PID in `$AE_RUN_DIR/host.pid`. It must not delete `$AE_EVIDENCE_DIR`.
 
 What the host actually is (`tests/AuthEndpoints.Tests/Program.cs`):
@@ -115,7 +117,7 @@ Stable handles (paths and headers), not coordinates:
 | --- | --- |
 | Cookie login | `POST /identity/login` JSON `{email,password}`. Query `useCookies` is **ignored**. Only `useSessionCookies=false` makes the cookie persistent. |
 | Bearer login | `POST /identity/bearer/login` with **no** cookie flags → JSON `accessToken` + `refreshToken`. `?useCookies=true` issues the application cookie instead. |
-| JWT login | `POST /auth/create` JSON `{email,password}` → JSON `accessToken`; refresh is cookie `AuthEndpoints.Jwt.RefreshToken`. |
+| JWT login | `POST /auth/create` JSON `{email,password}` → JSON `accessToken`; refresh is cookie `AuthEndpoints.Jwt.RefreshToken` unless `AE_JWT_REFRESH_TRANSPORT=Body`. |
 | CSRF fetch | `GET /identity/csrfToken` or `GET /auth/csrfToken` |
 | CSRF header | `RequestVerificationToken` (ASP.NET Core default; the library does not rename it) |
 | ReAuth header | `X-AuthEndpoints-Reauth` with `reauthToken` from `POST /identity/confirmIdentity` |

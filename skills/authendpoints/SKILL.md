@@ -211,9 +211,11 @@ Module: https://authendpoints.harten.id/modules/passkeys
 
 When `o.Jwt.Enabled = true`:
 
-- Call `modelBuilder.UseRefreshToken()` and migrate (`AuthEndpoints.AuthEndpointsRefreshTokens`).
+- Call `modelBuilder.UseRefreshToken()` and migrate (`AuthEndpoints.AuthEndpointsRefreshTokens`). The absolute family lifetime adds non-null `AbsoluteExpiresAt`. Backfill existing rows from `ExpiresAt`.
 - Production: non-default issuer and audience; symmetric key ≥ 32 UTF-8 bytes (or RSA/ECDSA/X509).
-- Refresh cookie name: `AuthEndpoints.Jwt.RefreshToken`. Recreate the table if upgrading from plaintext storage.
+- Refresh transport defaults to the cookie `AuthEndpoints.Jwt.RefreshToken` (HttpOnly). `Configure<JwtSessionOptions>(o => o.RefreshTokenTransport = RefreshTokenTransport.Body)` returns `refreshToken` from create, email-code verify, passkey sign-in, and refresh, and accepts it on refresh and logout with no antiforgery and no `csrfToken` route.
+- Every refresh rotates. Reuse of an old token revokes the family, including after a parallel refresh with the same token. Logout and a security-stamp change revoke the family on the server. `AbsoluteLifetime` defaults to 14 days from sign-in and rotation does not extend it. `RefreshTokenLifetime` is the per-token window inside that cap (default 14 days).
+- Recreate the table when upgrading from plaintext storage.
 
 Module: https://authendpoints.harten.id/modules/jwt
 

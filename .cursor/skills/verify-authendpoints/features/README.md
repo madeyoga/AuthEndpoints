@@ -45,6 +45,7 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Identity bearer](./identity-bearer.md) covers token login, refresh, and the `useCookies` query flag on the compose host prefix `/identity/bearer`.
 - [Identity bearer facade](./bearer-facade.md) covers `MapAuthEndpoints` with `AuthEndpointsSignIn.IdentityBearer` (`AE_HOST_MODE=bearer-facade`) at `/identity/login`.
 - [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, and refresh-cookie refresh.
+- [JWT body refresh](./jwt-body-refresh.md) covers `AE_JWT_REFRESH_TRANSPORT=Body`: JSON `refreshToken`, no JWT CSRF, reuse, logout, and the absolute lifetime.
 - [ReAuth step-up](./reauth.md) covers `confirmIdentity` and a protected manage mutation.
 - [Passkeys](./passkeys.md) covers passwordless register/login, confirmation mail under `AE_REQUIRE_CONFIRMED_ACCOUNT=true`, and the test-only WebAuthn helper.
 - [Confirm email](./confirm-email.md) covers `GET /identity/confirmEmail` thank-you / 401 and the optional SPA redirect (`AE_CONFIRM_EMAIL_REDIRECT_URI`).
