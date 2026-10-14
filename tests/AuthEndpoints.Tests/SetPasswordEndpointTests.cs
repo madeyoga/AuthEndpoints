@@ -1,19 +1,26 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
+using AuthEndpoints.Jwt;
+using AuthEndpoints.ReAuth;
 using AuthEndpoints.Tests.PublicApi;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace AuthEndpoints.Tests;
 
@@ -97,6 +104,23 @@ public class SetPasswordEndpointTests
     }
 
     [Fact]
+    public async Task SetPassword_WhenPasswordIsWeak_Returns400_AndLeavesHasPasswordFalse()
+    {
+        await using var host = await PasswordHost.StartAsync();
+        var email = Email();
+        await host.SeedWithoutPasswordAsync(email);
+        var jar = await host.SignInCookieAsync(email);
+        await host.ConfirmEmailCodeAsync(jar, email);
+
+        var response = await host.PostAsync(jar, "/identity/manage/password", new { newPassword = "abc" }, csrf: true);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.BadRequest, $"{(int)response.StatusCode} {body}");
+        Assert.Contains("PasswordTooShort", body, StringComparison.Ordinal);
+        Assert.False(await host.HasPasswordAsync(email));
+        Assert.DoesNotContain(host.Mail.Snapshot(), item => item.Kind == "security" && item.Email == email);
+    }
+
+    [Fact]
     public async Task SetPassword_WhenPasswordSignInUnmapped_Returns404()
     {
         await using var host = await PasswordHost.StartAsync(mapPasswordSignIn: false);
@@ -147,6 +171,9 @@ public class SetPasswordEndpointTests
             data => data.AuthenticationSchemes?.Contains("Identity.Application", StringComparison.Ordinal) == true);
         Assert.NotNull(endpoint.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
         Assert.NotNull(endpoint.Metadata.GetMetadata<SetPasswordEndpointMetadata>());
+        Assert.Equal(
+            AuthEndpointsConstants.AccountAbusePolicy,
+            endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
 
         var facade = RouteSurface.ListRoutes(RouteSurface.Build(
             builder =>
@@ -163,6 +190,88 @@ public class SetPasswordEndpointTests
         using var scope = defaults.Services.CreateScope();
         Assert.IsType<LoggingAccountSecurityEmailSender<TestAppUser>>(
             scope.ServiceProvider.GetRequiredService<IAccountSecurityEmailSender<TestAppUser>>());
+    }
+
+    [Fact]
+    public async Task SetPassword_JwtManagementWithoutAccountManagementRegistration_SetsPassword()
+    {
+        await using var host = await JwtManagementHost.StartAsync();
+        var email = Email();
+        await host.SeedWithoutPasswordAsync(email);
+
+        using (var scope = host.App.Services.CreateScope())
+        {
+            Assert.IsType<LoggingAccountSecurityEmailSender<TestAppUser>>(
+                scope.ServiceProvider.GetRequiredService<IAccountSecurityEmailSender<TestAppUser>>());
+        }
+
+        var (accessToken, reauthToken) = await host.MintAsync(email);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/account/manage/password")
+        {
+            Content = JsonContent.Create(new { newPassword = "SetPass1!" }),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.TryAddWithoutValidation(AuthEndpointsConstants.ReAuthHeaderName, reauthToken);
+
+        var response = await host.Client.SendAsync(request);
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.OK, $"{(int)response.StatusCode} {body}");
+        Assert.True(await host.HasPasswordAsync(email));
+    }
+
+    [Fact]
+    public async Task SetPassword_WrapsExistingAuthorizationResultHandler()
+    {
+        var custom = new StatusResultHandler();
+        await using var host = await AuthorizationWrapHost.StartAsync(custom);
+
+        var anonymous = await host.Client.PostAsJsonAsync("/identity/manage/password", new { newPassword = "SetPass1!" });
+        Assert.Equal(HttpStatusCode.NotFound, anonymous.StatusCode);
+        Assert.Equal(0, custom.Calls);
+
+        var probe = await host.Client.GetAsync("/probe");
+        Assert.Equal(StatusCodes.Status418ImATeapot, (int)probe.StatusCode);
+        Assert.Equal(1, custom.Calls);
+    }
+
+    [Fact]
+    public async Task LoggingSender_LogsStartupWarning()
+    {
+        var logs = new AuthEndpointsWarningLog();
+        await using var app = await StartSenderHostAsync(logs, registerCustomSender: false);
+        Assert.Contains(
+            logs.Messages,
+            message => message.Contains("LoggingAccountSecurityEmailSender", StringComparison.Ordinal)
+                && message.Contains("does not send mail", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task CustomSender_SkipsStartupWarning()
+    {
+        var logs = new AuthEndpointsWarningLog();
+        await using var app = await StartSenderHostAsync(logs, registerCustomSender: true);
+        Assert.DoesNotContain(
+            logs.Messages,
+            message => message.Contains("LoggingAccountSecurityEmailSender", StringComparison.Ordinal));
+    }
+
+    private static async Task<WebApplication> StartSenderHostAsync(AuthEndpointsWarningLog logs, bool registerCustomSender)
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development,
+        });
+        builder.WebHost.UseTestServer();
+        builder.Logging.AddProvider(logs);
+        if (registerCustomSender)
+        {
+            builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(new CapturingEmailSender());
+        }
+
+        builder.Services.AddAccountManagementEndpoints();
+        var app = builder.Build();
+        await app.StartAsync();
+        return app;
     }
 
     private static string Email() => $"set-password-{Guid.NewGuid():N}@test.local";
@@ -453,6 +562,224 @@ public class SetPasswordEndpointTests
             if (!string.IsNullOrEmpty(header))
             {
                 request.Headers.TryAddWithoutValidation("Cookie", header);
+            }
+        }
+    }
+
+    private sealed class JwtManagementHost : IAsyncDisposable
+    {
+        private readonly string _path;
+
+        private JwtManagementHost(WebApplication app, string path)
+        {
+            App = app;
+            _path = path;
+            Client = app.GetTestClient();
+        }
+
+        public WebApplication App { get; }
+
+        public HttpClient Client { get; }
+
+        public static async Task<JwtManagementHost> StartAsync()
+        {
+            var path = Path.Combine(Path.GetTempPath(), $"ae-set-password-jwt-{Guid.NewGuid():N}.sqlite");
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                EnvironmentName = Environments.Development,
+            });
+            builder.WebHost.UseTestServer();
+            builder.Services.AddDbContext<TestDbContext>(options =>
+                options.UseSqlite($"Data Source={path};Default Timeout=30"));
+            builder.Services
+                .AddIdentityApiEndpoints<TestAppUser>(options =>
+                {
+                    options.SignIn.RequireConfirmedAccount = false;
+                    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+                })
+                .AddEntityFrameworkStores<TestDbContext>()
+                .AddDefaultTokenProviders();
+            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+            {
+                options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            });
+            builder.Services.AddReAuthScheme();
+            builder.Services.AddAntiforgery();
+
+            var app = builder.Build();
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+                await db.Database.EnsureCreatedAsync();
+            }
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseRateLimiter();
+            app.UseAntiforgery();
+            app.MapGroup("/account").MapIdentityManagementApi<TestAppUser>();
+            app.MapGroup("/auth").MapJwtPasswordEndpoints<TestAppUser>();
+            await app.StartAsync();
+            return new JwtManagementHost(app, path);
+        }
+
+        public async Task SeedWithoutPasswordAsync(string email)
+        {
+            using var scope = App.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var user = new TestAppUser { UserName = email, Email = email, EmailConfirmed = true };
+            var created = await users.CreateAsync(user);
+            Assert.True(created.Succeeded, string.Join("; ", created.Errors.Select(error => error.Description)));
+        }
+
+        public async Task<bool> HasPasswordAsync(string email)
+        {
+            using var scope = App.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var user = await users.FindByEmailAsync(email);
+            return user is not null && await users.HasPasswordAsync(user);
+        }
+
+        public async Task<(string AccessToken, string ReauthToken)> MintAsync(string email)
+        {
+            using var scope = App.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var signIn = scope.ServiceProvider.GetRequiredService<SignInManager<TestAppUser>>();
+            var user = await users.FindByEmailAsync(email);
+            Assert.NotNull(user);
+            var principal = await signIn.CreateUserPrincipalAsync(user);
+            var accessToken = scope.ServiceProvider.GetRequiredService<IAccessTokenGenerator>().GenerateAccessToken(principal);
+            var stampType = users.Options.ClaimsIdentity.SecurityStampClaimType;
+            var claims = principal.Claims
+                .Where(claim => !string.Equals(claim.Type, stampType, StringComparison.Ordinal)
+                    && !string.Equals(claim.Type, "Reauth", StringComparison.Ordinal)
+                    && !string.Equals(claim.Type, "ReauthTime", StringComparison.Ordinal))
+                .ToList();
+            claims.Add(new Claim("Reauth", "true"));
+            claims.Add(new Claim(stampType, await users.GetSecurityStampAsync(user)));
+            var reauthToken = scope.ServiceProvider.GetRequiredService<ReAuthTokenService>().CreateToken(claims);
+            return (accessToken, reauthToken);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            Client.Dispose();
+            await App.StopAsync();
+            await App.DisposeAsync();
+            SqliteConnection.ClearAllPools();
+            TryDelete(_path);
+            TryDelete(_path + "-wal");
+            TryDelete(_path + "-shm");
+        }
+
+        private static void TryDelete(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch (IOException)
+            {
+            }
+        }
+    }
+
+    private sealed class AuthorizationWrapHost : IAsyncDisposable
+    {
+        private AuthorizationWrapHost(WebApplication app)
+        {
+            Client = app.GetTestClient();
+            App = app;
+        }
+
+        public WebApplication App { get; }
+
+        public HttpClient Client { get; }
+
+        public static async Task<AuthorizationWrapHost> StartAsync(StatusResultHandler custom)
+        {
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                EnvironmentName = Environments.Development,
+            });
+            builder.WebHost.UseTestServer();
+            builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler>(custom);
+            builder.Services.AddDbContext<TestDbContext>(options =>
+                options.UseInMemoryDatabase($"set-password-wrap-{Guid.NewGuid():N}"));
+            builder.Services
+                .AddIdentityApiEndpoints<TestAppUser>(options =>
+                {
+                    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+                })
+                .AddEntityFrameworkStores<TestDbContext>();
+            builder.Services.AddAccountManagementEndpoints();
+
+            var app = builder.Build();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+            app.MapGet("/probe", () => Results.Ok()).RequireAuthorization();
+            await app.StartAsync();
+            return new AuthorizationWrapHost(app);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            Client.Dispose();
+            await App.StopAsync();
+            await App.DisposeAsync();
+        }
+    }
+
+    private sealed class StatusResultHandler : IAuthorizationMiddlewareResultHandler
+    {
+        public int Calls { get; private set; }
+
+        public Task HandleAsync(
+            RequestDelegate next,
+            HttpContext context,
+            AuthorizationPolicy policy,
+            PolicyAuthorizationResult authorizeResult)
+        {
+            Calls++;
+            context.Response.StatusCode = StatusCodes.Status418ImATeapot;
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class AuthEndpointsWarningLog : ILoggerProvider
+    {
+        public List<string> Messages { get; } = [];
+
+        public ILogger CreateLogger(string categoryName) => new Logger(categoryName, Messages);
+
+        public void Dispose()
+        {
+        }
+
+        private sealed class Logger(string category, List<string> messages) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) =>
+                logLevel >= LogLevel.Warning && category == AuthEndpointsModules.LogCategory;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter)
+            {
+                if (!IsEnabled(logLevel))
+                {
+                    return;
+                }
+
+                messages.Add(formatter(state, exception));
             }
         }
     }

@@ -46,3 +46,4 @@ Preconditions:
 - The frozen facade does not map this route. `404` there is routing, not the password-sign-in check.
 - An email-code-only map still maps `POST /manage/password` and returns `404` until `POST /login` or JWT `POST /create` is mapped.
 - The default `IAccountSecurityEmailSender<TUser>` only logs. This host replaces it with the capturing sender, so the mailbox item exists here.
+- The route uses `AuthEndpoints.AccountAbuse` (10 requests per minute per IP). A burst returns `429`.

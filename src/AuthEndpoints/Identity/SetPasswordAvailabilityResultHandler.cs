@@ -10,7 +10,12 @@ namespace AuthEndpoints.Identity;
 /// </summary>
 internal sealed class SetPasswordAvailabilityResultHandler : IAuthorizationMiddlewareResultHandler
 {
-    private readonly AuthorizationMiddlewareResultHandler _default = new();
+    private readonly IAuthorizationMiddlewareResultHandler _inner;
+
+    public SetPasswordAvailabilityResultHandler(IAuthorizationMiddlewareResultHandler inner)
+    {
+        _inner = inner;
+    }
 
     public Task HandleAsync(
         RequestDelegate next,
@@ -26,6 +31,6 @@ internal sealed class SetPasswordAvailabilityResultHandler : IAuthorizationMiddl
             return Task.CompletedTask;
         }
 
-        return _default.HandleAsync(next, context, policy, authorizeResult);
+        return _inner.HandleAsync(next, context, policy, authorizeResult);
     }
 }

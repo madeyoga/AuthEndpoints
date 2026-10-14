@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
@@ -513,6 +514,8 @@ public class IdentityApiEndpoints<TUser>
         HttpContext context,
         [FromServices] IServiceProvider sp)
     {
+        var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>()
+            ?? CreateLoggingSecurityEmailSender(sp);
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (!userManager.SupportsUserPassword || !PasswordSignInMap.IsMapped(sp))
         {
@@ -540,17 +543,7 @@ public class IdentityApiEndpoints<TUser>
             return CreateValidationProblem(addPasswordResult);
         }
 
-        if (userManager.SupportsUserSecurityStamp)
-        {
-            var stampResult = await userManager.UpdateSecurityStampAsync(user);
-            if (!stampResult.Succeeded)
-            {
-                return CreateValidationProblem(stampResult);
-            }
-        }
-
         var email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email.");
-        var sender = sp.GetRequiredService<IAccountSecurityEmailSender<TUser>>();
         await sender.SendPasswordSetAsync(user, email, context.RequestAborted);
 
         if (await SignInSchemes.IsAuthenticatedAsync(context, IdentityConstants.ApplicationScheme))
@@ -561,6 +554,15 @@ public class IdentityApiEndpoints<TUser>
         }
 
         return TypedResults.Ok();
+    }
+
+    private static LoggingAccountSecurityEmailSender<TUser> CreateLoggingSecurityEmailSender(IServiceProvider sp)
+    {
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        loggerFactory.CreateLogger(AuthEndpointsModules.LogCategory).LogWarning(
+            "IAccountSecurityEmailSender<{User}> is not registered. Password-set notices are logged and not sent. Register an implementation to deliver them.",
+            typeof(TUser).Name);
+        return ActivatorUtilities.CreateInstance<LoggingAccountSecurityEmailSender<TUser>>(sp);
     }
 
     internal static async Task SendConfirmationEmailAsync(

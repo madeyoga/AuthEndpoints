@@ -53,6 +53,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
         services.AddIdentityEndpointRateLimiting();
+        services.AddAccountSecurityEmailSender();
 
         return new SimpleJwtBuilder(identityUserType, typeof(TUser), services, options);
     }

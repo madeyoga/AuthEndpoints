@@ -12,7 +12,7 @@ namespace AuthEndpoints.Tests.PublicApi;
 public class PerSessionSharedRouteTests
 {
     [Fact]
-    public Task MapIdentityManagementApi_Matches341RouteTable()
+    public Task MapIdentityManagementApi_MatchesRouteTable()
     {
         var surface = RouteSurface.Capture(
             builder =>
