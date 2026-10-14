@@ -25,6 +25,7 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
     /// including password login, JWT <c>POST /create</c>, and email-code verify. It leaves
     /// <c>POST /confirmIdentity/emailCode/send</c> and <c>POST /manage/password</c> unmapped, and
     /// <c>authMethods.emailCode</c> stays false.
+    /// It is the frozen 3.4.1 compatibility facade. Do not combine it with <c>AddPasswordAuth</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()

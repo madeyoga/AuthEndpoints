@@ -17,4 +17,11 @@ public class SimpleJwtOptions
     /// Advanced override: fully custom TokenValidationParameters.
     /// </summary>
     public TokenValidationParameters? TokenValidationParameters { get; set; }
+
+    /// <summary>
+    /// Refresh-token transport copied onto <see cref="JwtSessionOptions.RefreshTokenTransport"/> by <c>AddPasswordAuth</c>.
+    /// <c>AddJwtEndpoints</c> does not read this property. Compose hosts set <see cref="JwtSessionOptions"/> instead.
+    /// Default: <see cref="RefreshTokenTransport.Cookie"/>.
+    /// </summary>
+    public RefreshTokenTransport RefreshTokenTransport { get; set; } = RefreshTokenTransport.Cookie;
 }
