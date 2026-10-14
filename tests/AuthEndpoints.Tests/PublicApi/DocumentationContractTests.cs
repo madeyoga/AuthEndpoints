@@ -19,6 +19,7 @@ public class DocumentationContractTests
         "Per-method sign-in completers are obsolete",
         "JWT `POST /create` runs the shared password pipeline",
         "Password `/login` no longer calls `SignInManager.PasswordSignInAsync` / `TwoFactorAuthenticatorSignInAsync` / `TwoFactorRecoveryCodeSignInAsync`",
+        "MapPasswordEndpoints overloads",
         "JWT refresh rotation and body transport",
         "External OAuth types live in AuthEndpoints.dll",
         "External.OAuth below 4.0.0 fails the build (AE4000)",
@@ -110,7 +111,30 @@ public class DocumentationContractTests
             "Facade login does not run the unknown-email hash verify, so an unknown email can return faster than a wrong password.",
             guide,
             StringComparison.Ordinal);
-        Assert.Contains("Cookie-mode refresh detects reuse", guide, StringComparison.Ordinal);
+        Assert.Contains("a lost concurrent refresh that revokes the family", guide, StringComparison.Ordinal);
+        Assert.DoesNotContain("Cookie-mode refresh detects reuse", guide, StringComparison.Ordinal);
+        Assert.Contains(
+            "Recompile assemblies built against AuthEndpoints 3.4.x. Source that calls `MapPasswordEndpoints` still compiles.",
+            guide,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "a lost concurrent refresh revokes the family",
+            File.ReadAllText(Path.Combine(
+                FindRepoRoot(),
+                "Documentation",
+                "content",
+                "versions",
+                "v4.0.0.md")),
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "The final passkey register step still reveals a taken email once a valid attestation has been made.",
+            File.ReadAllText(Path.Combine(
+                FindRepoRoot(),
+                "Documentation",
+                "content",
+                "4.modules",
+                "15.enumeration.md")),
+            StringComparison.Ordinal);
         Assert.Contains("A taken email on `POST /register` is not one of them.", guide, StringComparison.Ordinal);
         Assert.Contains(RegisterTakenEmail, guide, StringComparison.Ordinal);
         Assert.DoesNotContain("Stop matching `DuplicateUserName`", guide, StringComparison.Ordinal);

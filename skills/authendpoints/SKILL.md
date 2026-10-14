@@ -50,7 +50,7 @@ app.MapPasswordAuth<AppUser>(); // default prefix /auth
 
 ## 3.x facade, kept for compatibility
 
-`AddAuthEndpoints` / `MapAuthEndpoints` are the 3.x facade, kept for compatibility. They stay on the 3.4.1 route set and are not obsolete. Cookie is the default sign-in. Native/mobile on this facade uses `AuthEndpointsSignIn.IdentityBearer`. They do not gain email-code step-up, `POST /manage/password`, or completer selection. Exceptions: a non-default `Jwt.Configure` refresh transport is applied, facade `POST /create` runs the unknown-email hash verify, and JWT refresh uses the 4.0 reuse and absolute-lifetime rules. Compose modules yourself for email-code sign-in, more than one session, or a mix neither facade covers. Do not combine with `AddPasswordAuth`.
+`AddAuthEndpoints` / `MapAuthEndpoints` are the 3.x facade, kept for compatibility. They stay on the 3.4.1 route set and are not obsolete. Cookie is the default sign-in. Native/mobile on this facade uses `AuthEndpointsSignIn.IdentityBearer`. They do not gain email-code step-up, `POST /manage/password`, or completer selection. Exceptions: a non-default `Jwt.Configure` refresh transport is applied, facade `POST /create` runs the unknown-email hash verify, and JWT refresh gains an absolute lifetime plus a lost concurrent refresh that revokes the family. Compose modules yourself for email-code sign-in, more than one session, or a mix neither facade covers. Do not combine with `AddPasswordAuth`.
 
 https://authendpoints.harten.id/getting-started/compatibility-facade
 
