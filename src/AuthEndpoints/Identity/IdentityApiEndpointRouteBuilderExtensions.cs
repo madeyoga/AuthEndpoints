@@ -9,7 +9,8 @@ namespace AuthEndpoints.Identity;
 public static class IdentityApiEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth).
+    /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth,
+    /// and <c>POST /manage/password</c>).
     /// This is <c>MapPasswordEndpoints&lt;TUser&gt;(PasswordLoginMode.None)</c>,
     /// <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>,
     /// and <see cref="AccountManagementEndpointRouteBuilderExtensions.MapAccountManagementEndpoints{TUser}"/>.
@@ -26,24 +27,33 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
-        return MapIdentityManagementCore<TUser>(endpoints, confirmEmailEndpointName, emailCodeReAuth: true);
+        return MapIdentityManagementCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            emailCodeReAuth: true,
+            includeSetPassword: true);
     }
 
     /// <summary>
-    /// Facade management map. Keeps the 3.4.1 step-up surface: no email-code send route, and
-    /// <c>authMethods.emailCode</c> stays false.
+    /// Facade management map. Keeps the 3.4.1 step-up surface: no email-code send route,
+    /// <c>authMethods.emailCode</c> stays false, and <c>POST /manage/password</c> is left unmapped.
     /// </summary>
     internal static IEndpointConventionBuilder MapIdentityManagementApiPreserving3x<TUser>(
         this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
-        return MapIdentityManagementCore<TUser>(endpoints, confirmEmailEndpointName: null, emailCodeReAuth: false);
+        return MapIdentityManagementCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName: null,
+            emailCodeReAuth: false,
+            includeSetPassword: false);
     }
 
     private static IEndpointConventionBuilder MapIdentityManagementCore<TUser>(
         IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName,
-        bool emailCodeReAuth)
+        bool emailCodeReAuth,
+        bool includeSetPassword)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -53,7 +63,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         var account = endpoints.MapAccountManagementEndpoints<TUser>(
             confirmEmailEndpointName,
             alwaysMapPasskeyOptions: true,
-            emailCodeReAuth: emailCodeReAuth);
+            emailCodeReAuth: emailCodeReAuth,
+            includeSetPassword: includeSetPassword);
         return new CompositeEndpointConventionBuilder(password, confirm, account);
     }
 

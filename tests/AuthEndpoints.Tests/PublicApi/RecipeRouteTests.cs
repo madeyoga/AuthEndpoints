@@ -51,6 +51,7 @@ public class RecipeRouteTests
                 "POST /identity/logout",
                 "POST /identity/manage/2fa",
                 "POST /identity/manage/info",
+                "POST /identity/manage/password",
                 "POST /identity/resendConfirmationEmail",
             ],
             routes);
@@ -125,7 +126,7 @@ public class RecipeRouteTests
             app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
         });
 
-        Assert.Equal(CookieFacadeRoutes, routes);
+        Assert.Equal(WithSetPassword(CookieFacadeRoutes), routes);
     }
 
     [Fact]
@@ -151,7 +152,7 @@ public class RecipeRouteTests
             app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
         });
 
-        Assert.Equal(BearerFacadeRoutes, routes);
+        Assert.Equal(WithSetPassword(BearerFacadeRoutes), routes);
     }
 
     [Fact]
@@ -193,6 +194,7 @@ public class RecipeRouteTests
                 "POST /account/forgotPassword",
                 "POST /account/manage/2fa",
                 "POST /account/manage/info",
+                "POST /account/manage/password",
                 "POST /account/register",
                 "POST /account/resendConfirmationEmail",
                 "POST /account/resetPassword",
@@ -261,6 +263,14 @@ public class RecipeRouteTests
         }
 
         return doc.RootElement.GetProperty("CsrfToken").GetString()!;
+    }
+
+    private static string[] WithSetPassword(IReadOnlyList<string> routes)
+    {
+        return routes
+            .Append("POST /identity/manage/password")
+            .OrderBy(route => route, StringComparer.Ordinal)
+            .ToArray();
     }
 
     private static readonly string[] CookieFacadeRoutes =

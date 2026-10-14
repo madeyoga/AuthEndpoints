@@ -235,6 +235,26 @@ internal static class IdentityEndpointRoutes
             .Track(endpoints, mapMethod);
     }
 
+    public static void MapSetPassword<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
+        where TUser : class, new()
+    {
+        var accountGroup = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
+        accountGroup.MapPost("/password", IdentityApiEndpoints<TUser>.SetPassword)
+            .WithSummary("Sets a password when the account has none.")
+            .WithDescription("""
+                Requires a signed-in user, antiforgery, and a ReAuth proof.
+                Rate-limited with the account-abuse policy.
+                Returns 404 when password sign-in is not mapped.
+                Returns 400 when the account already has a password. Change an existing password with POST /manage/info.
+                Sends a security email and rotates the security stamp.
+                """)
+            .RequireAntiforgery()
+            .RequireReauth()
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .WithMetadata(SetPasswordEndpointMetadata.Instance)
+            .Track(endpoints, mapMethod);
+    }
+
     public static void MapCookieSession<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {

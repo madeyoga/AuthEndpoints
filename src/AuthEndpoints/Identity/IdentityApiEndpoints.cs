@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
@@ -500,6 +501,68 @@ public class IdentityApiEndpoints<TUser>
             Email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email."),
             IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
         });
+    }
+
+    /// <summary>
+    /// Sets a password when the account has none.
+    /// Returns 404 when password sign-in is not mapped, and 400 when a password already exists.
+    /// Changing an existing password stays on <c>POST /manage/info</c>.
+    /// </summary>
+    public static async Task<Results<Ok, ValidationProblem, NotFound>> SetPassword(
+        ClaimsPrincipal claimsPrincipal,
+        [FromBody] SetPasswordRequest request,
+        HttpContext context,
+        [FromServices] IServiceProvider sp)
+    {
+        var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>()
+            ?? CreateLoggingSecurityEmailSender(sp);
+        var userManager = sp.GetRequiredService<UserManager<TUser>>();
+        if (!userManager.SupportsUserPassword || !PasswordSignInMap.IsMapped(sp))
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (await userManager.HasPasswordAsync(user))
+        {
+            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.UserAlreadyHasPassword()));
+        }
+
+        if (string.IsNullOrEmpty(request?.NewPassword))
+        {
+            return CreateValidationProblem("PasswordRequired", "A password is required.");
+        }
+
+        var addPasswordResult = await userManager.AddPasswordAsync(user, request.NewPassword);
+        if (!addPasswordResult.Succeeded)
+        {
+            return CreateValidationProblem(addPasswordResult);
+        }
+
+        var email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email.");
+        await sender.SendPasswordSetAsync(user, email, context.RequestAborted);
+
+        if (await SignInSchemes.IsAuthenticatedAsync(context, IdentityConstants.ApplicationScheme))
+        {
+            var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
+            signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+            await signInManager.RefreshSignInAsync(user);
+        }
+
+        return TypedResults.Ok();
+    }
+
+    private static LoggingAccountSecurityEmailSender<TUser> CreateLoggingSecurityEmailSender(IServiceProvider sp)
+    {
+        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+        loggerFactory.CreateLogger(AuthEndpointsModules.LogCategory).LogWarning(
+            "IAccountSecurityEmailSender<{User}> is not registered. Password-set notices are logged and not sent. Register an implementation to deliver them.",
+            typeof(TUser).Name);
+        return ActivatorUtilities.CreateInstance<LoggingAccountSecurityEmailSender<TUser>>(sp);
     }
 
     internal static async Task SendConfirmationEmailAsync(

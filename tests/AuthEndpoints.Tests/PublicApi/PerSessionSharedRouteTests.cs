@@ -12,7 +12,7 @@ namespace AuthEndpoints.Tests.PublicApi;
 public class PerSessionSharedRouteTests
 {
     [Fact]
-    public Task MapIdentityManagementApi_Matches341RouteTable()
+    public Task MapIdentityManagementApi_MatchesRouteTable()
     {
         var surface = RouteSurface.Capture(
             builder =>
@@ -305,6 +305,8 @@ public class PerSessionSharedRouteTests
             app => app.MapPasswordSignInEndpoints<TestAppUser>()))
         {
             Assert.True(PasswordSignInMap.IsMapped(login.Services));
+            using var scope = login.Services.CreateScope();
+            Assert.True(PasswordSignInMap.IsMapped(scope.ServiceProvider));
         }
 
         using (var cookie = RouteSurface.Build(
