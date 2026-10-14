@@ -168,6 +168,7 @@ else
     builder.Services.AddAuthorization();
     builder.Services.AddAntiforgery();
     builder.Services.AddCookieAuthEndpoints();
+    builder.Services.AddBearerSessionEndpoints();
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
     if (emailCode)
     {

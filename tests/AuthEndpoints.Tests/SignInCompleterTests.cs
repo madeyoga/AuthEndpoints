@@ -1217,6 +1217,7 @@ internal sealed class SignInHost : IAsyncDisposable
         builder.Services.AddAuthorization();
         builder.Services.AddAntiforgery();
         builder.Services.AddCookieAuthEndpoints();
+        builder.Services.AddBearerSessionEndpoints();
         builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(email =>
         {
             email.ResendCooldown = TimeSpan.Zero;
