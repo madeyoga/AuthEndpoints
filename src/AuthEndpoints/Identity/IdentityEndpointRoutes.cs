@@ -31,12 +31,17 @@ internal static class IdentityEndpointRoutes
         IEndpointRouteBuilder endpoints,
         PasswordLoginMode login,
         string mapMethod,
-        string? completer = null)
+        string? completer = null,
+        bool allowUnregisteredBuiltIn = false)
         where TUser : class, new()
     {
         if (completer is not null)
         {
-            SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
+            if (!allowUnregisteredBuiltIn
+                || SignInCompleterRegistry.Contains<TUser>(endpoints.ServiceProvider, completer))
+            {
+                SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
+            }
             endpoints.MapPost("/login", (
                     [FromBody] LoginRequest loginRequest,
                     [FromQuery] bool? useCookies,

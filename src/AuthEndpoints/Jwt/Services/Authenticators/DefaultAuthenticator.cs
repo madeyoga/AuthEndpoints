@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AuthEndpoints.SignIn;
+using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Jwt;
 
@@ -20,6 +21,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
 
     /// <summary>
     /// Verifies credentials. Failed results use a generic invalid-credentials error (no enumeration).
+    /// An unknown user still runs a password-hash verify so that path matches a wrong password.
     /// </summary>
     public async Task<AuthenticationResult<TUser>> AuthenticateAsync(string username, string password)
     {
@@ -34,6 +36,7 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
 
         if (user == null)
         {
+            PasswordHashTiming<TUser>.VerifyUnknownUser(_userManager.PasswordHasher, password);
             return invalid;
         }
 
