@@ -41,7 +41,7 @@ public sealed class PasswordAuthOptions
 
     /// <summary>
     /// JWT signing configuration. Required when <see cref="Session"/> is <see cref="AuthEndpointsSession.Jwt"/>.
-    /// <see cref="SimpleJwtOptions.RefreshTokenTransport"/> is copied onto <see cref="JwtSessionOptions"/>.
+    /// <see cref="SimpleJwtOptions.RefreshTokenTransport"/> is applied by <c>AddJwtEndpoints</c>.
     /// </summary>
     public Action<SimpleJwtOptions>? Jwt { get; set; }
 

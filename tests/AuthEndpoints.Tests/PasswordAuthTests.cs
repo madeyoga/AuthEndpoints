@@ -103,6 +103,8 @@ public class PasswordAuthTests
         using var createDoc = JsonDocument.Parse(await create.Content.ReadAsStringAsync());
         var accessToken = TestHelpers.TryGetString(createDoc.RootElement, "accessToken", "AccessToken");
         Assert.False(string.IsNullOrWhiteSpace(accessToken));
+        Assert.Equal("Bearer", TestHelpers.TryGetString(createDoc.RootElement, "tokenType", "TokenType"));
+        Assert.Null(TestHelpers.TryGetString(createDoc.RootElement, "refreshToken", "RefreshToken"));
         Assert.Contains("AuthEndpoints.Jwt.RefreshToken", CookieHeader(create), StringComparison.Ordinal);
 
         var verify = await SendAsync(http, cookies, () =>
@@ -150,6 +152,69 @@ public class PasswordAuthTests
             request.Headers.Add("RequestVerificationToken", replayCsrf);
             return request;
         });
+        Assert.Equal(HttpStatusCode.BadRequest, replay.StatusCode);
+    }
+
+    [Fact]
+    public async Task Jwt_BodyTransport_CreateRefreshLogout_WithoutCookiesOrCsrf()
+    {
+        var mail = new CapturingEmailSender();
+        await using var app = await StartAsync(mail, o =>
+        {
+            o.Session = AuthEndpointsSession.Jwt;
+            o.Jwt = jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = SigningKey;
+                jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+            };
+        });
+        var http = app.GetTestServer().CreateClient();
+        var email = $"password-jwt-body-{Guid.NewGuid():N}@test.local";
+
+        var register = await SendBareAsync(http, () =>
+            Post("/auth/register", new { email, password = TestHelpers.DefaultPassword }));
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+
+        var confirm = await SendBareAsync(http, () => new HttpRequestMessage(HttpMethod.Get, ConfirmPath(mail, email)));
+        Assert.Equal(HttpStatusCode.OK, confirm.StatusCode);
+
+        var missingCsrf = await SendBareAsync(http, () => new HttpRequestMessage(HttpMethod.Get, "/auth/csrfToken"));
+        Assert.Equal(HttpStatusCode.NotFound, missingCsrf.StatusCode);
+
+        var create = await SendBareAsync(http, () =>
+            Post("/auth/create", new { email, password = TestHelpers.DefaultPassword }));
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
+        Assert.DoesNotContain("AuthEndpoints.Jwt.RefreshToken", CookieHeader(create), StringComparison.Ordinal);
+        using var createDoc = JsonDocument.Parse(await create.Content.ReadAsStringAsync());
+        var accessToken = TestHelpers.TryGetString(createDoc.RootElement, "accessToken", "AccessToken");
+        var refreshToken = TestHelpers.TryGetString(createDoc.RootElement, "refreshToken", "RefreshToken");
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+        Assert.Equal("Bearer", TestHelpers.TryGetString(createDoc.RootElement, "tokenType", "TokenType"));
+        Assert.False(string.IsNullOrWhiteSpace(refreshToken));
+
+        var verify = await SendBareAsync(http, () =>
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "/auth/verify");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+            return request;
+        });
+        Assert.Equal(HttpStatusCode.NoContent, verify.StatusCode);
+
+        var refresh = await SendBareAsync(http, () => Post("/auth/refresh", new { refreshToken }));
+        Assert.Equal(HttpStatusCode.OK, refresh.StatusCode);
+        Assert.DoesNotContain("AuthEndpoints.Jwt.RefreshToken", CookieHeader(refresh), StringComparison.Ordinal);
+        using var refreshDoc = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync());
+        var refreshedAccess = TestHelpers.TryGetString(refreshDoc.RootElement, "accessToken", "AccessToken");
+        var refreshed = TestHelpers.TryGetString(refreshDoc.RootElement, "refreshToken", "RefreshToken");
+        Assert.False(string.IsNullOrWhiteSpace(refreshedAccess));
+        Assert.Equal("Bearer", TestHelpers.TryGetString(refreshDoc.RootElement, "tokenType", "TokenType"));
+        Assert.False(string.IsNullOrWhiteSpace(refreshed));
+        Assert.NotEqual(refreshToken, refreshed);
+
+        var logout = await SendBareAsync(http, () => Post("/auth/logout", new { refreshToken = refreshed }));
+        Assert.Equal(HttpStatusCode.OK, logout.StatusCode);
+
+        var replay = await SendBareAsync(http, () => Post("/auth/refresh", new { refreshToken = refreshed }));
         Assert.Equal(HttpStatusCode.BadRequest, replay.StatusCode);
     }
 
@@ -322,6 +387,69 @@ public class PasswordAuthTests
         Assert.Contains("already called", ex.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void LaterConfigure_EmailConfirmation_IsCopiedAndRegistrationStays()
+    {
+        var builder = NewBuilder();
+        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o => o.Passkeys.ServerDomain = "localhost");
+        builder.Services.Configure<PasswordAuthOptions>(o =>
+        {
+            o.EmailConfirmation.ConfirmEmailRedirectUri = "/later";
+            o.EmailConfirmation.AllowedRedirectOrigins.Add("https://app.example.com");
+        });
+        using var app = builder.Build();
+
+        var registration = app.Services.GetRequiredService<PasswordAuthRegistration>();
+        Assert.Equal(AuthEndpointsSession.Cookie, registration.Session);
+        Assert.Equal("/auth", registration.Path);
+        Assert.Equal("localhost", registration.ServerDomain);
+
+        var password = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value;
+        var auth = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
+        Assert.Equal("/later", password.EmailConfirmation.ConfirmEmailRedirectUri);
+        Assert.Equal("/later", auth.EmailConfirmation.ConfirmEmailRedirectUri);
+        Assert.Contains("https://app.example.com", auth.EmailConfirmation.AllowedRedirectOrigins);
+        app.MapPasswordAuth<TestAppUser>();
+    }
+
+    [Theory]
+    [InlineData("Session")]
+    [InlineData("Path")]
+    [InlineData("Passkeys.ServerDomain")]
+    public void LaterConfigure_ChangingRegistrationFields_FailsValidationAndMap(string field)
+    {
+        var builder = NewBuilder();
+        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o => o.Passkeys.ServerDomain = "localhost");
+        builder.Services.Configure<PasswordAuthOptions>(o =>
+        {
+            if (field == "Session")
+            {
+                o.Session = AuthEndpointsSession.Jwt;
+            }
+            else if (field == "Path")
+            {
+                o.Path = "/other";
+            }
+            else
+            {
+                o.Passkeys.ServerDomain = "example.com";
+            }
+        });
+        using var app = builder.Build();
+
+        var registration = app.Services.GetRequiredService<PasswordAuthRegistration>();
+        Assert.Equal(AuthEndpointsSession.Cookie, registration.Session);
+        Assert.Equal("/auth", registration.Path);
+        Assert.Equal("localhost", registration.ServerDomain);
+
+        var resolved = Assert.ThrowsAny<Exception>(() =>
+            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
+        Assert.Contains("changed " + field, resolved.ToString(), StringComparison.Ordinal);
+
+        var mapped = Assert.ThrowsAny<Exception>(() => app.MapPasswordAuth<TestAppUser>());
+        Assert.Contains("changed " + field, mapped.ToString(), StringComparison.Ordinal);
+    }
+
     private static WebApplicationBuilder NewBuilder(string environment = "Development")
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -419,6 +547,19 @@ public class PasswordAuthTests
         }
 
         return response;
+    }
+
+    private static async Task<HttpResponseMessage> SendBareAsync(HttpClient http, Func<HttpRequestMessage> request)
+    {
+        using var message = request();
+        Assert.False(message.Headers.Contains("Cookie"));
+        Assert.False(message.Headers.Contains("RequestVerificationToken"));
+        if (http.BaseAddress is not null && !message.Headers.Contains("Origin"))
+        {
+            message.Headers.TryAddWithoutValidation("Origin", http.BaseAddress.GetLeftPart(UriPartial.Authority));
+        }
+
+        return await http.SendAsync(message);
     }
 
     private static string CookieHeader(HttpResponseMessage response)

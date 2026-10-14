@@ -10,9 +10,26 @@ using Microsoft.Extensions.Options;
 namespace AuthEndpoints;
 
 /// <summary>
-/// Marker for <c>AddPasswordAuth</c>. Startup validation rejects a host that also calls <c>AddAuthEndpoints</c>.
+/// Decisions <c>AddPasswordAuth</c> already registered. <c>MapPasswordAuth</c> maps this snapshot.
+/// A later <c>Configure&lt;PasswordAuthOptions&gt;</c> that changes session, path, or passkey domain fails validation.
 /// </summary>
-internal sealed class PasswordAuthRegistration;
+internal sealed class PasswordAuthRegistration
+{
+    public PasswordAuthRegistration(AuthEndpointsSession session, string path, string? serverDomain)
+    {
+        Session = session;
+        Path = path;
+        ServerDomain = serverDomain;
+    }
+
+    public AuthEndpointsSession Session { get; }
+
+    public string Path { get; }
+
+    public string? ServerDomain { get; }
+
+    public bool PasskeysMapped => !string.IsNullOrWhiteSpace(ServerDomain);
+}
 
 public static class PasswordAuthServiceCollectionExtensions
 {
@@ -38,10 +55,8 @@ public static class PasswordAuthServiceCollectionExtensions
     /// services.AddAccountManagementEndpoints();
     /// // Cookie:
     /// services.AddCookieSessionEndpoints();
-    /// // Jwt (options.Jwt is required):
+    /// // Jwt (options.Jwt is required). AddJwtEndpoints applies SimpleJwtOptions.RefreshTokenTransport:
     /// services.AddJwtEndpoints&lt;TUser, TContext&gt;(options.Jwt);
-    /// services.Configure&lt;JwtSessionOptions&gt;(session =&gt;
-    ///     session.RefreshTokenTransport = /* SimpleJwtOptions.RefreshTokenTransport from that callback */);
     /// // When Passkeys.ServerDomain is set:
     /// services.AddPasskeyEndpoints&lt;TUser&gt;();
     /// services.Configure&lt;IdentityPasskeyOptions&gt;(passkeys =&gt; passkeys.ServerDomain = options.Passkeys.ServerDomain);
@@ -68,10 +83,12 @@ public static class PasswordAuthServiceCollectionExtensions
                 "AddPasswordAuth was already called. A host registers the password facade once.");
         }
 
-        services.AddSingleton<PasswordAuthRegistration>();
-
         var bootstrap = new PasswordAuthOptions();
         configure?.Invoke(bootstrap);
+        services.AddSingleton(new PasswordAuthRegistration(
+            bootstrap.Session,
+            bootstrap.Path,
+            bootstrap.Passkeys.ServerDomain));
 
         services.AddOptions<PasswordAuthOptions>()
             .Configure(o => configure?.Invoke(o))
@@ -94,13 +111,7 @@ public static class PasswordAuthServiceCollectionExtensions
 
         if (bootstrap.Session == AuthEndpointsSession.Jwt && bootstrap.Jwt is not null)
         {
-            var transport = RefreshTokenTransport.Cookie;
-            services.AddJwtEndpoints<TUser, TContext>(jwt =>
-            {
-                bootstrap.Jwt(jwt);
-                transport = jwt.RefreshTokenTransport;
-            });
-            services.Configure<JwtSessionOptions>(session => session.RefreshTokenTransport = transport);
+            services.AddJwtEndpoints<TUser, TContext>(bootstrap.Jwt);
         }
         else if (bootstrap.Session == AuthEndpointsSession.Cookie)
         {

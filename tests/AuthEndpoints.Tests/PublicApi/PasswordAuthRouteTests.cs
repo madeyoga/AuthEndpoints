@@ -1,8 +1,10 @@
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace AuthEndpoints.Tests.PublicApi;
 
@@ -93,6 +95,147 @@ public class PasswordAuthRouteTests
             "POST /auth/refresh name=(none) auth=(none) antiforgery=false",
             facade,
             StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AddJwtEndpoints_HonoursRefreshTokenTransport()
+    {
+        using var app = RouteSurface.Build(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                {
+                    jwt.SigningOptions.SymmetricKey = SigningKey;
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                });
+            },
+            app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
+
+        Assert.Equal(
+            RefreshTokenTransport.Body,
+            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+        var routes = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(routes, route => route.Contains("csrfToken", StringComparison.Ordinal));
+        var refresh = ((IEndpointRouteBuilder)app).DataSources
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Single(endpoint => endpoint.RoutePattern.RawText == "/auth/refresh");
+        Assert.DoesNotContain(refresh.Metadata.GetOrderedMetadata<IAntiforgeryMetadata>(), metadata => metadata.RequiresValidation);
+    }
+
+    [Fact]
+    public void AddJwtEndpoints_RejectsUnknownRefreshTokenTransport()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development,
+        });
+        builder.Services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("jwt-transport-" + Guid.NewGuid().ToString("N")));
+        var ex = Assert.ThrowsAny<Exception>(() =>
+            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = SigningKey;
+                jwt.RefreshTokenTransport = (RefreshTokenTransport)9;
+            }));
+        Assert.Contains("RefreshTokenTransport", ex.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ConfigureJwtSessionOptions_AfterAddJwtEndpoints_ReplacesTransport()
+    {
+        using var app = RouteSurface.Build(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.AddAntiforgery();
+                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                {
+                    jwt.SigningOptions.SymmetricKey = SigningKey;
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                });
+                builder.Services.Configure<JwtSessionOptions>(session =>
+                    session.RefreshTokenTransport = RefreshTokenTransport.Cookie);
+            },
+            app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
+
+        Assert.Equal(
+            RefreshTokenTransport.Cookie,
+            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+        Assert.Contains("GET /auth/csrfToken", string.Join('\n', RouteSurface.ListRoutes(app)), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FrozenFacade_DefaultJwtTransport_StaysCookie()
+    {
+        using var app = RouteSurface.Build(
+            builder =>
+            {
+                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+                {
+                    o.Passkeys.Enabled = false;
+                    o.Jwt.Enabled = true;
+                    o.Jwt.Configure = jwt => jwt.SigningOptions.SymmetricKey = SigningKey;
+                });
+                builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
+            },
+            app => app.MapAuthEndpoints<TestAppUser>());
+
+        Assert.Equal(
+            RefreshTokenTransport.Cookie,
+            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+        Assert.Contains("GET /auth/csrfToken", string.Join('\n', RouteSurface.ListRoutes(app)), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FrozenFacade_BodyTransport_IsHonoured()
+    {
+        var surface = RouteSurface.Capture(
+            builder =>
+            {
+                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+                {
+                    o.Passkeys.Enabled = false;
+                    o.Jwt.Enabled = true;
+                    o.Jwt.Configure = jwt =>
+                    {
+                        jwt.SigningOptions.SymmetricKey = SigningKey;
+                        jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                    };
+                });
+                builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
+            },
+            app => app.MapAuthEndpoints<TestAppUser>());
+
+        Assert.DoesNotContain("GET /auth/csrfToken", surface, StringComparison.Ordinal);
+        Assert.Contains("GET /identity/csrfToken", surface, StringComparison.Ordinal);
+        Assert.Contains(
+            "POST /auth/refresh name=(none) auth=(none) antiforgery=false",
+            surface,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MapPasswordAuth_PlusBuildingBlockOnSamePrefix_Warns()
+    {
+        var logs = new WarningLog();
+        var surface = RouteSurface.Capture(
+            builder =>
+            {
+                builder.Logging.AddProvider(logs);
+                builder.Logging.SetMinimumLevel(LogLevel.Warning);
+                AddFacade(builder.Services, AuthEndpointsSession.Cookie, passkeys: false, transport: null);
+            },
+            app =>
+            {
+                app.MapPasswordAuth<TestAppUser>();
+                app.MapGroup("/auth").MapPasswordSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+            });
+
+        Assert.Contains("POST /auth/login", surface, StringComparison.Ordinal);
+        Assert.Contains(
+            logs.Messages,
+            message => message.Contains("both map POST /auth/login", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -224,6 +367,18 @@ public class PasswordAuthRouteTests
             app => MapBlocks(app, session, passkeys));
     }
 
+    private static void AddIdentity(WebApplicationBuilder builder)
+    {
+        builder.Services
+            .AddIdentityApiEndpoints<TestAppUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = true;
+                options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+            })
+            .AddEntityFrameworkStores<TestDbContext>()
+            .AddDefaultTokenProviders();
+    }
+
     private static void AddFacade(
         IServiceCollection services,
         AuthEndpointsSession session,
@@ -275,17 +430,14 @@ public class PasswordAuthRouteTests
 
         if (session == AuthEndpointsSession.Jwt)
         {
-            var chosen = RefreshTokenTransport.Cookie;
             services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = SigningKey;
                 if (transport is not null)
                 {
                     jwt.RefreshTokenTransport = transport.Value;
-                    chosen = transport.Value;
                 }
             });
-            services.Configure<JwtSessionOptions>(options => options.RefreshTokenTransport = chosen);
         }
         else
         {
@@ -357,4 +509,38 @@ public class PasswordAuthRouteTests
     }
 
     private static string Normalize(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd() + "\n";
+
+    private sealed class WarningLog : ILoggerProvider
+    {
+        public List<string> Messages { get; } = [];
+
+        public ILogger CreateLogger(string categoryName) => new Logger(categoryName, Messages);
+
+        public void Dispose()
+        {
+        }
+
+        private sealed class Logger(string category, List<string> messages) : ILogger
+        {
+            public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+            public bool IsEnabled(LogLevel logLevel) =>
+                logLevel >= LogLevel.Warning && category == AuthEndpointsModules.LogCategory;
+
+            public void Log<TState>(
+                LogLevel logLevel,
+                EventId eventId,
+                TState state,
+                Exception? exception,
+                Func<TState, Exception?, string> formatter)
+            {
+                if (!IsEnabled(logLevel))
+                {
+                    return;
+                }
+
+                messages.Add(formatter(state, exception));
+            }
+        }
+    }
 }

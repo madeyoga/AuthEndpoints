@@ -38,14 +38,16 @@ public static class PasswordAuthEndpointRouteBuilderExtensions
                 "AddPasswordAuth<TUser, TContext> was not called before MapPasswordAuth<TUser>.");
         }
 
-        var options = endpoints.ServiceProvider.GetRequiredService<IOptions<PasswordAuthOptions>>().Value;
-        var group = endpoints.MapGroup(options.Path);
+        // Validates the options, including a later Configure that disagrees with registration.
+        _ = endpoints.ServiceProvider.GetRequiredService<IOptions<PasswordAuthOptions>>().Value;
+        var registration = endpoints.ServiceProvider.GetRequiredService<PasswordAuthRegistration>();
+        var group = endpoints.MapGroup(registration.Path);
         var builders = new List<IEndpointConventionBuilder>
         {
             group.MapPasswordSignUpEndpoints<TUser>(),
         };
 
-        if (options.Session == AuthEndpointsSession.Jwt)
+        if (registration.Session == AuthEndpointsSession.Jwt)
         {
             builders.Add(group.MapJwtPasswordEndpoints<TUser>());
         }
@@ -56,7 +58,7 @@ public static class PasswordAuthEndpointRouteBuilderExtensions
 
         builders.Add(group.MapPasswordRecoveryEndpoints<TUser>());
 
-        if (options.Session == AuthEndpointsSession.Jwt)
+        if (registration.Session == AuthEndpointsSession.Jwt)
         {
             builders.Add(group.MapJwtSessionEndpoints<TUser>());
         }
@@ -67,9 +69,9 @@ public static class PasswordAuthEndpointRouteBuilderExtensions
 
         builders.Add(group.MapAccountManagementEndpoints<TUser>());
 
-        if (!string.IsNullOrWhiteSpace(options.Passkeys.ServerDomain))
+        if (registration.PasskeysMapped)
         {
-            builders.Add(group.MapPasskeySignInEndpoints<TUser>(options.Session));
+            builders.Add(group.MapPasskeySignInEndpoints<TUser>(registration.Session));
             builders.Add(group.MapPasskeyManagementEndpoints<TUser>());
         }
 

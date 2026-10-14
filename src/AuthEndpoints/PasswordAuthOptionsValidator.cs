@@ -25,6 +25,34 @@ internal sealed class PasswordAuthOptionsValidator : IValidateOptions<PasswordAu
                 "PasswordAuth: AddPasswordAuth and AddAuthEndpoints cannot be used in the same host. Use one facade.");
         }
 
+        var registration = _services.GetService<PasswordAuthRegistration>();
+        if (registration is not null)
+        {
+            var changed = new List<string>();
+            if (options.Session != registration.Session)
+            {
+                changed.Add(nameof(PasswordAuthOptions.Session));
+            }
+
+            if (!string.Equals(options.Path, registration.Path, StringComparison.Ordinal))
+            {
+                changed.Add(nameof(PasswordAuthOptions.Path));
+            }
+
+            if (!string.Equals(options.Passkeys.ServerDomain, registration.ServerDomain, StringComparison.Ordinal))
+            {
+                changed.Add("Passkeys.ServerDomain");
+            }
+
+            if (changed.Count > 0)
+            {
+                return ValidateOptionsResult.Fail(
+                    "PasswordAuth: Session, Path, and Passkeys.ServerDomain are fixed by AddPasswordAuth. " +
+                    "A later Configure<PasswordAuthOptions> changed " + string.Join(", ", changed) + ". " +
+                    "Set them in the AddPasswordAuth callback.");
+            }
+        }
+
         if (!Enum.IsDefined(options.Session))
         {
             return ValidateOptionsResult.Fail("PasswordAuth: Session must be Cookie or Jwt.");
