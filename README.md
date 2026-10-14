@@ -17,7 +17,7 @@ AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top
 - Passkeys (WebAuthn) for passwordless register and login
 - Optional emailed one-time codes (`POST /identity/emailCode/send` and `POST /identity/emailCode/verify`). Sign-up and magic links stay off until you enable them
 - Built-in hardening: rate limiting, antiforgery, lockout-aware login, hashed JWT refresh tokens with reuse detection
-- Optional preview packages for GitHub and Google OAuth: [`AuthEndpoints.External.OAuth`](https://authendpoints.harten.id/modules/external-oauth) plus `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`
+- GitHub and Google OAuth in `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`. The endpoints live in the core package. Compose them. The facades do not map them. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth)
 
 ## Getting started
 
@@ -45,7 +45,7 @@ app.MapPasswordAuth<AppUser>();
 app.Run();
 ```
 
-`AddAuthEndpoints` / `MapAuthEndpoints` remain for existing hosts and for Identity bearer. Do not call both facades in one host.
+`AddAuthEndpoints` / `MapAuthEndpoints` are the 3.x facade, kept for compatibility, including Identity bearer. Do not call both facades in one host. Upgrading from 3.x: [Upgrade to 4.0](https://authendpoints.harten.id/guides/upgrading-to-4).
 
 ## Documentation
 
