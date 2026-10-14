@@ -49,8 +49,9 @@ public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<T
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
         var securityStamp = await _userManager.GetSecurityStampAsync(user);
 
+        var session = JwtRefreshDelivery.Session(httpContext);
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
-        _refreshTokenCookieWriter.Write(httpContext, refreshToken);
+        JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
 
         await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 

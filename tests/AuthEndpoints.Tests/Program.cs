@@ -114,6 +114,7 @@ else
 }
 
 ConfigureOpenTelemetry(builder);
+ApplyJwtSession(builder);
 
 var app = builder.Build();
 
@@ -169,6 +170,43 @@ else
 MapTestOnlyEndpoints(app);
 
 app.Run();
+
+static void ApplyJwtSession(WebApplicationBuilder builder)
+{
+    var transport = builder.Configuration["AE_JWT_REFRESH_TRANSPORT"];
+    var absolute = builder.Configuration["AE_JWT_ABSOLUTE_LIFETIME"];
+    if (string.IsNullOrWhiteSpace(transport) && string.IsNullOrWhiteSpace(absolute))
+    {
+        return;
+    }
+
+    builder.Services.Configure<JwtSessionOptions>(options =>
+    {
+        if (string.Equals(transport, "Body", StringComparison.OrdinalIgnoreCase))
+        {
+            options.RefreshTokenTransport = RefreshTokenTransport.Body;
+        }
+        else if (!string.IsNullOrWhiteSpace(transport)
+            && !string.Equals(transport, "Cookie", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("AE_JWT_REFRESH_TRANSPORT must be Cookie or Body.");
+        }
+
+        if (string.IsNullOrWhiteSpace(absolute))
+        {
+            return;
+        }
+
+        if (!TimeSpan.TryParse(absolute, System.Globalization.CultureInfo.InvariantCulture, out var lifetime)
+            || lifetime <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "AE_JWT_ABSOLUTE_LIFETIME must be a positive TimeSpan, for example 00:00:03.");
+        }
+
+        options.AbsoluteLifetime = lifetime;
+    });
+}
 
 static void ConfigureOpenTelemetry(WebApplicationBuilder builder)
 {

@@ -571,9 +571,22 @@ namespace AuthEndpoints.Jwt
         public JwtPasskeySignInCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default) { }
     }
+    public class JwtSessionOptions
+    {
+        public JwtSessionOptions() { }
+        public System.TimeSpan AbsoluteLifetime { get; set; }
+        public System.TimeSpan RefreshTokenLifetime { get; set; }
+        public AuthEndpoints.Jwt.RefreshTokenTransport RefreshTokenTransport { get; set; }
+    }
+    public class JwtSessionOptionsValidator : Microsoft.Extensions.Options.IValidateOptions<AuthEndpoints.Jwt.JwtSessionOptions>
+    {
+        public JwtSessionOptionsValidator() { }
+        public Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, AuthEndpoints.Jwt.JwtSessionOptions options) { }
+    }
     public class RefreshToken
     {
         public RefreshToken() { }
+        public System.DateTime AbsoluteExpiresAt { get; set; }
         public System.DateTime ExpiresAt { get; set; }
         public required string FamilyId { get; set; }
         public string Id { get; set; }
@@ -601,12 +614,18 @@ namespace AuthEndpoints.Jwt
         where TContext : Microsoft.EntityFrameworkCore.DbContext
     {
         public RefreshTokenService(TContext db) { }
+        public RefreshTokenService(TContext db, System.TimeProvider time, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.JwtSessionOptions> sessionOptions) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken) { }
         public bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
         public System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
         public System.Threading.Tasks.Task RevokeFamilyAsync(string familyId) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp) { }
+    }
+    public enum RefreshTokenTransport
+    {
+        Cookie = 0,
+        Body = 1,
     }
     public static class ServiceCollectionExtensions
     {
@@ -684,6 +703,8 @@ namespace AuthEndpoints.Jwt
     {
         public SimpleJwtTokenResponse() { }
         public required string AccessToken { get; set; }
+        [System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+        public string? RefreshToken { get; set; }
         public string TokenType { get; set; }
     }
     public static class TypeHelper

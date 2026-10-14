@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,7 +18,7 @@ public class RefreshRotationConcurrencyTests : IClassFixture<TestWebApplicationF
     }
 
     [Fact]
-    public async Task Service_TwoDbContexts_RotateSameToken_OnlyOneLiveSuccessor()
+    public async Task Service_TwoDbContexts_LostRotation_RevokesFamily()
     {
         var email = $"cas-svc-{Guid.NewGuid():N}@test.local";
         var user = await TestHelpers.SeedUserAsync(_factory, email);
@@ -72,16 +73,16 @@ public class RefreshRotationConcurrencyTests : IClassFixture<TestWebApplicationF
             .ToListAsync();
         var live = family.Where(t => t.RevokedAt == null).ToList();
 
-        Assert.Single(live);
-        Assert.Equal(wins[0].SuccessorId, live[0].Id);
-
+        Assert.Empty(live);
         var revokedParent = family.Single(t => t.Id == parent.Id);
         Assert.NotNull(revokedParent.RevokedAt);
         Assert.Equal(wins[0].SuccessorId, revokedParent.ReplacedByTokenId);
+        var successor = family.Single(t => t.Id == wins[0].SuccessorId);
+        Assert.NotNull(successor.RevokedAt);
     }
 
     [Fact]
-    public async Task Http_TwoParallelRefresh_SameCookie_DoesNotLeaveTwoLiveSuccessors()
+    public async Task Http_TwoParallelRefresh_SameCookie_RevokesFamily()
     {
         var email = $"cas-http-{Guid.NewGuid():N}@test.local";
         var user = await TestHelpers.SeedUserAsync(_factory, email);
@@ -117,6 +118,7 @@ public class RefreshRotationConcurrencyTests : IClassFixture<TestWebApplicationF
         }
 
         var responses = await Task.WhenAll(Refresh(clientA, csrfA), Refresh(clientB, csrfB));
+        var bodies = await Task.WhenAll(responses.Select(async response => await response.Content.ReadAsStringAsync()));
         var statuses = responses.Select(r => r.StatusCode).ToArray();
         var okCount = statuses.Count(s => s == HttpStatusCode.OK);
         var badCount = statuses.Count(s => s == HttpStatusCode.BadRequest);
@@ -127,21 +129,32 @@ public class RefreshRotationConcurrencyTests : IClassFixture<TestWebApplicationF
         var liveCount = family.Count(t => t.RevokedAt == null);
 
         Assert.True(
-            liveCount == 1,
-            $"Expected exactly one live successor. statuses=[{string.Join(",", statuses)}], " +
+            liveCount == 0,
+            $"Expected the family to be revoked. statuses=[{string.Join(",", statuses)}], " +
+            $"bodies=[{string.Join(" | ", bodies)}], " +
             $"ok={okCount}, bad={badCount}, family={family.Count}, live={liveCount}, " +
             $"liveIds=[{string.Join(",", family.Where(t => t.RevokedAt == null).Select(t => t.Id))}]");
 
-        // At most one refresh may succeed; the other must fail (or both fail only if unexpected).
         Assert.True(okCount <= 1, $"Expected at most one OK refresh, got {okCount}.");
         Assert.True(
             okCount + badCount == 2,
             $"Expected OK/BadRequest only, got statuses=[{string.Join(",", statuses)}].");
+
+        var againA = await TestHelpers.PostWithCsrfAsync(
+            clientA, "/auth/refresh", body: null, csrfPath: "/auth/csrfToken");
+        var againB = await TestHelpers.PostWithCsrfAsync(
+            clientB, "/auth/refresh", body: null, csrfPath: "/auth/csrfToken");
+        Assert.Equal(HttpStatusCode.BadRequest, againA.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, againB.StatusCode);
     }
 
     private HttpClient CreateClientWithForcedRefreshCookie(string refreshTokenValue)
     {
-        var client = _factory.CreateDefaultClient(new ForceRefreshCookieHandler(refreshTokenValue));
+        // CookieContainerHandler must be the outer handler so it stores the CSRF cookie
+        // before ForceRefreshCookieHandler merges that header with the refresh cookie.
+        var client = _factory.CreateDefaultClient(
+            new CookieContainerHandler(),
+            new ForceRefreshCookieHandler(refreshTokenValue));
         TestHelpers.AttachWebAuthnOrigin(client);
         return client;
     }

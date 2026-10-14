@@ -7,8 +7,9 @@ using Microsoft.AspNetCore.Identity;
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Completes passkey register/login by issuing a Simple JWT access token and HttpOnly refresh cookie
-/// (same response shape as JWT <c>/create</c>). Ignores <c>useCookies</c> / <c>useSessionCookies</c>.
+/// Completes passkey register/login by issuing a Simple JWT access token and a refresh token
+/// (same response shape as JWT <c>/create</c>). Cookie transport writes the HttpOnly refresh cookie.
+/// Body transport returns <c>refreshToken</c>. Ignores <c>useCookies</c> / <c>useSessionCookies</c>.
 /// Requires <c>AddJwtEndpoints</c> (or equivalent JWT services) to be registered.
 /// </summary>
 [Obsolete(LegacyCompleterMessages.Obsolete)]
@@ -69,8 +70,10 @@ public sealed class JwtPasskeySignInCompleter<TUser> : IPasskeySignInCompleter<T
             TokenType = "Bearer",
         };
 
+        var session = JwtRefreshDelivery.Session(httpContext);
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
-        _refreshTokenCookieWriter.Write(httpContext, refreshToken);
+        JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
+        JwtRefreshDelivery.ApplyBody(response, refreshToken, session);
 
         // Same body as JWT /create for register and login. credentialId stays off this response:
         // the token JSON is the body, including when the caller passed a register credential id.

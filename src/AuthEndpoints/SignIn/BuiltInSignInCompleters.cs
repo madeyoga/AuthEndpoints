@@ -172,8 +172,9 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
         var securityStamp = await _userManager.GetSecurityStampAsync(user);
+        var session = JwtRefreshDelivery.Session(httpContext);
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
-        _refreshTokenCookieWriter.Write(httpContext, refreshToken);
+        JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
 
         if (context.Method == SignInMethod.External)
         {
@@ -186,6 +187,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
             AccessToken = _accessTokenGenerator.GenerateAccessToken(claimsPrincipal),
             TokenType = "Bearer",
         };
+        JwtRefreshDelivery.ApplyBody(response, refreshToken, session);
 
         // Same body as JWT /create. Passkey register does not add credentialId.
         return Results.Ok(response);

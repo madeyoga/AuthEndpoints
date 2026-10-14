@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Jwt;
 
@@ -45,7 +47,9 @@ public static class JwtApiEndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Maps JWT <c>POST /refresh</c>, <c>GET /verify</c>, <c>POST /logout</c>, and <c>GET /csrfToken</c>.
+    /// Maps JWT <c>POST /refresh</c>, <c>GET /verify</c>, and <c>POST /logout</c>.
+    /// Cookie transport also maps <c>GET /csrfToken</c> and requires antiforgery on refresh and logout.
+    /// Body transport (<see cref="JwtSessionOptions.RefreshTokenTransport"/>) does not.
     /// </summary>
     public static IEndpointConventionBuilder MapJwtSessionEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -57,22 +61,34 @@ public static class JwtApiEndpointRouteBuilderExtensions
             "AddJwtEndpoints",
             "MapJwtSessionEndpoints");
 
+        var body = JwtRefreshDelivery.IsBody(JwtRefreshDelivery.Session(endpoints.ServiceProvider));
         var routeGroup = endpoints.MapGroup("");
 
-        routeGroup.MapPost("/refresh", JwtEndpoints<TUser>.Refresh)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-            .RequireAntiforgery()
-            .Track(endpoints, nameof(MapJwtSessionEndpoints));
+        var refresh = routeGroup.MapPost("/refresh", JwtEndpoints<TUser>.Refresh)
+            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy);
+        if (!body)
+        {
+            refresh.RequireAntiforgery();
+        }
+
+        refresh.Track(endpoints, nameof(MapJwtSessionEndpoints));
 
         routeGroup.MapGet("/verify", JwtEndpoints<TUser>.Verify)
             .Track(endpoints, nameof(MapJwtSessionEndpoints));
 
-        routeGroup.MapPost("/logout", JwtEndpoints<TUser>.Logout)
-            .RequireAntiforgery()
-            .Track(endpoints, nameof(MapJwtSessionEndpoints));
+        var logout = routeGroup.MapPost("/logout", JwtEndpoints<TUser>.Logout);
+        if (!body)
+        {
+            logout.RequireAntiforgery();
+        }
 
-        routeGroup.MapGet("/csrfToken", JwtEndpoints<TUser>.GetAntiforgeryToken)
-            .Track(endpoints, nameof(MapJwtSessionEndpoints));
+        logout.Track(endpoints, nameof(MapJwtSessionEndpoints));
+
+        if (!body)
+        {
+            routeGroup.MapGet("/csrfToken", JwtEndpoints<TUser>.GetAntiforgeryToken)
+                .Track(endpoints, nameof(MapJwtSessionEndpoints));
+        }
 
         return routeGroup;
     }

@@ -90,8 +90,10 @@ public class JwtEndpoints<TUser>
             TokenType = "Bearer",
         };
 
+        var session = JwtRefreshDelivery.Session(context);
         var refreshToken = await refreshTokenService.CreateAsync(userId, securityStamp);
-        refreshTokenCookieWriter.Write(context, refreshToken);
+        JwtRefreshDelivery.WriteCookie(context, refreshTokenCookieWriter, refreshToken, session);
+        JwtRefreshDelivery.ApplyBody(response, refreshToken, session);
 
         return Results.Ok(response);
     }
@@ -107,17 +109,21 @@ public class JwtEndpoints<TUser>
         UserManager<TUser> userManager,
         RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
-        if (!context.Request.Cookies.TryGetValue(RefreshTokenCookieWriter.CookieName, out var refreshTokenValue)
-            || string.IsNullOrEmpty(refreshTokenValue))
+        var session = JwtRefreshDelivery.Session(context);
+        var refreshTokenValue = await JwtRefreshDelivery.ReadPresentedTokenAsync(context, session);
+        if (string.IsNullOrEmpty(refreshTokenValue))
         {
-            return Results.BadRequest(new SimpleJwtErrorResponse("Missing refresh token cookie."));
+            return Results.BadRequest(new SimpleJwtErrorResponse(
+                JwtRefreshDelivery.IsBody(session)
+                    ? "Missing refresh token."
+                    : "Missing refresh token cookie."));
         }
 
         var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);
 
         if (refreshToken == null)
         {
-            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+            return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
         if (refreshToken.RevokedAt != null)
@@ -127,46 +133,56 @@ public class JwtEndpoints<TUser>
                 await refreshTokenService.RevokeFamilyAsync(refreshToken.FamilyId);
             }
 
-            refreshTokenCookieWriter.Delete(context);
-            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+            return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
         if (!refreshTokenService.IsValid(refreshToken))
         {
-            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+            return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
         var user = await userManager.FindByIdAsync(refreshToken.UserId);
         if (user == null)
         {
             await refreshTokenService.RevokeAsync(refreshToken);
-            refreshTokenCookieWriter.Delete(context);
-            return Results.BadRequest(new SimpleJwtErrorResponse("Associated user no longer exists."));
+            return InvalidRefresh(
+                context,
+                refreshTokenCookieWriter,
+                session,
+                "Associated user no longer exists.");
         }
 
         var currentStamp = await userManager.GetSecurityStampAsync(user);
         if (!string.Equals(refreshToken.SecurityStamp, currentStamp, StringComparison.Ordinal))
         {
             await refreshTokenService.RevokeFamilyAsync(refreshToken.FamilyId);
-            refreshTokenCookieWriter.Delete(context);
-            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+            return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
         var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp);
         if (newRefreshToken is null)
         {
-            // Lost concurrent rotation race — do not issue a second live cookie.
-            refreshTokenCookieWriter.Delete(context);
-            return Results.BadRequest(new SimpleJwtErrorResponse("Invalid refresh token. Token may be expired or revoked by the server."));
+            // Lost the rotation race (the family is revoked) or the token expired between checks.
+            return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
-        refreshTokenCookieWriter.Write(context, newRefreshToken);
+        JwtRefreshDelivery.WriteCookie(context, refreshTokenCookieWriter, newRefreshToken, session);
 
         var claimsPrincipal = await claimsFactory.CreateAsync(user);
+        var accessToken = tokenGenerator.GenerateAccessToken(claimsPrincipal);
+        if (JwtRefreshDelivery.IsBody(session))
+        {
+            return Results.Ok(new SimpleJwtTokenResponse
+            {
+                AccessToken = accessToken,
+                TokenType = "Bearer",
+                RefreshToken = newRefreshToken.Token,
+            });
+        }
 
         return Results.Ok(new
         {
-            AccessToken = tokenGenerator.GenerateAccessToken(claimsPrincipal),
+            AccessToken = accessToken,
         });
     }
 
@@ -178,8 +194,9 @@ public class JwtEndpoints<TUser>
         IRefreshTokenService refreshTokenService,
         RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
-        if (context.Request.Cookies.TryGetValue(RefreshTokenCookieWriter.CookieName, out var refreshTokenValue)
-            && !string.IsNullOrEmpty(refreshTokenValue))
+        var session = JwtRefreshDelivery.Session(context);
+        var refreshTokenValue = await JwtRefreshDelivery.ReadPresentedTokenAsync(context, session);
+        if (!string.IsNullOrEmpty(refreshTokenValue))
         {
             var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);
             if (refreshToken != null)
@@ -188,8 +205,18 @@ public class JwtEndpoints<TUser>
             }
         }
 
-        refreshTokenCookieWriter.Delete(context);
+        JwtRefreshDelivery.DeleteCookie(context, refreshTokenCookieWriter, session);
         return Results.Ok();
+    }
+
+    private static IResult InvalidRefresh(
+        HttpContext context,
+        RefreshTokenCookieWriter refreshTokenCookieWriter,
+        JwtSessionOptions session,
+        string message = "Invalid refresh token. Token may be expired or revoked by the server.")
+    {
+        JwtRefreshDelivery.DeleteCookie(context, refreshTokenCookieWriter, session);
+        return Results.BadRequest(new SimpleJwtErrorResponse(message));
     }
 
     /// <summary>

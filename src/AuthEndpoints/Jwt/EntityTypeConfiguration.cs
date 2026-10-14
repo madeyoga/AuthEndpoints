@@ -13,6 +13,7 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.HasIndex(e => e.TokenHash).IsUnique();
         builder.Property(e => e.FamilyId).IsRequired();
         builder.Property(e => e.SecurityStamp).IsRequired();
+        builder.Property(e => e.AbsoluteExpiresAt).IsRequired();
         builder.Ignore(e => e.Token);
     }
 }

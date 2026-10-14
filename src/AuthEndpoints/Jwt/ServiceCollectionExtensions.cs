@@ -39,6 +39,12 @@ public static class ServiceCollectionExtensions
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<SimpleJwtOptions>, SimpleJwtOptionsValidator>());
 
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddOptions<JwtSessionOptions>()
+            .ValidateOnStart();
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IValidateOptions<JwtSessionOptions>, JwtSessionOptionsValidator>());
+
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
         services.TryAddScoped<IRefreshTokenService, RefreshTokenService<TContext>>();

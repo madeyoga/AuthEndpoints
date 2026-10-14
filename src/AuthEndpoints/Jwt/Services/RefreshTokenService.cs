@@ -1,20 +1,30 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Manages hashed refresh tokens with family-based reuse detection.
+/// Manages hashed refresh tokens with family-based reuse detection and an absolute family lifetime.
 /// </summary>
 public class RefreshTokenService<TContext> : IRefreshTokenService
     where TContext : DbContext
 {
     private readonly TContext _db;
+    private readonly TimeProvider _time;
+    private readonly JwtSessionOptions _session;
 
     public RefreshTokenService(TContext db)
+        : this(db, TimeProvider.System, Options.Create(new JwtSessionOptions()))
+    {
+    }
+
+    public RefreshTokenService(TContext db, TimeProvider time, IOptions<JwtSessionOptions> sessionOptions)
     {
         _db = db;
+        _time = time;
+        _session = sessionOptions.Value;
     }
 
     public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken)
@@ -25,53 +35,80 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
 
     public async Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp)
     {
+        var now = UtcNow;
+        var absoluteExpiresAt = AsUtc(refreshToken.AbsoluteExpiresAt);
+        if (refreshToken.RevokedAt != null
+            || AsUtc(refreshToken.ExpiresAt) <= now
+            || absoluteExpiresAt <= now)
+        {
+            return null;
+        }
+
         var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var expiresAt = now.Add(_session.RefreshTokenLifetime);
+        if (expiresAt > absoluteExpiresAt)
+        {
+            expiresAt = absoluteExpiresAt;
+        }
+
         var successor = new RefreshToken
         {
             TokenHash = HashToken(rawToken),
             FamilyId = refreshToken.FamilyId,
             SecurityStamp = securityStamp,
             UserId = refreshToken.UserId,
-            ExpiresAt = DateTime.UtcNow.AddDays(14),
+            ExpiresAt = expiresAt,
+            AbsoluteExpiresAt = absoluteExpiresAt,
             Token = rawToken
         };
 
-        var now = DateTime.UtcNow;
-
-        await using var transaction = await _db.Database.BeginTransactionAsync();
-
-        // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
-        var affected = await _db.Set<RefreshToken>()
-            .Where(t => t.Id == refreshToken.Id && t.RevokedAt == null)
-            .ExecuteUpdateAsync(setters => setters
-                .SetProperty(t => t.RevokedAt, now)
-                .SetProperty(t => t.ReplacedByTokenId, successor.Id));
-
-        if (affected == 0)
+        var lostRace = false;
+        await using (var transaction = await _db.Database.BeginTransactionAsync())
         {
-            await transaction.RollbackAsync();
+            // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
+            var affected = await _db.Set<RefreshToken>()
+                .Where(t => t.Id == refreshToken.Id && t.RevokedAt == null)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(t => t.RevokedAt, now)
+                    .SetProperty(t => t.ReplacedByTokenId, successor.Id));
+
+            if (affected == 0)
+            {
+                await transaction.RollbackAsync();
+                lostRace = true;
+            }
+            else
+            {
+                // ExecuteUpdate bypasses the change tracker. Align (or detach) the presented
+                // entity so the upcoming SaveChanges cannot write RevokedAt=null back over the CAS.
+                refreshToken.RevokedAt = now;
+                refreshToken.ReplacedByTokenId = successor.Id;
+                var entry = _db.Entry(refreshToken);
+                if (entry.State != EntityState.Detached)
+                {
+                    entry.State = EntityState.Detached;
+                }
+
+                _db.Add(successor);
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+        }
+
+        if (lostRace)
+        {
+            // The winner has committed its successor. Reuse of this token revokes the family,
+            // including that successor, so parallel refreshes sign every client out.
+            await RevokeFamilyAsync(refreshToken.FamilyId);
             return null;
         }
 
-        // ExecuteUpdate bypasses the change tracker. Align (or detach) the presented
-        // entity so the upcoming SaveChanges cannot write RevokedAt=null back over the CAS.
-        refreshToken.RevokedAt = now;
-        refreshToken.ReplacedByTokenId = successor.Id;
-        var entry = _db.Entry(refreshToken);
-        if (entry.State != EntityState.Detached)
-        {
-            entry.State = EntityState.Detached;
-        }
-
-        _db.Add(successor);
-        await _db.SaveChangesAsync();
-        await transaction.CommitAsync();
         return successor;
     }
 
     public Task RevokeAsync(RefreshToken refreshToken)
     {
-        refreshToken.RevokedAt = DateTime.UtcNow;
+        refreshToken.RevokedAt = UtcNow;
         _db.Update(refreshToken);
         return _db.SaveChangesAsync();
     }
@@ -82,7 +119,7 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
             .Where(t => t.FamilyId == familyId && t.RevokedAt == null)
             .ToListAsync();
 
-        var now = DateTime.UtcNow;
+        var now = UtcNow;
         foreach (var token in tokens)
         {
             token.RevokedAt = now;
@@ -97,14 +134,23 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
 
     public async Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
     {
+        var now = UtcNow;
         var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var absoluteExpiresAt = await ResolveAbsoluteExpiresAtAsync(familyId, now);
+        var expiresAt = now.Add(_session.RefreshTokenLifetime);
+        if (expiresAt > absoluteExpiresAt)
+        {
+            expiresAt = absoluteExpiresAt;
+        }
+
         var newRefreshToken = new RefreshToken
         {
             TokenHash = HashToken(rawToken),
             FamilyId = familyId ?? Guid.NewGuid().ToString(),
             SecurityStamp = securityStamp,
             UserId = userId,
-            ExpiresAt = DateTime.UtcNow.AddDays(14),
+            ExpiresAt = expiresAt,
+            AbsoluteExpiresAt = absoluteExpiresAt,
             Token = rawToken
         };
 
@@ -115,7 +161,10 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
 
     public bool IsValid(RefreshToken refreshToken)
     {
-        return refreshToken.ExpiresAt > DateTime.UtcNow && refreshToken.RevokedAt == null;
+        var now = UtcNow;
+        return AsUtc(refreshToken.ExpiresAt) > now
+            && AsUtc(refreshToken.AbsoluteExpiresAt) > now
+            && refreshToken.RevokedAt == null;
     }
 
     internal static string HashToken(string rawToken)
@@ -123,4 +172,26 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
         return Convert.ToHexString(bytes);
     }
+
+    private async Task<DateTime> ResolveAbsoluteExpiresAtAsync(string? familyId, DateTime now)
+    {
+        if (string.IsNullOrEmpty(familyId))
+        {
+            return now.Add(_session.AbsoluteLifetime);
+        }
+
+        var existing = await _db.Set<RefreshToken>()
+            .AsNoTracking()
+            .Where(t => t.FamilyId == familyId)
+            .Select(t => (DateTime?)t.AbsoluteExpiresAt)
+            .FirstOrDefaultAsync();
+
+        // Joining a family must not start a new absolute window.
+        return existing is { } found ? AsUtc(found) : now.Add(_session.AbsoluteLifetime);
+    }
+
+    private DateTime UtcNow => AsUtc(_time.GetUtcNow().UtcDateTime);
+
+    private static DateTime AsUtc(DateTime value) =>
+        value.Kind == DateTimeKind.Utc ? value : DateTime.SpecifyKind(value, DateTimeKind.Utc);
 }
