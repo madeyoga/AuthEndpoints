@@ -41,7 +41,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<AccountManagementEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<AccountManagementEndpointsModule>(
             endpoints,
             "AddAccountManagementEndpoints",
             "MapAccountManagementEndpoints");
