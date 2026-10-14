@@ -380,17 +380,13 @@ public class SignInCompleterTests
     }
 
     [Fact]
-    public void JwtWithoutAddJwtEndpoints_WarnsAndStillMaps()
+    public void JwtWithoutAddJwtEndpoints_ThrowsNamedFix()
     {
-        var logs = new WarningLoggerProvider();
-        using var app = MapForMetadata(services =>
-        {
-            services.AddPasswordEndpoints();
-            services.AddSingleton<ILoggerProvider>(logs);
-        }, app => app.MapPasswordEndpoints<TestAppUser>(AuthEndpointsSession.Jwt));
+        var ex = Assert.Throws<InvalidOperationException>(() => MapForMetadata(
+            services => services.AddPasswordEndpoints(),
+            app => app.MapPasswordEndpoints<TestAppUser>(AuthEndpointsSession.Jwt)));
 
-        Assert.Contains("POST /login", RouteSurface.ListRoutes(app));
-        Assert.Contains(logs.Messages, message => message.Contains("AddJwtEndpoints", StringComparison.Ordinal));
+        Assert.Contains("Call AddJwtEndpoints before", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
