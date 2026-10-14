@@ -1,5 +1,8 @@
+using AuthEndpoints.Jwt;
 using AuthEndpoints.SignIn;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
@@ -41,6 +44,13 @@ public sealed class ExternalAuthBuilder
         }
 
         Services.AddScoped(completerType, typeof(TCompleter));
+        if (typeof(TCompleter).IsGenericType
+            && typeof(TCompleter).GetGenericTypeDefinition() == typeof(JwtExternalLoginCompleter<>))
+        {
+            Services.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IValidateOptions<JwtSessionOptions>, JwtExternalBodyTransportValidator>());
+        }
+
         return this;
     }
 

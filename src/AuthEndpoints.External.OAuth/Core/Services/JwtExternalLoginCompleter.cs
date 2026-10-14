@@ -44,12 +44,19 @@ public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<T
         string? returnUrl,
         CancellationToken cancellationToken = default)
     {
+        var session = JwtRefreshDelivery.Session(httpContext);
+        if (JwtRefreshDelivery.IsBody(session))
+        {
+            // Redirects cannot carry the refresh token. Refuse before CreateAsync so a body
+            // session never stores a token the browser will not receive.
+            throw new InvalidOperationException(JwtExternalBodyTransportValidator.Message);
+        }
+
         var claimsPrincipal = await _claimsFactory.CreateAsync(user);
         var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
         var securityStamp = await _userManager.GetSecurityStampAsync(user);
 
-        var session = JwtRefreshDelivery.Session(httpContext);
         var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
         JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
 

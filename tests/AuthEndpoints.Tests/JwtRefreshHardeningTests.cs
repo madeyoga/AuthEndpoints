@@ -163,6 +163,37 @@ public class JwtRefreshHardeningTests :
     }
 
     [Fact]
+    public async Task Body_WrongContentType_Returns415_AndLeavesTheTokenUsable()
+    {
+        var email = $"jwt-body-ctype-{Guid.NewGuid():N}@test.local";
+        var user = await TestHelpers.SeedUserAsync(_body, email);
+        using var client = NoCookies(_body);
+        var create = await PostJson(client, "/auth/create", new { email, password = TestHelpers.DefaultPassword });
+        var created = await ReadTokenAsync(create);
+
+        using var refresh = new HttpRequestMessage(HttpMethod.Post, "/auth/refresh")
+        {
+            Content = new StringContent("refresh-token", System.Text.Encoding.UTF8, "text/plain"),
+        };
+        var wrongRefresh = await client.SendAsync(refresh);
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, wrongRefresh.StatusCode);
+
+        using var logout = new HttpRequestMessage(HttpMethod.Post, "/auth/logout")
+        {
+            Content = new StringContent("refresh-token", System.Text.Encoding.UTF8, "text/plain"),
+        };
+        var wrongLogout = await client.SendAsync(logout);
+        Assert.Equal(HttpStatusCode.UnsupportedMediaType, wrongLogout.StatusCode);
+
+        var rows = await TokensAsync(_body, user.Id);
+        Assert.Single(rows);
+        Assert.Null(rows[0].RevokedAt);
+
+        var again = await PostJson(client, "/auth/refresh", new { refreshToken = created.Refresh });
+        Assert.Equal(HttpStatusCode.OK, again.StatusCode);
+    }
+
+    [Fact]
     public async Task Body_StampChange_RevokesFamily()
     {
         var email = $"jwt-body-stamp-{Guid.NewGuid():N}@test.local";
@@ -267,6 +298,33 @@ public class JwtRefreshHardeningTests :
 
         var rows = await TokensAsync(_cookie, user.Id);
         Assert.Contains(rows, row => row.ReplacedByTokenId != null);
+        Assert.All(rows, row => Assert.NotNull(row.RevokedAt));
+    }
+
+    [Fact]
+    public async Task Cookie_StampChange_RevokesFamily()
+    {
+        var email = $"jwt-cookie-stamp-{Guid.NewGuid():N}@test.local";
+        var user = await TestHelpers.SeedUserAsync(_cookie, email);
+        using var client = TestHelpers.CreateClientWithCookies(_cookie);
+        var create = await PostJson(client, "/auth/create", new { email, password = TestHelpers.DefaultPassword });
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
+
+        using (var scope = _cookie.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var tracked = await userManager.FindByIdAsync(user.Id);
+            Assert.NotNull(tracked);
+            var stamp = await userManager.UpdateSecurityStampAsync(tracked);
+            Assert.True(stamp.Succeeded, string.Join("; ", stamp.Errors.Select(error => error.Description)));
+        }
+
+        var refresh = await TestHelpers.PostWithCsrfAsync(
+            client, "/auth/refresh", body: null, csrfPath: "/auth/csrfToken");
+        Assert.Equal(HttpStatusCode.BadRequest, refresh.StatusCode);
+
+        var rows = await TokensAsync(_cookie, user.Id);
+        Assert.NotEmpty(rows);
         Assert.All(rows, row => Assert.NotNull(row.RevokedAt));
     }
 

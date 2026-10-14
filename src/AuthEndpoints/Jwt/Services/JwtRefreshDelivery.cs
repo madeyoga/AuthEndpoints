@@ -56,33 +56,40 @@ internal static class JwtRefreshDelivery
         }
     }
 
-    public static async Task<string?> ReadPresentedTokenAsync(HttpContext httpContext, JwtSessionOptions options)
+    public static async Task<PresentedRefreshToken> ReadPresentedTokenAsync(HttpContext httpContext, JwtSessionOptions options)
     {
         if (!IsBody(options))
         {
-            return httpContext.Request.Cookies.TryGetValue(RefreshTokenCookieWriter.CookieName, out var cookie)
-                ? cookie
+            var cookie = httpContext.Request.Cookies.TryGetValue(RefreshTokenCookieWriter.CookieName, out var value)
+                ? value
                 : null;
+            return new PresentedRefreshToken(cookie, UnsupportedMediaType: false);
         }
 
         if (httpContext.Request.ContentLength == 0)
         {
-            return null;
+            return new PresentedRefreshToken(null, UnsupportedMediaType: false);
+        }
+
+        if (!httpContext.Request.HasJsonContentType())
+        {
+            return new PresentedRefreshToken(null, UnsupportedMediaType: true);
         }
 
         try
         {
             var body = await httpContext.Request.ReadFromJsonAsync<SimpleJwtRefreshTokenRequest>();
-            return string.IsNullOrWhiteSpace(body?.RefreshToken) ? null : body.RefreshToken;
+            var token = string.IsNullOrWhiteSpace(body?.RefreshToken) ? null : body.RefreshToken;
+            return new PresentedRefreshToken(token, UnsupportedMediaType: false);
         }
         catch (JsonException)
         {
-            return null;
-        }
-        catch (InvalidOperationException)
-        {
-            // No JSON content type, or an empty body the formatter rejects.
-            return null;
+            return new PresentedRefreshToken(null, UnsupportedMediaType: false);
         }
     }
 }
+
+/// <summary>
+/// Refresh token read from the configured transport.
+/// </summary>
+internal readonly record struct PresentedRefreshToken(string? Value, bool UnsupportedMediaType);

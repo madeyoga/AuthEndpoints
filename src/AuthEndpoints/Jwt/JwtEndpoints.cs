@@ -110,7 +110,13 @@ public class JwtEndpoints<TUser>
         RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
         var session = JwtRefreshDelivery.Session(context);
-        var refreshTokenValue = await JwtRefreshDelivery.ReadPresentedTokenAsync(context, session);
+        var presented = await JwtRefreshDelivery.ReadPresentedTokenAsync(context, session);
+        if (presented.UnsupportedMediaType)
+        {
+            return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+        }
+
+        var refreshTokenValue = presented.Value;
         if (string.IsNullOrEmpty(refreshTokenValue))
         {
             return Results.BadRequest(new SimpleJwtErrorResponse(
@@ -195,7 +201,13 @@ public class JwtEndpoints<TUser>
         RefreshTokenCookieWriter refreshTokenCookieWriter)
     {
         var session = JwtRefreshDelivery.Session(context);
-        var refreshTokenValue = await JwtRefreshDelivery.ReadPresentedTokenAsync(context, session);
+        var presented = await JwtRefreshDelivery.ReadPresentedTokenAsync(context, session);
+        if (presented.UnsupportedMediaType)
+        {
+            return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+        }
+
+        var refreshTokenValue = presented.Value;
         if (!string.IsNullOrEmpty(refreshTokenValue))
         {
             var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);

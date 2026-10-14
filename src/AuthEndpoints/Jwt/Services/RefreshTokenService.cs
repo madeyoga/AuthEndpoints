@@ -115,21 +115,27 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
 
     public async Task RevokeFamilyAsync(string familyId)
     {
-        var tokens = await _db.Set<RefreshToken>()
-            .Where(t => t.FamilyId == familyId && t.RevokedAt == null)
-            .ToListAsync();
-
         var now = UtcNow;
-        foreach (var token in tokens)
+        // ExecuteUpdate does not touch the change tracker. Detach this family's tracked rows
+        // so a later SaveChanges cannot write RevokedAt = null back over the update.
+        foreach (var entry in _db.ChangeTracker.Entries<RefreshToken>().ToList())
         {
-            token.RevokedAt = now;
+            if (!string.Equals(entry.Entity.FamilyId, familyId, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (entry.Entity.RevokedAt == null)
+            {
+                entry.Entity.RevokedAt = now;
+            }
+
+            entry.State = EntityState.Detached;
         }
 
-        if (tokens.Count > 0)
-        {
-            _db.UpdateRange(tokens);
-            await _db.SaveChangesAsync();
-        }
+        await _db.Set<RefreshToken>()
+            .Where(t => t.FamilyId == familyId && t.RevokedAt == null)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.RevokedAt, now));
     }
 
     public async Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
