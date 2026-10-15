@@ -54,6 +54,11 @@ internal static class RouteSurface
         return ListRoutes(app, includeMetadata: false);
     }
 
+    public static IReadOnlyList<string> ListInMapOrder(WebApplication app)
+    {
+        return Enumerate(app).Select(endpoint => Format(endpoint, includeMetadata: false)).ToArray();
+    }
+
     private static IReadOnlyList<string> ListRoutes(WebApplication app, bool includeMetadata)
     {
         return Enumerate(app)

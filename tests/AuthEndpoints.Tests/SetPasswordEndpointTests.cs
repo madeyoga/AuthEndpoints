@@ -7,6 +7,7 @@ using AuthEndpoints.Jwt;
 using AuthEndpoints.Tests.PublicApi;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -224,6 +225,21 @@ public class SetPasswordEndpointTests
         Assert.Equal(
             "Call AddAccountManagementEndpoints before MapAccountManagementEndpoints.",
             ex.Message);
+    }
+
+    [Fact]
+    public async Task SetPassword_WrapsExistingAuthorizationResultHandler()
+    {
+        var custom = new StatusResultHandler();
+        await using var host = await AuthorizationWrapHost.StartAsync(custom);
+
+        var anonymous = await host.Client.PostAsJsonAsync("/identity/manage/password", new { newPassword = "SetPass1!" });
+        Assert.Equal(HttpStatusCode.NotFound, anonymous.StatusCode);
+        Assert.Equal(0, custom.Calls);
+
+        var probe = await host.Client.GetAsync("/probe");
+        Assert.Equal(StatusCodes.Status418ImATeapot, (int)probe.StatusCode);
+        Assert.Equal(1, custom.Calls);
     }
 
     [Fact]
@@ -555,6 +571,69 @@ public class SetPasswordEndpointTests
             {
                 request.Headers.TryAddWithoutValidation("Cookie", header);
             }
+        }
+    }
+
+    private sealed class AuthorizationWrapHost : IAsyncDisposable
+    {
+        private AuthorizationWrapHost(WebApplication app)
+        {
+            Client = app.GetTestClient();
+            App = app;
+        }
+
+        public WebApplication App { get; }
+
+        public HttpClient Client { get; }
+
+        public static async Task<AuthorizationWrapHost> StartAsync(StatusResultHandler custom)
+        {
+            var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+            {
+                EnvironmentName = Environments.Development,
+            });
+            builder.WebHost.UseTestServer();
+            builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler>(custom);
+            builder.Services.AddDbContext<TestDbContext>(options =>
+                options.UseInMemoryDatabase($"set-password-wrap-{Guid.NewGuid():N}"));
+            builder.Services
+                .AddIdentityApiEndpoints<TestAppUser>(options =>
+                {
+                    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+                })
+                .AddEntityFrameworkStores<TestDbContext>();
+            builder.Services.AddAccountManagementEndpoints();
+
+            var app = builder.Build();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+            app.MapGet("/probe", () => Results.Ok()).RequireAuthorization();
+            await app.StartAsync();
+            return new AuthorizationWrapHost(app);
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            Client.Dispose();
+            await App.StopAsync();
+            await App.DisposeAsync();
+        }
+    }
+
+    private sealed class StatusResultHandler : IAuthorizationMiddlewareResultHandler
+    {
+        public int Calls { get; private set; }
+
+        public Task HandleAsync(
+            RequestDelegate next,
+            HttpContext context,
+            AuthorizationPolicy policy,
+            PolicyAuthorizationResult authorizeResult)
+        {
+            Calls++;
+            context.Response.StatusCode = StatusCodes.Status418ImATeapot;
+            return Task.CompletedTask;
         }
     }
 

@@ -608,6 +608,32 @@ public class SignInCompleterTests
     }
 
     [Fact]
+    public void ParameterlessPasswordMaps_UseCookiePipeline()
+    {
+        using var app = MapForMetadata(services =>
+        {
+            services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
+                .AddEntityFrameworkStores<TestDbContext>();
+            services.AddPasswordEndpoints();
+            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            });
+        }, app =>
+        {
+            app.MapPasswordEndpoints<TestAppUser>();
+            app.MapGroup("/in").MapPasswordSignInEndpoints<TestAppUser>();
+            app.MapGroup("/auth").MapJwtPasswordEndpoints<TestAppUser>();
+            app.MapGroup("/mode").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.Cookie, "mode-confirm");
+        });
+
+        Assert.Equal(SignInCompleters.Cookie, Find(app, "POST /login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Equal(SignInCompleters.Cookie, Find(app, "POST /in/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Equal(SignInCompleters.Jwt, Find(app, "POST /auth/create").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.Null(Find(app, "POST /mode/login").Metadata.GetMetadata<SignInCompleterSelection>());
+    }
+
+    [Fact]
     public async Task Facade_JwtCreate_Keeps341FailureBodies_AndDoesNotCountTwoFactorFailures()
     {
         var app = await StartFacadeAsync(AuthEndpointsSignIn.Cookie, new CapturingEmailSender());

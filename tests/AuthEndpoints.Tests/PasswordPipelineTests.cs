@@ -261,6 +261,36 @@ public class PasswordPipelineTests
         Assert.True(await IsLockedOutAsync(host.App, email));
     }
 
+    [Fact]
+    public async Task UnknownUser_DummyHashReceivesThrowawayUser_OnLoginAndCreate()
+    {
+        UserReadingHasher.Reset();
+        await using var host = await SignInHost.StartAsync(o =>
+        {
+            o.ConfigureServices = services =>
+            {
+                services.Replace(ServiceDescriptor.Scoped<IPasswordHasher<TestAppUser>, UserReadingHasher>());
+            };
+            o.Map = app =>
+            {
+                app.MapPasswordEndpoints<TestAppUser>();
+                app.MapGroup("/jwt").MapJwtPasswordEndpoints<TestAppUser>();
+            };
+        });
+
+        var login = await PostPasswordAsync(host, "/login", Email("hash-login"));
+        var create = await PostPasswordAsync(host, "/jwt/create", Email("hash-create"));
+        Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, create.StatusCode);
+        Assert.Contains("Invalid credentials", await login.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("Invalid credentials", await create.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        var ids = UserReadingHasher.Snapshot();
+        Assert.Contains(PasswordHashTiming<TestAppUser>.DummyUserId, ids);
+        Assert.DoesNotContain(ids, id => string.IsNullOrEmpty(id));
+        Assert.True(ids.Count >= 2, $"Expected a hasher call for login and create, saw {ids.Count}.");
+    }
+
     private static async Task AssertTimingAsync(SignInHost host, string url, string knownEmail)
     {
         const int warmup = 4;
@@ -389,6 +419,52 @@ public class PasswordPipelineTests
             }
 
             return AuthenticationResult<TestAppUser>.Success(user);
+        }
+    }
+
+    private sealed class UserReadingHasher : PasswordHasher<TestAppUser>
+    {
+        private static readonly object Gate = new();
+        private static readonly List<string> SeenIds = [];
+
+        public static void Reset()
+        {
+            lock (Gate)
+            {
+                SeenIds.Clear();
+            }
+        }
+
+        public static IReadOnlyList<string> Snapshot()
+        {
+            lock (Gate)
+            {
+                return SeenIds.ToArray();
+            }
+        }
+
+        public override string HashPassword(TestAppUser user, string password)
+        {
+            Note(user);
+            return base.HashPassword(user, password);
+        }
+
+        public override PasswordVerificationResult VerifyHashedPassword(
+            TestAppUser user,
+            string hashedPassword,
+            string providedPassword)
+        {
+            Note(user);
+            return base.VerifyHashedPassword(user, hashedPassword, providedPassword);
+        }
+
+        private static void Note(TestAppUser user)
+        {
+            var id = user.Id;
+            lock (Gate)
+            {
+                SeenIds.Add(id);
+            }
         }
     }
 }

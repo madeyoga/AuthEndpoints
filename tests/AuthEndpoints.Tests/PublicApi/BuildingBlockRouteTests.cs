@@ -568,6 +568,21 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
+    public void PasskeyOnlyHost_ManagementAndCookie_LogsNoMissingAddWarning()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddPasskeyEndpoints<TestAppUser>(), app =>
+        {
+            var identity = app.MapGroup("/identity");
+            identity.MapIdentityManagementApi<TestAppUser>();
+            identity.MapCookieAuthEndpoints<TestAppUser>();
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void MapSignInEndpoints_WithNoSignInModule_LogsWarning()
     {
         var logs = new WarningLog();
@@ -668,6 +683,22 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
+    public void ManagementPlusCookie_DoesNotWarnAboutDuplicateRoutes()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        {
+            var identity = app.MapGroup("/identity");
+            identity.MapIdentityManagementApi<TestAppUser>();
+            identity.MapCookieAuthEndpoints<TestAppUser>();
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void MapAccountManagementEndpoints_WithTags_ReachesConfirmAndResend()
     {
         using var app = BuildIdentity(services => services.AddAccountManagementEndpoints(), app =>
@@ -704,6 +735,58 @@ public class BuildingBlockRouteTests
         Assert.Equal(1, RouteSurface.ListRoutes(app).Count(route => route == "GET /identity/confirmEmail"));
         Assert.DoesNotContain("late", Tags(Find(app, "GET /identity/confirmEmail")));
         Assert.DoesNotContain("late", Tags(Find(app, "POST /identity/resendConfirmationEmail")));
+    }
+
+    [Fact]
+    public void MapIdentityManagementApi_Keeps330OpenApiOrder()
+    {
+        using var app = BuildIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapIdentityManagementApi<TestAppUser>();
+        });
+
+        Assert.Equal(
+            [
+                "POST /identity/register",
+                "GET /identity/confirmEmail",
+                "POST /identity/resendConfirmationEmail",
+                "POST /identity/forgotPassword",
+                "POST /identity/resetPassword",
+                "POST /identity/confirmIdentity",
+                "POST /identity/confirmIdentity/passkeyOptions",
+                "GET /identity/manage/authMethods",
+                "GET /identity/manage/2fa",
+                "POST /identity/manage/2fa",
+                "GET /identity/manage/info",
+                "POST /identity/manage/info",
+                "POST /identity/manage/password",
+            ],
+            RouteSurface.ListInMapOrder(app));
+    }
+
+    [Fact]
+    public void MapPasskeyEndpoints_Keeps330OpenApiOrder()
+    {
+        using var app = BuildIdentity(services => services.AddPasskeyEndpoints<TestAppUser>(), app =>
+        {
+            app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
+        });
+
+        // The secured group is created first, so its data source is listed before the anonymous
+        // ceremonies. Endpoints added to that group later stay in the first data source.
+        Assert.Equal(
+            [
+                "POST /account/passkeys/creationOptions",
+                "POST /account/passkeys/",
+                "GET /account/passkeys/",
+                "PATCH /account/passkeys/",
+                "DELETE /account/passkeys/{credentialIdUrl}",
+                "POST /account/passkeys/requestOptions",
+                "POST /account/passkeys/register/options",
+                "POST /account/passkeys/register",
+                "POST /account/passkeys/login",
+            ],
+            RouteSurface.ListInMapOrder(app));
     }
 
     [Fact]
