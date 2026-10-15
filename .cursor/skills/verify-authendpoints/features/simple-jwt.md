@@ -9,6 +9,7 @@ A client exchanges email and password for a Bearer access token and an HttpOnly 
 - `jwt-verify` accepts `Authorization: Bearer` on `GET /auth/verify` (204 No Content).
 - `jwt-refresh` returns a new access token from `POST /auth/refresh` using the refresh cookie plus CSRF.
 - `jwt-refresh-missing-cookie` fails when the refresh cookie is absent.
+- `jwt-logout` returns 200 from `POST /auth/logout` with CSRF and clears the refresh cookie. A later refresh is not 200.
 
 ## How to get to it (user POV)
 
@@ -30,8 +31,10 @@ Preconditions:
 - **Wrong password.** Run `ae-http.sh post /auth/create "{\"email\":\"${EMAIL}\",\"password\":\"WrongPassword!\"}" --out jwt-create-bad`. Status is `401`. Body contains `Invalid credentials`.
 - **Verify.** `export AE_BEARER` to the access token. Run `ae-http.sh get /auth/verify --out jwt-verify`. Status is `204`.
 - **Refresh.** Keep the jar from create. Run `ae-http.sh post --csrf /auth/refresh --out jwt-refresh`. Status is `200`. Body has a new `accessToken`.
-- **Missing cookie.** New jar, no create. Run `ae-http.sh post --csrf /auth/refresh --out jwt-refresh-missing`. Status is not 200 (typically 400) and the body mentions a missing refresh token cookie.
-- **Proof.** Keep `jwt-create.body` + `jwt-create.headers` (refresh cookie), `jwt-verify.status` (`204`), and `jwt-refresh.body` (new access token).
+- **Missing cookie.** Empty the jar (`: > "$AE_COOKIE_JAR"`). No create. Run `ae-http.sh post --csrf /auth/refresh --out jwt-refresh-missing`. Status is not 200 (typically 400) and the body mentions a missing refresh token cookie.
+- **Logout.** The missing-cookie step cleared the jar. Run `ae-http.sh post /auth/create "{\"email\":\"${EMAIL}\",\"password\":\"${PASS}\"}" --out jwt-create-2`. Status is `200`. Run `ae-http.sh post --csrf /auth/logout --out jwt-logout`. Status is `200`. Run `ae-http.sh post --csrf /auth/refresh --out jwt-refresh-after-logout`. Status is not 200.
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `POST /auth/create` and flags a repeated identical statement in one trace.
+- **Proof.** Keep `jwt-create.body` + `jwt-create.headers` (refresh cookie), `jwt-verify.status` (`204`), `jwt-refresh.body` (new access token), `jwt-logout.status` (`200`), `jwt-refresh-after-logout.status`, and `traces-summary.txt`.
 
 ## Gotchas
 
@@ -39,4 +42,5 @@ Preconditions:
 - Refresh and logout require CSRF on the **JWT** token endpoint (`/auth/csrfToken`).
 - The access token is only in JSON. The refresh token is **only** in the cookie named `AuthEndpoints.Jwt.RefreshToken`, not in the create JSON.
 - Two-factor users get 401 with title `RequiresTwoFactor` and `requiresTwoFactor: true` when no code is sent. A wrong `twoFactorCode` or `twoFactorRecoveryCode` returns 401 `Invalid credentials` and counts toward lockout. This test-host user is not 2FA unless you enabled it.
-- Facade `Jwt.Enabled` is opt-in for hosts. This test host always maps `/auth`. The frozen facade (`AE_HOST_MODE=bearer-facade` or `cookie-facade`) keeps the 3.4.1 create handler: a wrong authenticator code returns `Invalid two factor code` and does not count toward lockout.
+- The compose host always maps `/auth`. A facade host maps `/auth` unless `AE_FACADE_JWT=false` before `launch`. Cookie refresh reads `AuthEndpoints.Jwt.RefreshToken` only. Do not send that refresh token in the JSON body. `AE_JWT_REFRESH_TRANSPORT=Body` is the exception: the JSON carries `refreshToken` and there is no refresh cookie.
+- The `MapAuthEndpoints` facade (`AE_HOST_MODE=bearer-facade` or `cookie-facade`) keeps the 3.4.1 create handler: a wrong authenticator code returns `Invalid two factor code` and does not count toward lockout.

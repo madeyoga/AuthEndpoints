@@ -28,18 +28,20 @@ Preconditions:
 - Cookie jar still has the application cookie.
 
 - **Methods.** Run `ae-http.sh get /identity/manage/authMethods --out auth-methods`. Status is `200`. `password` is `true`.
-- **Confirm.** Run `ae-http.sh post --csrf /identity/confirmIdentity "{\"password\":\"${PASS}\"}" --out confirm`. Status is `200`. Body has `reauthToken`.
-- **Wrong password.** Run `ae-http.sh post --csrf /identity/confirmIdentity '{"password":"WrongPass1!"}' --out confirm-wrong`. Status is not 200.
-- **Mutation without ReAuth.** Unset `AE_REAUTH`. Run `ae-http.sh post --csrf /identity/manage/info "{\"oldPassword\":\"${PASS}\",\"newPassword\":\"ChangedPass1!\"}" --out info-no-reauth`. Status is `401` or `403`.
-- **Mutation with ReAuth.** `export AE_REAUTH` from the successful confirm. Run `ae-http.sh post --csrf /identity/manage/info "{\"oldPassword\":\"${PASS}\",\"newPassword\":\"ChangedPass1!\"}" --out info-reauth`. Status is `200`.
-- **New password works.** New jar. Run `ae-http.sh post /identity/login "{\"email\":\"${EMAIL}\",\"password\":\"ChangedPass1!\"}" --out login-new`. Status is `200` or `204`. Then `ae-http.sh get /identity/manage/info --out info-new` is `200`.
-- **Proof.** Keep `auth-methods.body`, `confirm.body` (`reauthToken`), `info-no-reauth.status` (401/403), `info-reauth.status` (`200`), and `login-new.status`.
+- **Mutation without ReAuth.** `unset AE_REAUTH`. Do this before any successful confirm. A successful cookie confirm sets `AuthEndpoints.ReAuth`, and curl will send that cookie on the next POST even when `AE_REAUTH` is unset. Run `ae-http.sh post --csrf /identity/manage/info "{\"oldPassword\":\"${PASS}\",\"newPassword\":\"ChangedPass1!\"}" --out info-no-reauth`. Status is `401` or `403`.
+- **Wrong password.** Run `ae-http.sh post --csrf /identity/confirmIdentity '{"password":"WrongPass1!"}' --out confirm-wrong`. Status is `401`. Body has no `reauthToken`.
+- **Confirm.** Run `ae-http.sh post --csrf /identity/confirmIdentity "{\"password\":\"${PASS}\"}" --out confirm`. Status is `200`. Body has `reauthToken`. Headers set `AuthEndpoints.ReAuth`.
+- **Mutation with ReAuth.** `export AE_REAUTH` from `confirm.body`. Run `ae-http.sh post --csrf /identity/manage/info "{\"oldPassword\":\"${PASS}\",\"newPassword\":\"ChangedPass1!\"}" --out info-reauth`. Status is `200`.
+- **New password works.** `unset AE_REAUTH` and empty the jar (`: > "$AE_COOKIE_JAR"`). Run `ae-http.sh post /identity/login "{\"email\":\"${EMAIL}\",\"password\":\"ChangedPass1!\"}" --out login-new`. Status is `200` or `204`. Then `ae-http.sh get /identity/manage/info --out info-new` is `200`.
+- **Traces.** Run `ae-http.sh traces`. Error spans and exception events are both zero. `ae-http.sh traces sql` lists `db.statement` for `confirmIdentity` and the manage mutation and flags a repeated identical statement in one trace.
+- **Proof.** Keep `auth-methods.body`, `confirm.body` (`reauthToken`), `info-no-reauth.status` (401/403), `info-reauth.status` (`200`), `login-new.status`, and `traces-summary.txt`.
 
 ## Gotchas
 
 - Confirm requires **exactly one** proof field. Sending password plus another field is 400.
 - Cookie confirm and manage POSTs need CSRF **and** ReAuth. Clients that send `Authorization: Bearer` and no application cookie skip CSRF, unless the host reads that token from a cookie.
 - ReAuth tokens are short-lived. Confirm immediately before the mutation.
+- Cookie confirm stores `AuthEndpoints.ReAuth` in the jar. That cookie alone satisfies `RequireReauth()` on the next cookie request. The without-ReAuth step has to run before a successful confirm, or on a jar that does not contain that cookie. Bearer confirm (`Authorization: Bearer`, no application cookie) returns `reauthToken` and does not set the cookie.
 - `/test/reauth` is only `.RequireReauth()`. It does not list sign-in schemes. A ReAuth cookie or header alone is rejected (`401`). A cookie sign-in from the authentication middleware without a matching proof is `403`. Library routes pair `.RequireReauth()` with the management authorize attribute. Prefer `manage/info` as the library-facing proof.
 - Confirm is rate-limited (fixed window). Do not loop failed confirms.
 - A proof is bound to the user's security stamp. `UpdateSecurityStampAsync`, a password change, or a reset makes the cookie and `X-AuthEndpoints-Reauth` token fail with `403` while the sign-in is still valid. A proof minted without the stamp claim is rejected.
