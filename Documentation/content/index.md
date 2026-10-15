@@ -1,7 +1,7 @@
 ---
 seo:
   title: AuthEndpoints — ASP.NET Core Identity auth library
-  description: 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.'
+  description: 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.'
 ---
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
@@ -15,7 +15,7 @@ orientation: horizontal
 [AuthEndpoints]{.text-primary}
 
 #description
-Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.
+Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.
 
 #links
   :::u-button
@@ -43,28 +43,22 @@ Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, p
   :::prose-pre
   ---
   code: |
-    builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(o =>
-    {
-        o.Passkeys.ServerDomain = "example.com";
-    });
+    builder.Services.AddPasswordAuth<AppUser, AppDbContext>();
     builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
 
     var app = builder.Build();
     app.UseAuthEndpoints();
-    app.MapAuthEndpoints<AppUser>();
+    app.MapPasswordAuth<AppUser>();
   filename: Program.cs
   ---
 
   ```cs [Program.cs]
-  builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(o =>
-  {
-      o.Passkeys.ServerDomain = "example.com";
-  });
+  builder.Services.AddPasswordAuth<AppUser, AppDbContext>();
   builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
 
   var app = builder.Build();
   app.UseAuthEndpoints();
-  app.MapAuthEndpoints<AppUser>();
+  app.MapPasswordAuth<AppUser>();
   ```
   :::
 ::
@@ -159,6 +153,18 @@ Each capability links to the guide that shows you how to use it.
 
   #description
   Sign users in with a passkey.
+  :::
+
+  :::u-page-feature
+  ---
+  icon: i-lucide-mail
+  to: /guides/email-code
+  ---
+  #title
+  Emailed one-time code
+
+  #description
+  Sign in with a code. Sign-up and magic links stay off until you enable them.
   :::
 
   :::u-page-feature
@@ -272,10 +278,31 @@ Each capability links to the guide that shows you how to use it.
 
 ::u-page-section{class="dark:bg-zinc-950"}
 #title
-Map auth in minutes
+I want to
 
 #description
-Start with the facade, then compose modules when you need custom paths or a JWT-only stack.
+Each line is one task.
+
+- [Register users](/guides/registration)
+- [Sign users in](/guides/sign-in)
+- [Turn on two-factor authentication](/guides/two-factor)
+- [Reset a forgotten password](/guides/reset-password)
+- [Add, rename, and remove passkeys](/guides/manage-passkeys)
+- [Sign in with an emailed code](/guides/email-code)
+- [Add GitHub or Google](/guides/registration#register-with-github-or-google)
+- [Require step-up before sensitive actions](/guides/step-up)
+- [Run an app with no public sign-up](/guides/internal-app)
+- [Upgrade to 4.0](/guides/upgrading-to-4)
+
+The same list, plus sign-out, email change, and production, is on [Guides](/guides#i-want-to).
+::
+
+::u-page-section{class="dark:bg-zinc-950"}
+#title
+Start with password sign-in
+
+#description
+The quick start uses AddPasswordAuth and MapPasswordAuth. Pick another setup when you need JWT, passkeys, an emailed code, or an external provider.
 
 #links
   :::u-button
@@ -289,12 +316,12 @@ Start with the facade, then compose modules when you need custom paths or a JWT-
 
   :::u-button
   ---
-  to: /composables
+  to: /getting-started/choose-a-sign-in-stack
   color: neutral
   variant: outline
   size: xl
   ---
-  Composable endpoints
+  Pick your setup
   :::
 
 :stars-bg

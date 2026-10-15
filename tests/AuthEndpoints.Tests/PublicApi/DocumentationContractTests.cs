@@ -195,7 +195,7 @@ public class DocumentationContractTests
             .SelectMany(path => ExtractRecipes(path))
             .ToList();
 
-        Assert.Equal(5, recipes.Count);
+        Assert.Equal(6, recipes.Count);
 
         var references = LoadReferences();
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
