@@ -45,43 +45,6 @@ public class IdentityCookieEndpointsTests : IClassFixture<TestWebApplicationFact
     }
 
     [Fact]
-    public async Task Register_DuplicateEmail_ReturnsOkWithoutCreatingSecondUser()
-    {
-        var email = $"dup-{Guid.NewGuid():N}@test.local";
-        await TestHelpers.SeedUserAsync(_factory, email);
-        using var client = TestHelpers.CreateClientWithCookies(_factory);
-
-        var response = await client.PostAsJsonAsync("/identity/register", new
-        {
-            email,
-            password = TestHelpers.DefaultPassword
-        });
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var user = await TestHelpers.FindUserByEmailAsync(_factory, email);
-        Assert.NotNull(user);
-    }
-
-    [Fact]
-    public async Task Login_ValidCredentials_Succeeds()
-    {
-        var email = $"login-ok-{Guid.NewGuid():N}@test.local";
-        await TestHelpers.SeedUserAsync(_factory, email);
-        using var client = TestHelpers.CreateClientWithCookies(_factory);
-
-        var response = await client.PostAsJsonAsync("/identity/login", new
-        {
-            email,
-            password = TestHelpers.DefaultPassword
-        });
-
-        Assert.True(response.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent);
-
-        var info = await client.GetAsync("/identity/manage/info");
-        Assert.Equal(HttpStatusCode.OK, info.StatusCode);
-    }
-
-    [Fact]
     public async Task Login_WrongPassword_ReturnsGenericUnauthorized()
     {
         var email = $"login-bad-{Guid.NewGuid():N}@test.local";

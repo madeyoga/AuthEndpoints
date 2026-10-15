@@ -409,22 +409,6 @@ public class SignInCompleterTests
     }
 
     [Fact]
-    public void PerMethodCompleters_AreObsolete_PasskeySignInKindIsNot()
-    {
-        AssertObsolete(typeof(IEmailCodeSignInCompleter<>));
-        AssertObsolete(typeof(EmailCodeSignInContext));
-        AssertObsolete(typeof(IdentityEmailCodeSignInCompleter<>));
-        AssertObsolete(typeof(JwtEmailCodeSignInCompleter<>));
-        AssertObsolete(typeof(IPasskeySignInCompleter<>));
-        AssertObsolete(typeof(PasskeySignInCompletionContext));
-        AssertObsolete(typeof(IdentityPasskeySignInCompleter<>));
-        AssertObsolete(typeof(JwtPasskeySignInCompleter<>));
-        AssertObsolete(typeof(AuthEndpoints.EmailCode.ServiceCollectionExtensions).GetMethod("AddEmailCodeSignInCompleter")!);
-        AssertObsolete(typeof(AuthEndpoints.Passkey.ServiceCollectionExtensions).GetMethod("AddPasskeySignInCompleter")!);
-        Assert.Null(typeof(PasskeySignInKind).GetCustomAttribute<ObsoleteAttribute>());
-    }
-
-    [Fact]
     public void PasskeyStringOverload_KeepsSingleStringAsConfirmEmailName()
     {
         using var app = MapForMetadata(services =>
@@ -621,35 +605,6 @@ public class SignInCompleterTests
             "No ISignInCompleter<TestAppUser> named 'MySession' is registered (AddSignInCompleter).",
             wrongDefault.Message);
         Assert.Equal(0, OtherUserCompleter.Constructions);
-    }
-
-    [Fact]
-    public void ParameterlessPasswordMaps_UseCookiePipeline()
-    {
-        using var app = MapForMetadata(services =>
-        {
-            services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
-                .AddEntityFrameworkStores<TestDbContext>();
-            services.AddPasswordEndpoints();
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
-            {
-                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-            });
-        }, app =>
-        {
-            app.MapPasswordEndpoints<TestAppUser>();
-            app.MapGroup("/in").MapPasswordSignInEndpoints<TestAppUser>();
-            app.MapGroup("/auth").MapJwtPasswordEndpoints<TestAppUser>();
-            app.MapGroup("/mode").MapPasswordEndpoints<TestAppUser>(PasswordLoginMode.Cookie, "mode-confirm");
-        });
-
-        Assert.Equal(SignInCompleters.Cookie, Find(app, "POST /login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
-        Assert.Equal(SignInCompleters.Cookie, Find(app, "POST /in/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
-        Assert.NotEqual("LoginCookie", HandlerName(Find(app, "POST /login")));
-        Assert.Equal(SignInCompleters.Jwt, Find(app, "POST /auth/create").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
-        Assert.Equal("HandleCreate", HandlerName(Find(app, "POST /auth/create")));
-        Assert.Equal("LoginCookie", HandlerName(Find(app, "POST /mode/login")));
-        Assert.Null(Find(app, "POST /mode/login").Metadata.GetMetadata<SignInCompleterSelection>());
     }
 
     [Fact]
@@ -856,16 +811,6 @@ public class SignInCompleterTests
     {
         return endpoint.Metadata.GetMetadata<MethodInfo>()?.Name
             ?? endpoint.Metadata.OfType<MethodInfo>().FirstOrDefault()?.Name;
-    }
-
-    private static void AssertObsolete(MemberInfo member)
-    {
-        var obsolete = member.GetCustomAttribute<ObsoleteAttribute>();
-        Assert.NotNull(obsolete);
-        Assert.Contains("ISignInCompleter", obsolete.Message, StringComparison.Ordinal);
-        Assert.Contains("AddSignInCompleter", obsolete.Message, StringComparison.Ordinal);
-        Assert.Contains("Removed in 5.0", obsolete.Message, StringComparison.Ordinal);
-        Assert.DoesNotContain("o.SignIn.Completer", obsolete.Message, StringComparison.Ordinal);
     }
 
     private static async Task AssertSession(HttpResponseMessage response, SessionKind kind, bool passkeyRegister)

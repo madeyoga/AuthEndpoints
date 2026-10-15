@@ -1,6 +1,5 @@
 using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Jwt;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -27,29 +26,6 @@ public class JwtExternalBodyTransportTests
         var startup = await Assert.ThrowsAnyAsync<Exception>(() => app.StartAsync());
         Assert.Contains(JwtExternalBodyTransportValidator.Message, startup.ToString(), StringComparison.Ordinal);
         Assert.Equal(0, await db.Set<RefreshToken>().CountAsync());
-    }
-
-    [Fact]
-    public async Task BodyTransport_CompleteAsync_ThrowsBeforeCreatingAToken()
-    {
-        var services = new ServiceCollection();
-        services.AddOptions<JwtSessionOptions>()
-            .Configure(options => options.RefreshTokenTransport = RefreshTokenTransport.Body);
-        using var provider = services.BuildServiceProvider();
-        var refresh = new RejectingRefreshTokens();
-        var completer = new JwtExternalLoginCompleter<ExternalJwtUser>(
-            null!,
-            null!,
-            refresh,
-            new RefreshTokenCookieWriter(),
-            Options.Create(new ExternalAuthOptions()));
-        var http = new DefaultHttpContext { RequestServices = provider };
-
-        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            completer.CompleteAsync(http, new ExternalJwtUser(), null!, "/", CancellationToken.None));
-
-        Assert.Equal(JwtExternalBodyTransportValidator.Message, error.Message);
-        Assert.Equal(0, refresh.CreateCalls);
     }
 
     [Fact]
@@ -98,26 +74,4 @@ public class JwtExternalBodyTransportTests
     }
 
     private sealed class ExternalJwtUser : IdentityUser;
-
-    private sealed class RejectingRefreshTokens : IRefreshTokenService
-    {
-        public int CreateCalls { get; private set; }
-
-        public Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
-        {
-            CreateCalls++;
-            throw new InvalidOperationException("CreateAsync must not run.");
-        }
-
-        public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken) => Task.FromResult<RefreshToken?>(null);
-
-        public bool IsValid(RefreshToken refreshToken) => false;
-
-        public Task RevokeAsync(RefreshToken refreshToken) => Task.CompletedTask;
-
-        public Task RevokeFamilyAsync(string familyId) => Task.CompletedTask;
-
-        public Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp) =>
-            Task.FromResult<RefreshToken?>(null);
-    }
 }

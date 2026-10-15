@@ -5,18 +5,13 @@ namespace AuthEndpoints.Tests;
 
 public class UserIdHelperTests
 {
-    [Fact]
-    public void CreateUserIdString_StringKey_ReturnsGuidShapedId()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CreateUserIdString_StringOrGuidKey_ReturnsGuidShapedId(bool guidKey)
     {
-        var userId = UserIdHelper.CreateUserIdString(typeof(IdentityUser));
-
-        Assert.True(Guid.TryParse(userId, out _), $"Expected a Guid-shaped id, got '{userId}'.");
-    }
-
-    [Fact]
-    public void CreateUserIdString_GuidKey_ReturnsGuidShapedId()
-    {
-        var userId = UserIdHelper.CreateUserIdString(typeof(IdentityUser<Guid>));
+        var userType = guidKey ? typeof(IdentityUser<Guid>) : typeof(IdentityUser);
+        var userId = UserIdHelper.CreateUserIdString(userType);
 
         Assert.True(Guid.TryParse(userId, out _), $"Expected a Guid-shaped id, got '{userId}'.");
     }
@@ -30,25 +25,17 @@ public class UserIdHelperTests
         Assert.Contains("string or Guid", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 
-    [Fact]
-    public void CreateUserIdString_StringKey_UsesRegisteredFactory()
+    [Theory]
+    [InlineData(false, "custom-string-key-id")]
+    [InlineData(true, "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")]
+    public void CreateUserIdString_SupportedKey_UsesRegisteredFactory(bool guidKey, string expected)
     {
-        var factory = new FixedPasskeyUserIdFactory("custom-string-key-id");
+        var userType = guidKey ? typeof(IdentityUser<Guid>) : typeof(IdentityUser);
+        var factory = new FixedPasskeyUserIdFactory(expected);
 
-        var userId = UserIdHelper.CreateUserIdString(typeof(IdentityUser), factory);
+        var userId = UserIdHelper.CreateUserIdString(userType, factory);
 
-        Assert.Equal("custom-string-key-id", userId);
-    }
-
-    [Fact]
-    public void CreateUserIdString_GuidKey_UsesRegisteredFactory()
-    {
-        var expected = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
-        var factory = new FixedPasskeyUserIdFactory(expected.ToString());
-
-        var userId = UserIdHelper.CreateUserIdString(typeof(IdentityUser<Guid>), factory);
-
-        Assert.Equal(expected.ToString(), userId);
+        Assert.Equal(expected, userId);
     }
 
     [Fact]
