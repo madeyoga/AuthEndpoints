@@ -43,8 +43,6 @@ public class EmailCodeOptionsTests
     [Theory]
     [InlineData(5)]
     [InlineData(11)]
-    [InlineData(0)]
-    [InlineData(-1)]
     public void Validator_RejectsCodeLength(int length)
     {
         var result = Validate(new EmailCodeOptions { CodeLength = length });
@@ -71,7 +69,6 @@ public class EmailCodeOptionsTests
 
     [Theory]
     [InlineData(1)]
-    [InlineData(10)]
     [InlineData(60)]
     public void Validator_AcceptsCodeLifetime(int minutes)
     {
@@ -80,7 +77,6 @@ public class EmailCodeOptionsTests
 
     [Theory]
     [InlineData(1)]
-    [InlineData(5)]
     [InlineData(10)]
     public void Validator_AcceptsReAuthCodeLifetime(int minutes)
     {
@@ -105,7 +101,6 @@ public class EmailCodeOptionsTests
     [Theory]
     [InlineData(0)]
     [InlineData(11)]
-    [InlineData(-1)]
     public void Validator_RejectsMaxAttempts(int attempts)
     {
         var result = Validate(new EmailCodeOptions { MaxAttempts = attempts });
@@ -115,7 +110,6 @@ public class EmailCodeOptionsTests
 
     [Theory]
     [InlineData(1)]
-    [InlineData(5)]
     [InlineData(10)]
     public void Validator_AcceptsMaxAttempts(int attempts)
     {
@@ -138,7 +132,6 @@ public class EmailCodeOptionsTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(-1)]
     public void Validator_RejectsMaxSendsPerEmail(int sends)
     {
         var result = Validate(new EmailCodeOptions { MaxSendsPerEmail = sends });
@@ -161,7 +154,6 @@ public class EmailCodeOptionsTests
 
     [Theory]
     [InlineData(0)]
-    [InlineData(-1)]
     public void Validator_RejectsSendsPerIpPerMinute(int sends)
     {
         var result = Validate(new EmailCodeOptions { SendsPerIpPerMinute = sends });

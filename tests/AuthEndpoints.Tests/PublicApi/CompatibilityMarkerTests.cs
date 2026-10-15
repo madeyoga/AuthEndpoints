@@ -48,12 +48,21 @@ public class CompatibilityMarkerTests
                 Display(member) + ": " + message);
         }
 
+        Assert.All(markers, pair => Assert.DoesNotContain("o.SignIn.Completer", pair.Obsolete.Message ?? "", StringComparison.Ordinal));
         Assert.Contains(markers, pair => pair.Member.Name == "AddCompleter");
         Assert.Contains(markers, pair => pair.Member.Name == "AddEmailCodeSignInCompleter");
         Assert.Contains(markers, pair => pair.Member.Name == "AddPasskeySignInCompleter");
         Assert.Contains(markers, pair => pair.Member == typeof(IExternalLoginCompleter<>));
+        Assert.Contains(markers, pair => pair.Member == typeof(CookieExternalLoginCompleter<>));
+        Assert.Contains(markers, pair => pair.Member == typeof(JwtExternalLoginCompleter<>));
         Assert.Contains(markers, pair => pair.Member == typeof(IEmailCodeSignInCompleter<>));
+        Assert.Contains(markers, pair => pair.Member == typeof(EmailCodeSignInContext));
+        Assert.Contains(markers, pair => pair.Member == typeof(IdentityEmailCodeSignInCompleter<>));
+        Assert.Contains(markers, pair => pair.Member == typeof(JwtEmailCodeSignInCompleter<>));
         Assert.Contains(markers, pair => pair.Member == typeof(IPasskeySignInCompleter<>));
+        Assert.Contains(markers, pair => pair.Member == typeof(PasskeySignInCompletionContext));
+        Assert.Contains(markers, pair => pair.Member == typeof(IdentityPasskeySignInCompleter<>));
+        Assert.Contains(markers, pair => pair.Member == typeof(JwtPasskeySignInCompleter<>));
     }
 
     [Fact]
@@ -72,6 +81,7 @@ public class CompatibilityMarkerTests
 
         Assert.Null(typeof(PasswordLoginMode).GetCustomAttribute<ObsoleteAttribute>());
         Assert.Null(typeof(AuthEndpointsSignIn).GetCustomAttribute<ObsoleteAttribute>());
+        Assert.Null(typeof(PasskeySignInKind).GetCustomAttribute<ObsoleteAttribute>());
         Assert.Empty(ObsoleteMembers(typeof(GitHubExternalAuthProvider).Assembly));
     }
 

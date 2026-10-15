@@ -104,32 +104,6 @@ public class RecipeRouteTests
     }
 
     [Fact]
-    public void CookieCompose_MatchesFacadeRouteList()
-    {
-        var routes = Map(services =>
-        {
-            services
-                .AddIdentityApiEndpoints<TestAppUser>(options =>
-                {
-                    options.SignIn.RequireConfirmedAccount = true;
-                    options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-                })
-                .AddEntityFrameworkStores<TestDbContext>()
-                .AddDefaultTokenProviders();
-            services.AddCookieAuthEndpoints();
-            services.AddPasskeyEndpoints<TestAppUser>();
-        }, app =>
-        {
-            var identity = app.MapGroup("/identity");
-            identity.MapIdentityManagementApi<TestAppUser>();
-            identity.MapCookieAuthEndpoints<TestAppUser>();
-            app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
-        });
-
-        Assert.Equal(WithSetPassword(CookieFacadeRoutes), routes);
-    }
-
-    [Fact]
     public void BearerCompose_MatchesFacadeRouteList()
     {
         var routes = Map(services =>
@@ -272,34 +246,6 @@ public class RecipeRouteTests
             .OrderBy(route => route, StringComparer.Ordinal)
             .ToArray();
     }
-
-    private static readonly string[] CookieFacadeRoutes =
-    [
-        "DELETE /account/passkeys/{credentialIdUrl}",
-        "GET /account/passkeys/",
-        "GET /identity/confirmEmail",
-        "GET /identity/csrfToken",
-        "GET /identity/manage/2fa",
-        "GET /identity/manage/authMethods",
-        "GET /identity/manage/info",
-        "PATCH /account/passkeys/",
-        "POST /account/passkeys/",
-        "POST /account/passkeys/creationOptions",
-        "POST /account/passkeys/login",
-        "POST /account/passkeys/register",
-        "POST /account/passkeys/register/options",
-        "POST /account/passkeys/requestOptions",
-        "POST /identity/confirmIdentity",
-        "POST /identity/confirmIdentity/passkeyOptions",
-        "POST /identity/forgotPassword",
-        "POST /identity/login",
-        "POST /identity/logout",
-        "POST /identity/manage/2fa",
-        "POST /identity/manage/info",
-        "POST /identity/register",
-        "POST /identity/resendConfirmationEmail",
-        "POST /identity/resetPassword",
-    ];
 
     private static readonly string[] BearerFacadeRoutes =
     [

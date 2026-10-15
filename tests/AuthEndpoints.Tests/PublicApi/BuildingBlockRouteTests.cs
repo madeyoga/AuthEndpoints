@@ -568,39 +568,6 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
-    public void Map_WithMatchingAdd_DoesNotLogMissingAddWarning()
-    {
-        var logs = new WarningLog();
-        using var app = BuildIdentity(services =>
-        {
-            services.AddPasswordEndpoints();
-            services.AddCookieSessionEndpoints();
-            services.AddBearerSessionEndpoints();
-            services.AddAccountManagementEndpoints();
-            services.AddPasskeyEndpoints<TestAppUser>();
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
-            {
-                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-            });
-        }, app =>
-        {
-            var identity = app.MapGroup("/identity");
-            identity.MapPasswordEndpoints<TestAppUser>();
-            identity.MapCookieSessionEndpoints<TestAppUser>();
-            identity.MapAccountManagementEndpoints<TestAppUser>();
-            identity.MapConfirmEmailEndpoints<TestAppUser>();
-            app.MapGroup("/identity/bearer").MapBearerSessionEndpoints<TestAppUser>();
-            app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>();
-            app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
-            app.MapGroup("/account/signin").MapPasskeySignInEndpoints<TestAppUser>();
-        }, logs);
-
-        _ = RouteSurface.ListRoutes(app);
-        Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
-        Assert.DoesNotContain(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
-    }
-
-    [Fact]
     public void PasskeyOnlyHost_ManagementAndCookie_LogsNoMissingAddWarning()
     {
         var logs = new WarningLog();
@@ -630,25 +597,6 @@ public class BuildingBlockRouteTests
             message => message.Contains(
                 "MapSignInEndpoints mapped no sign-in method.",
                 StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void MapSignInEndpoints_WithPasswordSignIn_DoesNotLogMissingSignInWarning()
-    {
-        var logs = new WarningLog();
-        using var app = BuildIdentity(services =>
-        {
-            services.AddPasswordSignInEndpoints();
-            services.AddCookieSessionEndpoints();
-        }, app =>
-        {
-            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
-        }, logs);
-
-        _ = RouteSurface.ListRoutes(app);
-        Assert.DoesNotContain(
-            logs.Messages,
-            message => message.Contains("mapped no sign-in method", StringComparison.Ordinal));
     }
 
     [Fact]

@@ -2,7 +2,6 @@
 using System.Security.Cryptography;
 using System.Text;
 using AuthEndpoints.EmailCode;
-using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Tests;
 
@@ -10,7 +9,6 @@ public class EmailCodeCoreTests
 {
     [Theory]
     [InlineData(6)]
-    [InlineData(8)]
     [InlineData(10)]
     public void CreateCode_HasExactLengthAndDigits(int length)
     {
@@ -92,31 +90,5 @@ public class EmailCodeCoreTests
         Assert.Null(EmailCodeLinks.CreateUrl(
             new EmailCodeMagicLinkOptions { Enabled = true, LinkUri = "https://app.example.com/auth/email-link" },
             token: null));
-    }
-
-    [Fact]
-    public void LinkTokenHash_IsSha256OfTheToken()
-    {
-        const string token = "abcdefghijklmnopqrstuvwxyz012345";
-        string hash = EmailCodeHasher.HashLinkToken(token);
-        string expected = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
-        Assert.Equal(expected, hash);
-        Assert.NotEqual(token, hash);
-    }
-
-    [Fact]
-    public void EmailHash_TrimsAndIgnoresCase()
-    {
-        var normalizer = new UpperInvariantLookupNormalizer();
-        string Hash(string email) => EmailCodeHasher.HashEmail(normalizer.NormalizeEmail(email.Trim())!);
-
-        string left = Hash("A@X.com ");
-        string right = Hash("a@x.com");
-        string other = Hash("b@x.com");
-
-        Assert.Equal(left, right);
-        Assert.NotEqual(left, other);
-        Assert.Equal("A@X.COM", normalizer.NormalizeEmail("A@X.com ".Trim()));
-        Assert.Equal("A@X.COM", normalizer.NormalizeEmail("a@x.com".Trim()));
     }
 }

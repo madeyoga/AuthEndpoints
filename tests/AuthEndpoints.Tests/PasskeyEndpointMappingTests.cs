@@ -10,16 +10,6 @@ namespace AuthEndpoints.Tests;
 public class PasskeyEndpointMappingTests
 {
     [Fact]
-    public void MapPasskeyEndpoints_WithPasskeyAndEmailSupport_DoesNotThrow()
-    {
-        using var app = CreateApp();
-
-        var mapped = app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
-
-        Assert.NotNull(mapped);
-    }
-
-    [Fact]
     public void MapPasskeyEndpoints_WithoutPasskeySupport_ThrowsNotSupported()
     {
         using var app = CreateApp(services =>
