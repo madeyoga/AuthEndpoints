@@ -63,7 +63,7 @@ Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, p
   :::
 ::
 
-::u-page-section{class="dark:bg-zinc-950"}
+::u-page-section{id="what-authendpoints-can-do" class="dark:bg-zinc-950"}
 #title
 What AuthEndpoints can do
 
