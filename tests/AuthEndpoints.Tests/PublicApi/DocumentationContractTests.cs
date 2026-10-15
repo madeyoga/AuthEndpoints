@@ -144,7 +144,7 @@ public class DocumentationContractTests
             "content",
             "versions",
             "v4.0.0.md")), StringComparison.Ordinal);
-        Assert.Contains("date: 2026-10-14", File.ReadAllText(Path.Combine(
+        Assert.Contains("date: 2026-10-15", File.ReadAllText(Path.Combine(
             FindRepoRoot(),
             "Documentation",
             "content",
