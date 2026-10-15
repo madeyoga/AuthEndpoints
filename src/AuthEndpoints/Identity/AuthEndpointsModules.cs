@@ -31,7 +31,7 @@ internal static class AuthEndpointsModules
         return services.GetService<AuthEndpointsModule<TModule>>() is not null;
     }
 
-    public static void WarnIfMissing<TModule>(
+    public static void ThrowIfMissing<TModule>(
         IEndpointRouteBuilder endpoints,
         string addMethod,
         string mapMethod)
@@ -42,7 +42,7 @@ internal static class AuthEndpointsModules
             return;
         }
 
-        Log(endpoints, $"{addMethod} was not called before {mapMethod}.");
+        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     public static void Log(IEndpointRouteBuilder endpoints, string message)

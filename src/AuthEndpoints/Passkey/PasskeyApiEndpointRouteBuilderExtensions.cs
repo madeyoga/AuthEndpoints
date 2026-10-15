@@ -1,5 +1,6 @@
 using AuthEndpoints.Identity;
 using AuthEndpoints.ReAuth;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -37,7 +38,14 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var group = endpoints.MapGroup("/passkeys");
-        MapPasskeyRoutes<TUser>(group, confirmEmailEndpointName, nameof(MapPasskeyEndpoints), signIn: true, management: true);
+        MapPasskeyRoutes<TUser>(
+            group,
+            confirmEmailEndpointName,
+            nameof(MapPasskeyEndpoints),
+            signIn: true,
+            management: true,
+            completer: null,
+            honorDefault: false);
         return group;
     }
 
@@ -48,6 +56,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
     /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
     /// contributes a no-op builder and those conventions do not reach the existing route.
+    /// Register and login keep the 3.x completer: an explicitly registered
+    /// <see cref="IPasskeySignInCompleter{TUser}"/>, otherwise Identity bearer.
+    /// A single string is the confirm-email endpoint name, not a completer.
+    /// When that string matches a registered completer name, this method logs a warning and still
+    /// treats it as the confirm-email name. Pass <see cref="AuthEndpointsSession"/> to select a session.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -55,13 +68,74 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+        WarnIfConfirmNameMatchesCompleter(endpoints, confirmEmailEndpointName);
+        return MapPasskeySignInCore<TUser>(endpoints, confirmEmailEndpointName, completer: null);
+    }
+
+    /// <summary>
+    /// Maps passkey sign-in and finishes register and login with the built-in completer for <paramref name="session"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        return MapPasskeySignInCore<TUser>(endpoints, confirmEmailEndpointName, SignInCompleterMap.FromSession(session));
+    }
+
+    /// <summary>
+    /// Maps passkey sign-in and finishes register and login with the keyed completer <paramref name="completer"/>.
+    /// <paramref name="confirmEmailEndpointName"/> is required so a single string still selects the 3.x confirm-email name.
+    /// Pass <see langword="null"/> to use <see cref="AuthEndpointsEndpointNames.ConfirmEmail{TUser}"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string completer,
+        string? confirmEmailEndpointName)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(completer);
+        return MapPasskeySignInCore<TUser>(endpoints, confirmEmailEndpointName, completer);
+    }
+
+    private static IEndpointConventionBuilder MapPasskeySignInCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName,
+        string? completer)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeySignInEndpoints));
+        WarnIfNeitherPasskeyModule<PasskeySignInEndpointsModule>(
+            endpoints,
+            "AddPasskeySignInEndpoints",
+            nameof(MapPasskeySignInEndpoints));
+        if (completer is null)
+        {
+            SignInCompleterMap.EnsureConfiguredDefault<TUser>(
+                endpoints,
+                nameof(MapPasskeySignInEndpoints),
+                LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider));
+        }
+        else
+        {
+            SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, nameof(MapPasskeySignInEndpoints));
+        }
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
         var group = endpoints.MapGroup("/passkeys");
-        MapPasskeyRoutes<TUser>(group, confirmEmailEndpointName, nameof(MapPasskeySignInEndpoints), signIn: true, management: false);
+        MapPasskeyRoutes<TUser>(
+            group,
+            confirmEmailEndpointName,
+            nameof(MapPasskeySignInEndpoints),
+            signIn: true,
+            management: false,
+            completer,
+            honorDefault: completer is null);
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
         return new CompositeEndpointConventionBuilder(group, confirm);
     }
@@ -76,16 +150,39 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfPasskeysMissing(endpoints, nameof(MapPasskeyManagementEndpoints));
+        WarnIfNeitherPasskeyModule<PasskeyManagementEndpointsModule>(
+            endpoints,
+            "AddPasskeyManagementEndpoints",
+            nameof(MapPasskeyManagementEndpoints));
 
         var group = endpoints.MapGroup("/passkeys");
-        MapPasskeyRoutes<TUser>(group, confirmEmailEndpointName: null, nameof(MapPasskeyManagementEndpoints), signIn: false, management: true);
+        MapPasskeyRoutes<TUser>(
+            group,
+            confirmEmailEndpointName: null,
+            nameof(MapPasskeyManagementEndpoints),
+            signIn: false,
+            management: true,
+            completer: null,
+            honorDefault: false);
         return group;
+    }
+
+    private static void WarnIfConfirmNameMatchesCompleter(IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName)
+    {
+        if (string.IsNullOrWhiteSpace(confirmEmailEndpointName)
+            || !SignInCompleterRegistry.MatchesAny(endpoints.ServiceProvider, confirmEmailEndpointName))
+        {
+            return;
+        }
+
+        AuthEndpointsModules.Log(
+            endpoints,
+            $"MapPasskeySignInEndpoints treated '{confirmEmailEndpointName}' as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass completer: \"{confirmEmailEndpointName}\" together with confirmEmailEndpointName.");
     }
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
     {
-        AuthEndpointsModules.WarnIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
+        AuthEndpointsModules.ThrowIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
     }
 
     private static void MapPasskeyRoutes<TUser>(
@@ -93,7 +190,9 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName,
         string mapMethod,
         bool signIn,
-        bool management)
+        bool management,
+        string? completer,
+        bool honorDefault)
         where TUser : class, new()
     {
         // creationOptions is mapped before the anonymous ceremonies, and credential
@@ -114,7 +213,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         if (signIn)
         {
-            MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName!, mapMethod);
+            MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName!, mapMethod, completer, honorDefault);
         }
 
         if (!management || secured is null)
@@ -151,69 +250,293 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             .Track(group, mapMethod);
     }
 
-    private static void MapPasskeySignInRoutes<TUser>(IEndpointRouteBuilder group, string confirmEmailEndpointName, string mapMethod)
+    private static void MapPasskeySignInRoutes<TUser>(
+        IEndpointRouteBuilder group,
+        string confirmEmailEndpointName,
+        string mapMethod,
+        string? completer,
+        bool honorDefault,
+        bool requestOptions = true,
+        bool registerOptions = true,
+        bool register = true,
+        bool loginRoute = true)
         where TUser : class, new()
     {
-        group.MapPost("/requestOptions", PasskeyEndpoints<TUser>.RequestOptions)
-            .WithSummary("Generate WebAuthn request options for passkey login.")
-            .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-            .RequireAntiforgery()
-            .Track(group, mapMethod);
+        if (requestOptions)
+        {
+            group.MapPost("/requestOptions", PasskeyEndpoints<TUser>.RequestOptions)
+                .WithSummary("Generate WebAuthn request options for passkey login.")
+                .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
+                .RequireAntiforgery()
+                .Track(group, mapMethod);
+        }
 
-        group.MapPost("/register/options", PasskeyEndpoints<TUser>.RegisterOptions)
-            .WithSummary("Generate WebAuthn creation options for passwordless account registration.")
-            .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-            .RequireAntiforgery()
-            .Track(group, mapMethod);
+        if (registerOptions)
+        {
+            group.MapPost("/register/options", PasskeyEndpoints<TUser>.RegisterOptions)
+                .WithSummary("Generate WebAuthn creation options for passwordless account registration.")
+                .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
+                .RequireAntiforgery()
+                .Track(group, mapMethod);
+        }
 
-        group.MapPost("/register", (
-            [FromBody] PasskeyRegisterRequest request,
-            [FromQuery] bool? useCookies,
-            [FromQuery] bool? useSessionCookies,
-            HttpContext httpContext,
-            UserManager<TUser> userManager,
-            IUserStore<TUser> userStore,
-            SignInManager<TUser> signInManager,
-            IPasskeySignInCompleter<TUser> completer,
-            CancellationToken cancellationToken) => PasskeyEndpoints<TUser>.Register(
-                request,
-                useCookies,
-                useSessionCookies,
-                httpContext,
-                userManager,
-                userStore,
-                signInManager,
-                completer,
-                confirmEmailEndpointName,
-                cancellationToken))
-            .WithSummary("Create a passwordless account and store the attested passkey.")
-            .WithDescription("""
-                After a successful user create, sends the same confirmation email as password register.
-                Sign-in is completed by IPasskeySignInCompleter.
-                Default IdentityPasskeySignInCompleter: useCookies / useSessionCookies select the application cookie
-                and the body is credentialId; otherwise Identity bearer tokens are issued and that token body is the response.
-                Register JwtPasskeySignInCompleter for Simple JWT (access token + refresh cookie, no credentialId).
-                When sign-in is not allowed, the body is credentialId and no session is issued.
-                CSRF (antiforgery) is required.
-                """)
-            .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
-            .RequireAntiforgery()
-            .Track(group, mapMethod);
+        RouteHandlerBuilder? registerEndpoint = null;
+        if (register)
+        {
+            registerEndpoint = group.MapPost("/register", (
+                [FromBody] PasskeyRegisterRequest request,
+                [FromQuery] bool? useCookies,
+                [FromQuery] bool? useSessionCookies,
+                HttpContext httpContext,
+                UserManager<TUser> userManager,
+                IUserStore<TUser> userStore,
+                SignInManager<TUser> signInManager,
+                IPasskeySignInCompleter<TUser> legacyCompleter,
+                CancellationToken cancellationToken) => PasskeyEndpoints<TUser>.Register(
+                    request,
+                    useCookies,
+                    useSessionCookies,
+                    httpContext,
+                    userManager,
+                    userStore,
+                    signInManager,
+                    legacyCompleter,
+                    confirmEmailEndpointName,
+                    cancellationToken))
+                .WithSummary("Create a passwordless account and store the attested passkey.")
+                .WithDescription("""
+                    After a successful user create, sends the same confirmation email as password register.
+                    Sign-in is completed by IPasskeySignInCompleter unless the map selected a session or completer.
+                    Default IdentityPasskeySignInCompleter: useCookies / useSessionCookies select the application cookie
+                    and the body is credentialId; otherwise Identity bearer tokens are issued and that token body is the response.
+                    Pass session: AuthEndpointsSession.Jwt or completer: SignInCompleters.Jwt for Simple JWT
+                    (access token + refresh cookie, no credentialId).
+                    When sign-in is not allowed, the body is credentialId and no session is issued.
+                    CSRF (antiforgery) is required.
+                    """)
+                .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
+                .RequireAntiforgery()
+                .Track(group, mapMethod);
+        }
 
-        group.MapPost("/login", PasskeyEndpoints<TUser>.Login)
-            .WithSummary("Sign in with a passkey assertion.")
-            .WithDescription("""
-                Completes sign-in via IPasskeySignInCompleter.
-                Default IdentityPasskeySignInCompleter:
-                ?useCookies=true → persistent application cookie;
-                ?useSessionCookies=true → session application cookie;
-                neither → Identity bearer token (AccessTokenResponse).
-                Register JwtPasskeySignInCompleter for Simple JWT (access token + refresh cookie).
-                CSRF (antiforgery) is required for the WebAuthn ceremony.
-                """)
-            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-            .RequireAntiforgery()
-            .Track(group, mapMethod);
+        RouteHandlerBuilder? login = null;
+        if (loginRoute)
+        {
+            login = group.MapPost("/login", PasskeyEndpoints<TUser>.Login)
+                .WithSummary("Sign in with a passkey assertion.")
+                .WithDescription("""
+                    Completes sign-in via IPasskeySignInCompleter unless the map selected a session or completer.
+                    Default IdentityPasskeySignInCompleter:
+                    ?useCookies=true → persistent application cookie;
+                    ?useSessionCookies=true → session application cookie;
+                    neither → Identity bearer token (AccessTokenResponse).
+                    Pass session: AuthEndpointsSession.Jwt or completer: SignInCompleters.Jwt for Simple JWT
+                    (access token + refresh cookie).
+                    CSRF (antiforgery) is required for the WebAuthn ceremony.
+                    """)
+                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                .RequireAntiforgery()
+                .Track(group, mapMethod);
+        }
+
+        if (completer is not null)
+        {
+            var selection = new SignInCompleterSelection(completer);
+            registerEndpoint?.WithMetadata(selection);
+            login?.WithMetadata(selection);
+        }
+        else if (honorDefault)
+        {
+            var honor = new HonorSignInCompletionDefault();
+            registerEndpoint?.WithMetadata(honor);
+            login?.WithMetadata(honor);
+        }
+    }
+
+    /// <summary>
+    /// Maps <c>POST /passkeys/register</c>. Register signs the user in when confirmation is off
+    /// and only creates the account when it is on, so this route is mapped per session.
+    /// A single string is the confirm-email endpoint name, not a completer.
+    /// Also maps confirm-email on the parent builder when that name is not mapped yet.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeySignUpEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        WarnIfConfirmNameMatchesCompleter(endpoints, confirmEmailEndpointName);
+        return MapPasskeyRegisterCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            completer: null,
+            ensureConfirmEmail: true,
+            honorDefault: true,
+            nameof(MapPasskeySignUpEndpoints),
+            warn: true);
+    }
+
+    /// <summary>
+    /// Maps <c>POST /passkeys/register</c> and finishes it with the built-in completer for <paramref name="session"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeySignUpEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        return MapPasskeyRegisterCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            SignInCompleterMap.FromSession(session),
+            ensureConfirmEmail: true,
+            honorDefault: false,
+            nameof(MapPasskeySignUpEndpoints),
+            warn: true);
+    }
+
+    /// <summary>
+    /// Maps <c>POST /passkeys/register</c> and finishes it with the keyed completer <paramref name="completer"/>.
+    /// <paramref name="confirmEmailEndpointName"/> is required so a single string still selects the confirm-email name.
+    /// Pass <see langword="null"/> to use <see cref="AuthEndpointsEndpointNames.ConfirmEmail{TUser}"/>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeySignUpEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string completer,
+        string? confirmEmailEndpointName)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(completer);
+        return MapPasskeyRegisterCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            completer,
+            ensureConfirmEmail: true,
+            honorDefault: false,
+            nameof(MapPasskeySignUpEndpoints),
+            warn: true);
+    }
+
+    /// <summary>
+    /// Maps <c>POST /passkeys/register/options</c>. Shared: options do not start a session.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeyRegisterOptionsEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
+        WarnIfNeitherPasskeyModule<PasskeyRegisterOptionsEndpointsModule>(
+            endpoints,
+            "AddPasskeyRegisterOptionsEndpoints",
+            nameof(MapPasskeyRegisterOptionsEndpoints));
+
+        var group = endpoints.MapGroup("/passkeys");
+        MapPasskeySignInRoutes<TUser>(
+            group,
+            confirmEmailEndpointName: AuthEndpointsEndpointNames.ConfirmEmail<TUser>(),
+            nameof(MapPasskeyRegisterOptionsEndpoints),
+            completer: null,
+            honorDefault: false,
+            requestOptions: false,
+            registerOptions: true,
+            register: false,
+            loginRoute: false);
+        return group;
+    }
+
+    internal static IEndpointConventionBuilder MapPasskeyAuthenticationCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string completer,
+        string mapMethod)
+        where TUser : class, new()
+    {
+        EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
+        SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
+        var group = endpoints.MapGroup("/passkeys");
+        MapPasskeySignInRoutes<TUser>(
+            group,
+            confirmEmailEndpointName: AuthEndpointsEndpointNames.ConfirmEmail<TUser>(),
+            mapMethod,
+            completer,
+            honorDefault: false,
+            requestOptions: true,
+            registerOptions: false,
+            register: false,
+            loginRoute: true);
+        return group;
+    }
+
+    internal static IEndpointConventionBuilder MapPasskeyRegisterCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName,
+        string? completer,
+        bool ensureConfirmEmail,
+        bool honorDefault,
+        string mapMethod,
+        bool warn)
+        where TUser : class, new()
+    {
+        EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
+        if (warn)
+        {
+            WarnIfNeitherPasskeyModule<PasskeySignUpEndpointsModule>(
+                endpoints,
+                "AddPasskeySignUpEndpoints",
+                mapMethod);
+        }
+
+        if (completer is null)
+        {
+            if (honorDefault)
+            {
+                SignInCompleterMap.EnsureConfiguredDefault<TUser>(
+                    endpoints,
+                    mapMethod,
+                    LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider));
+            }
+        }
+        else
+        {
+            SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
+        }
+
+        confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
+        var group = endpoints.MapGroup("/passkeys");
+        MapPasskeySignInRoutes<TUser>(
+            group,
+            confirmEmailEndpointName,
+            mapMethod,
+            completer,
+            honorDefault,
+            requestOptions: false,
+            registerOptions: false,
+            register: true,
+            loginRoute: false);
+
+        if (!ensureConfirmEmail)
+        {
+            return group;
+        }
+
+        var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
+        return new CompositeEndpointConventionBuilder(group, confirm);
+    }
+
+    private static void WarnIfNeitherPasskeyModule<TSpecific>(
+        IEndpointRouteBuilder endpoints,
+        string addMethod,
+        string mapMethod)
+        where TSpecific : class
+    {
+        if (AuthEndpointsModules.IsRegistered<TSpecific>(endpoints.ServiceProvider)
+            || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
+        {
+            return;
+        }
+
+        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     /// <summary>

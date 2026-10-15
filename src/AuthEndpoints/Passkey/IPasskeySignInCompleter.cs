@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 
 namespace AuthEndpoints.Passkey;
@@ -7,6 +8,7 @@ namespace AuthEndpoints.Passkey;
 /// The library invokes this only after lockout and <c>SignInManager.CanSignInAsync</c> allow sign-in.
 /// Default implementation issues Identity cookie or bearer tokens; replace for Simple JWT.
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public interface IPasskeySignInCompleter<TUser>
     where TUser : class
 {

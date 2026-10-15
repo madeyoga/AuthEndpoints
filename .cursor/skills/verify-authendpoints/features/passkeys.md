@@ -7,10 +7,11 @@ Passwordless passkey register and login on `/account/passkeys`. Register creates
 - `register-options` returns WebAuthn creation options for an email, including an existing email (no enumeration).
 - `register-create` creates an unconfirmed user, stores the passkey, and sends a confirmation email.
 - `register-unconfirmed-no-session` returns 200 with `credentialId` and no application cookie when `RequireConfirmedAccount` is true.
-- `register-confirmed-bearer` (`RequireConfirmedAccount` false, no cookie query flag) returns 200 with `accessToken` and no `credentialId`. `GET /identity/manage/info` with that bearer is 200.
-- `register-confirmed-cookie` (`RequireConfirmedAccount` false, `?useCookies=true`) returns 200 with `credentialId`, no `accessToken`, and sets `.AspNetCore.Identity.Application`.
+- `register-confirmed-bearer` (`RequireConfirmedAccount` false, no `useCookies`) returns 200 with `accessToken` and no `credentialId`. `GET /identity/manage/info` with that bearer is 200.
+- `register-confirmed-cookie` (`RequireConfirmedAccount` false, `?useCookies=true`) returns 200 with `credentialId`, no `accessToken`, and sets `.AspNetCore.Identity.Application`. `?useSessionCookies=true` sets a session cookie.
 - `register-jwt-token-only` is `JwtPasskeySignInCompleter`: access token and refresh cookie, no `credentialId`, and `useCookies` is ignored. This host does not register that completer.
-- `register-duplicate` returns 400 `Unable to complete registration` for an existing email and does not send mail.
+- `register-duplicate` returns 400 `Unable to complete registration.` after a successful attestation when the email already has an account, and does not send mail or store a passkey.
+- `register-no-ceremony` returns that same 400 for a known email and an unknown email when `credentialJson` is `{}`. The email is not checked until attestation succeeds.
 - `register-existing-id` returns 400 `Unable to complete registration` when attestation `userEntity.Id` already exists and does not attach a passkey. Add credentials on an existing account with authenticated `creationOptions` + `POST /passkeys/`.
 - `confirm-then-login` confirms the emailed link, then passkey login with `?useCookies=true` establishes a session.
 - `list-passkeys` returns the stored credential from `GET /account/passkeys/` after a cookie register.

@@ -9,14 +9,22 @@ namespace AuthEndpoints;
 internal sealed class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {
     private readonly IHostEnvironment _environment;
+    private readonly IServiceProvider _services;
 
-    public AuthEndpointsOptionsValidator(IHostEnvironment environment)
+    public AuthEndpointsOptionsValidator(IHostEnvironment environment, IServiceProvider services)
     {
         _environment = environment;
+        _services = services;
     }
 
     public ValidateOptionsResult Validate(string? name, AuthEndpointsOptions options)
     {
+        if (_services.GetService<PasswordAuthRegistration>() is not null)
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: AddAuthEndpoints and AddPasswordAuth cannot be used in the same host. Use one facade.");
+        }
+
         if (string.IsNullOrWhiteSpace(options.IdentityPath) || !options.IdentityPath.StartsWith('/'))
         {
             return ValidateOptionsResult.Fail("AuthEndpoints: IdentityPath must be a rooted path (e.g. \"/identity\").");
@@ -43,29 +51,34 @@ internal sealed class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpo
             return ValidateOptionsResult.Fail("AuthEndpoints: Jwt.Path must be a rooted path (e.g. \"/auth\").");
         }
 
-        ValidateOptionsResult emailConfirmation = ValidateEmailConfirmation(options.EmailConfirmation);
-        if (emailConfirmation.Failed)
-        {
-            return emailConfirmation;
-        }
-
-        return ValidateOptionsResult.Success;
+        return EmailConfirmationValidation.Validate(
+            _environment,
+            options.EmailConfirmation.ConfirmEmailRedirectUri,
+            options.EmailConfirmation.AllowedRedirectOrigins,
+            "AuthEndpoints");
     }
+}
 
-    private ValidateOptionsResult ValidateEmailConfirmation(AuthEndpointsEmailConfirmationOptions emailConfirmation)
+internal static class EmailConfirmationValidation
+{
+    public static ValidateOptionsResult Validate(
+        IHostEnvironment environment,
+        string? confirmEmailRedirectUri,
+        IList<string>? allowedRedirectOrigins,
+        string owner)
     {
-        if (ConfirmEmailRedirect.IsIllegal(emailConfirmation.ConfirmEmailRedirectUri))
+        if (ConfirmEmailRedirect.IsIllegal(confirmEmailRedirectUri))
         {
             return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailConfirmation.ConfirmEmailRedirectUri must be a rooted path or an absolute http(s) URI.");
+                $"{owner}: EmailConfirmation.ConfirmEmailRedirectUri must be a rooted path or an absolute http(s) URI.");
         }
 
-        if (!ConfirmEmailRedirect.TryGetAbsolute(emailConfirmation.ConfirmEmailRedirectUri, out Uri absolute))
+        if (!ConfirmEmailRedirect.TryGetAbsolute(confirmEmailRedirectUri, out Uri absolute))
         {
             return ValidateOptionsResult.Success;
         }
 
-        if (!_environment.IsProduction())
+        if (!environment.IsProduction())
         {
             return ValidateOptionsResult.Success;
         }
@@ -73,23 +86,61 @@ internal sealed class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpo
         if (string.Equals(absolute.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase))
         {
             return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailConfirmation.ConfirmEmailRedirectUri must use https in Production.");
+                $"{owner}: EmailConfirmation.ConfirmEmailRedirectUri must use https in Production.");
         }
 
-        IReadOnlyList<string> allowed = ConfirmEmailRedirect.AsReadOnlyOrigins(emailConfirmation.AllowedRedirectOrigins);
+        IReadOnlyList<string> allowed = ConfirmEmailRedirect.AsReadOnlyOrigins(allowedRedirectOrigins ?? new List<string>());
         if (allowed.Count == 0)
         {
             return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailConfirmation.AllowedRedirectOrigins must be set in Production when ConfirmEmailRedirectUri is an absolute URI.");
+                $"{owner}: EmailConfirmation.AllowedRedirectOrigins must be set in Production when ConfirmEmailRedirectUri is an absolute URI.");
         }
 
         if (!ConfirmEmailRedirect.IsOriginAllowlisted(absolute, allowed))
         {
             return ValidateOptionsResult.Fail(
-                "AuthEndpoints: EmailConfirmation.ConfirmEmailRedirectUri origin must match an AllowedRedirectOrigins entry.");
+                $"{owner}: EmailConfirmation.ConfirmEmailRedirectUri origin must match an AllowedRedirectOrigins entry.");
         }
 
         return ValidateOptionsResult.Success;
+    }
+}
+
+internal static class ProductionEmailSenderCheck
+{
+    public static ValidateOptionsResult Validate<TUser>(
+        bool require,
+        IHostEnvironment environment,
+        IServiceScopeFactory scopeFactory,
+        string owner)
+        where TUser : class
+    {
+        if (!environment.IsProduction() || !require)
+        {
+            return ValidateOptionsResult.Success;
+        }
+
+        using var scope = scopeFactory.CreateScope();
+        var sender = scope.ServiceProvider.GetService<IEmailSender<TUser>>();
+        if (sender is null || IsFrameworkEmailSender(sender))
+        {
+            return ValidateOptionsResult.Fail(
+                $"{owner}: A real IEmailSender<TUser> must be registered in Production " +
+                "(the Identity no-op sender is not allowed). " +
+                "Example: services.AddTransient<IEmailSender<AppUser>, MyEmailSender>(); " +
+                "Or set RequireEmailSenderInProduction = false to opt out (not recommended).");
+        }
+
+        return ValidateOptionsResult.Success;
+    }
+
+    private static bool IsFrameworkEmailSender<TUser>(IEmailSender<TUser> sender)
+        where TUser : class
+    {
+        var assemblyName = sender.GetType().Assembly.GetName().Name ?? string.Empty;
+        return assemblyName.StartsWith("Microsoft.AspNetCore.Identity", StringComparison.Ordinal)
+            || assemblyName.StartsWith("Microsoft.Extensions.Identity", StringComparison.Ordinal)
+            || sender.GetType().Name.Contains("NoOp", StringComparison.OrdinalIgnoreCase);
     }
 }
 
@@ -112,30 +163,10 @@ internal sealed class AuthEndpointsEmailSenderValidator<TUser> : IValidateOption
 
     public ValidateOptionsResult Validate(string? name, AuthEndpointsOptions options)
     {
-        if (!_environment.IsProduction() || !options.RequireEmailSenderInProduction)
-        {
-            return ValidateOptionsResult.Success;
-        }
-
-        using var scope = _scopeFactory.CreateScope();
-        var sender = scope.ServiceProvider.GetService<IEmailSender<TUser>>();
-        if (sender is null || IsFrameworkEmailSender(sender))
-        {
-            return ValidateOptionsResult.Fail(
-                "AuthEndpoints: A real IEmailSender<TUser> must be registered in Production " +
-                "(the Identity no-op sender is not allowed). " +
-                "Example: services.AddTransient<IEmailSender<AppUser>, MyEmailSender>(); " +
-                "Or set RequireEmailSenderInProduction = false to opt out (not recommended).");
-        }
-
-        return ValidateOptionsResult.Success;
-    }
-
-    private static bool IsFrameworkEmailSender(IEmailSender<TUser> sender)
-    {
-        var assemblyName = sender.GetType().Assembly.GetName().Name ?? string.Empty;
-        return assemblyName.StartsWith("Microsoft.AspNetCore.Identity", StringComparison.Ordinal)
-            || assemblyName.StartsWith("Microsoft.Extensions.Identity", StringComparison.Ordinal)
-            || sender.GetType().Name.Contains("NoOp", StringComparison.OrdinalIgnoreCase);
+        return ProductionEmailSenderCheck.Validate<TUser>(
+            options.RequireEmailSenderInProduction,
+            _environment,
+            _scopeFactory,
+            "AuthEndpoints");
     }
 }

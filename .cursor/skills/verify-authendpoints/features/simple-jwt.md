@@ -41,5 +41,6 @@ Preconditions:
 - `/auth/create` is rate-limited with the login policy. Space it from other logins.
 - Refresh and logout require CSRF on the **JWT** token endpoint (`/auth/csrfToken`).
 - The access token is only in JSON. The refresh token is **only** in the cookie named `AuthEndpoints.Jwt.RefreshToken`, not in the create JSON.
-- Two-factor users get 401 with `requiresTwoFactor` when no code is sent. This test-host user is not 2FA unless you enabled it.
-- The compose host always maps `/auth`. A facade host maps `/auth` unless `AE_FACADE_JWT=false` before `launch`. Refresh reads that cookie only. Do not send the refresh token in the JSON body.
+- Two-factor users get 401 with title `RequiresTwoFactor` and `requiresTwoFactor: true` when no code is sent. A wrong `twoFactorCode` or `twoFactorRecoveryCode` returns 401 `Invalid credentials` and counts toward lockout. This test-host user is not 2FA unless you enabled it.
+- The compose host always maps `/auth`. A facade host maps `/auth` unless `AE_FACADE_JWT=false` before `launch`. Cookie refresh reads `AuthEndpoints.Jwt.RefreshToken` only. Do not send that refresh token in the JSON body. `AE_JWT_REFRESH_TRANSPORT=Body` is the exception: the JSON carries `refreshToken` and there is no refresh cookie.
+- The `MapAuthEndpoints` facade (`AE_HOST_MODE=bearer-facade` or `cookie-facade`) keeps the 3.4.1 create handler: a wrong authenticator code returns `Invalid two factor code` and does not count toward lockout.

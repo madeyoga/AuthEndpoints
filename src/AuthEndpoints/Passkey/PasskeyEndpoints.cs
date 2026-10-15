@@ -1,9 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
+using SignInMethod = AuthEndpoints.SignInMethod;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Passkey;
@@ -185,7 +190,7 @@ public static class PasskeyEndpoints<TUser>
             return TypedResults.NotFound();
         }
 
-        if (!await CanRemovePasskeyAsync(userManager, user))
+        if (!await CanRemovePasskeyAsync(userManager, user, context))
         {
             return PasskeyHttp.LastSignInMethodProblem();
         }
@@ -215,7 +220,14 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
-        // Always return creation options (even if the email exists) to avoid account enumeration.
+        // Known and unknown emails both receive creation options. There is no shorter branch and no switch.
+        if (signInManager.UserManager.SupportsUserEmail
+            && await signInManager.UserManager.FindByEmailAsync(email) is null
+            && signInManager.Context.RequestServices.GetService<IDataProtectionProvider>() is { } dataProtection)
+        {
+            EnumerationPadding.Protect(dataProtection, email);
+        }
+
         var userId = UserIdHelper.CreateUserIdString(typeof(TUser), userIdFactory);
         var optionsJson = await signInManager.MakePasskeyCreationOptionsAsync(new()
         {
@@ -253,40 +265,25 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
+        // Failures before a successful attestation share one problem. The email is not read on this path,
+        // so a known address and an unknown address return the same body.
         if (string.IsNullOrEmpty(request.CredentialJson))
         {
-            return TypedResults.Problem(
-                detail: "The browser did not provide a passkey.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
-        if (await userManager.FindByEmailAsync(email) is not null)
-        {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-
-        var (attestationResult, ceremonyProblem) = await PasskeyHttp.TryPerformAsync(
+        var (attestationResult, _) = await PasskeyHttp.TryPerformAsync(
             () => signInManager.PerformPasskeyAttestationAsync(request.CredentialJson));
-        if (ceremonyProblem is not null)
+        if (attestationResult is not { Succeeded: true })
         {
-            return ceremonyProblem;
-        }
-
-        if (!attestationResult!.Succeeded)
-        {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
         var userEntity = attestationResult.UserEntity;
-        if (await userManager.FindByIdAsync(userEntity.Id) is not null)
+        if (await userManager.FindByEmailAsync(email) is not null
+            || await userManager.FindByIdAsync(userEntity.Id) is not null)
         {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
         var user = new TUser();
@@ -297,9 +294,7 @@ public static class PasskeyEndpoints<TUser>
         var createUserResult = await userManager.CreateAsync(user);
         if (!createUserResult.Succeeded)
         {
-            return TypedResults.Problem(
-                detail: "Unable to complete registration.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return RegistrationNotCompleted();
         }
 
         var addPasskeyResult = await userManager.AddOrUpdatePasskeyAsync(user, attestationResult.Passkey);
@@ -391,7 +386,15 @@ public static class PasskeyEndpoints<TUser>
             cancellationToken);
     }
 
-    private static async Task<bool> CanRemovePasskeyAsync(UserManager<TUser> userManager, TUser user)
+    private static ProblemHttpResult RegistrationNotCompleted() =>
+        TypedResults.Problem(
+            detail: "Unable to complete registration.",
+            statusCode: StatusCodes.Status400BadRequest);
+
+    private static async Task<bool> CanRemovePasskeyAsync(
+        UserManager<TUser> userManager,
+        TUser user,
+        HttpContext httpContext)
     {
         var hasPassword = userManager.SupportsUserPassword && await userManager.HasPasswordAsync(user);
         var externalLoginCount = 0;
@@ -401,6 +404,14 @@ public static class PasskeyEndpoints<TUser>
         }
 
         var passkeyCount = (await userManager.GetPasskeysAsync(user)).Count;
-        return PasskeyRemovalPolicy.CanRemove(hasPassword, passkeyCount, externalLoginCount);
+        var emailConfirmed = userManager.SupportsUserEmail && await userManager.IsEmailConfirmedAsync(user);
+        return SignInMethodPolicy.CanRemove(
+            new SignInMethodFacts(
+                hasPassword,
+                passkeyCount,
+                externalLoginCount,
+                EmailCodeSignInMap.IsMapped(httpContext.RequestServices),
+                emailConfirmed),
+            SignInMethod.Passkey);
     }
 }

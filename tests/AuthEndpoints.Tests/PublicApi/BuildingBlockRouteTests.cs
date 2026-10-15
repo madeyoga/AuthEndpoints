@@ -1,12 +1,22 @@
+using System.Net;
+using System.Net.Http;
+using AuthEndpoints;
+using AuthEndpoints.EmailCode;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Identity;
+using AuthEndpoints.ReAuth;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -168,6 +178,7 @@ public class BuildingBlockRouteTests
                 "POST /identity/confirmIdentity",
                 "POST /identity/manage/2fa",
                 "POST /identity/manage/info",
+                "POST /identity/manage/password",
                 "POST /identity/resendConfirmationEmail",
             ],
             routes);
@@ -187,6 +198,94 @@ public class BuildingBlockRouteTests
 
         Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
         Assert.Equal(1, routes.Count(route => route == "POST /identity/confirmIdentity/passkeyOptions"));
+    }
+
+    [Fact]
+    public async Task AddAccountManagementEndpoints_DoesNotRegisterEmailCodeConfirmPolicy()
+    {
+        await using var management = RouteSurface.Build(
+            builder => builder.Services.AddAccountManagementEndpoints(),
+            app =>
+            {
+                app.UseRateLimiter();
+                app.MapPost("/probe", () => Results.Ok())
+                    .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy);
+            });
+        await management.StartAsync();
+        using (var client = management.GetTestClient())
+        {
+            var missing = await client.PostAsync("/probe", new StringContent(string.Empty));
+            var body = await missing.Content.ReadAsStringAsync();
+            Assert.Equal(HttpStatusCode.InternalServerError, missing.StatusCode);
+            Assert.Contains(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy, body, StringComparison.Ordinal);
+        }
+
+        await using var emailCode = RouteSurface.Build(
+            builder =>
+            {
+                builder.Services
+                    .AddIdentityApiEndpoints<TestAppUser>(options =>
+                    {
+                        options.SignIn.RequireConfirmedAccount = true;
+                        options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+                    })
+                    .AddEntityFrameworkStores<TestDbContext>()
+                    .AddDefaultTokenProviders();
+                builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+            },
+            app =>
+            {
+                app.UseRateLimiter();
+                app.MapPost("/probe", () => Results.Ok())
+                    .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy);
+            });
+        await emailCode.StartAsync();
+        using var allowed = emailCode.GetTestClient();
+        Assert.Equal(HttpStatusCode.OK, (await allowed.PostAsync("/probe", new StringContent(string.Empty))).StatusCode);
+    }
+
+    [Fact]
+    public void MapAccountManagementEndpoints_WithEmailCode_MapsReAuthSend()
+    {
+        using var app = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+        });
+
+        var send = Find(app, "POST /identity/confirmIdentity/emailCode/send");
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            send.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
+        Assert.NotNull(send.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
+    }
+
+    [Fact]
+    public void MapReAuthEndpoints_MapsEmailCodeSendOnlyWhenTheStoreIsRegistered()
+    {
+        var without = MapIdentity(services => services.AddAccountManagementEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: false);
+        });
+        Assert.DoesNotContain("POST /identity/confirmIdentity/emailCode/send", without);
+
+        using var app = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: true);
+        });
+
+        var send = Find(app, "POST /identity/confirmIdentity/emailCode/send");
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            send.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
+        Assert.NotNull(send.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
     }
 
     [Fact]
@@ -335,19 +434,38 @@ public class BuildingBlockRouteTests
     }
 
     [Theory]
-    [InlineData("MapPasswordEndpoints")]
-    [InlineData("MapCookieSessionEndpoints")]
-    [InlineData("MapBearerSessionEndpoints")]
-    [InlineData("MapAccountManagementEndpoints")]
-    [InlineData("MapConfirmEmailEndpoints")]
-    [InlineData("MapJwtPasswordEndpoints")]
-    [InlineData("MapJwtSessionEndpoints")]
-    [InlineData("MapPasskeySignInEndpoints")]
-    [InlineData("MapPasskeyManagementEndpoints")]
-    public void Map_WithoutMatchingAdd_LogsWarningAndStillMaps(string mapMethod)
+    [InlineData("MapPasswordEndpoints", "AddPasswordEndpoints", "MapPasswordEndpoints")]
+    [InlineData("MapPasswordSignUpEndpoints", "AddPasswordSignUpEndpoints", "MapPasswordSignUpEndpoints")]
+    [InlineData("MapPasswordSignInEndpoints", "AddPasswordSignInEndpoints", "MapPasswordSignInEndpoints")]
+    [InlineData("MapPasswordRecoveryEndpoints", "AddPasswordRecoveryEndpoints", "MapPasswordRecoveryEndpoints")]
+    [InlineData("MapCookieSessionEndpoints", "AddCookieSessionEndpoints", "MapCookieSessionEndpoints")]
+    [InlineData("MapBearerSessionEndpoints", "AddBearerSessionEndpoints", "MapBearerSessionEndpoints")]
+    [InlineData("MapCookieAuthEndpoints", "AddPasswordEndpoints", "MapCookieAuthEndpoints")]
+    [InlineData("MapBearerAuthEndpoints", "AddPasswordEndpoints", "MapBearerAuthEndpoints")]
+    [InlineData("MapIdentityManagementApi", "AddPasswordEndpoints", "MapPasswordEndpoints")]
+    [InlineData("MapAccountManagementEndpoints", "AddAccountManagementEndpoints", "MapAccountManagementEndpoints")]
+    [InlineData("MapConfirmEmailEndpoints", "AddAccountAbuseRateLimiting", "MapConfirmEmailEndpoints")]
+    [InlineData("MapJwtPasswordEndpoints", "AddJwtEndpoints", "MapJwtPasswordEndpoints")]
+    [InlineData("MapJwtSessionEndpoints", "AddJwtEndpoints", "MapJwtSessionEndpoints")]
+    [InlineData("MapJwtAuthEndpoints", "AddJwtEndpoints", "MapJwtPasswordEndpoints")]
+    [InlineData("MapPasskeySignInEndpoints", "AddPasskeySignInEndpoints", "MapPasskeySignInEndpoints")]
+    [InlineData("MapPasskeyManagementEndpoints", "AddPasskeyManagementEndpoints", "MapPasskeyManagementEndpoints")]
+    [InlineData("MapPasskeySignUpEndpoints", "AddPasskeySignUpEndpoints", "MapPasskeySignUpEndpoints")]
+    [InlineData("MapPasskeyRegisterOptionsEndpoints", "AddPasskeyRegisterOptionsEndpoints", "MapPasskeyRegisterOptionsEndpoints")]
+    [InlineData("MapPasskeyEndpoints", "AddPasskeyEndpoints", "MapPasskeyEndpoints")]
+    [InlineData("MapEmailCodeEndpoints", "AddEmailCodeEndpoints", "MapEmailCodeEndpoints")]
+    [InlineData("MapEmailCodeSendEndpoints", "AddEmailCodeSendEndpoints", "MapEmailCodeSendEndpoints")]
+    [InlineData("MapEmailCodeSignInEndpoints", "AddEmailCodeSignInEndpoints", "MapEmailCodeSignInEndpoints")]
+    [InlineData("MapExternalAuthEndpoints", "AddExternalAuthEndpoints", "MapExternalAuthEndpoints")]
+    [InlineData("MapExternalAccountEndpoints", "AddExternalAuthEndpoints", "MapExternalAccountEndpoints")]
+    [InlineData("MapReAuthEndpoints", "AddReAuthScheme", "MapReAuthEndpoints")]
+    [InlineData("MapSignInEndpoints", "AddCookieSessionEndpoints", "MapCookieSessionEndpoints")]
+    [InlineData("MapSharedAuthEndpoints", "AddAccountAbuseRateLimiting", "MapConfirmEmailEndpoints")]
+    [InlineData("MapAuthEndpoints", "AddAuthEndpoints", "MapAuthEndpoints")]
+    [InlineData("MapPasswordAuth", "AddPasswordAuth", "MapPasswordAuth")]
+    public void Map_WithoutMatchingAdd_ThrowsNamedFix(string mapMethod, string addMethod, string namedMap)
     {
-        var logs = new WarningLog();
-        using var app = BuildIdentity(_ => { }, app =>
+        var ex = Assert.Throws<InvalidOperationException>(() => BuildIdentity(_ => { }, app =>
         {
             var identity = app.MapGroup("/identity");
             var auth = app.MapGroup("/auth");
@@ -357,11 +475,29 @@ public class BuildingBlockRouteTests
                 case "MapPasswordEndpoints":
                     identity.MapPasswordEndpoints<TestAppUser>();
                     break;
+                case "MapPasswordSignUpEndpoints":
+                    identity.MapPasswordSignUpEndpoints<TestAppUser>();
+                    break;
+                case "MapPasswordSignInEndpoints":
+                    identity.MapPasswordSignInEndpoints<TestAppUser>();
+                    break;
+                case "MapPasswordRecoveryEndpoints":
+                    identity.MapPasswordRecoveryEndpoints<TestAppUser>();
+                    break;
                 case "MapCookieSessionEndpoints":
                     identity.MapCookieSessionEndpoints<TestAppUser>();
                     break;
                 case "MapBearerSessionEndpoints":
                     identity.MapBearerSessionEndpoints<TestAppUser>();
+                    break;
+                case "MapCookieAuthEndpoints":
+                    identity.MapCookieAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapBearerAuthEndpoints":
+                    identity.MapBearerAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapIdentityManagementApi":
+                    identity.MapIdentityManagementApi<TestAppUser>();
                     break;
                 case "MapAccountManagementEndpoints":
                     identity.MapAccountManagementEndpoints<TestAppUser>();
@@ -375,16 +511,60 @@ public class BuildingBlockRouteTests
                 case "MapJwtSessionEndpoints":
                     auth.MapJwtSessionEndpoints<TestAppUser>();
                     break;
+                case "MapJwtAuthEndpoints":
+                    auth.MapJwtAuthEndpoints<TestAppUser>();
+                    break;
                 case "MapPasskeySignInEndpoints":
                     account.MapPasskeySignInEndpoints<TestAppUser>();
                     break;
                 case "MapPasskeyManagementEndpoints":
                     account.MapPasskeyManagementEndpoints<TestAppUser>();
                     break;
+                case "MapPasskeyEndpoints":
+                    account.MapPasskeyEndpoints<TestAppUser>();
+                    break;
+                case "MapExternalAuthEndpoints":
+                    app.MapExternalAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapExternalAccountEndpoints":
+                    app.MapExternalAccountEndpoints<TestAppUser>();
+                    break;
+                case "MapPasskeySignUpEndpoints":
+                    account.MapPasskeySignUpEndpoints<TestAppUser>();
+                    break;
+                case "MapPasskeyRegisterOptionsEndpoints":
+                    account.MapPasskeyRegisterOptionsEndpoints<TestAppUser>();
+                    break;
+                case "MapEmailCodeEndpoints":
+                    identity.MapEmailCodeEndpoints<TestAppUser>();
+                    break;
+                case "MapEmailCodeSendEndpoints":
+                    identity.MapEmailCodeSendEndpoints<TestAppUser>();
+                    break;
+                case "MapEmailCodeSignInEndpoints":
+                    identity.MapEmailCodeSignInEndpoints<TestAppUser>();
+                    break;
+                case "MapReAuthEndpoints":
+                    identity.MapReAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapSignInEndpoints":
+                    app.MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+                    break;
+                case "MapSharedAuthEndpoints":
+                    app.MapSharedAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapAuthEndpoints":
+                    app.MapAuthEndpoints<TestAppUser>();
+                    break;
+                case "MapPasswordAuth":
+                    app.MapPasswordAuth<TestAppUser>();
+                    break;
             }
-        }, logs);
+        }));
 
-        Assert.Contains(logs.Messages, message => message.Contains(mapMethod, StringComparison.Ordinal));
+        Assert.Contains(addMethod, ex.Message, StringComparison.Ordinal);
+        Assert.Contains(namedMap, ex.Message, StringComparison.Ordinal);
+        Assert.Contains("before", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -433,6 +613,87 @@ public class BuildingBlockRouteTests
 
         _ = RouteSurface.ListRoutes(app);
         Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MapSignInEndpoints_WithNoSignInModule_LogsWarning()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddCookieSessionEndpoints(), app =>
+        {
+            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.Contains(
+            logs.Messages,
+            message => message.Contains(
+                "MapSignInEndpoints mapped no sign-in method.",
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MapSignInEndpoints_WithPasswordSignIn_DoesNotLogMissingSignInWarning()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services =>
+        {
+            services.AddPasswordSignInEndpoints();
+            services.AddCookieSessionEndpoints();
+        }, app =>
+        {
+            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+        }, logs);
+
+        _ = RouteSurface.ListRoutes(app);
+        Assert.DoesNotContain(
+            logs.Messages,
+            message => message.Contains("mapped no sign-in method", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void PasskeySignInAndManagementAdds_MatchTheirMaps()
+    {
+        var signInLogs = new WarningLog();
+        using var signIn = BuildIdentity(services =>
+        {
+            services.AddPasskeySignInEndpoints<TestAppUser>();
+            services.AddCookieSessionEndpoints();
+        }, app =>
+        {
+            app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+        }, signInLogs);
+
+        var signInRoutes = RouteSurface.ListRoutes(signIn);
+        Assert.Contains("POST /web/passkeys/requestOptions", signInRoutes);
+        Assert.Contains("POST /web/passkeys/login", signInRoutes);
+        Assert.DoesNotContain("POST /web/passkeys/register", signInRoutes);
+        Assert.DoesNotContain(signInRoutes, route => route.Contains("register/options", StringComparison.Ordinal));
+        Assert.Equal(
+            SignInCompleters.Cookie,
+            Find(signIn, "POST /web/passkeys/login").Metadata.GetMetadata<SignInCompleterSelection>()?.Name);
+        Assert.DoesNotContain(signInLogs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+        Assert.DoesNotContain(signInLogs.Messages, message => message.Contains("mapped no sign-in method", StringComparison.Ordinal));
+
+        var legacyLogs = new WarningLog();
+        using var legacy = BuildIdentity(services => services.AddPasskeySignInEndpoints<TestAppUser>(), app =>
+        {
+            app.MapPasskeySignInEndpoints<TestAppUser>();
+        }, legacyLogs);
+        _ = RouteSurface.ListRoutes(legacy);
+        Assert.DoesNotContain(legacyLogs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
+
+        var managementLogs = new WarningLog();
+        using var management = BuildIdentity(services => services.AddPasskeyManagementEndpoints(), app =>
+        {
+            app.MapPasskeyManagementEndpoints<TestAppUser>();
+        }, managementLogs);
+
+        var managementRoutes = RouteSurface.ListRoutes(management);
+        Assert.Contains("POST /passkeys/creationOptions", managementRoutes);
+        Assert.Contains("GET /passkeys/", managementRoutes);
+        Assert.DoesNotContain("POST /passkeys/login", managementRoutes);
+        Assert.DoesNotContain(managementLogs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -550,6 +811,7 @@ public class BuildingBlockRouteTests
                 "POST /identity/manage/2fa",
                 "GET /identity/manage/info",
                 "POST /identity/manage/info",
+                "POST /identity/manage/password",
             ],
             RouteSurface.ListInMapOrder(app));
     }
@@ -604,9 +866,18 @@ public class BuildingBlockRouteTests
     public void AddMethods_AreIdempotent()
     {
         AssertIdempotent(services => services.AddPasswordEndpoints());
+        AssertIdempotent(services => services.AddPasswordSignUpEndpoints());
+        AssertIdempotent(services => services.AddPasswordSignInEndpoints());
+        AssertIdempotent(services => services.AddPasswordRecoveryEndpoints());
         AssertIdempotent(services => services.AddCookieSessionEndpoints());
         AssertIdempotent(services => services.AddBearerSessionEndpoints());
         AssertIdempotent(services => services.AddAccountManagementEndpoints());
+        AssertIdempotent(services => services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddPasskeySignUpEndpoints());
+        AssertIdempotent(services => services.AddPasskeySignInEndpoints());
+        AssertIdempotent(services => services.AddPasskeyRegisterOptionsEndpoints());
+        AssertIdempotent(services => services.AddPasskeyManagementEndpoints());
         AssertIdempotent(services => services.AddLoginRateLimiting());
         AssertIdempotent(services => services.AddAccountAbuseRateLimiting());
         AssertIdempotent(services => services.AddConfirmIdentityRateLimiting());

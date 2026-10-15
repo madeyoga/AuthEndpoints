@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -6,8 +7,9 @@ namespace AuthEndpoints.Identity;
 public static class IdentityApiEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth).
-    /// This is <see cref="MapPasswordEndpoints{TUser}"/> with <see cref="PasswordLoginMode.None"/>,
+    /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth,
+    /// and <c>POST /manage/password</c>).
+    /// This is <c>MapPasswordEndpoints&lt;TUser&gt;(PasswordLoginMode.None)</c>,
     /// <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>,
     /// and <see cref="AccountManagementEndpointRouteBuilderExtensions.MapAccountManagementEndpoints{TUser}"/>.
     /// Passkey reauthentication options stay mapped, including when passkey services are not registered.
@@ -23,11 +25,44 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
+        return MapIdentityManagementCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            emailCodeReAuth: true,
+            includeSetPassword: true);
+    }
+
+    /// <summary>
+    /// Facade management map. Keeps the 3.4.1 step-up surface: no email-code send route,
+    /// <c>authMethods.emailCode</c> stays false, and <c>POST /manage/password</c> is left unmapped.
+    /// </summary>
+    internal static IEndpointConventionBuilder MapIdentityManagementApiPreserving3x<TUser>(
+        this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        return MapIdentityManagementCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName: null,
+            emailCodeReAuth: false,
+            includeSetPassword: false);
+    }
+
+    private static IEndpointConventionBuilder MapIdentityManagementCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName,
+        bool emailCodeReAuth,
+        bool includeSetPassword)
+        where TUser : class, new()
+    {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var password = endpoints.MapPasswordEndpoints<TUser>(PasswordLoginMode.None, confirmEmailEndpointName);
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
-        var account = endpoints.MapAccountManagementEndpoints<TUser>(confirmEmailEndpointName, alwaysMapPasskeyOptions: true);
+        var account = endpoints.MapAccountManagementEndpoints<TUser>(
+            confirmEmailEndpointName,
+            alwaysMapPasskeyOptions: true,
+            emailCodeReAuth: emailCodeReAuth,
+            includeSetPassword: includeSetPassword);
         return new CompositeEndpointConventionBuilder(password, confirm, account);
     }
 
@@ -37,30 +72,113 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps password register, login, forgot-password, and reset-password routes.
+    /// This is <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpEndpoints{TUser}"/>,
+    /// <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignInEndpoints{TUser}()"/>,
+    /// and <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryEndpoints{TUser}"/>.
+    /// Login finishes through <see cref="SignInCompleters.Cookie"/> unless
+    /// <see cref="SignInCompletionOptions.Default"/> names a completer for this user.
+    /// Also maps confirm-email when the default endpoint name is not mapped yet.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
+        where TUser : class, new()
+    {
+        return MapPasswordCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            completer: null,
+            confirmEmailEndpointName: null,
+            honorDefault: true);
+    }
+
+    /// <summary>
+    /// Maps password routes with an explicit <paramref name="login"/> mode.
     /// Also maps confirm-email when <paramref name="confirmEmailEndpointName"/> is not mapped yet.
     /// <see cref="PasswordLoginMode.None"/> omits <c>POST /login</c> so a session map can own that route.
+    /// An explicit mode keeps the 3.4.1 <c>PasswordSignInAsync</c> handler and does not apply
+    /// <see cref="SignInCompletionOptions.Default"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
-        PasswordLoginMode login = PasswordLoginMode.Cookie,
+        PasswordLoginMode login,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        return MapPasswordCore<TUser>(endpoints, login, completer: null, confirmEmailEndpointName, honorDefault: false);
+    }
+
+    /// <summary>
+    /// Maps password routes and finishes <c>POST /login</c> with the built-in completer for <paramref name="session"/>.
+    /// A session always maps <c>POST /login</c>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session,
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+        return MapPasswordCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            SignInCompleterMap.FromSession(session),
+            confirmEmailEndpointName,
+            honorDefault: false);
+    }
 
-        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+    /// <summary>
+    /// Maps password routes and finishes <c>POST /login</c> with the keyed completer <paramref name="completer"/>.
+    /// A completer name always maps <c>POST /login</c>.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        string completer,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        ArgumentException.ThrowIfNullOrWhiteSpace(completer);
+        return MapPasswordCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            completer,
+            confirmEmailEndpointName,
+            honorDefault: false);
+    }
+
+    private static IEndpointConventionBuilder MapPasswordCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        PasswordLoginMode login,
+        string? completer,
+        string? confirmEmailEndpointName,
+        bool honorDefault)
+        where TUser : class, new()
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+
+        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
             endpoints,
             "AddPasswordEndpoints",
             "MapPasswordEndpoints");
 
         confirmEmailEndpointName ??= AuthEndpointsEndpointNames.ConfirmEmail<TUser>();
-        var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapRegister<TUser>(routeGroup, confirmEmailEndpointName, nameof(MapPasswordEndpoints));
-        routeGroup.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, login, nameof(MapPasswordEndpoints));
-        IdentityEndpointRoutes.MapForgotPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
-        IdentityEndpointRoutes.MapResetPassword<TUser>(routeGroup, nameof(MapPasswordEndpoints));
-        return routeGroup;
+
+        var signUp = PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpCore<TUser>(
+            endpoints,
+            confirmEmailEndpointName,
+            nameof(MapPasswordEndpoints),
+            warn: false);
+        var signIn = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
+            endpoints,
+            login,
+            completer,
+            nameof(MapPasswordEndpoints),
+            warn: false,
+            honorDefault: honorDefault);
+        var recovery = PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryCore<TUser>(
+            endpoints,
+            nameof(MapPasswordEndpoints),
+            warn: false);
+        return new CompositeEndpointConventionBuilder(signUp, signIn, recovery);
     }
 
     /// <summary>
@@ -73,15 +191,20 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
             endpoints,
             "AddPasswordEndpoints",
             "MapBearerAuthEndpoints");
 
-        var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.IdentityBearer, nameof(MapBearerAuthEndpoints));
-        routeGroup.MapBearerSessionEndpoints<TUser>();
-        return routeGroup;
+        var login = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
+            endpoints,
+            PasswordLoginMode.IdentityBearer,
+            completer: null,
+            nameof(MapBearerAuthEndpoints),
+            warn: false,
+            honorDefault: false);
+        var session = endpoints.MapBearerSessionEndpoints<TUser>();
+        return new CompositeEndpointConventionBuilder(login, session);
     }
 
     /// <summary>
@@ -92,7 +215,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<BearerSessionEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<BearerSessionEndpointsModule>(
             endpoints,
             "AddBearerSessionEndpoints",
             "MapBearerSessionEndpoints");
@@ -112,15 +235,20 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<PasswordEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
             endpoints,
             "AddPasswordEndpoints",
             "MapCookieAuthEndpoints");
 
-        var routeGroup = endpoints.MapGroup("");
-        IdentityEndpointRoutes.MapPasswordLogin<TUser>(routeGroup, PasswordLoginMode.Cookie, nameof(MapCookieAuthEndpoints));
-        routeGroup.MapCookieSessionEndpoints<TUser>();
-        return routeGroup;
+        var login = PasswordEndpointRouteBuilderExtensions.MapPasswordSignInCore<TUser>(
+            endpoints,
+            PasswordLoginMode.Cookie,
+            completer: null,
+            nameof(MapCookieAuthEndpoints),
+            warn: false,
+            honorDefault: false);
+        var session = endpoints.MapCookieSessionEndpoints<TUser>();
+        return new CompositeEndpointConventionBuilder(login, session);
     }
 
     /// <summary>
@@ -131,7 +259,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.WarnIfMissing<CookieSessionEndpointsModule>(
+        AuthEndpointsModules.ThrowIfMissing<CookieSessionEndpointsModule>(
             endpoints,
             "AddCookieSessionEndpoints",
             "MapCookieSessionEndpoints");

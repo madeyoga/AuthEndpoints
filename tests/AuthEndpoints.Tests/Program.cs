@@ -1,11 +1,15 @@
+using System.Security.Claims;
 using AuthEndpoints;
 using AuthEndpoints.EmailCode;
+using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
+using AuthEndpoints.OAuth.GitHub;
 using AuthEndpoints.Passkey;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.Tests;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -20,6 +24,11 @@ var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
 var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
 var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.OrdinalIgnoreCase);
+var useSplit = string.Equals(hostMode, "split", StringComparison.OrdinalIgnoreCase);
+var usePasswordCookie = string.Equals(hostMode, "password-cookie", StringComparison.OrdinalIgnoreCase);
+var usePasswordJwt = string.Equals(hostMode, "password-jwt", StringComparison.OrdinalIgnoreCase);
+var useExternal = string.Equals(hostMode, "external", StringComparison.OrdinalIgnoreCase);
+var usePassword = usePasswordCookie || usePasswordJwt;
 var useFacade = useBearerFacade || useCookieFacade;
 var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
 var emailCode = IsTruthy(builder.Configuration["AE_EMAIL_CODE"]);
@@ -36,9 +45,44 @@ builder.Services.AddDbContext<TestDbContext>(options =>
 builder.Services.AddSingleton<CapturingEmailSender>();
 builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
+builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
-if (useFacade)
+if (usePassword)
+{
+    var confirmed = string.IsNullOrWhiteSpace(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"])
+        ? true
+        : requireConfirmedAccount;
+    builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
+    {
+        o.RequireConfirmedAccount = confirmed;
+        o.Passkeys.ServerDomain = "localhost";
+        o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, confirmed);
+        if (!string.IsNullOrWhiteSpace(confirmEmailRedirectUri))
+        {
+            o.EmailConfirmation.ConfirmEmailRedirectUri = confirmEmailRedirectUri;
+        }
+
+        if (confirmEmailAllowedOrigins.Count > 0)
+        {
+            o.EmailConfirmation.AllowedRedirectOrigins = confirmEmailAllowedOrigins.ToList();
+        }
+
+        if (usePasswordJwt)
+        {
+            o.Session = AuthEndpointsSession.Jwt;
+            o.Jwt = jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+                if (string.Equals(builder.Configuration["AE_JWT_REFRESH_TRANSPORT"], "Body", StringComparison.OrdinalIgnoreCase))
+                {
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                }
+            };
+        }
+    });
+}
+else if (useFacade)
 {
     void ConfigureFacade(AuthEndpointsOptions o)
     {
@@ -68,6 +112,47 @@ if (useFacade)
         builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(ConfigureFacade);
     }
 }
+else if (useExternal)
+{
+    builder.Services
+        .AddIdentityApiEndpoints<TestAppUser>(identity => ConfigureTestIdentity(identity, requireConfirmedAccount))
+        .AddEntityFrameworkStores<TestDbContext>()
+        .AddDefaultTokenProviders();
+    builder.Services.AddPasswordSignInEndpoints();
+    builder.Services.AddCookieSessionEndpoints();
+    builder.Services.AddAccountManagementEndpoints();
+    builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+        ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
+    builder.Services.AddExternalAuthEndpoints<TestAppUser>(options =>
+        {
+            options.DefaultReturnUrl = "/";
+            options.AllowedReturnUrlOrigins.Add("https://app.example.com");
+        })
+        .AddGitHub(github =>
+        {
+            github.ClientId = "test-client";
+            github.ClientSecret = "test-secret";
+        });
+}
+else if (useSplit)
+{
+    builder.Services
+        .AddIdentityApiEndpoints<TestAppUser>(identity => ConfigureTestIdentity(identity, requireConfirmedAccount))
+        .AddEntityFrameworkStores<TestDbContext>()
+        .AddDefaultTokenProviders();
+    builder.Services.AddPasswordEndpoints();
+    builder.Services.AddCookieSessionEndpoints();
+    builder.Services.AddAccountManagementEndpoints();
+    builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+        ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
+    builder.Services.AddPasskeyEndpoints<TestAppUser>();
+    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+    {
+        options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+    });
+    builder.Services.AddOptions<AuthEndpointsOptions>()
+        .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
+}
 else
 {
     builder.Services
@@ -83,6 +168,7 @@ else
     builder.Services.AddAuthorization();
     builder.Services.AddAntiforgery();
     builder.Services.AddCookieAuthEndpoints();
+    builder.Services.AddBearerSessionEndpoints();
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
     if (emailCode)
     {
@@ -94,6 +180,7 @@ else
 }
 
 ConfigureOpenTelemetry(builder);
+ApplyJwtSession(builder);
 
 var app = builder.Build();
 
@@ -105,10 +192,42 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
 }
 
-if (useFacade)
+if (usePassword)
+{
+    app.UseAuthEndpoints();
+    app.MapPasswordAuth<TestAppUser>();
+}
+else if (useFacade)
 {
     app.UseAuthEndpoints();
     app.MapAuthEndpoints<TestAppUser>();
+}
+else if (useExternal)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseRateLimiter();
+    app.UseAntiforgery();
+
+    var external = app.MapGroup("/auth/external");
+    external.MapExternalAuthProvider<TestAppUser>("GitHub");
+    external.MapExternalAccountEndpoints<TestAppUser>();
+
+    var auth = app.MapGroup("/auth");
+    auth.MapPasswordSignInEndpoints<TestAppUser>();
+    auth.MapCookieSessionEndpoints<TestAppUser>();
+    auth.MapAccountManagementEndpoints<TestAppUser>();
+}
+else if (useSplit)
+{
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.UseRateLimiter();
+    app.UseAntiforgery();
+
+    app.MapGroup("/web").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+    app.MapGroup("/app").MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Jwt);
+    app.MapSharedAuthEndpoints<TestAppUser>();
 }
 else
 {
@@ -138,6 +257,43 @@ else
 MapTestOnlyEndpoints(app);
 
 app.Run();
+
+static void ApplyJwtSession(WebApplicationBuilder builder)
+{
+    var transport = builder.Configuration["AE_JWT_REFRESH_TRANSPORT"];
+    var absolute = builder.Configuration["AE_JWT_ABSOLUTE_LIFETIME"];
+    if (string.IsNullOrWhiteSpace(transport) && string.IsNullOrWhiteSpace(absolute))
+    {
+        return;
+    }
+
+    builder.Services.Configure<JwtSessionOptions>(options =>
+    {
+        if (string.Equals(transport, "Body", StringComparison.OrdinalIgnoreCase))
+        {
+            options.RefreshTokenTransport = RefreshTokenTransport.Body;
+        }
+        else if (!string.IsNullOrWhiteSpace(transport)
+            && !string.Equals(transport, "Cookie", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("AE_JWT_REFRESH_TRANSPORT must be Cookie or Body.");
+        }
+
+        if (string.IsNullOrWhiteSpace(absolute))
+        {
+            return;
+        }
+
+        if (!TimeSpan.TryParse(absolute, System.Globalization.CultureInfo.InvariantCulture, out var lifetime)
+            || lifetime <= TimeSpan.Zero)
+        {
+            throw new InvalidOperationException(
+                "AE_JWT_ABSOLUTE_LIFETIME must be a positive TimeSpan, for example 00:00:03.");
+        }
+
+        options.AbsoluteLifetime = lifetime;
+    });
+}
 
 static void ConfigureOpenTelemetry(WebApplicationBuilder builder)
 {
@@ -232,6 +388,26 @@ static void MapTestOnlyEndpoints(WebApplication app)
 
     app.MapGet("/test/mailbox", (CapturingEmailSender mailbox) => Results.Ok(mailbox.Snapshot()));
 
+    app.MapPost("/test/external-cookie", async (TestExternalCookie body, HttpContext http) =>
+    {
+        var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, body.Key) };
+        if (!string.IsNullOrEmpty(body.Email))
+        {
+            claims.Add(new Claim(ClaimTypes.Email, body.Email));
+        }
+
+        if (body.Verified)
+        {
+            claims.Add(new Claim(ExternalEmailClaims.EmailVerifiedClaimType, "true"));
+        }
+
+        var identity = new ClaimsIdentity(claims, IdentityConstants.ExternalScheme);
+        var properties = new AuthenticationProperties();
+        properties.Items["LoginProvider"] = body.Provider;
+        await http.SignInAsync(IdentityConstants.ExternalScheme, new ClaimsPrincipal(identity), properties);
+        return Results.NoContent();
+    });
+
     app.MapPost("/test/webauthn/attestation", (
         TestWebAuthnRequest body,
         HttpContext context,
@@ -259,5 +435,7 @@ static string ResolveOrigin(string? origin, HttpContext context) =>
         : origin;
 
 internal sealed record TestWebAuthnRequest(string OptionsJson, string? Origin, string? CredentialId);
+
+internal sealed record TestExternalCookie(string Provider, string Key, string? Email, bool Verified);
 
 public partial class Program;

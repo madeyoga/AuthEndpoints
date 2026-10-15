@@ -19,6 +19,11 @@ public class SimpleJwtOptionsValidator : IValidateOptions<SimpleJwtOptions>
 
     public ValidateOptionsResult Validate(string? name, SimpleJwtOptions options)
     {
+        if (!Enum.IsDefined(options.RefreshTokenTransport))
+        {
+            return ValidateOptionsResult.Fail("SimpleJwtOptions.RefreshTokenTransport is not a known value.");
+        }
+
         if (options.SigningOptions == null)
             return ValidateOptionsResult.Fail("Signing options must not be null.");
 

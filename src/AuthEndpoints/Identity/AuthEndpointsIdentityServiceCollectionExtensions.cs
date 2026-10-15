@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,7 @@ public static class AuthEndpointsIdentityServiceCollectionExtensions
         }
 
         services.AddSingleton<AuthEndpointsIdentityMarker<TUser>>();
+        SignInCompleterRegistry.AddIdentityCompleters(services);
 
         var identityBuilder = services.AddIdentityApiEndpoints<TUser>(identity =>
         {

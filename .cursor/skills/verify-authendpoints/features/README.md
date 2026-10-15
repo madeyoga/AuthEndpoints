@@ -9,7 +9,7 @@ This directory is the maintained source for verifying the HTTP API the library e
 - Cookie jar is empty at the start of a feature unless that feature’s preconditions say otherwise.
 - Password for new users is `Passw0rd!`. Emails must be unique per run (`verify-<id>@test.local`).
 - Never drive a host this run did not start.
-- This host has `RequireConfirmedAccount = false` unless you set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch`. That is a **test-host** setting, not the library facade default.
+- This host has `RequireConfirmedAccount = false` unless you set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch`, except `password-cookie` and `password-jwt`, which default to true. That is a **test-host** setting. The library facade default is true.
 
 ## Driving conventions
 
@@ -48,8 +48,14 @@ Each feature file starts with an H1 title and one paragraph. It then uses exactl
 - [Identity bearer facade](./bearer-facade.md) covers `MapAuthEndpoints` with `AuthEndpointsSignIn.IdentityBearer` (`AE_HOST_MODE=bearer-facade`) at `/identity/login`.
 - [Cookie facade](./cookie-facade.md) covers `MapAuthEndpoints` with the default cookie sign-in (`AE_HOST_MODE=cookie-facade`).
 - [Simple JWT](./simple-jwt.md) covers `/auth/create`, verify, refresh-cookie refresh, and logout.
+- [JWT body refresh](./jwt-body-refresh.md) covers `AE_JWT_REFRESH_TRANSPORT=Body`: JSON `refreshToken`, no JWT CSRF, reuse, logout, and the absolute lifetime.
 - [ReAuth step-up](./reauth.md) covers `confirmIdentity` and a protected manage mutation.
-- [Passkeys](./passkeys.md) covers passwordless register/login, the 3.4.1 Identity completer bodies (bearer token only, cookie `credentialId`), confirmation mail, and passkey list/delete.
+- [Passkeys](./passkeys.md) covers passwordless register/login, confirmation mail under `AE_REQUIRE_CONFIRMED_ACCOUNT=true`, and the test-only WebAuthn helper.
 - [Confirm email](./confirm-email.md) covers `GET /identity/confirmEmail` thank-you / 401, resend, and the optional SPA redirect (`AE_CONFIRM_EMAIL_REDIRECT_URI`).
 - [Password reset](./password-reset.md) covers `POST /identity/forgotPassword` and `POST /identity/resetPassword`.
-- [Email code](./email-code.md) covers `POST /identity/emailCode/send` and `POST /identity/emailCode/verify` when `AE_EMAIL_CODE=true`, plus sign-up (`AE_EMAIL_CODE_SIGNUP`) and a magic link (`AE_EMAIL_CODE_LINK`).
+- [Email code](./email-code.md) covers `POST /identity/emailCode/send` and `POST /identity/emailCode/verify` when `AE_EMAIL_CODE=true`, plus sign-up (`AE_EMAIL_CODE_SIGNUP`), a magic link (`AE_EMAIL_CODE_LINK`), and `POST /identity/confirmIdentity/emailCode/send` for step-up.
+- [Per-session and shared routes](./per-session-shared.md) covers `AE_HOST_MODE=split`: cookie sign-in under `/web`, JWT sign-in under `/app`, and one shared map at the root.
+- [Set a password](./set-password.md) covers `POST /identity/manage/password` for an account that has none.
+- [Enumeration-safe responses](./enumeration.md) covers identical known and unknown responses for register, forgot password, resend confirmation, email-code send, and passkey register options.
+- [Password facade](./password-auth.md) covers `AE_HOST_MODE=password-cookie` and `password-jwt`: register, confirm, login or `POST /auth/create`, manage, logout or refresh under `/auth`.
+- [External GitHub](./external-github.md) covers `AE_HOST_MODE=external`: GitHub sign-up, set password with ReAuth, password login, and unlink.

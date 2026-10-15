@@ -28,6 +28,9 @@ public class EmailCodeOptionsTests
         Assert.Empty(options.MagicLink.AllowedOrigins);
         Assert.Null(options.MagicLink.BuildLinkUrl);
         Assert.True(options.RequireSenderOutsideDevelopment);
+        Assert.NotNull(options.ReAuth);
+        Assert.True(options.ReAuth.Enabled);
+        Assert.Equal(TimeSpan.FromMinutes(5), options.ReAuth.CodeLifetime);
     }
 
     [Fact]
@@ -73,6 +76,30 @@ public class EmailCodeOptionsTests
     public void Validator_AcceptsCodeLifetime(int minutes)
     {
         Assert.False(Validate(new EmailCodeOptions { CodeLifetime = TimeSpan.FromMinutes(minutes) }).Failed);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(10)]
+    public void Validator_AcceptsReAuthCodeLifetime(int minutes)
+    {
+        var options = new EmailCodeOptions();
+        options.ReAuth.CodeLifetime = TimeSpan.FromMinutes(minutes);
+        Assert.False(Validate(options).Failed);
+    }
+
+    [Fact]
+    public void Validator_RejectsReAuthLifetimeAndNull()
+    {
+        AssertRejected(o => o.ReAuth.CodeLifetime = TimeSpan.FromSeconds(59), "ReAuth.CodeLifetime");
+        AssertRejected(o => o.ReAuth.CodeLifetime = TimeSpan.FromMinutes(10) + TimeSpan.FromTicks(1), "ReAuth.CodeLifetime");
+        AssertRejected(o =>
+        {
+            o.ReAuth.Enabled = false;
+            o.ReAuth.CodeLifetime = TimeSpan.Zero;
+        }, "ReAuth.CodeLifetime");
+        AssertRejected(o => o.ReAuth = null!, "ReAuth is required");
     }
 
     [Theory]

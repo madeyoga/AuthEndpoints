@@ -14,7 +14,8 @@ A signed-in user must prove their identity again before changing password or oth
 
 - Cookie (or bearer) session first.
 - `GET /identity/manage/authMethods`.
-- `POST /identity/confirmIdentity` JSON with **exactly one** of `password`, `twoFactorCode`, `twoFactorRecoveryCode`, `credentialJson`. Cookie clients also send CSRF.
+- `POST /identity/confirmIdentity` JSON with **exactly one** of `password`, `twoFactorCode`, `twoFactorRecoveryCode`, `credentialJson`, `emailCode`. Cookie clients also send CSRF.
+- `emailCode` is available when `AE_EMAIL_CODE=true` and the account has no password, authenticator, or passkey. Send it with `POST /identity/confirmIdentity/emailCode/send` (no body, CSRF). The mailbox item has `purpose` `2` and no `linkUrl`. Confirm does not return `accessToken` and does not set `.AspNetCore.Identity.Application`.
 - Send `X-AuthEndpoints-Reauth: <reauthToken>` on `POST /identity/manage/info` and `POST /identity/manage/2fa`. Cookie clients still send CSRF.
 - Cookie clients also receive cookie `AuthEndpoints.ReAuth`. An `Authorization: Bearer` confirm returns `reauthToken` and does not set that cookie.
 

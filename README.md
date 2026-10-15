@@ -10,13 +10,14 @@
 AuthEndpoints is an ASP.NET Core library of ready-made auth API endpoints on top of Identity. It fits a first-party auth API for web and mobile clients (React, Next.js, Vue, Nuxt, Svelte, native apps, and similar) with email/password, cookies, JWT, and/or passkeys.
 
 - Ready-made endpoints for registration, login, password reset, 2FA, and session/token flows
-- Opinionated quick start with `AddAuthEndpoints` / `UseAuthEndpoints` / `MapAuthEndpoints` (cookie by default, Identity bearer via `AuthEndpointsSignIn.IdentityBearer`)
+- Opinionated password facade with `AddPasswordAuth` / `UseAuthEndpoints` / `MapPasswordAuth` (cookie by default, JWT via `AuthEndpointsSession.Jwt`)
+- 3.x compatibility facade `AddAuthEndpoints` / `MapAuthEndpoints` (cookie by default, Identity bearer via `AuthEndpointsSignIn.IdentityBearer`)
 - Account lifecycle: register, confirm email, forgot/reset password, manage info and 2FA, step-up ReAuth
 - Sign-in stacks you choose: cookie sessions, Identity bearer tokens, or Simple JWT
 - Passkeys (WebAuthn) for passwordless register and login
 - Optional emailed one-time codes (`POST /identity/emailCode/send` and `POST /identity/emailCode/verify`). Sign-up and magic links stay off until you enable them
 - Built-in hardening: rate limiting, antiforgery, lockout-aware login, hashed JWT refresh tokens with reuse detection
-- Optional preview packages for GitHub and Google OAuth: [`AuthEndpoints.External.OAuth`](https://authendpoints.harten.id/modules/external-oauth) plus `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`
+- GitHub and Google OAuth in `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`. The endpoints live in the core package. Compose them. The facades do not map them. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth)
 
 ## Getting started
 
@@ -29,9 +30,9 @@ dotnet add package AuthEndpoints
 ```cs
 builder.Services.AddDbContext<AppDbContext>(/* your provider */);
 
-builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(o =>
+builder.Services.AddPasswordAuth<AppUser, AppDbContext>(o =>
 {
-    o.Passkeys.ServerDomain = "example.com"; // required in Production
+    o.Passkeys.ServerDomain = "example.com"; // omit to leave passkeys off
 });
 
 builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
@@ -39,10 +40,12 @@ builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
 var app = builder.Build();
 
 app.UseAuthEndpoints();
-app.MapAuthEndpoints<AppUser>();
+app.MapPasswordAuth<AppUser>();
 
 app.Run();
 ```
+
+`AddAuthEndpoints` / `MapAuthEndpoints` are the 3.x facade, kept for compatibility, including Identity bearer. Do not call both facades in one host. Upgrading from 3.x: [Upgrade to 4.0](https://authendpoints.harten.id/guides/upgrading-to-4).
 
 ## Documentation
 

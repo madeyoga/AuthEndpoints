@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
         where TContext : DbContext
     {
         services.AddModule<JwtEndpointsModule>();
+        SignInCompleterRegistry.AddJwtCompleter(services);
 
         var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>))
             ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser");
@@ -32,10 +34,23 @@ public static class ServiceCollectionExtensions
                 o.AccessTokenLifetime = options.AccessTokenLifetime;
                 o.SigningOptions = options.SigningOptions;
                 o.TokenValidationParameters = options.TokenValidationParameters;
+                o.RefreshTokenTransport = options.RefreshTokenTransport;
             })
             .ValidateOnStart();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<SimpleJwtOptions>, SimpleJwtOptionsValidator>());
+
+        services.TryAddSingleton(TimeProvider.System);
+        // Cookie is the property default. Copying it would wipe a Configure<JwtSessionOptions>
+        // registered before AddJwtEndpoints. A non-default value is the caller's choice and wins
+        // over that earlier configure. A Configure registered after AddJwtEndpoints still runs later.
+        var jwtSession = services.AddOptions<JwtSessionOptions>().ValidateOnStart();
+        if (options.RefreshTokenTransport != RefreshTokenTransport.Cookie)
+        {
+            jwtSession.Configure(session => session.RefreshTokenTransport = options.RefreshTokenTransport);
+        }
+        services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IValidateOptions<JwtSessionOptions>, JwtSessionOptionsValidator>());
 
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
@@ -45,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.TryAddScoped<JwtSecurityTokenHandler>();
 
         services.AddIdentityEndpointRateLimiting();
+        services.AddAccountSecurityEmailSender();
 
         return new SimpleJwtBuilder(identityUserType, typeof(TUser), services, options);
     }

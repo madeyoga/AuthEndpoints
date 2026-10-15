@@ -20,6 +20,7 @@
 - `POST /identity/emailCode/verify?useSessionCookies=true` for a session application cookie
 - `POST /identity/emailCode/verify?useCookies=true` for a persistent application cookie
 - `POST /identity/emailCode/verify` JSON `{ "token" }` when the magic link is on
+- `POST /identity/confirmIdentity/emailCode/send` (no body, CSRF, signed in) sends a step-up code. Mailbox `purpose` is `2` (`ReAuth`). `linkUrl` is null. `POST /identity/confirmIdentity` JSON `{ "emailCode" }` then returns `reauthToken`
 - `GET /test/mailbox` lists `{ email, kind, body, linkUrl, purpose }`. `body` is the raw code. `purpose` is `0` (`SignIn`) or `1` (`SignUp`)
 
 ## Driving it with ae-http

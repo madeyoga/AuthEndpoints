@@ -1,8 +1,13 @@
 using System.Security.Claims;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.ReAuth;
+using AuthEndpoints.SignIn;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
 namespace AuthEndpoints.Identity;
@@ -17,14 +22,43 @@ internal static class IdentityEndpointRoutes
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
             .WithSummary("Registers a new user account.")
-            .WithDescription("Creates a new user and sends a confirmation email if configured.")
+            .WithDescription("Creates a new user and sends a confirmation email. An email that is already registered returns the same empty 200 and emails that owner.")
             .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
             .Track(endpoints, mapMethod);
     }
 
-    public static void MapPasswordLogin<TUser>(IEndpointRouteBuilder endpoints, PasswordLoginMode login, string mapMethod)
+    public static void MapPasswordLogin<TUser>(
+        IEndpointRouteBuilder endpoints,
+        PasswordLoginMode login,
+        string mapMethod,
+        string? completer = null,
+        bool allowUnregisteredBuiltIn = false)
         where TUser : class, new()
     {
+        if (completer is not null)
+        {
+            if (!allowUnregisteredBuiltIn
+                || SignInCompleterRegistry.Contains<TUser>(endpoints.ServiceProvider, completer))
+            {
+                SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
+            }
+            endpoints.MapPost("/login", (
+                    [FromBody] LoginRequest loginRequest,
+                    [FromQuery] bool? useCookies,
+                    [FromQuery] bool? useSessionCookies,
+                    HttpContext httpContext) => PasswordCompleterSignIn<TUser>.Handle(
+                        loginRequest,
+                        useCookies,
+                        useSessionCookies,
+                        httpContext,
+                        completer))
+                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                .WithMetadata(new SignInCompleterSelection(completer))
+                .Track(endpoints, mapMethod);
+            PasswordSignInMap.Mark(endpoints.ServiceProvider);
+            return;
+        }
+
         switch (login)
         {
             case PasswordLoginMode.None:
@@ -33,11 +67,13 @@ internal static class IdentityEndpointRoutes
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.LoginCookie)
                     .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
                     .Track(endpoints, mapMethod);
+                PasswordSignInMap.Mark(endpoints.ServiceProvider);
                 return;
             case PasswordLoginMode.IdentityBearer:
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
                     .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
                     .Track(endpoints, mapMethod);
+                PasswordSignInMap.Mark(endpoints.ServiceProvider);
                 return;
             default:
                 throw new ArgumentOutOfRangeException(nameof(login), login, "Unknown password login mode.");
@@ -97,7 +133,7 @@ internal static class IdentityEndpointRoutes
         var confirm = endpoints.MapPost("/confirmIdentity", ReAuthEndpoints<TUser>.ConfirmIdentity)
             .WithSummary("Confirm the user's identity and issue short-lived reauthentication credentials.")
             .WithDescription("""
-                Provide exactly one proof: Password, TwoFactorCode, TwoFactorRecoveryCode, or CredentialJson (passkey assertion).
+                Provide exactly one proof: Password, TwoFactorCode, TwoFactorRecoveryCode, CredentialJson (passkey assertion), or EmailCode.
                 On success, returns reauthToken for the X-AuthEndpoints-Reauth header.
                 Cookie sign-ins also receive a temporary AuthEndpoints.ReAuth cookie.
                 A caller authenticated with Authorization: Bearer receives the token only.
@@ -112,6 +148,31 @@ internal static class IdentityEndpointRoutes
         }
 
         confirm.Track(endpoints, mapMethod);
+    }
+
+    public static void MapEmailCodeReAuthSend<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
+        where TUser : class, new()
+    {
+        if (endpoints.ServiceProvider.GetService<IEmailCodeModelCheck>() is null)
+        {
+            return;
+        }
+
+        var send = endpoints.MapPost("/confirmIdentity/emailCode/send", ReAuthEndpoints<TUser>.SendEmailCode)
+            .WithSummary("Send an email code that confirms the signed-in user's identity.")
+            .WithDescription("""
+                No body. Sends a code to the signed-in user's current confirmed email when email-code step-up is available.
+                Returns expiresInSeconds and resendAfterSeconds. Does not sign the user in.
+                """)
+            .RequireAuthEndpointsUser()
+            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy);
+
+        if (requireAntiforgery)
+        {
+            send.RequireAntiforgery();
+        }
+
+        send.Track(endpoints, mapMethod);
     }
 
     public static void MapPasskeyOptions<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
@@ -131,11 +192,19 @@ internal static class IdentityEndpointRoutes
         passkeyOptions.Track(endpoints, mapMethod);
     }
 
-    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
+    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod, bool includeEmailCode = true)
         where TUser : class, new()
     {
         var manage = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
-        manage.MapGet("/authMethods", ReAuthEndpoints<TUser>.AuthMethods)
+        RouteHandlerBuilder authMethods = includeEmailCode
+            ? manage.MapGet("/authMethods", (
+                ClaimsPrincipal principal,
+                UserManager<TUser> userManager,
+                IServiceProvider services) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager, services))
+            : manage.MapGet("/authMethods", (
+                ClaimsPrincipal principal,
+                UserManager<TUser> userManager) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager));
+        authMethods
             .WithSummary("List available step-up / reauthentication methods for the current user.")
             .Track(endpoints, mapMethod);
     }
@@ -168,6 +237,26 @@ internal static class IdentityEndpointRoutes
             .WithSummary("Updates the current user account information.")
             .RequireAntiforgery()
             .RequireReauth()
+            .Track(endpoints, mapMethod);
+    }
+
+    public static void MapSetPassword<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
+        where TUser : class, new()
+    {
+        var accountGroup = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
+        accountGroup.MapPost("/password", IdentityApiEndpoints<TUser>.SetPassword)
+            .WithSummary("Sets a password when the account has none.")
+            .WithDescription("""
+                Requires a signed-in user, antiforgery, and a ReAuth proof.
+                Rate-limited with the account-abuse policy.
+                Returns 404 when password sign-in is not mapped.
+                Returns 400 when the account already has a password. Change an existing password with POST /manage/info.
+                Sends a security email and rotates the security stamp.
+                """)
+            .RequireAntiforgery()
+            .RequireReauth()
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .WithMetadata(SetPasswordEndpointMetadata.Instance)
             .Track(endpoints, mapMethod);
     }
 
