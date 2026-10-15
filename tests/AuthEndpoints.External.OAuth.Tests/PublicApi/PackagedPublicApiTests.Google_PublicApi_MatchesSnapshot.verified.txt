@@ -1,10 +1,5 @@
 ﻿namespace AuthEndpoints.OAuth.Google
 {
-    public static class GoogleEndpointRouteBuilderExtensions
-    {
-        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapGoogleAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
-            where TUser :  class, new () { }
-    }
     public sealed class GoogleExternalAuthProvider : AuthEndpoints.External.OAuth.IExternalAuthProvider
     {
         public GoogleExternalAuthProvider() { }

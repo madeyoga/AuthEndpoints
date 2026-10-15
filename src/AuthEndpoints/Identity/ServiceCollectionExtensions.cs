@@ -1,14 +1,18 @@
-﻿using System.Threading.RateLimiting;
+﻿using System.Security.Claims;
+using System.Threading.RateLimiting;
 using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
 
 internal sealed class LoginRateLimitMarker;
 internal sealed class AccountAbuseRateLimitMarker;
 internal sealed class ConfirmIdentityRateLimitMarker;
+internal sealed class ConfirmIdentityEmailCodeRateLimitMarker;
 
 public static class ServiceCollectionExtensions
 {
@@ -141,6 +145,52 @@ public static class ServiceCollectionExtensions
                 return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 20,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                });
+            });
+
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers <see cref="AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy"/>:
+    /// 3 requests per minute, partitioned by the signed-in user id (client IP when the user id is absent).
+    /// Safe to call multiple times. Hosts must call <c>UseRateLimiter()</c> for the policy to apply.
+    /// </summary>
+    public static IServiceCollection AddConfirmIdentityEmailCodeRateLimiting(this IServiceCollection services)
+    {
+        if (services.Any(d => d.ServiceType == typeof(ConfirmIdentityEmailCodeRateLimitMarker)))
+        {
+            return services;
+        }
+
+        services.AddSingleton<ConfirmIdentityEmailCodeRateLimitMarker>();
+
+        services.AddRateLimiter(options =>
+        {
+            options.AddPolicy(AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy, context =>
+            {
+                var claimType = context.RequestServices.GetService<IOptions<IdentityOptions>>()?.Value
+                    .ClaimsIdentity.UserIdClaimType
+                    ?? ClaimTypes.NameIdentifier;
+                var userId = context.User.FindFirst(claimType)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                        ?? context.User.FindFirst("sub")?.Value;
+                }
+
+                var key = string.IsNullOrEmpty(userId)
+                    ? "ip:" + (context.Connection.RemoteIpAddress?.ToString() ?? "anon")
+                    : "user:" + userId;
+
+                return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 3,
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 });

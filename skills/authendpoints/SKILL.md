@@ -1,10 +1,10 @@
 ---
 name: authendpoints
-description: Compose AuthEndpoints 3.x in an ASP.NET Core host — AddAuthEndpoints, UseAuthEndpoints, MapAuthEndpoints, cookie vs Identity bearer vs Simple JWT, passkeys, CSRF, ReAuth, and production options. Use when the project has the AuthEndpoints NuGet package, the user asks to add Identity auth API endpoints, or an agent is wiring login/register/session/token flows for a first-party web or mobile client.
+description: Compose AuthEndpoints in an ASP.NET Core host — AddPasswordAuth for one password session, or the 3.x AddAuthEndpoints facade, cookie vs JWT vs Identity bearer, passkeys, CSRF, ReAuth, and production options. Use when the project has the AuthEndpoints NuGet package, the user asks to add Identity auth API endpoints, or an agent is wiring login/register/session/token flows for a first-party web or mobile client.
 license: MIT
 ---
 
-# AuthEndpoints 3.x (library users)
+# AuthEndpoints (library users)
 
 Ready-made Identity auth API endpoints for first-party web and mobile clients. This skill is for **apps that consume the NuGet package**, not for changing the AuthEndpoints source repo.
 
@@ -18,20 +18,41 @@ Requires **.NET 10**, ASP.NET Core Identity, and EF Core. The host `DbContext` i
 dotnet add package AuthEndpoints
 ```
 
-GitHub/Google OAuth is **compose-only** (independent preview versioning, not inside `MapAuthEndpoints`). Install the provider package you use. It depends on `AuthEndpoints.External.OAuth`. The core OAuth nupkg does not reference GitHub or Google handlers.
+GitHub and Google OAuth are compose-only. Neither facade maps them. The endpoint types live in `AuthEndpoints` 4.0.0, namespace `AuthEndpoints.External.OAuth`. The provider packages only register handlers and depend on `AuthEndpoints` `[4.0.0, 5.0.0)`. `AuthEndpoints.External.OAuth` below 4.0.0 fails the build with `AE4000`. The 4.0.0 package of that name is a shim. Remove it.
 
 ```bash
-dotnet add package AuthEndpoints.OAuth.GitHub --prerelease
-dotnet add package AuthEndpoints.OAuth.Google --prerelease
+dotnet add package AuthEndpoints.OAuth.GitHub
+dotnet add package AuthEndpoints.OAuth.Google
 ```
 
 `AutoLinkByEmail` defaults to false. Opt in only when a verified provider email should attach to a local account whose email is already confirmed. Host a page at `ErrorPath`. Unlink requires the application cookie, an antiforgery token, and a ReAuth principal, and it refuses the last sign-in method.
 
 Docs: https://authendpoints.harten.id/modules/external-oauth
 
-## Prefer the facade
+## Password facade (4.0)
 
-One Add / Use / Map triad. Cookie is the default sign-in. Native/mobile uses `AuthEndpointsSignIn.IdentityBearer`. Compose modules yourself only for JWT-only hosts, custom prefixes, or a mix the facade does not cover.
+New hosts that want one password session use `AddPasswordAuth` / `UseAuthEndpoints` / `MapPasswordAuth`. Cookie is the default (`Session` unset). JWT is `AuthEndpointsSession.Jwt` plus a `Jwt` callback. Identity bearer is not offered here. Do not also call `AddAuthEndpoints`.
+
+```cs
+builder.Services.AddPasswordAuth<AppUser, AppDbContext>(o =>
+{
+    o.Passkeys.ServerDomain = "example.com"; // omit to leave passkeys off
+    // o.Session = AuthEndpointsSession.Jwt;
+    // o.Jwt = jwt => { jwt.SigningOptions.SymmetricKey = key; };
+});
+builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
+
+app.UseAuthEndpoints();
+app.MapPasswordAuth<AppUser>(); // default prefix /auth
+```
+
+`Path` defaults to `/auth`. `RequireConfirmedAccount` defaults to true. Passkey routes are mapped only when `Passkeys.ServerDomain` is set. JWT login is `POST /auth/create` and returns `accessToken` plus `tokenType` `Bearer` (and `refreshToken` when transport is `Body`). Cookie login is `POST /auth/login`. Cookie-mode `/manage` accepts `Identity.Application` and `Identity.Bearer`. `AddJwtEndpoints` copies `SimpleJwtOptions.RefreshTokenTransport` onto `JwtSessionOptions` only when that value is not `Cookie`. An earlier `Configure<JwtSessionOptions>` stays when the JWT options leave transport at `Cookie`. A later `Configure<JwtSessionOptions>` replaces either result. `Session`, `Path`, and `Passkeys.ServerDomain` are fixed by `AddPasswordAuth`; a later `Configure<PasswordAuthOptions>` that changes them fails validation. The call expands to the building blocks documented at https://authendpoints.harten.id/getting-started/password-auth. Copy that list to leave the facade. Email-code sign-in and external sign-in are not mapped. There is no role overload.
+
+## 3.x facade, kept for compatibility
+
+`AddAuthEndpoints` / `MapAuthEndpoints` are the 3.x facade, kept for compatibility. They stay on the 3.4.1 route set and are not obsolete. Cookie is the default sign-in. Native/mobile on this facade uses `AuthEndpointsSignIn.IdentityBearer`. They do not gain email-code step-up, `POST /manage/password`, or completer selection. Exceptions: a non-default `Jwt.Configure` refresh transport is applied, facade `POST /create` runs the unknown-email hash verify, and JWT refresh gains an absolute lifetime plus a lost concurrent refresh that revokes the family. Compose modules yourself for email-code sign-in, more than one session, or a mix neither facade covers. Do not combine with `AddPasswordAuth`.
+
+https://authendpoints.harten.id/getting-started/compatibility-facade
 
 ### Cookie web
 
@@ -187,12 +208,13 @@ Register `IEmailCodeSender<TUser>` outside Development (`RequireSenderOutsideDev
 | --- | --- | --- |
 | `POST` | `{IdentityPath}/emailCode/send` | `{ email }`. `200` `{ expiresInSeconds, resendAfterSeconds }` for a valid address, including when no mail is sent. `400` `InvalidEmail`. No CSRF. Rate limit `AuthEndpoints.EmailCode.Send` (default 5/minute/IP). |
 | `POST` | `{IdentityPath}/emailCode/verify` | `{ email, code }` or, when the magic link is on, `{ token }` alone. No CSRF. Rate limit `AuthEndpoints.Login`. |
+| `POST` | `{IdentityPath}/confirmIdentity/emailCode/send` | Building-block maps only (`MapAccountManagementEndpoints`, `MapReAuthEndpoints`) when `AddEmailCodeEndpoints` was called. `MapAuthEndpoints` does not map it. No body. Signed in. CSRF when management mapped it. `200` `{ expiresInSeconds, resendAfterSeconds }`. Rate limit `AuthEndpoints.ConfirmIdentity.EmailCode` (3/minute/user). `400` `EmailCodeProofUnavailable` when the account has a password, authenticator, or passkey. An external login does not block it. |
 
 Verify query flags match Identity bearer login, not cookie `LoginCookie`. Neither flag returns Identity bearer token JSON. `useCookies=true` sets a persistent application cookie. `useSessionCookies=true` sets a session cookie. `401` detail `Invalid or expired code.` is the failure body. `401` title `RequiresTwoFactor` when the user has 2FA on and `RequireTwoFactor` is `true` (the default) and neither `twoFactorCode` nor `twoFactorRecoveryCode` was sent. That response does not consume the row.
 
 `AllowSignUp` `true`: a correct code for an unknown address creates one confirmed user with that email as the user name and no password, and does not send confirmation mail. `EmailConfirmed` is set before create, without an email-confirmation token provider. `MagicLink.Enabled` requires an absolute `http(s)` `LinkUri` with no `#`. The default link is `LinkUri + "#token=" + token`. A token in the body is `400` while the magic link is off. `GET` verify is `405`. A confirmed user's existing password stays in place. An unconfirmed user follows `UnconfirmedAccounts`.
 
-`Jwt.Enabled` does not select `JwtEmailCodeSignInCompleter<TUser>`. Register it with `AddEmailCodeSignInCompleter` after `AddEmailCodeEndpoints` when verify should issue a Simple JWT. That completer ignores the cookie query flags.
+`Jwt.Enabled` does not select the JWT completer for email-code verify. Pass `AuthEndpointsSession.Jwt` to `MapEmailCodeEndpoints` (and call `AddJwtEndpoints`) when verify should issue a Simple JWT. That session ignores the cookie query flags. `AddEmailCodeSignInCompleter` is obsolete.
 
 Module: https://authendpoints.harten.id/modules/email-code
 
@@ -202,7 +224,7 @@ Enabled by default. In Production set `Passkeys.ServerDomain`, or disable with `
 
 Mapped under `{PasskeyPath}/passkeys` (default `/account/passkeys`). Anonymous WebAuthn ceremonies always require CSRF: they store the challenge in the `Identity.TwoFactorUserId` cookie. Signed-in add/rename/delete/`creationOptions` require a primary sign-in (application cookie, Identity bearer, or JWT) plus ReAuth. A ReAuth credential alone is not enough. Those changes run the CSRF filter and follow the skip rule above. Rename trims the name and rejects more than 200 characters. Delete returns validation problem `LastSignInMethod` when the passkey is the only sign-in method (no password and no external login). Passwordless register mints `Guid.NewGuid()` (UUID v4) unless the host registers `IPasskeyUserIdFactory`. `POST {PasskeyPath}/passkeys/requestOptions` takes optional JSON `{ email }`. Empty or unknown email still returns 200 options. Identifier-first may reveal passkey presence via `allowCredentials`. Omit `email` for usernameless/discoverable login.
 
-Facade JWT opt-in does **not** auto-select `JwtPasskeySignInCompleter`. Register it explicitly when passkey register/login should issue Simple JWT (access token + refresh cookie); that completer ignores cookie query flags.
+Facade JWT opt-in does not select the JWT completer for passkey register and login. Pass `AuthEndpointsSession.Jwt` to `MapPasskeySignInEndpoints` when those routes should issue a Simple JWT. That session ignores cookie query flags. `AddPasskeySignInCompleter` is obsolete. `MapPasskeySignInEndpoints<TUser>(string?)` is the confirm-email endpoint name, not a completer name.
 
 Module: https://authendpoints.harten.id/modules/passkeys
 
@@ -210,9 +232,11 @@ Module: https://authendpoints.harten.id/modules/passkeys
 
 When `o.Jwt.Enabled = true`:
 
-- Call `modelBuilder.UseRefreshToken()` and migrate (`AuthEndpoints.AuthEndpointsRefreshTokens`).
+- Call `modelBuilder.UseRefreshToken()` and migrate (`AuthEndpoints.AuthEndpointsRefreshTokens`). The absolute family lifetime adds non-null `AbsoluteExpiresAt`. Backfill existing rows from `ExpiresAt`.
 - Production: non-default issuer and audience; symmetric key ≥ 32 UTF-8 bytes (or RSA/ECDSA/X509).
-- Refresh cookie name: `AuthEndpoints.Jwt.RefreshToken`. Recreate the table if upgrading from plaintext storage.
+- Refresh transport defaults to the cookie `AuthEndpoints.Jwt.RefreshToken` (HttpOnly). `AddJwtEndpoints` copies `SimpleJwtOptions.RefreshTokenTransport` onto `JwtSessionOptions` only when it is not `Cookie`. `POST /create` returns `accessToken` and `tokenType` `Bearer`. `RefreshTokenTransport.Body` also returns `refreshToken` from create, email-code verify, passkey sign-in, and refresh, and accepts it on refresh and logout with no antiforgery and no `csrfToken` route. An earlier `Configure<JwtSessionOptions>` stays when transport is left at `Cookie`. A configure registered after `AddJwtEndpoints` replaces the result.
+- Every refresh rotates. Reuse of an old token revokes the family, including after a parallel refresh with the same token. Logout and a security-stamp change revoke the family on the server. `AbsoluteLifetime` defaults to 14 days from sign-in and rotation does not extend it. `RefreshTokenLifetime` is the per-token window inside that cap (default 14 days).
+- Recreate the table when upgrading from plaintext storage.
 
 Module: https://authendpoints.harten.id/modules/jwt
 
@@ -229,19 +253,25 @@ app.UseAntiforgery();
 
 | You map | You register |
 | --- | --- |
-| `MapIdentityManagementApi` | Identity API endpoints + EF stores + token providers |
+| `MapIdentityManagementApi` | `AddAuthEndpointsIdentity` (sets `RequireConfirmedAccount` true) or `AddIdentityApiEndpoints` plus EF stores and token providers. Bare `AddIdentityApiEndpoints` leaves `RequireConfirmedAccount` false. Set it when unconfirmed sign-in should fail. Also `AddPasswordEndpoints` and `AddAccountManagementEndpoints`. |
 | `MapCookieAuthEndpoints` | `AddCookieAuthEndpoints()` + `AddAntiforgery()` |
 | `MapBearerAuthEndpoints` | `AddBearerAuthEndpoints()` |
 | `MapJwtAuthEndpoints` | `AddJwtEndpoints<TUser, TContext>(…)` + `UseRefreshToken()` |
 | `MapPasskeyEndpoints` | `AddPasskeyEndpoints<TUser>()` |
 
-Map `MapIdentityManagementApi` **once** in production. Pair it with **one** of cookie | bearer | JWT per prefix.
+A missing `Add*` throws `InvalidOperationException` at map time. The message names the method to call.
 
-https://authendpoints.harten.id/composables
+Map `MapIdentityManagementApi` **once** in production. Pair it with **one** of cookie, bearer, or JWT per prefix.
+
+Building-block recipes (no scenario facade in 4.0): email-code only, external-first (GitHub or Google, then `POST /manage/password`), and passkey-first (email-code sign-up, then a passkey). https://authendpoints.harten.id/composables/recipes
+
+Composition table: https://authendpoints.harten.id/composables/composition
+
+Sign-in completer: https://authendpoints.harten.id/modules/sign-in-completer
 
 ## ReAuth (step-up)
 
-Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in and does not replace the user. The proof carries the user's security stamp; a password change, reset, or `UpdateSecurityStampAsync` cancels it. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`, issued for cookie sign-ins. An `Authorization: Bearer` confirm returns `reauthToken` and does not set that cookie; keep the token in memory. Pair `.RequireReauth()` with `RequireAuthorization()` that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
+Manage 2FA/info mutations and sensitive passkey routes require a sign-in plus ReAuth for that same user, and CSRF where applicable. `POST /confirmIdentity` also accepts `{ "emailCode" }` after `POST /confirmIdentity/emailCode/send` when email-code step-up is available (`authMethods.emailCode`). That confirm returns `reauthToken` only; it does not sign the user in. A ReAuth cookie or `X-AuthEndpoints-Reauth` token is not a sign-in and does not replace the user. The proof carries the user's security stamp; a password change, reset, or `UpdateSecurityStampAsync` cancels it. Header: `X-AuthEndpoints-Reauth` with `reauthToken`. Cookie scheme: `AuthEndpoints.ReAuth`, issued for cookie sign-ins. An `Authorization: Bearer` confirm returns `reauthToken` and does not set that cookie; keep the token in memory. Pair `.RequireReauth()` with `RequireAuthorization()` that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
 
 https://authendpoints.harten.id/modules/reauth
 

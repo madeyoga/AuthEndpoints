@@ -1,4 +1,5 @@
 ﻿using AuthEndpoints.Identity;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
@@ -9,6 +10,7 @@ namespace AuthEndpoints.EmailCode;
 /// <c>useCookies</c> gives a persistent cookie, <c>useSessionCookies</c> gives a session cookie,
 /// and neither gives an Identity bearer token.
 /// </summary>
+[Obsolete(LegacyCompleterMessages.Obsolete)]
 public sealed class IdentityEmailCodeSignInCompleter<TUser> : IEmailCodeSignInCompleter<TUser>
     where TUser : class
 {

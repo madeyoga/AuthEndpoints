@@ -21,11 +21,21 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
     /// <see cref="AuthEndpointsSignIn.IdentityBearer"/> (Identity <c>Login</c>).
     /// For a single module use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
     /// <c>MapBearerAuthEndpoints</c>, <c>MapPasskeyEndpoints</c>, or <c>MapJwtAuthEndpoints</c>.
+    /// This facade ignores <see cref="SignInCompletionOptions.Default"/> and keeps the 3.4.1 sign-in handlers,
+    /// including password login, JWT <c>POST /create</c>, and email-code verify. It leaves
+    /// <c>POST /confirmIdentity/emailCode/send</c> and <c>POST /manage/password</c> unmapped, and
+    /// <c>authMethods.emailCode</c> stays false.
+    /// It is the frozen 3.4.1 compatibility facade. Do not combine it with <c>AddPasswordAuth</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
+
+        if (endpoints.ServiceProvider.GetService<AuthEndpointsRegistration>() is null)
+        {
+            throw new InvalidOperationException("Call AddAuthEndpoints before MapAuthEndpoints.");
+        }
 
         var options = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
         return MapAuthEndpointsCore<TUser>(endpoints, options, options.SignIn);
@@ -38,7 +48,7 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
         where TUser : class, new()
     {
         var identity = endpoints.MapGroup(options.IdentityPath).WithTags("Identity");
-        identity.MapIdentityManagementApi<TUser>();
+        identity.MapIdentityManagementApiPreserving3x<TUser>();
 
         if (signIn == AuthEndpointsSignIn.IdentityBearer)
         {
@@ -51,7 +61,7 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
 
         if (options.EmailCode.Enabled)
         {
-            identity.MapEmailCodeEndpoints<TUser>();
+            identity.MapEmailCodeEndpointsPreserving3x<TUser>();
         }
 
         if (options.Passkeys.Enabled)
@@ -64,7 +74,7 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
         if (options.Jwt.Enabled)
         {
             endpoints.MapGroup(options.Jwt.Path)
-                .MapJwtAuthEndpoints<TUser>()
+                .MapJwtAuthEndpointsPreserving3x<TUser>()
                 .WithTags("Jwt");
         }
 

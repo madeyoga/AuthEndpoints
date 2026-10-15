@@ -14,6 +14,7 @@ Commands:
   csrf [path]         Print csrfToken JSON field (default /identity/csrfToken).
   get <path>          GET a path. Writes status/headers/body under AE_EVIDENCE_DIR when --out is set.
   post <path> [json]  POST JSON. Add --csrf to send RequestVerificationToken. Optional --out NAME.
+  delete <path>       DELETE a path. Add --csrf to send RequestVerificationToken. Optional --out NAME.
 
 Environment:
   AE_RUN_ID         Unique id for this run (default: timestamp-pid)
@@ -23,14 +24,18 @@ Environment:
   AE_EVIDENCE_DIR  Proof output dir; never deleted by stop (default: $AE_RUN_DIR/evidence)
   AE_COOKIE_JAR    curl cookie jar (default: $AE_RUN_DIR/cookies.txt)
   AE_REPO_ROOT     Repository root (default: git root or cwd)
-  AE_HOST_MODE     Test host mapping: compose (default) or bearer-facade
+  AE_HOST_MODE     Test host mapping: compose (default), bearer-facade, cookie-facade, split,
+                   password-cookie, password-jwt, or external.
   AE_REQUIRE_CONFIRMED_ACCOUNT  When true, the test host sets SignIn.RequireConfirmedAccount.
-                                Library default is true; this host defaults to false.
+                                Library default is true; compose/bearer/split default to false.
+                                password-cookie and password-jwt default to true when this is unset.
   AE_CONFIRM_EMAIL_REDIRECT_URI  Maps to AuthEndpointsOptions.EmailConfirmation.ConfirmEmailRedirectUri.
   AE_CONFIRM_EMAIL_ALLOWED_ORIGINS  Comma-separated AllowedRedirectOrigins.
   AE_EMAIL_CODE         When true, maps email-code send and verify.
   AE_EMAIL_CODE_SIGNUP  When true, AllowSignUp creates a user from an unknown address.
   AE_EMAIL_CODE_LINK    Absolute http(s) magic-link URI with no '#'. Set to enable the link.
+  AE_JWT_REFRESH_TRANSPORT  Cookie (default) or Body. Body returns refreshToken in JSON and skips JWT CSRF.
+  AE_JWT_ABSOLUTE_LIFETIME  Positive TimeSpan (for example 00:00:03) overriding the refresh-family cap.
   OTEL_EXPORTER_OTLP_ENDPOINT  When unset, launch sets http://localhost:4317. Empty skips export.
   OTEL_SERVICE_NAME  When unset, launch sets authendpoints-demo.
 
@@ -207,6 +212,20 @@ wait_ready() {
   if [[ "$AE_HOST_MODE" == "bearer-facade" ]]; then
     ready_path="/identity/manage/info"
     ready_code="401"
+  elif [[ "$AE_HOST_MODE" == "split" ]]; then
+    ready_path="/web/csrfToken"
+    ready_code="200"
+  elif [[ "$AE_HOST_MODE" == "password-cookie" || "$AE_HOST_MODE" == "external" ]]; then
+    ready_path="/auth/csrfToken"
+    ready_code="200"
+  elif [[ "$AE_HOST_MODE" == "password-jwt" ]]; then
+    if [[ "${AE_JWT_REFRESH_TRANSPORT:-}" == "Body" ]]; then
+      ready_path="/auth/manage/info"
+      ready_code="401"
+    else
+      ready_path="/auth/csrfToken"
+      ready_code="200"
+    fi
   fi
   for i in $(seq 1 60); do
     status="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 1 "${AE_BASE_URL}${ready_path}" 2>/dev/null || true)"
@@ -277,6 +296,8 @@ cmd_launch() {
       AE_EMAIL_CODE="${AE_EMAIL_CODE:-}" \
       AE_EMAIL_CODE_SIGNUP="${AE_EMAIL_CODE_SIGNUP:-}" \
       AE_EMAIL_CODE_LINK="${AE_EMAIL_CODE_LINK:-}" \
+      AE_JWT_REFRESH_TRANSPORT="${AE_JWT_REFRESH_TRANSPORT:-}" \
+      AE_JWT_ABSOLUTE_LIFETIME="${AE_JWT_ABSOLUTE_LIFETIME:-}" \
       OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT}" \
       OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME}" \
       dotnet "$AE_DLL"
@@ -284,6 +305,7 @@ cmd_launch() {
   echo $! > "$AE_PID_FILE"
   echo "$AE_BASE_URL" > "$AE_URL_FILE"
   echo "$AE_HOST_MODE" > "$AE_RUN_DIR/host.mode"
+  printf '%s' "${AE_JWT_REFRESH_TRANSPORT:-}" > "$AE_RUN_DIR/jwt.refresh-transport"
   if ! wait_ready; then
     cmd_stop || true
     exit 1
@@ -300,6 +322,10 @@ cmd_doctor() {
   if [[ -f "$AE_RUN_DIR/host.mode" ]]; then
     AE_HOST_MODE="$(cat "$AE_RUN_DIR/host.mode")"
   fi
+  if [[ -f "$AE_RUN_DIR/jwt.refresh-transport" ]]; then
+    AE_JWT_REFRESH_TRANSPORT="$(cat "$AE_RUN_DIR/jwt.refresh-transport")"
+  fi
+  AE_JWT_REFRESH_TRANSPORT="${AE_JWT_REFRESH_TRANSPORT:-}"
   local pid
   pid="$(cat "$AE_PID_FILE")"
   if ! kill -0 "$pid" 2>/dev/null; then
@@ -319,6 +345,38 @@ cmd_doctor() {
       exit 1
     fi
     echo "ok pid=$pid url=${AE_BASE_URL} mode=bearer-facade manage/info=401"
+    return 0
+  fi
+  if [[ "$AE_HOST_MODE" == "external" || "$AE_HOST_MODE" == "password-cookie" || ( "$AE_HOST_MODE" == "password-jwt" && "$AE_JWT_REFRESH_TRANSPORT" != "Body" ) ]]; then
+    status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/auth/csrfToken")"
+    if [[ "$status" != "200" ]]; then
+      echo "GET /auth/csrfToken returned HTTP $status (want 200 for ${AE_HOST_MODE})." >&2
+      cat "${AE_RUN_DIR}/doctor.body" >&2 || true
+      exit 1
+    fi
+    json_get csrfToken CsrfToken < "${AE_RUN_DIR}/doctor.body" >/dev/null
+    echo "ok pid=$pid url=${AE_BASE_URL} mode=${AE_HOST_MODE} csrfToken=present"
+    return 0
+  fi
+  if [[ "$AE_HOST_MODE" == "password-jwt" && "$AE_JWT_REFRESH_TRANSPORT" == "Body" ]]; then
+    status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/auth/manage/info")"
+    if [[ "$status" != "401" ]]; then
+      echo "GET /auth/manage/info returned HTTP $status (want 401 for password-jwt body refresh)." >&2
+      cat "${AE_RUN_DIR}/doctor.body" >&2 || true
+      exit 1
+    fi
+    echo "ok pid=$pid url=${AE_BASE_URL} mode=password-jwt refresh=Body manage/info=401"
+    return 0
+  fi
+  if [[ "$AE_HOST_MODE" == "split" ]]; then
+    status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/web/csrfToken")"
+    if [[ "$status" != "200" ]]; then
+      echo "GET /web/csrfToken returned HTTP $status (want 200 for split)." >&2
+      cat "${AE_RUN_DIR}/doctor.body" >&2 || true
+      exit 1
+    fi
+    json_get csrfToken CsrfToken < "${AE_RUN_DIR}/doctor.body" >/dev/null
+    echo "ok pid=$pid url=${AE_BASE_URL} mode=split csrfToken=present"
     return 0
   fi
   status="$(curl -sS -o "${AE_RUN_DIR}/doctor.body" -w "%{http_code}" "${AE_BASE_URL}/identity/csrfToken")"
@@ -382,10 +440,41 @@ cmd_post() {
     local csrf_path="/identity/csrfToken"
     case "$AE_PATH" in
       /auth/*) csrf_path="/auth/csrfToken" ;;
+      /web/*) csrf_path="/web/csrfToken" ;;
+      /app/*) csrf_path="/app/csrfToken" ;;
+      *)
+        if [[ "$AE_HOST_MODE" == "split" ]]; then
+          csrf_path="/web/csrfToken"
+        fi
+        ;;
     esac
     csrf="$(AE_OUT="" http GET "$csrf_path" "" "" "" >/dev/null; printf '%s' "$AE_LAST_BODY" | json_get csrfToken CsrfToken)"
   fi
   http POST "$AE_PATH" "$AE_JSON" "$csrf" "$AE_OUT"
+}
+
+cmd_delete() {
+  parse_common "$@"
+  if [[ -z "$AE_PATH" ]]; then
+    echo "delete requires a path" >&2
+    exit 1
+  fi
+  local csrf=""
+  if [[ "$AE_USE_CSRF" == "1" ]]; then
+    local csrf_path="/identity/csrfToken"
+    case "$AE_PATH" in
+      /auth/*) csrf_path="/auth/csrfToken" ;;
+      /web/*) csrf_path="/web/csrfToken" ;;
+      /app/*) csrf_path="/app/csrfToken" ;;
+      *)
+        if [[ "$AE_HOST_MODE" == "split" ]]; then
+          csrf_path="/web/csrfToken"
+        fi
+        ;;
+    esac
+    csrf="$(AE_OUT="" http GET "$csrf_path" "" "" "" >/dev/null; printf '%s' "$AE_LAST_BODY" | json_get csrfToken CsrfToken)"
+  fi
+  http DELETE "$AE_PATH" "" "$csrf" "$AE_OUT"
 }
 
 resolve_paths
@@ -400,6 +489,7 @@ case "$cmd" in
   csrf) cmd_csrf "$@" ;;
   get) cmd_get "$@" ;;
   post) cmd_post "$@" ;;
+  delete) cmd_delete "$@" ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: $cmd" >&2; usage; exit 1 ;;
 esac

@@ -2,7 +2,7 @@
 
 public interface IRefreshTokenService
 {
-    /// <summary>Looks up a token by the raw cookie value (hashed for storage lookup).</summary>
+    /// <summary>Looks up a token by the raw refresh value (hashed for storage lookup).</summary>
     Task<RefreshToken?> GetRefreshTokenAsync(string rawToken);
 
     Task RevokeAsync(RefreshToken refreshToken);
@@ -17,7 +17,8 @@ public interface IRefreshTokenService
 
     /// <summary>
     /// Atomically revokes <paramref name="refreshToken"/> and issues a single successor in the same family.
-    /// Returns <c>null</c> when another request already rotated the token (compare-and-swap lost).
+    /// Returns <c>null</c> when the token is already expired or revoked.
+    /// Returns <c>null</c> when another request already rotated the token, and in that case revokes the family.
     /// </summary>
     Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp);
 

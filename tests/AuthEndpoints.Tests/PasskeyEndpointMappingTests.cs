@@ -66,6 +66,7 @@ public class PasskeyEndpointMappingTests
             .AddEntityFrameworkStores<TestDbContext>()
             .AddDefaultTokenProviders();
         builder.Services.AddAuthorization();
+        builder.Services.AddPasskeyEndpoints<TestAppUser>();
         configureServices?.Invoke(builder.Services);
 
         return builder.Build();

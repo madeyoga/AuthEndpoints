@@ -1,0 +1,16 @@
+<Project>
+  <!--
+    Pack reads each ProjectReference version from the referenced project.
+    That value is a minimum (4.0.0 means >= 4.0.0). These packages must refuse AuthEndpoints 5.
+  -->
+  <Target Name="PinAuthEndpointsDependencyRange"
+          AfterTargets="_GetProjectReferenceVersions"
+          BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)"
+                                      Condition="$([System.String]::Copy('%(Identity)').EndsWith('AuthEndpoints.csproj'))">
+        <ProjectVersion>[4.0.0, 5.0.0)</ProjectVersion>
+      </_ProjectReferencesWithVersions>
+    </ItemGroup>
+  </Target>
+</Project>

@@ -5,4 +5,5 @@ public sealed record AuthMethodsResponse(
     bool Authenticator,
     bool RecoveryCodes,
     bool Passkeys,
-    int PasskeyCount);
+    int PasskeyCount,
+    bool EmailCode);

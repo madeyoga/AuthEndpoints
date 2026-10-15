@@ -4,9 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
     <PackageId>AuthEndpoints.External.OAuth</PackageId>
-    <Description>Minimal API endpoints for external OAuth authentication with ASP.NET Core Identity. GitHub and Google handlers ship in separate packages.</Description>
-    <Version>3.0.0-preview.5</Version>
+    <Description>Forwarding shim. The external OAuth endpoints moved into AuthEndpoints 4.0. Remove this package reference; no code changes are needed.</Description>
+    <Version>4.0.0</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
@@ -18,21 +19,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="buildTransitive\AuthEndpoints.External.OAuth.targets" Pack="true" PackagePath="buildTransitive\" />
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="AuthEndpoints.OAuth.GitHub" />
-    <InternalsVisibleTo Include="AuthEndpoints.OAuth.Google" />
-    <InternalsVisibleTo Include="AuthEndpoints.External.OAuth.Tests" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
   </ItemGroup>
+
+  <Import Project="..\AuthEndpoints.DependencyRange.targets" />
 
 </Project>

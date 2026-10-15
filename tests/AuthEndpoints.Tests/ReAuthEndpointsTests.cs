@@ -34,6 +34,8 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
         var root = doc.RootElement;
         var password = root.TryGetProperty("password", out var p) ? p.GetBoolean() : root.GetProperty("Password").GetBoolean();
         Assert.True(password);
+        var emailCode = root.TryGetProperty("emailCode", out var code) ? code.GetBoolean() : root.GetProperty("EmailCode").GetBoolean();
+        Assert.False(emailCode);
     }
 
     [Fact]

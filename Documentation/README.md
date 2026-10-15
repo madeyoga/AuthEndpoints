@@ -8,22 +8,24 @@ Content lives under [`content/`](content/). The site is built with [Nuxt](https:
 
 When cutting a NuGet release, add a note under [`content/versions/<tag>.md`](content/versions/) so it appears on the [Changelog](https://madeyoga.github.io/AuthEndpoints/changelog) page.
 
-### Multi-package releases
+### Package versions
 
-This repo publishes the core library and the External OAuth packages with **independent versions**. GitHub and Google handlers are their own nupkgs and share the External OAuth version.
+4.0.0 ships these packages together. The shim and the provider packages depend on `AuthEndpoints` `[4.0.0, 5.0.0)`.
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
-[![nuget](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
+[![nuget](https://img.shields.io/nuget/v/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
 
-| Package | GitHub tag pattern | Notes |
+| Package | Version | Notes |
 | --- | --- | --- |
-| `AuthEndpoints` | `v*` | Core library |
-| `AuthEndpoints.External.OAuth` | `external-oauth-v*` | Preview OAuth core (no GitHub/Google handler references) |
-| `AuthEndpoints.OAuth.GitHub` | `external-oauth-v*` | GitHub handler; depends on the OAuth core package |
-| `AuthEndpoints.OAuth.Google` | `external-oauth-v*` | Google handler; depends on the OAuth core package |
+| `AuthEndpoints` | `4.0.0` | Core library, including the external OAuth endpoints |
+| `AuthEndpoints.External.OAuth` | `4.0.0` | Forwarding shim. Remove it, or keep this version |
+| `AuthEndpoints.OAuth.GitHub` | `4.0.0` | GitHub handler |
+| `AuthEndpoints.OAuth.Google` | `4.0.0` | Google handler |
+
+Releases before 4.0 versioned External.OAuth on its own preview tags. Those notes stay in the changelog.
 
 - Set `<Version>` only on the package(s) you intend to ship. The publish workflow packs the solution and uses `--skip-duplicate`.
-- Changelog `title` should name the package + version (e.g. `AuthEndpoints.External.OAuth 3.0.0-preview.1`).
+- Changelog `title` should name the package and version.
 - Set frontmatter `tag` to the GitHub release tag so the changelog links correctly.
 - If one GitHub release ships more than one package, use a `###` section per package.
 

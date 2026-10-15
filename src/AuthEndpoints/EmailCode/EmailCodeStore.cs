@@ -47,6 +47,7 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         string email,
         string? userId,
         string? securityStamp,
+        EmailCodeRowPurpose purpose,
         bool rememberSignupEmail = false,
         CancellationToken cancellationToken = default)
     {
@@ -55,13 +56,13 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         string emailHash = HashEmail(email);
         try
         {
-            return await IssueOnceAsync(email, emailHash, userId, securityStamp, rememberSignupEmail, cancellationToken);
+            return await IssueOnceAsync(email, emailHash, userId, securityStamp, purpose, rememberSignupEmail, cancellationToken);
         }
         catch (Exception ex) when (IsTransientTransactionConflict(ex, cancellationToken))
         {
             try
             {
-                return await IssueOnceAsync(email, emailHash, userId, securityStamp, rememberSignupEmail, cancellationToken);
+                return await IssueOnceAsync(email, emailHash, userId, securityStamp, purpose, rememberSignupEmail, cancellationToken);
             }
             catch (Exception retryEx) when (IsTransientTransactionConflict(retryEx, cancellationToken))
             {
@@ -75,6 +76,7 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         string emailHash,
         string? userId,
         string? securityStamp,
+        EmailCodeRowPurpose purpose,
         bool rememberSignupEmail,
         CancellationToken cancellationToken)
     {
@@ -85,31 +87,35 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
                 DateTime now = UtcNow();
                 string id = Guid.NewGuid().ToString();
                 string code = EmailCodeGenerator.CreateCode(_options.CodeLength);
+                var reAuth = purpose == EmailCodeRowPurpose.ReAuth;
                 string? linkToken = null;
                 string? linkTokenHash = null;
-                if (_options.MagicLink.Enabled)
+                if (!reAuth && _options.MagicLink.Enabled)
                 {
                     linkToken = EmailCodeGenerator.CreateLinkToken();
                     linkTokenHash = EmailCodeHasher.HashLinkToken(linkToken);
                 }
+
+                TimeSpan lifetime = reAuth ? _options.ReAuth.CodeLifetime : _options.CodeLifetime;
 
                 await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
                 EmailCodeEntry? row = null;
                 try
                 {
                     DetachEmail(emailHash);
-                    if (await IsWithinResendCooldownAsync(email, ct))
+                    if (await IsWithinResendCooldownAsync(email, purpose, ct))
                     {
                         return Suppressed(emailHash);
                     }
 
                     DateTime deleteBefore = now - EmailCodeRetention.ExpiredRowRetention;
                     await _db.Set<EmailCodeEntry>()
-                        .Where(e => e.EmailHash == emailHash && e.ExpiresAt < deleteBefore)
+                        .Where(e => e.EmailHash == emailHash && e.Purpose == purpose && e.ExpiresAt < deleteBefore)
                         .ExecuteDeleteAsync(ct);
 
                     await _db.Set<EmailCodeEntry>()
                         .Where(e => e.EmailHash == emailHash
+                            && e.Purpose == purpose
                             && e.ConsumedAt == null
                             && e.SupersededAt == null
                             && e.Attempts < _options.MaxAttempts
@@ -122,13 +128,14 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
                     {
                         Id = id,
                         EmailHash = emailHash,
+                        Purpose = purpose,
                         UserId = userId,
                         CodeHash = EmailCodeHasher.HashCode(id, code),
                         LinkTokenHash = linkTokenHash,
                         SecurityStamp = securityStamp,
-                        SignupEmail = rememberSignupEmail ? email.Trim() : null,
+                        SignupEmail = reAuth || !rememberSignupEmail ? null : email.Trim(),
                         CreatedAt = now,
-                        ExpiresAt = now.Add(_options.CodeLifetime),
+                        ExpiresAt = now.Add(lifetime),
                         Attempts = 0
                     };
                     _db.Add(row);
@@ -162,19 +169,30 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
             && EmailCodeTransactionFailures.IsDeadlockOrSerializationFailure(exception);
     }
 
-    public Task<EmailCodeEntry?> FindLiveByEmailAsync(string email, CancellationToken cancellationToken = default)
+    public Task<EmailCodeEntry?> FindLiveByEmailAsync(
+        string email,
+        EmailCodeRowPurpose purpose,
+        string? userId = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
 
         string emailHash = HashEmail(email);
         DateTime now = UtcNow();
-        return _db.Set<EmailCodeEntry>()
+        var query = _db.Set<EmailCodeEntry>()
             .AsNoTracking()
             .Where(e => e.EmailHash == emailHash
+                && e.Purpose == purpose
                 && e.ConsumedAt == null
                 && e.SupersededAt == null
                 && e.Attempts < _options.MaxAttempts
-                && e.ExpiresAt > now)
+                && e.ExpiresAt > now);
+        if (userId is not null)
+        {
+            query = query.Where(e => e.UserId == userId);
+        }
+
+        return query
             .OrderByDescending(e => e.CreatedAt)
             .ThenByDescending(e => e.Id)
             .FirstOrDefaultAsync(cancellationToken);
@@ -189,6 +207,7 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         return _db.Set<EmailCodeEntry>()
             .AsNoTracking()
             .Where(e => e.LinkTokenHash == tokenHash
+                && e.Purpose == EmailCodeRowPurpose.SignIn
                 && e.ConsumedAt == null
                 && e.SupersededAt == null
                 && e.Attempts < _options.MaxAttempts
@@ -263,7 +282,10 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         return true;
     }
 
-    public async Task<bool> IsWithinResendCooldownAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<bool> IsWithinResendCooldownAsync(
+        string email,
+        EmailCodeRowPurpose purpose,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
         if (_options.ResendCooldown <= TimeSpan.Zero)
@@ -274,16 +296,23 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
         string emailHash = HashEmail(email);
         DateTime since = UtcNow() - _options.ResendCooldown;
         return await _db.Set<EmailCodeEntry>()
-            .AnyAsync(e => e.EmailHash == emailHash && e.CreatedAt > since, cancellationToken);
+            .AnyAsync(
+                e => e.EmailHash == emailHash && e.Purpose == purpose && e.CreatedAt > since,
+                cancellationToken);
     }
 
-    public async Task<bool> HasReachedSendCapAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<bool> HasReachedSendCapAsync(
+        string email,
+        EmailCodeRowPurpose purpose,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(email);
         string emailHash = HashEmail(email);
         DateTime since = UtcNow() - _options.SendWindow;
         int count = await _db.Set<EmailCodeEntry>()
-            .CountAsync(e => e.EmailHash == emailHash && e.CreatedAt >= since, cancellationToken);
+            .CountAsync(
+                e => e.EmailHash == emailHash && e.Purpose == purpose && e.CreatedAt >= since,
+                cancellationToken);
         return count >= _options.MaxSendsPerEmail;
     }
 

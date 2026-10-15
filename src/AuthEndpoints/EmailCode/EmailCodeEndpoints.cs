@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using AuthEndpoints.SignIn;
 using System.Reflection;
 using AuthEndpoints.Identity;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -38,7 +40,7 @@ public static class EmailCodeEndpoints<TUser>
         }
 
         var hashPrefix = HashPrefix(userManager, email);
-        if (await store.HasReachedSendCapAsync(email, cancellationToken))
+        if (await store.HasReachedSendCapAsync(email, EmailCodeRowPurpose.SignIn, cancellationToken))
         {
             EmailCodeLog.SendSuppressed(logger, null, hashPrefix, "cap");
             return TypedResults.Ok(response);
@@ -76,6 +78,7 @@ public static class EmailCodeEndpoints<TUser>
                 email,
                 eligible ? userId : null,
                 eligible ? stamp : null,
+                EmailCodeRowPurpose.SignIn,
                 rememberSignupEmail,
                 cancellationToken);
         }
@@ -87,6 +90,7 @@ public static class EmailCodeEndpoints<TUser>
                     email,
                     eligible ? userId : null,
                     eligible ? stamp : null,
+                    EmailCodeRowPurpose.SignIn,
                     rememberSignupEmail,
                     cancellationToken);
             }
@@ -105,6 +109,14 @@ public static class EmailCodeEndpoints<TUser>
 
         if (!eligible)
         {
+            // Unknown and ineligible addresses skip the sender. Protect the address so this branch
+            // still does the same class of work as a send.
+            var dataProtection = services.GetService<IDataProtectionProvider>();
+            if (dataProtection is not null)
+            {
+                EnumerationPadding.Protect(dataProtection, email);
+            }
+
             EmailCodeLog.SendSuppressed(logger, userId, EmailCodeHasher.HashPrefix(issued.EmailHash), "ineligible");
             return TypedResults.Ok(response);
         }
@@ -156,7 +168,10 @@ public static class EmailCodeEndpoints<TUser>
 
         var row = proof.IsToken
             ? await store.FindLiveByLinkTokenAsync(proof.Token, cancellationToken)
-            : await store.FindLiveByEmailAsync(proof.Email, cancellationToken);
+            : await store.FindLiveByEmailAsync(
+                proof.Email,
+                EmailCodeRowPurpose.SignIn,
+                cancellationToken: cancellationToken);
         if (row is null)
         {
             EmailCodeLog.VerifyFailed(logger, null, ProofHashPrefix(userManager, proof), EmailCodeVerifyFailure.NotFound);
@@ -568,15 +583,13 @@ public static class EmailCodeEndpoints<TUser>
         }
 
         await userManager.ResetAccessFailedCountAsync(user);
-        var result = await completer.CompleteAsync(
+        var result = await SignInCompletion.CompleteEmailCodeAsync(
             httpContext,
             user,
-            new EmailCodeSignInContext
-            {
-                UseCookies = useCookies,
-                UseSessionCookies = useSessionCookies,
-                IsNewUser = isNewUser
-            },
+            completer,
+            isNewUser,
+            useCookies,
+            useSessionCookies,
             cancellationToken);
         if (isNewUser)
         {

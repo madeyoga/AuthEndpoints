@@ -1,0 +1,152 @@
+<Project>
+  <UsingTask TaskName="AuthEndpointsFindExternalOAuthBelow4" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <PackageReferences ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="false" />
+      <PackageVersions ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="false" />
+      <AssetsFile ParameterType="System.String" Required="false" />
+      <Failures ParameterType="Microsoft.Build.Framework.ITaskItem[]" Output="true" />
+    </ParameterGroup>
+    <Task>
+      <Code Type="Class" Language="cs"><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
+
+public sealed class AuthEndpointsFindExternalOAuthBelow4 : Task
+{
+    private const string PackageId = "AuthEndpoints.External.OAuth";
+
+    public ITaskItem[] PackageReferences { get; set; }
+    public ITaskItem[] PackageVersions { get; set; }
+    public string AssetsFile { get; set; }
+    [Output] public ITaskItem[] Failures { get; set; }
+
+    public override bool Execute()
+    {
+        var found = new List<ITaskItem>();
+        Collect(PackageReferences, found);
+        Collect(PackageVersions, found);
+        CollectAssets(found);
+        Failures = found.ToArray();
+        return true;
+    }
+
+    private void Collect(ITaskItem[] items, List<ITaskItem> found)
+    {
+        if (items == null)
+        {
+            return;
+        }
+
+        foreach (var item in items)
+        {
+            if (!string.Equals(item.ItemSpec, PackageId, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var version = item.GetMetadata("Version");
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                version = item.GetMetadata("NuGetVersion");
+            }
+
+            if (IsBelow4(version))
+            {
+                found.Add(new TaskItem(PackageId, new Dictionary<string, string> { { "Version", version.Trim() } }));
+            }
+        }
+    }
+
+    private void CollectAssets(List<ITaskItem> found)
+    {
+        if (string.IsNullOrWhiteSpace(AssetsFile) || !File.Exists(AssetsFile))
+        {
+            return;
+        }
+
+        var text = File.ReadAllText(AssetsFile);
+        const string needle = "\"AuthEndpoints.External.OAuth/";
+        var index = 0;
+        while ((index = text.IndexOf(needle, index, StringComparison.Ordinal)) >= 0)
+        {
+            var start = index + needle.Length;
+            var end = text.IndexOf('"', start);
+            if (end < 0)
+            {
+                break;
+            }
+
+            var version = text.Substring(start, end - start);
+            if (IsBelow4(version))
+            {
+                found.Add(new TaskItem(PackageId, new Dictionary<string, string> { { "Version", version } }));
+            }
+
+            index = end;
+        }
+    }
+
+    private static bool IsBelow4(string raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return false;
+        }
+
+        raw = raw.Trim();
+        if (raw == "*" || raw.StartsWith("$("))
+        {
+            return false;
+        }
+
+        if (raw[0] == '[' || raw[0] == '(')
+        {
+            var inner = raw.Trim('[', ']', '(', ')');
+            var comma = inner.IndexOf(',');
+            var low = comma >= 0 ? inner.Substring(0, comma).Trim() : inner.Trim();
+            return IsBelow4(low);
+        }
+
+        var dash = raw.IndexOf('-');
+        var core = dash >= 0 ? raw.Substring(0, dash) : raw;
+        var parts = core.Split('.');
+        if (parts.Length == 0 || !int.TryParse(parts[0], out var major))
+        {
+            return false;
+        }
+
+        if (major < 4)
+        {
+            return true;
+        }
+
+        if (major > 4)
+        {
+            return false;
+        }
+
+        var minor = parts.Length > 1 && int.TryParse(parts[1], out var parsedMinor) ? parsedMinor : 0;
+        var patch = parts.Length > 2 && int.TryParse(parts[2], out var parsedPatch) ? parsedPatch : 0;
+        return minor == 0 && patch == 0 && dash >= 0;
+    }
+}
+]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="AuthEndpointsRejectExternalOAuthPreview" BeforeTargets="Restore;Build">
+    <AuthEndpointsFindExternalOAuthBelow4
+      PackageReferences="@(PackageReference)"
+      PackageVersions="@(PackageVersion)"
+      AssetsFile="$(ProjectAssetsFile)">
+      <Output TaskParameter="Failures" ItemName="_AuthEndpointsExternalOAuthPreview" />
+    </AuthEndpointsFindExternalOAuthBelow4>
+    <Error
+      Code="AE4000"
+      Text="AuthEndpoints.External.OAuth %(_AuthEndpointsExternalOAuthPreview.Version) is below 4.0.0 and cannot be used with AuthEndpoints 4.0 because that package defines the same types (CS0433). Remove the package reference, or upgrade AuthEndpoints.External.OAuth to 4.0.0."
+      Condition="'@(_AuthEndpointsExternalOAuthPreview)' != ''" />
+  </Target>
+</Project>

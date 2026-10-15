@@ -110,7 +110,7 @@ Each capability links to the guide that shows you how to use it.
   GitHub and Google sign-in
 
   #description
-  Add social sign-in in a separate preview package.
+  Add GitHub or Google sign-in. The endpoints are in the core package.
   :::
 
   :::u-page-feature
