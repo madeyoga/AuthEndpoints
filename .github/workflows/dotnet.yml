@@ -2,7 +2,7 @@ name: .NET
 
 on:
   push:
-    branches: [ main, "release/**" ]
+    branches: [ main ]
     paths:
       - 'src/AuthEndpoints/**'
       - 'src/AuthEndpoints.External.OAuth/**'
