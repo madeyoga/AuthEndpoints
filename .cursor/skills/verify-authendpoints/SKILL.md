@@ -198,9 +198,11 @@ Proof standards:
 - 429 is not success. Retry via the helper; if still 429, wait 10s and retry the step. Do not record a rate-limit as a product failure unless it persists on a fresh host.
 - Duplicate register emails return **200** (no enumeration) and the test mailbox records `registration-attempt` for the existing owner. Do not treat that 200 as “a second user was created” without a distinct email.
 
-Cloud Agent walkthroughs may **copy** evidence files to `/opt/cursor/artifacts` after the drive. Copying is extra; the named evidence dir is the source of truth.
+Cloud Agent walkthroughs may **copy** evidence files to `/opt/cursor/artifacts` after the drive. Copying is extra. The named evidence dir is local working output; the PR body is the record.
 
 Do not commit `traces-summary.txt` or `trace-labels.jsonl`. They are harness dumps under the evidence directory.
+
+PR body (required for backend changes). Text in the PR body is the source of truth for verification evidence. Paste the output of `ae-http.sh traces` (traces-summary.txt) into a `## Trace evidence` section in a fenced block: error spans and exception events (or "none"), SQL per request trace with any N+1 flags, and per-route timing (min/median/max) plus any timing-gap or slow-span flags. Include the exit code. If traces were skipped, say why. Span names alone are not evidence. Artifacts and screenshots are extra and do not replace this text.
 
 ## Traces
 
