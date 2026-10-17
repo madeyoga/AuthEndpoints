@@ -1,4 +1,6 @@
-# AuthEndpoints
+<p align="center">
+  <img src=".github/assets/banner.png" alt="AuthEndpoints: composable authentication for ASP.NET Core" width="100%">
+</p>
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![oauth](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
