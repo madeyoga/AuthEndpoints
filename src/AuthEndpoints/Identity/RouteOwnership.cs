@@ -16,11 +16,17 @@ internal static class RouteOwnership
         ArgumentNullException.ThrowIfNull(endpoints);
         ArgumentException.ThrowIfNullOrEmpty(mapMethod);
 
-        builder.Finally(endpointBuilder => Observe(endpoints, endpointBuilder, mapMethod));
+        // Route groups rebuild RouteEndpointBuilder and re-run Finally each time Endpoints is read.
+        // The handler builder passed to Track stays the same across those rebuilds.
+        builder.Finally(endpointBuilder => Observe(endpoints, endpointBuilder, mapMethod, builder));
         return builder;
     }
 
-    private static void Observe(IEndpointRouteBuilder endpoints, EndpointBuilder endpointBuilder, string mapMethod)
+    private static void Observe(
+        IEndpointRouteBuilder endpoints,
+        EndpointBuilder endpointBuilder,
+        string mapMethod,
+        IEndpointConventionBuilder owner)
     {
         if (endpointBuilder is not RouteEndpointBuilder route)
         {
@@ -38,21 +44,19 @@ internal static class RouteOwnership
 
         lock (slot.Gate)
         {
-            if (!slot.Seen.Add(endpointBuilder))
-            {
-                return;
-            }
-
             foreach (var method in methods)
             {
                 var key = method + " " + path;
                 if (slot.First.TryGetValue(key, out var existing))
                 {
-                    AuthEndpointsModules.Log(endpoints, $"{existing} and {mapMethod} both map {key}.");
+                    if (!ReferenceEquals(existing.Owner, owner) && slot.Reported.Add(key))
+                    {
+                        AuthEndpointsModules.Log(endpoints, $"{existing.MapMethod} and {mapMethod} both map {key}.");
+                    }
                 }
                 else
                 {
-                    slot.First[key] = mapMethod;
+                    slot.First[key] = (mapMethod, owner);
                 }
             }
         }
@@ -62,8 +66,9 @@ internal static class RouteOwnership
     {
         public object Gate { get; } = new();
 
-        public Dictionary<string, string> First { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, (string MapMethod, IEndpointConventionBuilder Owner)> First { get; } =
+            new(StringComparer.Ordinal);
 
-        public HashSet<EndpointBuilder> Seen { get; } = [];
+        public HashSet<string> Reported { get; } = new(StringComparer.Ordinal);
     }
 }
