@@ -645,6 +645,21 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
+    public void SingleRouteGroup_EnumeratedTwice_DoesNotWarnAboutItsOwnRoutes()
+    {
+        var logs = new WarningLog();
+        using var app = BuildIdentity(services => services.AddCookieSessionEndpoints(), app =>
+        {
+            app.MapGroup("/account").MapCookieSessionEndpoints<TestAppUser>();
+        }, logs);
+
+        var routes = EnumerateEndpointsTwice(app);
+        Assert.Equal(2, routes.Count(route => route == "POST /account/logout"));
+        Assert.Equal(2, routes.Count(route => route == "GET /account/csrfToken"));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void CookieAndBearerSessions_OnTheSamePrefix_WarnAboutLogout()
     {
         var logs = new WarningLog();
@@ -659,10 +674,11 @@ public class BuildingBlockRouteTests
             identity.MapBearerSessionEndpoints<TestAppUser>();
         }, logs);
 
-        _ = RouteSurface.ListRoutes(app);
-        Assert.Contains(
-            logs.Messages,
-            message => message.Contains("MapCookieSessionEndpoints and MapBearerSessionEndpoints both map POST /identity/logout.", StringComparison.Ordinal));
+        _ = EnumerateEndpointsTwice(app);
+        var warning = Assert.Single(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
+        Assert.Equal(
+            "MapCookieSessionEndpoints and MapBearerSessionEndpoints both map POST /identity/logout.",
+            warning);
     }
 
     [Fact]
@@ -676,10 +692,11 @@ public class BuildingBlockRouteTests
             identity.MapCookieAuthEndpoints<TestAppUser>();
         }, logs);
 
-        _ = RouteSurface.ListRoutes(app);
-        Assert.Contains(
-            logs.Messages,
-            message => message.Contains("MapPasswordEndpoints and MapCookieAuthEndpoints both map POST /identity/login.", StringComparison.Ordinal));
+        _ = EnumerateEndpointsTwice(app);
+        var warning = Assert.Single(logs.Messages, message => message.Contains("both map", StringComparison.Ordinal));
+        Assert.Equal(
+            "MapPasswordEndpoints and MapCookieAuthEndpoints both map POST /identity/login.",
+            warning);
     }
 
     [Fact]
@@ -952,6 +969,18 @@ public class BuildingBlockRouteTests
     {
         using var app = BuildIdentity(configure, map);
         return RouteSurface.ListRoutes(app);
+    }
+
+    private static List<string> EnumerateEndpointsTwice(WebApplication app)
+    {
+        var routes = new List<string>();
+        foreach (var source in ((IEndpointRouteBuilder)app).DataSources)
+        {
+            routes.AddRange(source.Endpoints.Select(Format));
+            routes.AddRange(source.Endpoints.Select(Format));
+        }
+
+        return routes;
     }
 
     private static WebApplication BuildIdentity(
