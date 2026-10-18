@@ -8,14 +8,14 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>4.0.0</Version>
+    <Version>4.0.1</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>4.0.0. One sign-in completer, email-code step-up, JWT body refresh with an absolute lifetime, set-password, and AddPasswordAuth. AddAuthEndpoints stays the 3.4.1 facade. See the 4.0 upgrade guide.</PackageReleaseNotes>
+    <PackageReleaseNotes>Mapping a route group once no longer logs a duplicate-route warning for every route.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
