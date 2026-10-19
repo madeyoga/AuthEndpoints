@@ -1,0 +1,13 @@
+<Project>
+
+  <!--
+    Projects under src are the packable packages. Test projects live under tests
+    and do not import this file.
+  -->
+  <PropertyGroup Condition="'$(IsPackable)' != 'false'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: ship the XML file for IntelliSense without requiring a comment on every public member. -->
+    <NoWarn>CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>
