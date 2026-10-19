@@ -528,7 +528,7 @@ public class PasswordAuthRouteTests
         }
 
         group.MapPasskeySignInEndpoints<TestAppUser>(session);
-        group.MapPasskeyManagementEndpoints<TestAppUser>(session);
+        group.MapPasskeyManagementEndpoints<TestAppUser>();
     }
 
     private static string ReadSnapshot(string fileName)

@@ -183,20 +183,6 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     public static IEndpointConventionBuilder MapPasskeyManagementEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
-        return MapPasskeyManagementEndpoints<TUser>(endpoints, AuthEndpointsSession.Cookie);
-    }
-
-    /// <summary>
-    /// Maps signed-in passkey credential management for <paramref name="session"/>.
-    /// Mutations require antiforgery for every value of <paramref name="session"/>.
-    /// An <c>Authorization: Bearer</c> access token skips that check.
-    /// Cookie callers, including <c>useCookies=true</c>, still send the token.
-    /// </summary>
-    public static IEndpointConventionBuilder MapPasskeyManagementEndpoints<TUser>(
-        this IEndpointRouteBuilder endpoints,
-        AuthEndpointsSession session)
-        where TUser : class, new()
-    {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
@@ -214,7 +200,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             management: true,
             completer: null,
             honorDefault: false,
-            session);
+            AuthEndpointsSession.Cookie);
         return group;
     }
 
