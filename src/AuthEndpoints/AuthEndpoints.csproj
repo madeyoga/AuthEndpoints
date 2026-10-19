@@ -15,7 +15,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>On a host with email-code sign-in only, POST /confirmIdentity/emailCode/send returns 404 instead of 500, and authMethods.emailCode is false.</PackageReleaseNotes>
+    <PackageReleaseNotes>On a host with email-code sign-in only, POST /confirmIdentity/emailCode/send returns 404 instead of 500, authMethods.emailCode is false, and POST /confirmIdentity with an email code returns 400 EmailCodeProofUnavailable instead of 401.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
