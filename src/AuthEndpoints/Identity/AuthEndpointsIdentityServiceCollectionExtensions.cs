@@ -9,11 +9,11 @@ public static class AuthEndpointsIdentityServiceCollectionExtensions
 {
     /// <summary>
     /// Registers Identity API endpoints, EF stores, default token providers, authorization, and antiforgery.
-    /// <see cref="IdentityOptions.SignIn.RequireConfirmedAccount"/> defaults to <see langword="true"/> and
-    /// <see cref="IdentityOptions.Stores.SchemaVersion"/> defaults to <see cref="IdentitySchemaVersions.Version3"/>.
+    /// <see cref="SignInOptions.RequireConfirmedAccount"/> defaults to <see langword="true"/> and
+    /// <see cref="StoreOptions.SchemaVersion"/> defaults to <see cref="IdentitySchemaVersions.Version3"/>.
     /// The <paramref name="configure"/> callback runs after those defaults.
     /// A later call for the same <typeparamref name="TUser"/> applies <paramref name="configure"/> through
-    /// options configuration and does not reset <see cref="IdentityOptions.SignIn.RequireConfirmedAccount"/>.
+    /// options configuration and does not reset <see cref="SignInOptions.RequireConfirmedAccount"/>.
     /// </summary>
     public static IdentityBuilder AddAuthEndpointsIdentity<TUser, TContext>(
         this IServiceCollection services,

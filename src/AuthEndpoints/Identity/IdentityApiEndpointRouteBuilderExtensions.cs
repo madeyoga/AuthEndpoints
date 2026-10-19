@@ -13,6 +13,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// Compose with <see cref="MapCookieAuthEndpoints{TUser}"/>, <see cref="MapBearerAuthEndpoints{TUser}"/>,
     /// or <c>MapJwtAuthEndpoints</c> for sign-in. Call <c>UseRateLimiter()</c> and <c>UseAntiforgery()</c>.
     /// </summary>
+    /// <param name="endpoints">The endpoint route builder.</param>
     /// <param name="confirmEmailEndpointName">
     /// Optional unique endpoint name for confirm-email link generation.
     /// The confirm route is mapped once per name in an app.
@@ -173,7 +174,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps Identity bearer sign-in endpoints (login, refresh, logout).
-    /// Pair with <see cref="MapIdentityManagementApi{TUser}"/> or <see cref="MapPasswordEndpoints{TUser}"/> for register.
+    /// Pair with <see cref="MapIdentityManagementApi{TUser}"/> or <see cref="MapPasswordEndpoints{TUser}(IEndpointRouteBuilder)"/> for register.
     /// Call <see cref="ServiceCollectionExtensions.AddBearerAuthEndpoints"/> and <c>UseRateLimiter()</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapBearerAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)

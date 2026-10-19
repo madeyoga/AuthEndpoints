@@ -12,7 +12,7 @@ public static class JwtApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps JWT auth endpoints (create, refresh, verify, logout, csrfToken).
-    /// Call <see cref="ServiceCollectionExtensions.AddJwtEndpoints{TUser, TContext}"/>,
+    /// Call <see cref="ServiceCollectionExtensions.AddJwtEndpoints{TUser, TContext}(IServiceCollection)"/>,
     /// <c>UseRateLimiter()</c>, and <c>UseAntiforgery()</c>.
     /// Pair with <c>MapIdentityManagementApi</c> for register/manage.
     /// </summary>

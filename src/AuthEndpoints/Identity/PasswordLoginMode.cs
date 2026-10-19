@@ -1,7 +1,7 @@
 namespace AuthEndpoints.Identity;
 
 /// <summary>
-/// Password login handler mapped by <see cref="IdentityApiEndpointRouteBuilderExtensions.MapPasswordEndpoints{TUser}"/>.
+/// Password login handler mapped by <see cref="IdentityApiEndpointRouteBuilderExtensions.MapPasswordEndpoints{TUser}(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder, PasswordLoginMode, string?)"/>.
 /// </summary>
 public enum PasswordLoginMode
 {

@@ -15,16 +15,17 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps passkey register, login, and credential management endpoints under <c>/passkeys</c>.
-    /// This is <see cref="MapPasskeySignInEndpoints{TUser}"/> without auto-mapping confirm-email,
+    /// This is <see cref="MapPasskeySignInEndpoints{TUser}(IEndpointRouteBuilder, string?)"/> without auto-mapping confirm-email,
     /// plus <see cref="MapPasskeyManagementEndpoints{TUser}"/>, on one <c>/passkeys</c> group.
     /// The sign-in completer stays Identity bearer. Anonymous ceremonies keep antiforgery, because
     /// this map is the 3.x surface used beside cookie sign-in. Pass
     /// <see cref="AuthEndpointsSession.IdentityBearer"/> to omit it on those ceremonies.
-    /// <see cref="MapBearerAuthEndpoints{TUser}"/> maps no <c>csrfToken</c> route, and
+    /// <see cref="AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions.MapBearerAuthEndpoints{TUser}(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)"/> maps no <c>csrfToken</c> route, and
     /// the bearer facade passes that session. JWT body refresh omits it on those ceremonies when
     /// the session is <see cref="AuthEndpointsSession.Jwt"/>. Signed-in passkey changes always
     /// require antiforgery. An <c>Authorization: Bearer</c> access token still skips that check.
     /// </summary>
+    /// <param name="endpoints">The endpoint route builder.</param>
     /// <param name="confirmEmailEndpointName">
     /// Optional unique endpoint name for confirm-email link generation after passwordless register.
     /// Defaults to <see cref="AuthEndpointsEndpointNames.ConfirmEmail{TUser}"/>. Required when that map

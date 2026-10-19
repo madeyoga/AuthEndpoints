@@ -11,7 +11,7 @@ public class PackagedPublicApiTests
     public void ExternalOAuth_ForwardsPublicTypesToAuthEndpoints()
     {
         var shim = Assembly.Load("AuthEndpoints.External.OAuth");
-        Assert.Equal(new Version(4, 0, 0, 0), shim.GetName().Version);
+        Assert.Equal(new Version(4, 0, 1, 0), shim.GetName().Version);
         Assert.Empty(shim.GetExportedTypes());
 
         using var stream = File.OpenRead(shim.Location);

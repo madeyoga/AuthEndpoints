@@ -22,7 +22,7 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// provide a real <c>IEmailSender&lt;TUser&gt;</c> plus <c>Passkeys.ServerDomain</c>.
     /// </summary>
     /// <remarks>
-    /// For roles, prefer <see cref="AddAuthEndpoints{TUser, TRole, TContext}"/> so
+    /// For roles, prefer <see cref="AddAuthEndpoints{TUser, TRole, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/> so
     /// <c>IRoleStore</c> is registered. Do not chain bare <c>AddRoles</c> after this overload
     /// without calling <c>AddEntityFrameworkStores</c> again.
     /// For Identity bearer tokens, pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> or set
