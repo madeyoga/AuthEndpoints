@@ -58,7 +58,7 @@ Add the coding-agent skill from this repository:
 npx skills add madeyoga/AuthEndpoints
 ```
 
-See [AI agents](https://authendpoints.harten.id/guides/ai-agents/).
+See [AI agents](https://authendpoints.harten.id/getting-started/ai-agents/).
 
 ## Contribute
 
