@@ -18,11 +18,7 @@ public class PasskeyCsrfWithoutJwtTests
         { "cookie-facade", "/account/passkeys/requestOptions" },
         { "cookie-facade", "/account/passkeys/register/options" },
         { "cookie-facade", "/account/passkeys/register" },
-        { "cookie-facade", "/account/passkeys/login" },
-        { "bearer-facade", "/account/passkeys/requestOptions" },
-        { "bearer-facade", "/account/passkeys/register/options" },
-        { "bearer-facade", "/account/passkeys/register" },
-        { "bearer-facade", "/account/passkeys/login" }
+        { "cookie-facade", "/account/passkeys/login" }
     };
 
     [Theory]
@@ -170,21 +166,61 @@ public class PasskeyCsrfWithoutJwtTests
     }
 
     [Fact]
-    public async Task JwtEnabledFacade_RequestOptions_EnforcesCsrf()
+    public async Task JwtEnabledFacade_RequestOptions_DoesNotRequireCsrf()
     {
         await using var root = new TestWebApplicationFactory();
         using var factory = CreateFacadeFactory(root, "bearer-facade", jwtEnabled: true);
         using var client = TestHelpers.CreateClientWithCookies(factory);
 
         var withoutToken = await client.PostAsJsonAsync("/account/passkeys/requestOptions", new { });
-        Assert.Equal(HttpStatusCode.BadRequest, withoutToken.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, withoutToken.StatusCode);
+        using var doc = JsonDocument.Parse(await withoutToken.Content.ReadAsStringAsync());
+        Assert.True(doc.RootElement.TryGetProperty("challenge", out _));
+    }
 
-        var withToken = await TestHelpers.PostWithCsrfAsync(
-            client,
+    [Fact]
+    public async Task BearerFacade_PasskeyRegisterAndLogin_WithoutCsrf_Succeeds()
+    {
+        await using var root = new TestWebApplicationFactory();
+        using var factory = CreateFacadeFactory(root, "bearer-facade", jwtEnabled: false);
+        var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
+        var email = $"passkey-bearer-nocsrf-{Guid.NewGuid():N}@test.local";
+
+        using var registerClient = TestHelpers.CreateClientWithCookies(factory);
+        var origin = registerClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var optionsResponse = await registerClient.PostAsJsonAsync(
+            "/account/passkeys/register/options",
+            new { email });
+        Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
+
+        var credentialJson = authenticator.CreateAttestation(
+            await optionsResponse.Content.ReadAsStringAsync(),
+            origin);
+        var register = await registerClient.PostAsJsonAsync(
+            "/account/passkeys/register",
+            new { email, credentialJson });
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+        using var registerDoc = JsonDocument.Parse(await register.Content.ReadAsStringAsync());
+        Assert.False(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(registerDoc.RootElement, "accessToken", "AccessToken")));
+
+        using var loginClient = TestHelpers.CreateClientWithCookies(factory);
+        var loginOrigin = loginClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
+        var requestOptions = await loginClient.PostAsJsonAsync(
             "/account/passkeys/requestOptions",
-            new { },
-            csrfPath: "/test/csrfToken");
-        Assert.Equal(HttpStatusCode.OK, withToken.StatusCode);
+            new { email });
+        Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
+
+        var assertionJson = authenticator.CreateAssertion(
+            await requestOptions.Content.ReadAsStringAsync(),
+            loginOrigin);
+        var login = await loginClient.PostAsJsonAsync(
+            "/account/passkeys/login",
+            new { credentialJson = assertionJson });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var loginDoc = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
+        Assert.False(string.IsNullOrEmpty(
+            TestHelpers.TryGetString(loginDoc.RootElement, "accessToken", "AccessToken")));
     }
 
     private static WebApplicationFactory<Program> CreateFacadeFactory(

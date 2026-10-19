@@ -2,6 +2,8 @@
 
 Passwordless passkey register and login on `/account/passkeys`. Register creates the user and stores a credential. Confirmation mail matches password `POST /identity/register`. When `CanSignInAsync` fails, `PasskeySignInGate` returns `credentialId` and does not call the completer. This host registers `IdentityPasskeySignInCompleter`.
 
+Compose calls `MapPasskeyEndpoints` with no session, so those ceremonies follow Identity bearer and do not require a CSRF token. Sending `RequestVerificationToken` is still accepted. The cookie facade passes `AuthEndpointsSession.Cookie` and still returns `400` without a token. The bearer facade follows Identity bearer and does not require one. Password JWT body refresh does not require one. Password cookie and JWT cookie refresh do. Keep the `Identity.TwoFactorUserId` cookie between options and register or login.
+
 ## Sub-features
 
 - `register-options` returns WebAuthn creation options for an email, including an existing email (no enumeration).

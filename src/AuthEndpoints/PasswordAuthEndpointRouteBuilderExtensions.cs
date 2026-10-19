@@ -24,7 +24,9 @@ public static class PasswordAuthEndpointRouteBuilderExtensions
     /// <c>MapPasswordRecoveryEndpoints</c>, <c>MapCookieSessionEndpoints</c>, <c>MapAccountManagementEndpoints</c>.
     /// JWT session replaces the sign-in and session calls with <c>MapJwtPasswordEndpoints</c> and <c>MapJwtSessionEndpoints</c>.
     /// When passkeys are on, the same prefix also calls <c>MapPasskeySignInEndpoints(session)</c> and
-    /// <c>MapPasskeyManagementEndpoints</c>. Cookie session routes are logout and csrfToken.
+    /// <c>MapPasskeyManagementEndpoints(session)</c>. Antiforgery stays on those routes for a cookie
+    /// session and for JWT cookie refresh. JWT body refresh omits it, and omits csrfToken.
+    /// Cookie session routes are logout and csrfToken.
     /// JWT cookie refresh adds refresh, verify, logout, and csrfToken. Body refresh omits csrfToken.
     /// </remarks>
     public static IEndpointConventionBuilder MapPasswordAuth<TUser>(this IEndpointRouteBuilder endpoints)
@@ -72,7 +74,7 @@ public static class PasswordAuthEndpointRouteBuilderExtensions
         if (registration.PasskeysMapped)
         {
             builders.Add(group.MapPasskeySignInEndpoints<TUser>(registration.Session));
-            builders.Add(group.MapPasskeyManagementEndpoints<TUser>());
+            builders.Add(group.MapPasskeyManagementEndpoints<TUser>(registration.Session));
         }
 
         return new CompositeEndpointConventionBuilder(builders.ToArray());
