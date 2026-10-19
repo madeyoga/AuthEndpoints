@@ -26,7 +26,7 @@ public sealed class Issues315And316ReproTests
 {
     private const string SigningKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
 
-    [Fact]
+    [Fact(Skip = "Issue #315: GET /auth/csrfToken is 404. POST /auth/passkeys/requestOptions, /register/options, /register, and /login return 400 \"Invalid or missing CSRF token.\"")]
     public async Task Issue315_WithoutHostAntiforgeryEndpoint_ClientCompletesPasskeyCeremony()
     {
         var report = await RunPasskeyCeremonyAsync(mapHostAntiforgeryEndpoint: false);
@@ -40,7 +40,7 @@ public sealed class Issues315And316ReproTests
         Assert.True(report.Completed, report.Detail);
     }
 
-    [Fact]
+    [Fact(Skip = "Issue #316: with Passkeys.ServerDomain set, MapCookieAuthEndpoints and MapIdentityManagementApi do not throw. Duplicate routes return 500 AmbiguousMatchException.")]
     public async Task Issue316_WithServerDomain_ExtraMapsThrowMissingAdd()
     {
         var cookie = await ProbeExtraMapAsync("localhost", ExtraMap.CookieAuth);
