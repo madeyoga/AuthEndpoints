@@ -14,6 +14,31 @@ public class PasskeyManagementSecurityTests
         "jwt"
     };
 
+    [Fact]
+    public async Task CookieHost_PatchWithoutToken_Returns400()
+    {
+        using var factory = new TestWebApplicationFactory();
+        var email = $"pk-patch-csrf-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(factory);
+        await SignInAsync(client, "cookie", email);
+        var reauth = await ConfirmAsync(client, csrf: true);
+
+        var response = await SendAsync(
+            client,
+            HttpMethod.Patch,
+            "/account/passkeys/",
+            new { id = "abc", newName = "Phone" },
+            csrf: false,
+            reauth);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains(
+            "Invalid or missing CSRF token.",
+            await response.Content.ReadAsStringAsync(),
+            StringComparison.Ordinal);
+    }
+
     [Theory]
     [MemberData(nameof(SignInModes))]
     public async Task ListAddRenameDelete_RequireSignIn_AndReauthOnMutations(string mode)

@@ -15,7 +15,7 @@ Identity.External
 Identity.TwoFactorRememberMe
 Identity.TwoFactorUserId
 ---
-DELETE /account/passkeys/{credentialIdUrl} name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=false rateLimit=(none)
+DELETE /account/passkeys/{credentialIdUrl} name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=(none)
 GET /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
 GET /auth/csrfToken name=(none) auth=(none) antiforgery=false rateLimit=(none)
 GET /auth/verify name=(none) auth=Bearer antiforgery=false rateLimit=(none)
@@ -23,9 +23,9 @@ GET /identity/confirmEmail name=MapIdentityManagementApi-TestAppUser-confirmEmai
 GET /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
 GET /identity/manage/authMethods name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
 GET /identity/manage/info name=(none) auth=Identity.Application,Identity.Bearer,Bearer antiforgery=false rateLimit=(none)
-PATCH /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=false rateLimit=(none)
-POST /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=false rateLimit=AuthEndpoints.Passkey.Register
-POST /account/passkeys/creationOptions name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=false rateLimit=AuthEndpoints.Passkey.ObtainOptions
+PATCH /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=(none)
+POST /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=AuthEndpoints.Passkey.Register
+POST /account/passkeys/creationOptions name=(none) auth=Identity.Application,Identity.Bearer,Bearer;(default) antiforgery=true rateLimit=AuthEndpoints.Passkey.ObtainOptions
 POST /account/passkeys/login name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Login
 POST /account/passkeys/register name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Passkey.Register
 POST /account/passkeys/register/options name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.Passkey.ObtainOptions

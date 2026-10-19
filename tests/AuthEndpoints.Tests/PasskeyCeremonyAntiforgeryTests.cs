@@ -77,6 +77,7 @@ public class PasskeyCeremonyAntiforgeryTests
         var surface = CapturePassword(AuthEndpointsSession.Jwt, RefreshTokenTransport.Body);
         Assert.DoesNotContain("csrfToken", surface, StringComparison.Ordinal);
         AssertCeremonyAntiforgery(surface, "/auth/passkeys", required: false);
+        AssertManagementAntiforgery(surface, "/auth/passkeys");
     }
 
     [Fact]
@@ -85,6 +86,7 @@ public class PasskeyCeremonyAntiforgeryTests
         var surface = CapturePassword(AuthEndpointsSession.Cookie, RefreshTokenTransport.Cookie);
         Assert.Contains("GET /auth/csrfToken", surface, StringComparison.Ordinal);
         AssertCeremonyAntiforgery(surface, "/auth/passkeys", required: true);
+        AssertManagementAntiforgery(surface, "/auth/passkeys");
     }
 
     [Fact]
@@ -93,6 +95,7 @@ public class PasskeyCeremonyAntiforgeryTests
         var surface = CapturePassword(AuthEndpointsSession.Jwt, RefreshTokenTransport.Cookie);
         Assert.Contains("GET /auth/csrfToken", surface, StringComparison.Ordinal);
         AssertCeremonyAntiforgery(surface, "/auth/passkeys", required: true);
+        AssertManagementAntiforgery(surface, "/auth/passkeys");
     }
 
     [Fact]
@@ -110,6 +113,32 @@ public class PasskeyCeremonyAntiforgeryTests
 
         Assert.DoesNotContain("GET /identity/csrfToken", surface, StringComparison.Ordinal);
         AssertCeremonyAntiforgery(surface, "/account/passkeys", required: false);
+        AssertManagementAntiforgery(surface, "/account/passkeys");
+    }
+
+    [Fact]
+    public void ParameterlessSignInAndSignUp_RequireAntiforgery()
+    {
+        var signIn = RouteSurface.Capture(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.AddPasskeyEndpoints<TestAppUser>();
+            },
+            app => app.MapPasskeySignInEndpoints<TestAppUser>());
+        AssertCeremonyAntiforgery(signIn, "/passkeys", required: true);
+
+        var signUp = RouteSurface.Capture(
+            builder =>
+            {
+                AddIdentity(builder);
+                builder.Services.AddPasskeyEndpoints<TestAppUser>();
+            },
+            app => app.MapPasskeySignUpEndpoints<TestAppUser>());
+        Assert.Contains(
+            "POST /passkeys/register name=(none) auth=(none) antiforgery=true rateLimit=AuthEndpoints.Passkey.Register",
+            signUp,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -341,6 +370,18 @@ public class PasskeyCeremonyAntiforgeryTests
             "POST " + prefix + "/register/options",
             "POST " + prefix + "/register",
             "POST " + prefix + "/login",
+        ];
+        foreach (var route in routes)
+        {
+            var line = surface.Split('\n').Single(item => item.StartsWith(route + " ", StringComparison.Ordinal));
+            Assert.Contains(flag, line, StringComparison.Ordinal);
+        }
+    }
+
+    private static void AssertManagementAntiforgery(string surface, string prefix)
+    {
+        string[] routes =
+        [
             "POST " + prefix + "/creationOptions",
             "POST " + prefix + "/",
             "PATCH " + prefix + "/",
@@ -349,7 +390,7 @@ public class PasskeyCeremonyAntiforgeryTests
         foreach (var route in routes)
         {
             var line = surface.Split('\n').Single(item => item.StartsWith(route + " ", StringComparison.Ordinal));
-            Assert.Contains(flag, line, StringComparison.Ordinal);
+            Assert.Contains("antiforgery=true", line, StringComparison.Ordinal);
         }
     }
 
