@@ -25,6 +25,11 @@ export default defineAppConfig({
     search: true,
     colorMode: true,
     links: [{
+      'label': 'Upgrade to 4.0',
+      'icon': 'i-lucide-arrow-up-right',
+      'to': '/guides/upgrading-to-4/',
+      'aria-label': 'Upgrade to 4.0'
+    }, {
       'label': 'Changelog',
       'icon': 'i-lucide-scroll-text',
       'to': '/changelog/',

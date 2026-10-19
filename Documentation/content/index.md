@@ -266,7 +266,7 @@ Each capability links to the guide that shows you how to use it.
   :::u-page-feature
   ---
   icon: i-lucide-arrow-left-right
-  to: /concepts/mapidentityapi-alternative
+  to: /concepts/compare#what-mapidentityapi-maps
   ---
   #title
   MapIdentityApi alternative
