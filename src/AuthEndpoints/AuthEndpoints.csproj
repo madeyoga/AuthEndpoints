@@ -8,14 +8,14 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>4.0.1</Version>
+    <Version>4.0.2</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>Mapping a route group once no longer logs a duplicate-route warning for every route.</PackageReleaseNotes>
+    <PackageReleaseNotes>On a host with email-code sign-in only, POST /confirmIdentity/emailCode/send returns 404 instead of 500, and authMethods.emailCode is false.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
