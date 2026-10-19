@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import rehypeOwnPropertyLinks from './rehype/own-property-links'
+import { assertMetaDescriptions } from './shared/assert-meta-descriptions'
 import { isOwnPropertyHref } from './shared/site'
 import { DOCS_REDIRECTS } from './shared/redirects'
 
@@ -119,6 +120,7 @@ export default defineNuxtConfig({
         // and drop /404/ so that path is also a real HTTP 404 on Pages.
         await copyFile(join(publicDir, '404/index.html'), join(publicDir, '404.html'))
         await rm(join(publicDir, '404'), { recursive: true, force: true })
+        await assertMetaDescriptions(publicDir)
       })
     }
   },
