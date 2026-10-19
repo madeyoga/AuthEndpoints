@@ -57,8 +57,12 @@ public static class PasswordAuthServiceCollectionExtensions
     /// services.AddCookieSessionEndpoints();
     /// // Jwt (options.Jwt is required). AddJwtEndpoints copies a non-default SimpleJwtOptions.RefreshTokenTransport:
     /// services.AddJwtEndpoints&lt;TUser, TContext&gt;(options.Jwt);
-    /// // When Passkeys.ServerDomain is set:
-    /// services.AddPasskeyEndpoints&lt;TUser&gt;();
+    /// // When Passkeys.ServerDomain is set. These register PasskeyEndpointsModule and the split
+    /// // passkey modules. They do not register the password or cookie-session modules:
+    /// services.AddPasskeySignInEndpoints&lt;TUser&gt;();
+    /// services.AddPasskeySignUpEndpoints&lt;TUser&gt;();
+    /// services.AddPasskeyRegisterOptionsEndpoints();
+    /// services.AddPasskeyManagementEndpoints();
     /// services.Configure&lt;IdentityPasskeyOptions&gt;(passkeys =&gt; passkeys.ServerDomain = options.Passkeys.ServerDomain);
     /// // Confirm-email redirect, read by the shared handler:
     /// services.Configure&lt;AuthEndpointsOptions&gt;(auth =&gt;
@@ -121,7 +125,11 @@ public static class PasswordAuthServiceCollectionExtensions
         if (!string.IsNullOrWhiteSpace(bootstrap.Passkeys.ServerDomain))
         {
             var serverDomain = bootstrap.Passkeys.ServerDomain;
-            services.AddPasskeyEndpoints<TUser>();
+            services.AddModule<PasskeyEndpointsModule>();
+            services.AddPasskeySignInEndpoints<TUser>();
+            services.AddPasskeySignUpEndpoints<TUser>();
+            services.AddPasskeyRegisterOptionsEndpoints();
+            services.AddPasskeyManagementEndpoints();
             services.Configure<IdentityPasskeyOptions>(passkeys => passkeys.ServerDomain = serverDomain);
         }
 

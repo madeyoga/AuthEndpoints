@@ -49,6 +49,6 @@ Preconditions:
 - `/test/mailbox` is not a library route. Cite `/auth/confirmEmail` as the product proof.
 - Unconfirmed login and create are `401` on this host because `RequireConfirmedAccount` defaults to true.
 - JWT password sign-in is `POST /auth/create`. `POST /auth/login` is not mapped in `password-jwt`.
-- Passkey ceremonies are mapped. Do not claim them verified from this recipe.
+- Passkey ceremonies are mapped. Do not claim them verified from this recipe. An extra `MapCookieAuthEndpoints` or `MapIdentityManagementApi` on this host throws `Call AddPasswordEndpoints before ...` when the map runs.
 - Email-code routes are not mapped.
 - `AE_JWT_REFRESH_TRANSPORT=Body` omits `GET /auth/csrfToken` and puts `refreshToken` in JSON. This recipe is cookie transport.
