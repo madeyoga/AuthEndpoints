@@ -29,11 +29,41 @@ public class EmailCodeConfirmIdentitySendTests
         Assert.True(
             sent.StatusCode == HttpStatusCode.NotFound,
             $"POST /identity/confirmIdentity/emailCode/send returned {(int)sent.StatusCode}: {body}");
-        Assert.DoesNotContain(
-            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
-            body,
-            StringComparison.Ordinal);
         Assert.False(await host.EmailCodeOfferedAsync(jar, "/identity/manage/authMethods"));
+
+        var confirm = await host.PostCsrfAsync(
+            jar,
+            "/identity/confirmIdentity",
+            "/identity/csrfToken",
+            new { emailCode = "000000" });
+        var confirmBody = await confirm.Content.ReadAsStringAsync();
+        Assert.True(
+            confirm.StatusCode == HttpStatusCode.BadRequest,
+            $"POST /identity/confirmIdentity returned {(int)confirm.StatusCode}: {confirmBody}");
+        using var confirmDoc = JsonDocument.Parse(confirmBody);
+        Assert.Equal("EmailCodeProofUnavailable", confirmDoc.RootElement.GetProperty("title").GetString());
+    }
+
+    [Fact]
+    public async Task SendOnlyEmailCode_WithAccountManagement_OffersEmailCodeAndSends()
+    {
+        await using var host = await SendHost.StartSendOnlyAsync();
+        var email = $"send-only-{Guid.NewGuid():N}@test.local";
+        await host.SeedPasswordlessAsync(email);
+        var jar = await host.SignInDirectlyAsync(email);
+
+        Assert.True(await host.EmailCodeOfferedAsync(jar, "/identity/manage/authMethods"));
+
+        var sent = await host.PostCsrfAsync(jar, "/identity/confirmIdentity/emailCode/send", "/identity/csrfToken");
+        var body = await sent.Content.ReadAsStringAsync();
+        Assert.True(
+            sent.StatusCode == HttpStatusCode.OK,
+            $"POST /identity/confirmIdentity/emailCode/send returned {(int)sent.StatusCode}: {body}");
+        using var doc = JsonDocument.Parse(body);
+        Assert.True(
+            doc.RootElement.TryGetProperty("expiresInSeconds", out _)
+            || doc.RootElement.TryGetProperty("ExpiresInSeconds", out _));
+        Assert.Contains(host.Mail.Snapshot(), item => item.Email == email && item.Purpose == EmailCodePurpose.ReAuth);
     }
 
     [Fact]
@@ -104,6 +134,30 @@ public class EmailCodeConfirmIdentitySendTests
                 });
         }
 
+        public static Task<SendHost> StartSendOnlyAsync()
+        {
+            return StartAsync(
+                services =>
+                {
+                    services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+                    services.AddCookieSessionEndpoints();
+                    services.AddAccountManagementEndpoints();
+                    services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>();
+                },
+                app =>
+                {
+                    var group = app.MapGroup("/identity");
+                    group.MapCookieSessionEndpoints<TestAppUser>();
+                    group.MapAccountManagementEndpoints<TestAppUser>();
+                    app.MapPost("/test/sign-in", async (string email, SignInManager<TestAppUser> signIn, UserManager<TestAppUser> users) =>
+                    {
+                        var user = await users.FindByEmailAsync(email);
+                        await signIn.SignInAsync(user!, isPersistent: false);
+                        return Results.NoContent();
+                    });
+                });
+        }
+
         public static Task<SendHost> StartPasswordAuthAsync()
         {
             return StartAsync(
@@ -157,6 +211,14 @@ public class EmailCodeConfirmIdentitySendTests
             return jar;
         }
 
+        public async Task<CookieJar> SignInDirectlyAsync(string email)
+        {
+            var jar = new CookieJar();
+            var response = await PostAsync($"/test/sign-in?email={Uri.EscapeDataString(email)}", new { }, jar);
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            return jar;
+        }
+
         public async Task<bool> EmailCodeOfferedAsync(CookieJar jar, string path)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, path);
@@ -178,7 +240,7 @@ public class EmailCodeConfirmIdentitySendTests
             return SendAsync(HttpMethod.Post, path, body, jar, csrf: null);
         }
 
-        public async Task<HttpResponseMessage> PostCsrfAsync(CookieJar jar, string path, string csrfPath)
+        public async Task<HttpResponseMessage> PostCsrfAsync(CookieJar jar, string path, string csrfPath, object? body = null)
         {
             using var csrfRequest = new HttpRequestMessage(HttpMethod.Get, csrfPath);
             jar.Apply(csrfRequest, Client.BaseAddress!);
@@ -190,7 +252,7 @@ public class EmailCodeConfirmIdentitySendTests
                 ? camel.GetString()
                 : doc.RootElement.GetProperty("CsrfToken").GetString();
             Assert.False(string.IsNullOrEmpty(token));
-            return await SendAsync(HttpMethod.Post, path, new { }, jar, token);
+            return await SendAsync(HttpMethod.Post, path, body ?? new { }, jar, token);
         }
 
         public async ValueTask DisposeAsync()

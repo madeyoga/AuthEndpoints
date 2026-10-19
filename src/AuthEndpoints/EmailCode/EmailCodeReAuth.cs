@@ -1,3 +1,4 @@
+using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -160,7 +161,11 @@ internal static class EmailCodeReAuthEndpoints<TUser>
         var services = context.RequestServices;
         var options = services.GetService<IOptions<EmailCodeOptions>>()?.Value;
         var store = services.GetService<IEmailCodeStore>();
-        if (options is null || store is null || !await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options))
+        // Sign-in shares the store. Send owns the step-up proof.
+        if (!AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(services)
+            || options is null
+            || store is null
+            || !await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options))
         {
             return EmailCodeReAuthVerifyStatus.Unavailable;
         }
