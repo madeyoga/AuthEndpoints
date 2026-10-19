@@ -4,6 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: ship the XML file for IntelliSense without requiring a comment on every public member. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
     <PackageId>AuthEndpoints.OAuth.Google</PackageId>
     <Description>Google OAuth provider for AuthEndpoints. Registers the Google handler only. Map routes with MapExternalAuthProvider.</Description>
     <Version>4.0.0</Version>

@@ -20,7 +20,7 @@ internal readonly record struct ExternalProvisionDecision(ExternalProvisionKind 
 
 /// <summary>
 /// Pure provision decision. Auto-link always requires a verified provider email and a
-/// confirmed local email, even when <paramref name="requireVerifiedEmail"/> is false.
+/// confirmed local email, even when <c>requireVerifiedEmail</c> is false.
 /// </summary>
 internal static class ExternalEmailPolicy
 {

@@ -208,7 +208,7 @@ public static class ExternalAccountEndpoints<TUser>
     internal static string LinkCallbackEndpointName(string scheme) => $"ExternalLinkCallback-{scheme}";
 
     /// <summary>
-    /// EF stores report passkey support while <see cref="IdentityOptions.Stores.SchemaVersion"/> is still below
+    /// EF stores report passkey support while <see cref="StoreOptions.SchemaVersion"/> is still below
     /// <see cref="IdentitySchemaVersions.Version3"/>, then <see cref="UserManager{TUser}.GetPasskeysAsync"/> throws.
     /// Unlink treats that as zero passkeys so a host that has not opted into passkeys can still remove a login.
     /// </summary>
