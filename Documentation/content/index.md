@@ -1,7 +1,7 @@
 ---
 seo:
   title: AuthEndpoints — ASP.NET Core Identity auth library
-  description: 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.'
+  description: 'Sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.'
 ---
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
@@ -321,7 +321,7 @@ The quick start uses AddPasswordAuth and MapPasswordAuth. Pick another setup whe
   variant: outline
   size: xl
   ---
-  Pick your setup
+  Choose your sign-in setup
   :::
 
 :stars-bg

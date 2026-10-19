@@ -135,7 +135,7 @@ export default defineNuxtConfig({
   llms: {
     domain: 'https://authendpoints.harten.id',
     title: 'AuthEndpoints',
-    description: 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.',
+    description: 'Sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.',
     full: {
       title: 'AuthEndpoints - Full Documentation',
       description: 'Complete documentation for AuthEndpoints: get started, guides, composable endpoints, reference, and concepts.'
