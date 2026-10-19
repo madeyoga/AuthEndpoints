@@ -101,7 +101,8 @@ internal static class IdentityEndpointRoutes
     public static IEndpointConventionBuilder MapConfirmEmail<TUser>(IEndpointRouteBuilder endpoints, string confirmEmailEndpointName, string mapMethod)
         where TUser : class, new()
     {
-        // A nested MapGroup is a separate endpoint data source and is enumerated after this builder.
+        // Map on the caller's builder. A nested group would land in a later data source, so
+        // confirm and resend would follow forgot and reset instead of the 3.3.0 order.
         var confirm = endpoints.MapGet("/confirmEmail", IdentityApiEndpoints<TUser>.ConfirmEmail)
             .WithSummary("Confirms a user's email address.")
             .WithName(confirmEmailEndpointName)
@@ -152,6 +153,8 @@ internal static class IdentityEndpointRoutes
     public static void MapEmailCodeReAuthSend<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
         where TUser : class, new()
     {
+        // Send owns this route and AuthEndpoints.ConfirmIdentity.EmailCode.
+        // Sign-in shares the store, and it does not register that policy.
         if (!AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(endpoints.ServiceProvider))
         {
             return;

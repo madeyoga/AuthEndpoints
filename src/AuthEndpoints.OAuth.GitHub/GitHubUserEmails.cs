@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace AuthEndpoints.OAuth.GitHub;
 
+/// <summary>
+/// Selects a verified GitHub email from <c>GET /user/emails</c>. An unverified primary is ignored.
+/// </summary>
 internal static class GitHubUserEmails
 {
     internal static string? SelectVerified(JsonElement emails)

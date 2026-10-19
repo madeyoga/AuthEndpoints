@@ -54,21 +54,27 @@ public class IdentityApiEndpoints<TUser>
         var user = new TUser();
         await userStore.SetUserNameAsync(user, email, CancellationToken.None);
         await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+        // Unknown email: CreateAsync hashes the password and inserts the user. The confirmation mail follows.
+        // An existing email fails that insert, then matches the token work and emails the owner.
         var result = await userManager.CreateAsync(user, registration.Password);
 
         if (!result.Succeeded)
         {
+            // Duplicate accounts look like a new registration: empty 200, no DuplicateUserName.
+            // A password-rule failure still returns 400, and that body does not depend on whether the email exists.
             if (result.Errors.Any(e =>
                     e.Code is "DuplicateUserName" or "DuplicateEmail"))
             {
                 var existing = await userManager.FindByEmailAsync(email);
                 if (existing is not null)
                 {
+                    // Match the confirmation-token work the new-account branch does, then tell the owner.
                     _ = await userManager.GenerateEmailConfirmationTokenAsync(existing);
                     await NotifyRegistrationAttemptAsync(sp, existing, email, context.RequestAborted);
                 }
                 else
                 {
+                    // The username collided and this email is not an account. Mint a confirmation token anyway.
                     _ = await EnumerationPadding.CreateDecoyEmailConfirmationTokenAsync(
                         userManager,
                         userStore,
@@ -222,6 +228,8 @@ public class IdentityApiEndpoints<TUser>
         }
         else
         {
+            // As with Identity UI, email and user name are one and the same. So when we update the email,
+            // we need to update the user name.
             result = await userManager.ChangeEmailAsync(user, changedEmail, code);
 
             if (result.Succeeded)
@@ -279,6 +287,8 @@ public class IdentityApiEndpoints<TUser>
         [FromServices] IServiceProvider sp,
         string confirmEmailEndpointName)
     {
+        // The body email is ignored. A known address and an unknown address share this path,
+        // so the status, body, and timing match. Only the signed-in account is mailed.
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
         {
@@ -316,6 +326,8 @@ public class IdentityApiEndpoints<TUser>
         var user = string.IsNullOrEmpty(email) ? null : await userManager.FindByEmailAsync(email);
         var sendReset = user is not null && await userManager.IsEmailConfirmedAsync(user);
 
+        // Unknown and unconfirmed addresses still mint a token so this branch matches a confirmed account.
+        // The token is discarded unless the account exists and the email is confirmed.
         var dataProtection = sp.GetRequiredService<IDataProtectionProvider>();
         var code = user is not null
             ? await userManager.GeneratePasswordResetTokenAsync(user)
@@ -334,6 +346,7 @@ public class IdentityApiEndpoints<TUser>
             await emailSender.SendPasswordResetCodeAsync(user!, email!, encoded);
         }
 
+        // Don't reveal that the user does not exist or is not confirmed.
         return TypedResults.Ok();
     }
 
@@ -364,6 +377,8 @@ public class IdentityApiEndpoints<TUser>
 
         if (user is null || !await userManager.IsEmailConfirmedAsync(user))
         {
+            // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have
+            // returned a 400 for an invalid code given a valid user email.
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidToken()));
         }
 
@@ -464,6 +479,7 @@ public class IdentityApiEndpoints<TUser>
             }
         }
 
+        // Only expose the shared key when it was just (re)generated or 2FA is being enabled.
         var exposeSharedKey = tfaRequest.ResetSharedKey || keyWasMissing || tfaRequest.Enable == true;
 
         return TypedResults.Ok(new TwoFactorResponse

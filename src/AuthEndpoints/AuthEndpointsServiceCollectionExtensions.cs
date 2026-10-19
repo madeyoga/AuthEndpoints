@@ -27,6 +27,7 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// without calling <c>AddEntityFrameworkStores</c> again.
     /// For Identity bearer tokens, pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> or set
     /// <see cref="AuthEndpointsOptions.SignIn"/>.
+    /// This is the 3.4.1 compatibility facade. It stays frozen: same options, same routes, and no 4.0-only features.
     /// Do not also call <c>AddPasswordAuth</c>.
     /// </remarks>
     public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(

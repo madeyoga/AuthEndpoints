@@ -9,6 +9,10 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints;
 
+/// <summary>
+/// Decisions <c>AddPasswordAuth</c> already registered. <c>MapPasswordAuth</c> maps this snapshot.
+/// A later <c>Configure&lt;PasswordAuthOptions&gt;</c> that changes session, path, or passkey domain fails validation.
+/// </summary>
 internal sealed class PasswordAuthRegistration
 {
     public PasswordAuthRegistration(AuthEndpointsSession session, string path, string? serverDomain)

@@ -84,7 +84,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// Maps password routes with an explicit <paramref name="login"/> mode.
     /// Also maps confirm-email when <paramref name="confirmEmailEndpointName"/> is not mapped yet.
     /// <see cref="PasswordLoginMode.None"/> omits <c>POST /login</c> so a session map can own that route.
-    /// An explicit mode does not apply <see cref="SignInCompletionOptions.Default"/>.
+    /// An explicit mode keeps the 3.4.1 <c>PasswordSignInAsync</c> handler and does not apply
+    /// <see cref="SignInCompletionOptions.Default"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,

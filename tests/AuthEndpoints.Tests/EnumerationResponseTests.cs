@@ -19,6 +19,11 @@ namespace AuthEndpoints.Tests;
 
 public sealed class EnumerationResponseTests : IAsyncLifetime
 {
+    /// <summary>
+    /// Median absolute difference allowed between a known-account request and an unknown-account request
+    /// after one warmed pair. The test sender does not perform network I/O.
+    /// Hosts should queue mail and return; inline SMTP is the gap this bound does not cover.
+    /// </summary>
     private static readonly TimeSpan TimingBound = TimeSpan.FromMilliseconds(50);
 
     private const int TimedSamples = 4;

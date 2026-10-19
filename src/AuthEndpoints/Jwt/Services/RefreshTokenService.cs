@@ -65,6 +65,7 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
         var lostRace = false;
         await using (var transaction = await _db.Database.BeginTransactionAsync())
         {
+            // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
             var affected = await _db.Set<RefreshToken>()
                 .Where(t => t.Id == refreshToken.Id && t.RevokedAt == null)
                 .ExecuteUpdateAsync(setters => setters
@@ -96,6 +97,8 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
 
         if (lostRace)
         {
+            // The winner has committed its successor. Reuse of this token revokes the family,
+            // including that successor, so parallel refreshes sign every client out.
             await RevokeFamilyAsync(refreshToken.FamilyId);
             return null;
         }
@@ -189,6 +192,7 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
             .Select(t => (DateTime?)t.AbsoluteExpiresAt)
             .FirstOrDefaultAsync();
 
+        // Joining a family must not start a new absolute window.
         return existing is { } found ? AsUtc(found) : now.Add(_session.AbsoluteLifetime);
     }
 

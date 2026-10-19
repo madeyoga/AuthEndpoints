@@ -207,7 +207,11 @@ public static class ExternalAccountEndpoints<TUser>
 
     internal static string LinkCallbackEndpointName(string scheme) => $"ExternalLinkCallback-{scheme}";
 
-    // UserStore reports passkey support, then GetPasskeysAsync throws while StoreOptions.SchemaVersion is below IdentitySchemaVersions.Version3.
+    /// <summary>
+    /// EF stores report passkey support while <see cref="IdentityOptions.Stores.SchemaVersion"/> is still below
+    /// <see cref="IdentitySchemaVersions.Version3"/>, then <see cref="UserManager{TUser}.GetPasskeysAsync"/> throws.
+    /// Unlink treats that as zero passkeys so a host that has not opted into passkeys can still remove a login.
+    /// </summary>
     private static async Task<int> CountPasskeysAsync(
         UserManager<TUser> userManager,
         IdentityOptions identityOptions,

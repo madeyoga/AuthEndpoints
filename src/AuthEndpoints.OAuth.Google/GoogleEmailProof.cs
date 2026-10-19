@@ -4,6 +4,10 @@ using System.Text.Json;
 
 namespace AuthEndpoints.OAuth.Google;
 
+/// <summary>
+/// Sets <c>email_verified</c> from the Google userinfo payload. A host ticket delegate cannot
+/// leave a synthetic verified claim behind.
+/// </summary>
 internal static class GoogleEmailProof
 {
     internal static bool? ReadVerified(JsonElement user)

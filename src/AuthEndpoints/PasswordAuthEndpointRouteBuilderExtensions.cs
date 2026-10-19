@@ -32,6 +32,7 @@ public static class PasswordAuthEndpointRouteBuilderExtensions
                 "AddPasswordAuth<TUser, TContext> was not called before MapPasswordAuth<TUser>.");
         }
 
+        // Validates the options, including a later Configure that disagrees with registration.
         _ = endpoints.ServiceProvider.GetRequiredService<IOptions<PasswordAuthOptions>>().Value;
         var registration = endpoints.ServiceProvider.GetRequiredService<PasswordAuthRegistration>();
         var group = endpoints.MapGroup(registration.Path);

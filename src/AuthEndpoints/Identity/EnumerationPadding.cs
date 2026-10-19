@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Identity;
 
+/// <summary>
+/// Work the unknown-account branch of an enumeration-sensitive route runs so it
+/// costs about as much as the branch that has an account. Always on. There is no option to skip it.
+/// </summary>
 internal static class EnumerationPadding
 {
     private const string Purpose = "AuthEndpoints.EnumerationPadding.v1";

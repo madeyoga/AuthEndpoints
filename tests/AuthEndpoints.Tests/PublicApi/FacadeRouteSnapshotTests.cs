@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Tests.PublicApi;
 
+/// <summary>
+/// Route lists captured against 3.3.0. Later refactors must keep these surfaces stable.
+/// </summary>
 public class FacadeRouteSnapshotTests
 {
     [Fact]

@@ -47,7 +47,8 @@ public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<T
         var session = JwtRefreshDelivery.Session(httpContext);
         if (JwtRefreshDelivery.IsBody(session))
         {
-            // A redirect cannot deliver a refresh token.
+            // Redirects cannot carry the refresh token. Refuse before CreateAsync so a body
+            // session never stores a token the browser will not receive.
             throw new InvalidOperationException(JwtExternalBodyTransportValidator.Message);
         }
 
@@ -61,6 +62,7 @@ public sealed class JwtExternalLoginCompleter<TUser> : IExternalLoginCompleter<T
 
         await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
+        // Access token is not placed in the URL; SPA should call JWT refresh (with CSRF) after redirect.
         var redirectUrl = ExternalAuthReturnUrl.Resolve(
             returnUrl,
             _options.DefaultReturnUrl,

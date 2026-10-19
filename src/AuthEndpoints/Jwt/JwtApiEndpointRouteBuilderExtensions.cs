@@ -29,6 +29,7 @@ public static class JwtApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps password JWT <c>POST /create</c> on the shared password pipeline and the Jwt completer.
     /// A wrong authenticator or recovery code counts toward lockout.
+    /// <c>MapAuthEndpoints</c> keeps the 3.4.1 handler instead.
     /// </summary>
     public static IEndpointConventionBuilder MapJwtPasswordEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()

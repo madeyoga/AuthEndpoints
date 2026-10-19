@@ -42,7 +42,9 @@ public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInComple
 
         await _signInManager.SignInAsync(user, isPersistent);
 
-        // Identity bearer SignInAsync writes the token body and starts the response.
+        // Cookie sign-in only sets the application cookie, so register can still write credentialId.
+        // Bearer sign-in writes AccessTokenResponse inside SignInAsync. A second body throws
+        // "response has already started", so register returns that token response alone.
         if (context.Kind == PasskeySignInKind.Register
             && context.CredentialId is { Length: > 0 }
             && _signInManager.AuthenticationScheme == IdentityConstants.ApplicationScheme)
@@ -56,6 +58,8 @@ public sealed class IdentityPasskeySignInCompleter<TUser> : IPasskeySignInComple
 
     private static IResult Denied(PasskeySignInCompletionContext context)
     {
+        // Password register creates the account and does not sign in when the
+        // user is not allowed (e.g. RequireConfirmedAccount). Keep that shape.
         if (context.Kind == PasskeySignInKind.Register && context.CredentialId is { Length: > 0 })
         {
             return TypedResults.Ok(new PasskeyCredentialResponse(

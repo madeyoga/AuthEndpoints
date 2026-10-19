@@ -454,6 +454,10 @@ public class PasswordAuthRouteTests
         services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
     }
 
+    /// <summary>
+    /// Documented building-block expansion of <c>AddPasswordAuth</c> / <c>MapPasswordAuth</c>.
+    /// Keep this list aligned with the getting-started password facade page.
+    /// </summary>
     private static void AddBlocks(
         IServiceCollection services,
         AuthEndpointsSession session,

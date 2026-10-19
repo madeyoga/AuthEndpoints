@@ -76,6 +76,8 @@ public class AntiforgeryCookieTokenTests
         {
             builder.ConfigureServices(services =>
             {
+                // The CSRF token is bound to the authenticated user. Authenticate the cookie
+                // token on the token request, the same way a browser would send it.
                 services.PostConfigure<AuthenticationOptions>(options =>
                 {
                     options.DefaultAuthenticateScheme = source == "jwt"

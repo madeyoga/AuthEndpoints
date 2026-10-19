@@ -38,6 +38,7 @@ internal sealed class CookieSignInCompleter<TUser> : ISignInCompleter<TUser>
             return await CompleteExternalAsync(httpContext, user, context);
         }
 
+        // LoginCookie: persistent only when useSessionCookies=false. useCookies is ignored.
         var isPersistent = context.UseSessionCookies == false;
         _signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
         if (context.RememberTwoFactorClient)
@@ -144,7 +145,9 @@ internal sealed class IdentityBearerSignInCompleter<TUser> : ISignInCompleter<TU
             return TypedResults.Empty;
         }
 
-        // Identity bearer SignInAsync writes the token body and starts the response.
+        // Cookie sign-in only sets the application cookie, so passkey register can still write credentialId.
+        // Bearer sign-in writes AccessTokenResponse inside SignInAsync. A second body throws
+        // "response has already started", so register returns that token response alone.
         if (context.Method == SignInMethod.Passkey
             && context.PasskeyKind == PasskeySignInKind.Register
             && context.PasskeyCredentialId is { Length: > 0 }
@@ -203,6 +206,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
     {
         if (!await SignInCompletionResults.AllowedAsync(_signInManager, user))
         {
+            // Jwt passkey register denial is an empty 200, matching JwtPasskeySignInCompleter.
             return SignInCompletionResults.Denied(context, includePasskeyCredentialId: false);
         }
 
@@ -226,6 +230,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         };
         JwtRefreshDelivery.ApplyBody(response, refreshToken, session);
 
+        // Same body as JWT /create. Passkey register does not add credentialId.
         return Results.Ok(response);
     }
 
@@ -234,7 +239,8 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         var session = JwtRefreshDelivery.Session(httpContext);
         if (JwtRefreshDelivery.IsBody(session))
         {
-            // A redirect cannot deliver a refresh token.
+            // Redirects cannot carry the refresh token. Refuse before CreateAsync so a body
+            // session never stores a token the browser will not receive.
             throw new InvalidOperationException(JwtExternalBodyTransportValidator.Message);
         }
 

@@ -18,6 +18,10 @@ internal readonly record struct ExternalProvisionDecision(ExternalProvisionKind 
         new(ExternalProvisionKind.Deny, error, description);
 }
 
+/// <summary>
+/// Pure provision decision. Auto-link always requires a verified provider email and a
+/// confirmed local email, even when <paramref name="requireVerifiedEmail"/> is false.
+/// </summary>
 internal static class ExternalEmailPolicy
 {
     internal static ExternalProvisionDecision Decide(

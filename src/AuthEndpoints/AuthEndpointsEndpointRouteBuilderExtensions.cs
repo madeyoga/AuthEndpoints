@@ -19,10 +19,11 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
     /// <see cref="AuthEndpointsJwtOptions.Enabled"/> is true.
     /// Sign-in is <see cref="AuthEndpointsSignIn.Cookie"/> (<c>LoginCookie</c>) or
     /// <see cref="AuthEndpointsSignIn.IdentityBearer"/> (Identity <c>Login</c>).
-    /// Ignores <see cref="SignInCompletionOptions.Default"/>.
-    /// Leaves <c>POST /confirmIdentity/emailCode/send</c> and <c>POST /manage/password</c> unmapped,
-    /// and <c>authMethods.emailCode</c> stays false.
-    /// Do not combine it with <c>AddPasswordAuth</c>.
+    /// This facade ignores <see cref="SignInCompletionOptions.Default"/> and keeps the 3.4.1 sign-in handlers,
+    /// including password login, JWT <c>POST /create</c>, and email-code verify. It leaves
+    /// <c>POST /confirmIdentity/emailCode/send</c> and <c>POST /manage/password</c> unmapped, and
+    /// <c>authMethods.emailCode</c> stays false.
+    /// It is the frozen 3.4.1 compatibility facade. Do not combine it with <c>AddPasswordAuth</c>.
     /// </summary>
     public static IEndpointConventionBuilder MapAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()

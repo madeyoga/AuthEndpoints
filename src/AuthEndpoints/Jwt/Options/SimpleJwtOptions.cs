@@ -21,7 +21,8 @@ public class SimpleJwtOptions
     /// <summary>
     /// Refresh-token transport applied to <see cref="JwtSessionOptions.RefreshTokenTransport"/> by <c>AddJwtEndpoints</c>
     /// when this value is not <see cref="RefreshTokenTransport.Cookie"/>.
-    /// The default <see cref="RefreshTokenTransport.Cookie"/> leaves an earlier
+    /// <c>AddPasswordAuth</c> and the 3.4.1 facade pass their JWT callback through <c>AddJwtEndpoints</c>, so a non-default value is honoured there too.
+    /// The default <see cref="RefreshTokenTransport.Cookie"/> matches 3.4.1 and leaves an earlier
     /// <c>Configure&lt;JwtSessionOptions&gt;</c> in place.
     /// A <c>Configure&lt;JwtSessionOptions&gt;</c> registered after <c>AddJwtEndpoints</c> replaces it.
     /// </summary>

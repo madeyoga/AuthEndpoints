@@ -35,6 +35,11 @@ internal static class SignInCompleterMap
         }
     }
 
+    /// <summary>
+    /// When the map passed no name, validate <see cref="SignInCompletionOptions.Default"/> if it will be used.
+    /// A 3.x legacy completer wins over that default, so a missing keyed service is not an error in that case.
+    /// The name must be registered for <typeparamref name="TUser"/> or as an open generic.
+    /// </summary>
     public static void EnsureConfiguredDefault<TUser>(IEndpointRouteBuilder endpoints, string mapMethod, bool legacyWins)
         where TUser : class
     {

@@ -15,8 +15,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps passkey register, login, and credential management endpoints under <c>/passkeys</c>.
-    /// The sign-in completer stays Identity bearer. Anonymous ceremonies keep antiforgery.
-    /// Pass <see cref="AuthEndpointsSession.IdentityBearer"/> to omit it on those ceremonies.
+    /// This is <see cref="MapPasskeySignInEndpoints{TUser}"/> without auto-mapping confirm-email,
+    /// plus <see cref="MapPasskeyManagementEndpoints{TUser}"/>, on one <c>/passkeys</c> group.
+    /// The sign-in completer stays Identity bearer. Anonymous ceremonies keep antiforgery, because
+    /// this map is the 3.x surface used beside cookie sign-in. Pass
+    /// <see cref="AuthEndpointsSession.IdentityBearer"/> to omit it on those ceremonies.
     /// <see cref="MapBearerAuthEndpoints{TUser}"/> maps no <c>csrfToken</c> route, and
     /// the bearer facade passes that session. JWT body refresh omits it on those ceremonies when
     /// the session is <see cref="AuthEndpointsSession.Jwt"/>. Signed-in passkey changes always
@@ -230,6 +233,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         AuthEndpointsSession session)
         where TUser : class, new()
     {
+        // creationOptions is mapped before the anonymous ceremonies, and credential
+        // changes after them, so MapPasskeyEndpoints keeps the 3.3.0 OpenAPI order.
         RouteGroupBuilder? secured = null;
         if (management)
         {
@@ -470,6 +475,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             nameof(MapPasskeyRegisterOptionsEndpoints));
 
         var group = endpoints.MapGroup("/passkeys");
+        // Shared with every session, including cookie. Keep the token check on this one route.
         MapPasskeySignInRoutes<TUser>(
             group,
             confirmEmailEndpointName: AuthEndpointsEndpointNames.ConfirmEmail<TUser>(),
@@ -579,6 +585,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
+    /// <summary>
+    /// Built-in completer names select that session. A custom name keeps antiforgery.
+    /// No name uses the configured default when it wins, otherwise cookie, so a parameterless
+    /// map keeps antiforgery on a composed cookie host.
+    /// </summary>
     private static AuthEndpointsSession SessionFor<TUser>(
         IEndpointRouteBuilder endpoints,
         string? completer,

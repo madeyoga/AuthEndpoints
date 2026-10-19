@@ -4,6 +4,12 @@ using Microsoft.Extensions.Hosting;
 
 namespace AuthEndpoints.Identity;
 
+/// <summary>
+/// Set when a password sign-in route (<c>POST /login</c> or JWT <c>POST /create</c>) is mapped.
+/// Sign-up and recovery do not set it.
+/// The marker is stored on <see cref="IHostEnvironment"/> so a request scope sees the same flag
+/// as the root provider used at map time.
+/// </summary>
 internal static class PasswordSignInMap
 {
     private static readonly ConditionalWeakTable<object, Marker> Markers = new();

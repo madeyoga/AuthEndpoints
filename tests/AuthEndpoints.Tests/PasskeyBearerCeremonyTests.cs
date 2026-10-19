@@ -56,6 +56,9 @@ public class PasskeyBearerCeremonyTests
         Assert.Contains("Unable to complete registration.", missingStateBody, StringComparison.Ordinal);
         Assert.DoesNotContain("InvalidPasskeyState", missingStateBody, StringComparison.Ordinal);
 
+        // useCookies selects the application cookie. The default bearer sign-in writes the
+        // token body inside SignInAsync, so this call is the cookie path: it proves the
+        // ceremony cookie is consumed and that register can set an auth cookie.
         var register = await TestHelpers.PostWithCsrfAsync(
             client,
             "/account/passkeys/register?useCookies=true",

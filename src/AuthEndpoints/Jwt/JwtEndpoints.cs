@@ -158,6 +158,7 @@ public class JwtEndpoints<TUser>
         var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp);
         if (newRefreshToken is null)
         {
+            // Lost the rotation race (the family is revoked) or the token expired between checks.
             return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 

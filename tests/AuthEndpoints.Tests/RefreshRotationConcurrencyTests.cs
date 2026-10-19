@@ -150,6 +150,8 @@ public class RefreshRotationConcurrencyTests : IClassFixture<TestWebApplicationF
 
     private HttpClient CreateClientWithForcedRefreshCookie(string refreshTokenValue)
     {
+        // CookieContainerHandler must be the outer handler so it stores the CSRF cookie
+        // before ForceRefreshCookieHandler merges that header with the refresh cookie.
         var client = _factory.CreateDefaultClient(
             new CookieContainerHandler(),
             new ForceRefreshCookieHandler(refreshTokenValue));
