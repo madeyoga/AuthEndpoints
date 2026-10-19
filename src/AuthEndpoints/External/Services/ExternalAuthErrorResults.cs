@@ -53,6 +53,7 @@ internal static class ExternalAuthErrorResults
                 || media.Equals("application/xhtml+xml", StringComparison.OrdinalIgnoreCase)
                 || media.Equals("*/*", StringComparison.OrdinalIgnoreCase))
             {
+                // Browsers send */* or text/html; treat as HTML-preferring for OAuth redirects.
                 if (htmlIndex < 0 && !media.Equals("*/*", StringComparison.OrdinalIgnoreCase))
                 {
                     htmlIndex = i;
@@ -60,6 +61,7 @@ internal static class ExternalAuthErrorResults
             }
         }
 
+        // Default for browser OAuth: redirect (not JSON), even when Accept includes */*.
         if (jsonIndex < 0)
         {
             return false;
@@ -67,6 +69,7 @@ internal static class ExternalAuthErrorResults
 
         if (htmlIndex < 0)
         {
+            // application/json without text/html → JSON (API clients).
             return true;
         }
 

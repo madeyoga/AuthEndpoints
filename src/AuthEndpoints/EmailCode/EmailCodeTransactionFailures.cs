@@ -37,6 +37,7 @@ internal static class EmailCodeTransactionFailures
             return true;
         }
 
+        // 40001 is serialization_failure. 40P01 is deadlock_detected.
         return name.Contains("Postgres", StringComparison.Ordinal)
             && (PropertyEquals(exception, "SqlState", "40001")
                 || PropertyEquals(exception, "SqlState", "40P01"));
