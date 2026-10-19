@@ -30,6 +30,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         return MapAccountManagementEndpoints<TUser>(
             endpoints,
             confirmEmailEndpointName,
+            alwaysMapPasskeyOptions: false,
             emailCodeReAuth: true,
             includeSetPassword: true);
     }
@@ -37,6 +38,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     internal static IEndpointConventionBuilder MapAccountManagementEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName,
+        bool alwaysMapPasskeyOptions,
         bool emailCodeReAuth,
         bool includeSetPassword)
         where TUser : class, new()
@@ -59,7 +61,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
             IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
-        if (AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
+        if (alwaysMapPasskeyOptions || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
         {
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }

@@ -164,6 +164,7 @@ public class RecipeRouteTests
                 "GET /auth/csrfToken",
                 "GET /auth/verify",
                 "POST /account/confirmIdentity",
+                "POST /account/confirmIdentity/passkeyOptions",
                 "POST /account/forgotPassword",
                 "POST /account/manage/2fa",
                 "POST /account/manage/info",

@@ -16,9 +16,9 @@ public sealed class Issues316ReproTests
 {
     private const string SigningKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
 
-    private static void ExtraMap_ThrowsMissingAdd(string? serverDomain)
+    private static void ExtraMap_ThrowsMissingAdd(AuthEndpointsSession session, string? serverDomain)
     {
-        using var app = Build(serverDomain);
+        using var app = Build(session, serverDomain);
         app.MapPasswordAuth<TestAppUser>();
 
         var cookie = Assert.Throws<InvalidOperationException>(() =>
@@ -33,16 +33,22 @@ public sealed class Issues316ReproTests
     [Fact]
     public void Issue316_WithServerDomain_ExtraMapsThrowMissingAdd()
     {
-        ExtraMap_ThrowsMissingAdd("localhost");
+        ExtraMap_ThrowsMissingAdd(AuthEndpointsSession.Jwt, "localhost");
     }
 
     [Fact]
     public void Issue316_WithoutServerDomain_ExtraMapsThrowMissingAdd()
     {
-        ExtraMap_ThrowsMissingAdd(null);
+        ExtraMap_ThrowsMissingAdd(AuthEndpointsSession.Jwt, null);
     }
 
-    private static WebApplication Build(string? serverDomain)
+    [Fact]
+    public void Issue316_CookieSessionWithServerDomain_ExtraMapsThrowMissingAdd()
+    {
+        ExtraMap_ThrowsMissingAdd(AuthEndpointsSession.Cookie, "localhost");
+    }
+
+    private static WebApplication Build(AuthEndpointsSession session, string? serverDomain)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -53,13 +59,16 @@ public sealed class Issues316ReproTests
         builder.Services.AddSingleton<IEmailSender<TestAppUser>, TestEmailSender>();
         builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(options =>
         {
-            options.Session = AuthEndpointsSession.Jwt;
+            options.Session = session;
             options.Passkeys.ServerDomain = serverDomain;
-            options.Jwt = jwt =>
+            if (session == AuthEndpointsSession.Jwt)
             {
-                jwt.SigningOptions.SymmetricKey = SigningKey;
-                jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
-            };
+                options.Jwt = jwt =>
+                {
+                    jwt.SigningOptions.SymmetricKey = SigningKey;
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                };
+            }
         });
         return builder.Build();
     }

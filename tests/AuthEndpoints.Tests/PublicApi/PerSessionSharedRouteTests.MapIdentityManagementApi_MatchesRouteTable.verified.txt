@@ -19,6 +19,7 @@ GET /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer a
 GET /identity/manage/authMethods name=(none) auth=Identity.Application,Identity.Bearer antiforgery=false rateLimit=(none)
 GET /identity/manage/info name=(none) auth=Identity.Application,Identity.Bearer antiforgery=false rateLimit=(none)
 POST /identity/confirmIdentity name=(none) auth=Identity.Application,Identity.Bearer antiforgery=true rateLimit=AuthEndpoints.ConfirmIdentity
+POST /identity/confirmIdentity/passkeyOptions name=(none) auth=Identity.Application,Identity.Bearer antiforgery=true rateLimit=AuthEndpoints.ConfirmIdentity
 POST /identity/forgotPassword name=(none) auth=(none) antiforgery=false rateLimit=AuthEndpoints.AccountAbuse
 POST /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=(none)
 POST /identity/manage/info name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=(none)
