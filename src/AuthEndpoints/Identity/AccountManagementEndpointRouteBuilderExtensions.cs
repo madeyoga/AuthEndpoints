@@ -12,7 +12,9 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     /// <c>POST /manage/password</c> sets a password when the account has none. It returns 404 when password
     /// sign-in is not mapped, and 400 when a password already exists.
     /// <c>POST /confirmIdentity/emailCode/send</c> is mapped when
-    /// <c>AddEmailCodeEndpoints</c> was called. <c>POST /confirmIdentity/passkeyOptions</c> is mapped when
+    /// <c>AddEmailCodeSendEndpoints</c> or <c>AddEmailCodeEndpoints</c> was called.
+    /// <c>AddEmailCodeSignInEndpoints</c> alone leaves that route unmapped.
+    /// <c>POST /confirmIdentity/passkeyOptions</c> is mapped when
     /// <c>AddPasskeyEndpoints</c> was called. Also maps confirm-email when that name is not mapped yet.
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
     /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>

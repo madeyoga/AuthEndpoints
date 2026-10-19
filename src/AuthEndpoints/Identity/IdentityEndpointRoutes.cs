@@ -153,7 +153,9 @@ internal static class IdentityEndpointRoutes
     public static void MapEmailCodeReAuthSend<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
         where TUser : class, new()
     {
-        if (endpoints.ServiceProvider.GetService<IEmailCodeModelCheck>() is null)
+        // Send owns this route and AuthEndpoints.ConfirmIdentity.EmailCode.
+        // Sign-in shares the store, and it does not register that policy.
+        if (!AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(endpoints.ServiceProvider))
         {
             return;
         }
