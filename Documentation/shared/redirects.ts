@@ -13,11 +13,22 @@ export const DOCS_REDIRECTS: Readonly<Record<string, string>> = {
   '/examples/two-factor': '/guides/two-factor',
   '/examples/reset-forgotten-password': '/guides/reset-password',
   '/examples/reauth': '/guides/step-up',
-  '/getting-started/production': '/guides/production',
+  '/getting-started/production': '/concepts/production',
   '/getting-started/configuration': '/modules/configuration',
   '/getting-started/compare': '/concepts/compare',
-  '/getting-started/stock-identity-vs-authendpoints': '/concepts/stock-identity-vs-authendpoints',
-  '/getting-started/faq': '/concepts/faq'
+  '/getting-started/stock-identity-vs-authendpoints': '/concepts/compare#shared-routes-side-by-side',
+  '/getting-started/faq': '/concepts/faq',
+  '/getting-started/password-auth': '/modules/password-auth',
+  '/getting-started/ai-agents': '/guides/ai-agents',
+  '/guides/browser-clients': '/getting-started/browser-clients',
+  '/guides/production': '/concepts/production',
+  '/composables/requirements': '/composables#follow-the-composition-rules',
+  '/composables/recipes': '/composables#copy-a-host',
+  '/composables/composition': '/modules/composition',
+  '/modules/sign-in-completer': '/concepts/security-model#sign-in-completers-write-the-session',
+  '/modules/enumeration': '/concepts/security-model#responses-do-not-reveal-which-accounts-exist',
+  '/concepts/stock-identity-vs-authendpoints': '/concepts/compare#shared-routes-side-by-side',
+  '/concepts/mapidentityapi-alternative': '/concepts/compare#what-mapidentityapi-maps'
 }
 
 /** Returns the new path for a moved page, or undefined. Accepts a content path or a route path. */

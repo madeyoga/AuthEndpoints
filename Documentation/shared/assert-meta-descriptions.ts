@@ -20,10 +20,11 @@ function descriptionContents(html: string): string[] {
       continue
     }
     const contentMatch = /\bcontent="([^"]*)"/.exec(tag)
-    if (!contentMatch) {
+    const content = contentMatch?.[1]
+    if (content === undefined) {
       continue
     }
-    contents.push(decodeAttribute(contentMatch[1]))
+    contents.push(decodeAttribute(content))
   }
   return contents
 }

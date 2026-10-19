@@ -124,7 +124,7 @@ builder.Services.AddAuthEndpoints<AppUser, AppRole, AppDbContext>(o =>
 
 Mixed web + native: map **separate** sign-in groups (or hosts) per client type. Do not map cookie and bearer login on the same path without separate groups.
 
-Recipes: https://authendpoints.harten.id/composables/recipes
+Recipes: https://authendpoints.harten.id/composables#copy-a-host
 
 Paths below use `IdentityPath` (default `/identity`). Hosts that change `o.IdentityPath` must use that prefix instead.
 
@@ -263,11 +263,11 @@ A missing `Add*` throws `InvalidOperationException` at map time. The message nam
 
 Map `MapIdentityManagementApi` **once** in production. Pair it with **one** of cookie, bearer, or JWT per prefix.
 
-Building-block recipes (no scenario facade in 4.0): email-code only, external-first (GitHub or Google, then `POST /manage/password`), and passkey-first (email-code sign-up, then a passkey). https://authendpoints.harten.id/composables/recipes
+Building-block recipes (no scenario facade in 4.0): email-code only, external-first (GitHub or Google, then `POST /manage/password`), and passkey-first (email-code sign-up, then a passkey). https://authendpoints.harten.id/composables#copy-a-host
 
-Composition table: https://authendpoints.harten.id/composables/composition
+Composition table: https://authendpoints.harten.id/modules/composition
 
-Sign-in completer: https://authendpoints.harten.id/modules/sign-in-completer
+Sign-in completer: https://authendpoints.harten.id/concepts/security-model#sign-in-completers-write-the-session
 
 ## ReAuth (step-up)
 
@@ -283,4 +283,4 @@ https://authendpoints.harten.id/modules/reauth
 - `Passkeys.ServerDomain` if passkeys stay enabled; otherwise `Passkeys.Enabled = false`
 - JWT: `UseRefreshToken()`, real issuer/audience/signing material
 
-https://authendpoints.harten.id/guides/production/
+https://authendpoints.harten.id/concepts/production/

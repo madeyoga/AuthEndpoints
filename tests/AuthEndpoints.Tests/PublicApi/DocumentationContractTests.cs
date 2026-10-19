@@ -51,7 +51,7 @@ public class DocumentationContractTests
     public void CompositionTable_MatchesRouteSnapshots()
     {
         var repo = FindRepoRoot();
-        var table = File.ReadAllText(Path.Combine(repo, "Documentation", "content", "3.composables", "4.composition.md"));
+        var table = File.ReadAllText(Path.Combine(repo, "Documentation", "content", "4.modules", "03.composition.md"));
         var rows = ParseCompositionRows(table);
         Assert.NotEmpty(rows);
 
@@ -132,8 +132,8 @@ public class DocumentationContractTests
                 FindRepoRoot(),
                 "Documentation",
                 "content",
-                "4.modules",
-                "15.enumeration.md")),
+                "5.concepts",
+                "2.security-model.md")),
             StringComparison.Ordinal);
         Assert.Contains("A taken email on `POST /register` is not one of them.", guide, StringComparison.Ordinal);
         Assert.Contains(RegisterTakenEmail, guide, StringComparison.Ordinal);
