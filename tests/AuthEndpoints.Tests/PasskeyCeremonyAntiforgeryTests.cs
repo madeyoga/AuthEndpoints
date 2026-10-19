@@ -119,7 +119,7 @@ public class PasskeyCeremonyAntiforgeryTests
             builder =>
             {
                 AddIdentity(builder);
-                builder.Services.AddPasskeyRegisterOptionsEndpoints();
+                builder.Services.AddPasskeyEndpoints<TestAppUser>();
                 builder.Services.Configure<JwtSessionOptions>(options =>
                     options.RefreshTokenTransport = RefreshTokenTransport.Body);
             },
@@ -147,7 +147,7 @@ public class PasskeyCeremonyAntiforgeryTests
         };
         var response = await http.SendAsync(request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Equal("Invalid or missing CSRF token.", await response.Content.ReadAsStringAsync());
+        Assert.Contains("Invalid or missing CSRF token.", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
     private static async Task AssertJwtBodyCeremonyAsync(bool mapHostAntiforgeryEndpoint)

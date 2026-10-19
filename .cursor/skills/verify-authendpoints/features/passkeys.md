@@ -2,7 +2,7 @@
 
 Passwordless passkey register and login on `/account/passkeys`. Register creates the user and stores a credential. Confirmation mail matches password `POST /identity/register`. When `CanSignInAsync` fails, `PasskeySignInGate` returns `credentialId` and does not call the completer. This host registers `IdentityPasskeySignInCompleter`.
 
-Compose calls `MapPasskeyEndpoints` with no session, so those ceremonies follow Identity bearer and do not require a CSRF token. Sending `RequestVerificationToken` is still accepted. The cookie facade passes `AuthEndpointsSession.Cookie` and still returns `400` without a token. The bearer facade follows Identity bearer and does not require one. Password JWT body refresh does not require one. Password cookie and JWT cookie refresh do. Keep the `Identity.TwoFactorUserId` cookie between options and register or login.
+Compose and the cookie facade keep antiforgery on `/account/passkeys`. A ceremony without a token returns `400`. The bearer facade passes Identity bearer and does not require a token. Password cookie and JWT cookie refresh require one. Password JWT body refresh does not, and `GET /auth/csrfToken` is unmapped. Keep the `Identity.TwoFactorUserId` cookie between options and register or login. Sending `RequestVerificationToken` is accepted when the filter is absent.
 
 ## Sub-features
 

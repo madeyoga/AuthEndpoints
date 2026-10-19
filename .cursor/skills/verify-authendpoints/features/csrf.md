@@ -39,5 +39,5 @@ Preconditions:
 - The token is bound to the antiforgery **cookie**. A token from a different jar fails.
 - `--csrf` on JWT paths (`/auth/...`) uses `GET /auth/csrfToken`, not `/identity/csrfToken`.
 - Identity bearer login JSON, `POST /identity/bearer/refresh`, and `POST /identity/bearer/logout` are not CSRF-protected. JWT cookie refresh protects `POST /auth/refresh` and `POST /auth/logout`. Body refresh does not. A refresh cookie alone does not skip CSRF. Cookie session + the same request still needs CSRF.
-- Passkey ceremonies require a token for a cookie session and for JWT cookie refresh. Identity bearer and JWT body refresh do not. Compose `MapPasskeyEndpoints` follows Identity bearer. The cookie facade still requires the token.
+- Passkey ceremonies require a token for a cookie session and for JWT cookie refresh. Identity bearer and JWT body refresh do not. Compose `MapPasskeyEndpoints` and the cookie facade still require the token. The bearer facade does not.
 - `/test/csrf` is a test-only probe. It can illustrate an anonymous 400, but it is not a library route. Do not cite it as the only CSRF proof.

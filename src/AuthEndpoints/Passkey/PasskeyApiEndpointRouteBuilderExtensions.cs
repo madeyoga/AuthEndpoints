@@ -17,10 +17,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// Maps passkey register, login, and credential management endpoints under <c>/passkeys</c>.
     /// This is <see cref="MapPasskeySignInEndpoints{TUser}"/> without auto-mapping confirm-email,
     /// plus <see cref="MapPasskeyManagementEndpoints{TUser}"/>, on one <c>/passkeys</c> group.
-    /// The sign-in completer stays Identity bearer. Antiforgery follows that session, so these
-    /// routes do not require a token. <see cref="MapBearerAuthEndpoints{TUser}"/> maps no
-    /// <c>csrfToken</c> route. Pass <see cref="AuthEndpointsSession"/> when the session carries
-    /// an ambient credential.
+    /// The sign-in completer stays Identity bearer. Antiforgery stays on, because this map is the
+    /// 3.x surface used beside cookie sign-in. Pass <see cref="AuthEndpointsSession.IdentityBearer"/>
+    /// to omit it. <see cref="MapBearerAuthEndpoints{TUser}"/> maps no <c>csrfToken</c> route, and
+    /// the bearer facade passes that session. JWT body refresh omits it when the session is
+    /// <see cref="AuthEndpointsSession.Jwt"/>.
     /// </summary>
     /// <param name="confirmEmailEndpointName">
     /// Optional unique endpoint name for confirm-email link generation after passwordless register.
@@ -36,7 +37,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
-        return MapPasskeyEndpoints<TUser>(endpoints, AuthEndpointsSession.IdentityBearer, confirmEmailEndpointName);
+        return MapPasskeyEndpoints<TUser>(endpoints, AuthEndpointsSession.Cookie, confirmEmailEndpointName);
     }
 
     /// <summary>
