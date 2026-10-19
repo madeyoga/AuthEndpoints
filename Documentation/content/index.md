@@ -292,7 +292,7 @@ Each line is one task.
 - [Add GitHub or Google](/guides/registration#register-with-github-or-google)
 - [Require step-up before sensitive actions](/guides/step-up)
 - [Run an app with no public sign-up](/guides/internal-app)
-- [Upgrade to 4.0](/guides/upgrading-to-4)
+- [Upgrade to 4.0](/getting-started/upgrading-to-4)
 
 The same list, plus sign-out, email change, and production, is on [Guides](/guides#i-want-to).
 ::

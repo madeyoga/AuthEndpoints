@@ -94,8 +94,8 @@ public class DocumentationContractTests
             FindRepoRoot(),
             "Documentation",
             "content",
-            "2.guides",
-            "14.upgrading-to-4.md"));
+            "1.getting-started",
+            "8.upgrading-to-4.md"));
 
         Assert.Contains(
             "This page lists every breaking change from 3.4.1 to 4.0.0 and its migration.",
@@ -201,7 +201,7 @@ public class DocumentationContractTests
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
         var usings = CSharpSyntaxTree.ParseText(WebSdkGlobalUsings, parseOptions);
 
-        var guide = Path.Combine(docs, "content", "2.guides", "14.upgrading-to-4.md");
+        var guide = Path.Combine(docs, "content", "1.getting-started", "8.upgrading-to-4.md");
         var guideSamples = ExtractFences(guide, "cs").ToList();
         Assert.Equal(3, guideSamples.Count);
 
