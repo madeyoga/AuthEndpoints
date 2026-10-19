@@ -102,7 +102,6 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
 
         using var client = TestHelpers.CreateClientWithCookies(_factory);
 
-        // Cookie login with recovery code after password step requires two-factor recovery on login.
         HttpResponseMessage? login = null;
         for (var attempt = 0; attempt < 6; attempt++)
         {
@@ -124,7 +123,6 @@ public class ReAuthEndpointsTests : IClassFixture<TestWebApplicationFactory>
             login!.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent,
             $"Login with recovery failed: {(int)login.StatusCode} {await login.Content.ReadAsStringAsync()}");
 
-        // Use a fresh recovery code for ReAuth (first code was consumed at login).
         var remaining = await TestHelpers.GenerateRecoveryCodesAsync(_factory, user);
         var confirm = await TestHelpers.PostWithCsrfAsync(
             client,

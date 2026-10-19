@@ -38,9 +38,6 @@ public static class JwtApiEndpointRouteBuilderExtensions
         return MapJwtPasswordCore<TUser>(endpoints, preserve3x: false, nameof(MapJwtPasswordEndpoints), warn: true);
     }
 
-    /// <summary>
-    /// Maps JWT auth endpoints for the frozen facade. <c>POST /create</c> stays on the 3.4.1 handler.
-    /// </summary>
     internal static IEndpointConventionBuilder MapJwtAuthEndpointsPreserving3x<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {

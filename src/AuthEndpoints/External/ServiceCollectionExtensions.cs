@@ -9,9 +9,6 @@ namespace AuthEndpoints.External.OAuth;
 
 internal sealed class ExternalAuthEndpointsModule;
 
-/// <summary>
-/// DI registration for external OAuth endpoints.
-/// </summary>
 public static class ServiceCollectionExtensions
 {
     /// <summary>
@@ -42,7 +39,6 @@ public static class ServiceCollectionExtensions
         services.AddConfirmIdentityRateLimiting();
         services.AddReAuthScheme();
 
-        // Ensure authentication services exist; provider modules add schemes.
         services.AddAuthentication();
 
         return new ExternalAuthBuilder(typeof(TUser), services);

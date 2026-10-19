@@ -10,9 +10,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Account endpoints for linking / unlinking external logins while signed in.
-/// </summary>
 public static class ExternalAccountEndpoints<TUser>
     where TUser : class, new()
 {
@@ -246,7 +243,4 @@ public static class ExternalAccountEndpoints<TUser>
     }
 }
 
-/// <summary>
-/// External login list item DTO.
-/// </summary>
 public sealed record ExternalLoginListItem(string LoginProvider, string ProviderKey, string? ProviderDisplayName);

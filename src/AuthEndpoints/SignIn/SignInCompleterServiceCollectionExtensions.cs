@@ -3,9 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints;
 
-/// <summary>
-/// Registers keyed <see cref="ISignInCompleter{TUser}"/> implementations.
-/// </summary>
 public static class SignInCompleterServiceCollectionExtensions
 {
     /// <summary>

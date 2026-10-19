@@ -65,9 +65,6 @@ public static class ServiceCollectionExtensions
         return new SimpleJwtBuilder(identityUserType, typeof(TUser), services, options);
     }
 
-    /// <summary>
-    /// Adds the Jwt default system
-    /// </summary>
     public static SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this IServiceCollection services)
         where TUser : class
         where TContext : DbContext

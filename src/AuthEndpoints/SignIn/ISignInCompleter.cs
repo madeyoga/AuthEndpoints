@@ -10,9 +10,6 @@ namespace AuthEndpoints;
 public interface ISignInCompleter<TUser>
     where TUser : class
 {
-    /// <summary>
-    /// Produces the sign-in result for an already-accepted proof.
-    /// </summary>
     Task<IResult> CompleteAsync(
         HttpContext httpContext,
         TUser user,

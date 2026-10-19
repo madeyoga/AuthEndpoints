@@ -10,9 +10,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints;
 
-/// <summary>
-/// Marker for <c>AddAuthEndpoints</c>. Startup validation rejects a host that also calls <c>AddPasswordAuth</c>.
-/// </summary>
 internal sealed class AuthEndpointsRegistration;
 
 public static class AuthEndpointsServiceCollectionExtensions
@@ -33,7 +30,6 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// This is the 3.4.1 compatibility facade. It stays frozen: same options, same routes, and no 4.0-only features.
     /// Do not also call <c>AddPasswordAuth</c>.
     /// </remarks>
-    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
         this IServiceCollection services,
         Action<AuthEndpointsOptions>? configure = null)
@@ -47,7 +43,6 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// Same as <see cref="AddAuthEndpoints{TUser, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
     /// with <see cref="AuthEndpointsOptions.SignIn"/> forced to <paramref name="signIn"/>.
     /// </summary>
-    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
         this IServiceCollection services,
         AuthEndpointsSignIn signIn,
@@ -66,7 +61,6 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// Same as <see cref="AddAuthEndpoints{TUser, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
     /// and registers Identity roles (<typeparamref name="TRole"/>) before EF stores so <c>IRoleStore</c> is available.
     /// </summary>
-    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
         this IServiceCollection services,
         Action<AuthEndpointsOptions>? configure = null)
@@ -85,7 +79,6 @@ public static class AuthEndpointsServiceCollectionExtensions
     /// Same as <see cref="AddAuthEndpoints{TUser, TRole, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
     /// with <see cref="AuthEndpointsOptions.SignIn"/> forced to <paramref name="signIn"/>.
     /// </summary>
-    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
         this IServiceCollection services,
         AuthEndpointsSignIn signIn,

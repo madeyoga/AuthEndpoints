@@ -2,9 +2,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Validates <see cref="ExternalAuthOptions"/>.
-/// </summary>
 public sealed class ExternalAuthOptionsValidator : IValidateOptions<ExternalAuthOptions>
 {
     public ValidateOptionsResult Validate(string? name, ExternalAuthOptions options)

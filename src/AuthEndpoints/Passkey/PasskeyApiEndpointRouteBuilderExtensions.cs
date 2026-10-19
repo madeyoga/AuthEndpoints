@@ -47,8 +47,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// Anonymous ceremonies require antiforgery for <see cref="AuthEndpointsSession.Cookie"/> and for
     /// <see cref="AuthEndpointsSession.Jwt"/> with cookie refresh transport. Identity bearer and
     /// JWT with body refresh transport omit it on those ceremonies. Signed-in passkey changes always
-    /// require antiforgery. The 3.x completer is unchanged: register and login
-    /// still use Identity bearer unless the host registered another passkey completer.
+    /// require antiforgery. Register and login use Identity bearer unless the host registered
+    /// another passkey completer.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -82,7 +82,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
     /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
     /// contributes a no-op builder and those conventions do not reach the existing route.
-    /// Register and login keep the 3.x completer: an explicitly registered
+    /// Register and login use an explicitly registered
     /// <see cref="IPasskeySignInCompleter{TUser}"/>, otherwise Identity bearer.
     /// A single string is the confirm-email endpoint name, not a completer.
     /// When that string matches a registered completer name, this method logs a warning and still
@@ -120,7 +120,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps passkey sign-in and finishes register and login with the keyed completer <paramref name="completer"/>.
-    /// <paramref name="confirmEmailEndpointName"/> is required so a single string still selects the 3.x confirm-email name.
+    /// <paramref name="confirmEmailEndpointName"/> is required so a single string still selects the confirm-email name.
     /// Pass <see langword="null"/> to use <see cref="AuthEndpointsEndpointNames.ConfirmEmail{TUser}"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
@@ -633,9 +633,6 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         return AuthEndpointsSession.Cookie;
     }
 
-    /// <summary>
-    /// Fail fast at map time: passkey endpoints are email-keyed and need a passkey store.
-    /// </summary>
     internal static void EnsurePasskeyAndEmailSupport<TUser>(IServiceProvider services)
         where TUser : class
     {

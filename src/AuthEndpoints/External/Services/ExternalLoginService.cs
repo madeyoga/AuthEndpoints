@@ -4,9 +4,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Resolves or creates a local user from external login info and links the provider login.
-/// </summary>
 public sealed class ExternalLoginService<TUser>
     where TUser : class, new()
 {
@@ -143,9 +140,6 @@ public sealed class ExternalLoginService<TUser>
     }
 }
 
-/// <summary>
-/// Result of provisioning a local user from an external login.
-/// </summary>
 public sealed class ExternalLoginProvisionResult<TUser>
     where TUser : class
 {
@@ -153,9 +147,6 @@ public sealed class ExternalLoginProvisionResult<TUser>
     public TUser? User { get; private init; }
     public ExternalLoginInfo? Info { get; private init; }
 
-    /// <summary>
-    /// True when this request created the local account.
-    /// </summary>
     internal bool Created { get; private init; }
     public string? Error { get; private init; }
     public string? ErrorDescription { get; private init; }

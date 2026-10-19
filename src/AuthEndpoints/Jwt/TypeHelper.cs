@@ -2,9 +2,6 @@
 
 namespace AuthEndpoints.Jwt;
 
-/// <summary>
-/// Use this static class to find genericBaseType of currentType
-/// </summary>
 public static class TypeHelper
 {
     public static Type? FindGenericBaseType(Type currentType, Type genericBaseType)

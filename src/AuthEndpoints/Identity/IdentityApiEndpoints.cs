@@ -120,7 +120,6 @@ public class IdentityApiEndpoints<TUser>
             return CreateLoginFailureResult(result);
         }
 
-        // The signInManager already produced the needed response in the form of a cookie or bearer token.
         return TypedResults.Empty;
     }
 
@@ -151,7 +150,6 @@ public class IdentityApiEndpoints<TUser>
             return CreateLoginFailureResult(result);
         }
 
-        // The signInManager already produced the needed response in the form of a cookie or bearer token.
         return TypedResults.Empty;
     }
 
@@ -164,7 +162,6 @@ public class IdentityApiEndpoints<TUser>
         var refreshTokenProtector = bearerTokenOptions.Get(IdentityConstants.BearerScheme).RefreshTokenProtector;
         var refreshTicket = refreshTokenProtector.Unprotect(refreshRequest.RefreshToken);
 
-        // Reject the /refresh attempt with a 401 if the token expired or the security stamp validation fails
         if (refreshTicket?.Properties?.ExpiresUtc is not { } expiresUtc ||
             timeProvider.GetUtcNow() >= expiresUtc ||
             await signInManager.ValidateSecurityStampAsync(refreshTicket.Principal) is not TUser user)
@@ -177,10 +174,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     /// <summary>
-    /// When <c>useCookies=true</c> is passed to the /login endpoint, tokens are stored
-    /// in cookies instead of being returned to the client. This logout endpoint clears those cookies
-    /// by signing out from Identity authentication schemes 
-    /// <see cref="IdentityConstants.ApplicationScheme"/>
+    /// Signs out the application, external, two-factor, and ReAuth schemes.
     /// </summary>
     public static IResult Logout()
     {
@@ -194,12 +188,6 @@ public class IdentityApiEndpoints<TUser>
         ]);
     }
 
-    /// <summary>
-    /// Generates and stores an anti-forgery (CSRF) token for the current HTTP request and returns it.
-    /// </summary>
-    /// <returns>
-    /// Clients can call this endpoint to obtain csrf token to include in subsequent unsafe requests (POST/PUT/PATCH) for CSRF protection.
-    /// </returns>
     public static IResult GetAntiforgeryToken(IAntiforgery forgeryService, HttpContext context)
     {
         var tokens = forgeryService.GetAndStoreTokens(context);
@@ -220,7 +208,6 @@ public class IdentityApiEndpoints<TUser>
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.FindByIdAsync(userId) is not { } user)
         {
-            // We could respond with a 404 instead of a 401 like Identity UI, but that feels like unnecessary information.
             return ConfirmEmailFailure(redirect, isChangeEmail);
         }
 
@@ -656,7 +643,6 @@ public class IdentityApiEndpoints<TUser>
 
         if (isChange)
         {
-            // This is validated by the /confirmEmail endpoint on change.
             routeValues.Add("changedEmail", email);
         }
 
@@ -689,8 +675,6 @@ public class IdentityApiEndpoints<TUser>
 
     private static ValidationProblem CreateValidationProblem(IdentityResult result)
     {
-        // We expect a single error code and description in the normal case.
-        // This could be golfed with GroupBy and ToDictionary, but perf! :P
         Debug.Assert(!result.Succeeded);
         var errorDictionary = new Dictionary<string, string[]>(1);
 

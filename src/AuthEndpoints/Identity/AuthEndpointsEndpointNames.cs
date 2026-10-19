@@ -1,8 +1,5 @@
 namespace AuthEndpoints.Identity;
 
-/// <summary>
-/// Stable endpoint names used by link generation.
-/// </summary>
 public static class AuthEndpointsEndpointNames
 {
     /// <summary>

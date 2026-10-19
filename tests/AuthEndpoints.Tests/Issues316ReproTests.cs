@@ -9,8 +9,7 @@ using Microsoft.Extensions.Hosting;
 namespace AuthEndpoints.Tests;
 
 /// <summary>
-/// Issue 316: https://github.com/madeyoga/AuthEndpoints/issues/316
-/// An extra cookie or identity-management map on the password facade throws the missing-Add guard.
+/// https://github.com/madeyoga/AuthEndpoints/issues/316
 /// </summary>
 public sealed class Issues316ReproTests
 {

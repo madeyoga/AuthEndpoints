@@ -5,9 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace AuthEndpoints.Jwt;
 
-/// <summary>
-/// Signing options for Jwt
-/// </summary>
 public class SimpleJwtSigningOptions
 {
     public enum SigningAlgorithm

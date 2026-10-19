@@ -35,9 +35,6 @@ public static class AccountManagementServiceCollectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Registers <see cref="LoggingAccountSecurityEmailSender{TUser}"/> when no sender is registered.
-    /// </summary>
     internal static void AddAccountSecurityEmailSender(this IServiceCollection services)
     {
         services.TryAddScoped(typeof(IAccountSecurityEmailSender<>), typeof(LoggingAccountSecurityEmailSender<>));

@@ -7,13 +7,9 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.OAuth.Google;
 
-/// <summary>
-/// Google OAuth registration for <see cref="ExternalAuthBuilder"/>.
-/// </summary>
 public static class GoogleServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds Google as an external authentication provider.
     /// <c>email_verified</c> is taken from the userinfo payload after the host <c>configure</c> delegate.
     /// </summary>
     public static ExternalAuthBuilder AddGoogle(

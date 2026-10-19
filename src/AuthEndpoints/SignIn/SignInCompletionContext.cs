@@ -9,9 +9,6 @@ namespace AuthEndpoints;
 /// </summary>
 public sealed class SignInCompletionContext
 {
-    /// <summary>
-    /// Sign-in method that accepted the proof.
-    /// </summary>
     public required SignInMethod Method { get; init; }
 
     /// <summary>

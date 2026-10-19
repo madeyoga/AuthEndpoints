@@ -9,11 +9,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.ReAuth;
 
-/// <summary>
-/// Requires a signed-in user and a ReAuth proof for that same user.
-/// When the store supports security stamps, the proof's stamp must match the user's current stamp.
-/// The proof is authenticated here and is never copied onto <see cref="HttpContext.User"/>.
-/// </summary>
 internal sealed class ReauthenticatedRequirement : IAuthorizationRequirement;
 
 internal sealed class ReauthenticatedHandler : AuthorizationHandler<ReauthenticatedRequirement>

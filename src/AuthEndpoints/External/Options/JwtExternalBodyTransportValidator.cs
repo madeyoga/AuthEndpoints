@@ -3,10 +3,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Rejects <see cref="JwtExternalLoginCompleter{TUser}"/> when the JWT session
-/// delivers refresh tokens in the JSON body. The callback only redirects.
-/// </summary>
 internal sealed class JwtExternalBodyTransportValidator : IValidateOptions<JwtSessionOptions>
 {
     internal const string Message =

@@ -1,8 +1,5 @@
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Describes a registered external OAuth provider and its app-level login routes.
-/// </summary>
 public interface IExternalAuthProvider
 {
     /// <summary>Authentication scheme name (e.g. <c>GitHub</c>, <c>Google</c>).</summary>

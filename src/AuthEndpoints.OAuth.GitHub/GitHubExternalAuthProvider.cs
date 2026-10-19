@@ -3,9 +3,6 @@ using AuthEndpoints.External.OAuth;
 
 namespace AuthEndpoints.OAuth.GitHub;
 
-/// <summary>
-/// GitHub provider route metadata for external auth endpoints.
-/// </summary>
 public sealed class GitHubExternalAuthProvider : IExternalAuthProvider
 {
     public string Scheme => GitHubAuthenticationDefaults.AuthenticationScheme;

@@ -13,14 +13,12 @@ namespace AuthEndpoints;
 public static class AuthEndpointsEndpointRouteBuilderExtensions
 {
     /// <summary>
-    /// Maps the opinionated auth surface: Identity management plus the configured sign-in stack at
+    /// Maps Identity management and the configured sign-in stack at
     /// <see cref="AuthEndpointsOptions.IdentityPath"/>, passkeys at
     /// <see cref="AuthEndpointsOptions.PasskeyPath"/> when enabled, and JWT when
     /// <see cref="AuthEndpointsJwtOptions.Enabled"/> is true.
     /// Sign-in is <see cref="AuthEndpointsSignIn.Cookie"/> (<c>LoginCookie</c>) or
     /// <see cref="AuthEndpointsSignIn.IdentityBearer"/> (Identity <c>Login</c>).
-    /// For a single module use <c>MapIdentityManagementApi</c>, <c>MapCookieAuthEndpoints</c>,
-    /// <c>MapBearerAuthEndpoints</c>, <c>MapPasskeyEndpoints</c>, or <c>MapJwtAuthEndpoints</c>.
     /// This facade ignores <see cref="SignInCompletionOptions.Default"/> and keeps the 3.4.1 sign-in handlers,
     /// including password login, JWT <c>POST /create</c>, and email-code verify. It leaves
     /// <c>POST /confirmIdentity/emailCode/send</c> and <c>POST /manage/password</c> unmapped, and

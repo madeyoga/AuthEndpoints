@@ -1,8 +1,5 @@
 ﻿namespace AuthEndpoints.Jwt;
 
-/// <summary>
-/// The dto used for login request
-/// </summary>
 public class SimpleJwtLoginRequest
 {
     public required string Email { get; set; }

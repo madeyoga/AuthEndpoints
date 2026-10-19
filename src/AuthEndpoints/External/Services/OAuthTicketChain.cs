@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 namespace AuthEndpoints.External.OAuth;
 
 /// <summary>
-/// Installs library ticket and remote-failure handlers after the host delegate.
 /// A host <c>OnCreatingTicket</c> assignment cannot remove the library step.
 /// </summary>
 public static class OAuthTicketChain
