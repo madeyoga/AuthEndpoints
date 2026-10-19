@@ -14,8 +14,10 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     /// <c>POST /confirmIdentity/emailCode/send</c> is mapped when
     /// <c>AddEmailCodeSendEndpoints</c> or <c>AddEmailCodeEndpoints</c> was called.
     /// <c>AddEmailCodeSignInEndpoints</c> alone leaves that route unmapped.
-    /// <c>POST /confirmIdentity/passkeyOptions</c> is mapped when
-    /// <c>AddPasskeyEndpoints</c> was called. Also maps confirm-email when that name is not mapped yet.
+    /// <c>POST /confirmIdentity/passkeyOptions</c> is mapped when passkey services are registered
+    /// (<c>PasskeyEndpointsModule</c>). <c>AddPasskeyEndpoints</c> registers that module.
+    /// <c>AddPasswordAuth</c> registers it when <c>Passkeys.ServerDomain</c> is set.
+    /// Also maps confirm-email when that name is not mapped yet.
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
     /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
     /// contributes a no-op builder and those conventions do not reach the existing route.
@@ -28,7 +30,6 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         return MapAccountManagementEndpoints<TUser>(
             endpoints,
             confirmEmailEndpointName,
-            alwaysMapPasskeyOptions: false,
             emailCodeReAuth: true,
             includeSetPassword: true);
     }
@@ -36,7 +37,6 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     internal static IEndpointConventionBuilder MapAccountManagementEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName,
-        bool alwaysMapPasskeyOptions,
         bool emailCodeReAuth,
         bool includeSetPassword)
         where TUser : class, new()
@@ -59,7 +59,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
             IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
-        if (alwaysMapPasskeyOptions || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
+        if (AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
         {
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }

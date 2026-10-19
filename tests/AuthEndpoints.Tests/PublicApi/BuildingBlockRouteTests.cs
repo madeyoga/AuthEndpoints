@@ -312,9 +312,19 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
-    public void MapIdentityManagementApi_AlwaysIncludesPasskeyOptions()
+    public void MapIdentityManagementApi_MapsPasskeyOptionsOnlyWhenPasskeysAreRegistered()
     {
-        var routes = MapIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        var without = MapIdentity(services => services.AddCookieAuthEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapIdentityManagementApi<TestAppUser>();
+        });
+        Assert.DoesNotContain("POST /identity/confirmIdentity/passkeyOptions", without);
+
+        var routes = MapIdentity(services =>
+        {
+            services.AddCookieAuthEndpoints();
+            services.AddPasskeyEndpoints<TestAppUser>();
+        }, app =>
         {
             app.MapGroup("/identity").MapIdentityManagementApi<TestAppUser>();
         });
@@ -793,7 +803,6 @@ public class BuildingBlockRouteTests
                 "POST /identity/forgotPassword",
                 "POST /identity/resetPassword",
                 "POST /identity/confirmIdentity",
-                "POST /identity/confirmIdentity/passkeyOptions",
                 "GET /identity/manage/authMethods",
                 "GET /identity/manage/2fa",
                 "POST /identity/manage/2fa",

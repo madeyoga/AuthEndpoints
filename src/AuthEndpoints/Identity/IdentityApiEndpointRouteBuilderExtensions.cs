@@ -12,7 +12,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// This is <c>MapPasswordEndpoints&lt;TUser&gt;(PasswordLoginMode.None)</c>,
     /// <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>,
     /// and <see cref="AccountManagementEndpointRouteBuilderExtensions.MapAccountManagementEndpoints{TUser}"/>.
-    /// Passkey reauthentication options stay mapped, including when passkey services are not registered.
+    /// <c>POST /confirmIdentity/passkeyOptions</c> is mapped when passkey services are registered.
     /// Compose with <see cref="MapCookieAuthEndpoints{TUser}"/>, <see cref="MapBearerAuthEndpoints{TUser}"/>,
     /// or <c>MapJwtAuthEndpoints</c> for sign-in. Call <c>UseRateLimiter()</c> and <c>UseAntiforgery()</c>.
     /// </summary>
@@ -60,7 +60,6 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
         var account = endpoints.MapAccountManagementEndpoints<TUser>(
             confirmEmailEndpointName,
-            alwaysMapPasskeyOptions: true,
             emailCodeReAuth: emailCodeReAuth,
             includeSetPassword: includeSetPassword);
         return new CompositeEndpointConventionBuilder(password, confirm, account);
