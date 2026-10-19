@@ -41,7 +41,9 @@ public static class ReAuthEndpoints<TUser>
         var passkeyCount = passkeys.Count;
         var recoveryCodesLeft = await userManager.CountRecoveryCodesAsync(user);
         var emailCode = false;
-        if (includeEmailCode && services is not null && services.GetService<IEmailCodeStore>() is not null)
+        if (includeEmailCode
+            && services is not null
+            && AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(services))
         {
             var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
             emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options);

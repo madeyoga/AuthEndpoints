@@ -264,13 +264,36 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
-    public void MapReAuthEndpoints_MapsEmailCodeSendOnlyWhenTheStoreIsRegistered()
+    public void MapReAuthEndpoints_MapsEmailCodeSendOnlyWhenTheSendModuleIsRegistered()
     {
         var without = MapIdentity(services => services.AddAccountManagementEndpoints(), app =>
         {
             app.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: false);
         });
         Assert.DoesNotContain("POST /identity/confirmIdentity/emailCode/send", without);
+
+        var signInOnly = MapIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>();
+        }, app =>
+        {
+            app.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: false);
+        });
+        Assert.DoesNotContain("POST /identity/confirmIdentity/emailCode/send", signInOnly);
+
+        using var sendOnly = BuildIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>();
+        }, mapped =>
+        {
+            mapped.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: true);
+        });
+        Assert.Equal(
+            AuthEndpointsConstants.ConfirmIdentityEmailCodePolicy,
+            Find(sendOnly, "POST /identity/confirmIdentity/emailCode/send")
+                .Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
 
         using var app = BuildIdentity(services =>
         {

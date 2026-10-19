@@ -10,7 +10,8 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps reauthentication endpoints onto the current route group
     /// (<c>/confirmIdentity</c>, <c>/confirmIdentity/passkeyOptions</c>, <c>/manage/authMethods</c>).
-    /// <c>POST /confirmIdentity/emailCode/send</c> is included when <c>AddEmailCodeEndpoints</c> was called.
+    /// <c>POST /confirmIdentity/emailCode/send</c> is included when <c>AddEmailCodeSendEndpoints</c>
+    /// or <c>AddEmailCodeEndpoints</c> was called. <c>AddEmailCodeSignInEndpoints</c> alone leaves it unmapped.
     /// </summary>
     public static IEndpointConventionBuilder MapReAuthEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
