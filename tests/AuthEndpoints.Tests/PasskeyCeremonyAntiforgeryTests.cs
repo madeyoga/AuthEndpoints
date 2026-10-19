@@ -170,6 +170,9 @@ public class PasskeyCeremonyAntiforgeryTests
         var libraryCsrf = await SendAsync(http, cookies, HttpMethod.Get, "/auth/csrfToken", body: null, csrfToken: null);
         Assert.Equal(mapHostAntiforgeryEndpoint ? HttpStatusCode.OK : HttpStatusCode.NotFound, libraryCsrf.Status);
 
+        var requestOptions = await PostCeremonyAsync(http, cookies, "/auth/passkeys/requestOptions", new { email }, mapHostAntiforgeryEndpoint);
+        Assert.Equal(HttpStatusCode.OK, requestOptions.Status);
+
         var registerOptions = await PostCeremonyAsync(http, cookies, "/auth/passkeys/register/options", new { email }, mapHostAntiforgeryEndpoint);
         Assert.Equal(HttpStatusCode.OK, registerOptions.Status);
         var credentialJson = authenticator.CreateAttestation(registerOptions.Body, origin);
