@@ -47,7 +47,6 @@ public static class PasswordEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps <c>POST /login</c> for an explicit <paramref name="login"/> mode.
     /// <see cref="PasswordLoginMode.None"/> is rejected: this map exists to finish in a session.
-    /// An explicit mode keeps the 3.4.1 <c>PasswordSignInAsync</c> handler.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordSignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,

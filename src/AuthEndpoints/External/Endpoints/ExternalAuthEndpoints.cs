@@ -8,9 +8,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Shared external auth endpoint handlers used by all provider modules.
-/// </summary>
 public static class ExternalAuthEndpoints<TUser>
     where TUser : class, new()
 {

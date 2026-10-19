@@ -11,15 +11,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace AuthEndpoints.Identity;
 
-/// <summary>
-/// Sign-in schemes a host may register: application cookie, Identity bearer, and JWT bearer.
-/// </summary>
 internal static class SignInSchemes
 {
-    /// <summary>
-    /// Identity type on a principal produced by the JWT bearer handler.
-    /// It is not the <c>Bearer</c> scheme name.
-    /// </summary>
+    // JwtBearer leaves AuthenticationType at TokenValidationParameters.DefaultAuthenticationType, not the Bearer scheme name.
     public const string JwtIdentityType = "AuthenticationTypes.Federation";
 
     public static readonly string[] Primary =
@@ -44,9 +38,6 @@ internal static class SignInSchemes
             || string.Equals(identity.AuthenticationType, JwtIdentityType, StringComparison.Ordinal);
     }
 
-    /// <summary>
-    /// True when <c>Authorization</c> contains a non-empty <c>Bearer</c> token.
-    /// </summary>
     public static bool HasBearerAuthorizationHeader(HttpRequest request)
     {
         var values = request.Headers.Authorization;
@@ -89,10 +80,6 @@ internal static class SignInSchemes
 
 internal static class ManagementAuthorization
 {
-    /// <summary>
-    /// Builds an authorize attribute for cookie, Identity bearer, and JWT Bearer schemes
-    /// that are actually registered on the host.
-    /// </summary>
     public static AuthorizeAttribute CreateAuthorizeAttribute(IEndpointRouteBuilder endpoints)
     {
         ArgumentNullException.ThrowIfNull(endpoints);

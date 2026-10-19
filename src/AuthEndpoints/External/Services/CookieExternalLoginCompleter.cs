@@ -38,7 +38,6 @@ public sealed class CookieExternalLoginCompleter<TUser> : IExternalLoginComplete
 
         await _signInManager.SignInAsync(user, isPersistent: _options.IsPersistent);
 
-        // Clear the temporary external cookie used during the OAuth dance.
         await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
         var redirectUrl = ExternalAuthReturnUrl.Resolve(

@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Builder;
 
 namespace AuthEndpoints.Identity;
 
-/// <summary>
-/// Authorization conventions for AuthEndpoints sign-in schemes.
-/// </summary>
 public static class AuthEndpointsAuthorizationExtensions
 {
     /// <summary>

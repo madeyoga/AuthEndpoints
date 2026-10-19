@@ -5,10 +5,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Identity;
 
-/// <summary>
-/// Work the unknown-account branch of an enumeration-sensitive route runs so it
-/// costs about as much as the branch that has an account. Always on. There is no option to skip it.
-/// </summary>
 internal static class EnumerationPadding
 {
     private const string Purpose = "AuthEndpoints.EnumerationPadding.v1";
@@ -21,10 +17,6 @@ internal static class EnumerationPadding
         return Convert.ToBase64String(protector.Protect(Encoding.UTF8.GetBytes(material)));
     }
 
-    /// <summary>
-    /// Mints a password-reset token for an unsaved user. The token is not for any stored account.
-    /// Falls back to <see cref="Protect"/> when the user type has no string or <see cref="Guid"/> key.
-    /// </summary>
     public static Task<string> CreateDecoyPasswordResetTokenAsync<TUser>(
         UserManager<TUser> userManager,
         IUserStore<TUser> store,
@@ -38,10 +30,6 @@ internal static class EnumerationPadding
             email,
             static (manager, user) => manager.GeneratePasswordResetTokenAsync(user));
 
-    /// <summary>
-    /// Mints an email-confirmation token for an unsaved user. The token is not for any stored account.
-    /// Falls back to <see cref="Protect"/> when the user type has no string or <see cref="Guid"/> key.
-    /// </summary>
     public static Task<string> CreateDecoyEmailConfirmationTokenAsync<TUser>(
         UserManager<TUser> userManager,
         IUserStore<TUser> store,

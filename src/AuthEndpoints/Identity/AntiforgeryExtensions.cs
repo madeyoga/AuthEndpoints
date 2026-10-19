@@ -18,6 +18,11 @@ public static class AntiforgeryRouteBuilderExtensions
         return builder.WithMetadata(AntiforgeryMetadata.ValidationRequired);
     }
 
+    /// <summary>
+    /// Requires a CSRF token unless the request authenticated with Identity bearer or JWT
+    /// using a non-empty <c>Authorization: Bearer</c> header. An application-cookie sign-in
+    /// still requires the token. A JWT read from a cookie in <c>OnMessageReceived</c> is not that header.
+    /// </summary>
     public static RouteHandlerBuilder RequireAntiforgery(this RouteHandlerBuilder builder)
     {
         // Filter-only for the framework metadata: do not attach ValidationRequired, otherwise
@@ -27,6 +32,7 @@ public static class AntiforgeryRouteBuilderExtensions
             .AddEndpointFilter<EnforceAntiforgeryEndpointFilters>();
     }
 
+    /// <inheritdoc cref="RequireAntiforgery(RouteHandlerBuilder)"/>
     public static RouteGroupBuilder RequireAntiforgery(this RouteGroupBuilder builder)
     {
         return builder
@@ -35,11 +41,7 @@ public static class AntiforgeryRouteBuilderExtensions
     }
 }
 
-/// <summary>
-/// Marks routes that run <see cref="EnforceAntiforgeryEndpointFilters"/>.
-/// This is not <see cref="IAntiforgeryMetadata"/>, so the antiforgery middleware does not
-/// reject bearer calls before that filter can skip them.
-/// </summary>
+// Not IAntiforgeryMetadata: UseAntiforgery validates before the endpoint filter can skip bearer calls.
 internal sealed class AuthEndpointsAntiforgeryMetadata
 {
     public static readonly AuthEndpointsAntiforgeryMetadata Instance = new();
@@ -78,13 +80,7 @@ public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
         return await next(context);
     }
 
-    /// <summary>
-    /// Skip CSRF only when the caller presented a non-empty <c>Authorization: Bearer</c>
-    /// header and Identity bearer or JWT authenticated that request. An Identity application
-    /// cookie always forces the check. A cross-site request cannot attach that header without
-    /// a CORS preflight, so the header is the CSRF signal. Hosts that read the access token
-    /// from a cookie still send the CSRF token; this filter does not call <c>OnMessageReceived</c>.
-    /// </summary>
+    // A cross-site request cannot set Authorization without a CORS preflight.
     private static async Task<bool> ShouldSkipAntiforgeryAsync(HttpContext httpContext)
     {
         if (await SignInSchemes.IsAuthenticatedAsync(httpContext, SignInSchemes.Application))

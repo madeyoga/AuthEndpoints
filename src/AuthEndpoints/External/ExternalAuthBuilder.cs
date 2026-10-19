@@ -6,9 +6,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Fluent helper for configuring external auth providers and the login completer.
-/// </summary>
 public sealed class ExternalAuthBuilder
 {
     public ExternalAuthBuilder(Type userType, IServiceCollection services)
@@ -55,9 +52,6 @@ public sealed class ExternalAuthBuilder
         return this;
     }
 
-    /// <summary>
-    /// Registers an <see cref="IExternalAuthProvider"/> singleton.
-    /// </summary>
     public ExternalAuthBuilder AddProvider<TProvider>()
         where TProvider : class, IExternalAuthProvider
     {
@@ -65,9 +59,6 @@ public sealed class ExternalAuthBuilder
         return this;
     }
 
-    /// <summary>
-    /// Registers an <see cref="IExternalAuthProvider"/> instance.
-    /// </summary>
     public ExternalAuthBuilder AddProvider(IExternalAuthProvider provider)
     {
         ArgumentNullException.ThrowIfNull(provider);

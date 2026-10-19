@@ -2,9 +2,6 @@ using System.Security.Claims;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Helpers for reading email claims from external login principals.
-/// </summary>
 public static class ExternalEmailClaims
 {
     public const string EmailVerifiedClaimType = "email_verified";

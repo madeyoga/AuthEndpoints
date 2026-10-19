@@ -144,9 +144,6 @@ internal static class ProductionEmailSenderCheck
     }
 }
 
-/// <summary>
-/// Production check for a real <see cref="IEmailSender{TUser}"/> (not the Identity no-op).
-/// </summary>
 internal sealed class AuthEndpointsEmailSenderValidator<TUser> : IValidateOptions<AuthEndpointsOptions>
     where TUser : class
 {

@@ -11,13 +11,11 @@ public static class EmailCodeEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps <c>POST /emailCode/send</c> and <c>POST /emailCode/verify</c>.
-    /// This is <see cref="MapEmailCodeSendEndpoints{TUser}"/> and
-    /// <see cref="MapEmailCodeSignInEndpoints{TUser}()"/>.
     /// Send uses <see cref="AuthEndpointsConstants.EmailCodeSendPolicy"/>.
     /// Verify uses <see cref="AuthEndpointsConstants.LoginPolicy"/>.
     /// Neither route requires antiforgery.
-    /// Verify keeps the 3.x completer: an explicitly registered
-    /// <see cref="IEmailCodeSignInCompleter{TUser}"/>, otherwise Identity bearer.
+    /// Verify uses an explicitly registered <see cref="IEmailCodeSignInCompleter{TUser}"/>,
+    /// otherwise Identity bearer.
     /// </summary>
     public static IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -38,7 +36,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps <c>POST /emailCode/verify</c>.
-    /// Verify keeps the 3.x completer unless <see cref="SignInCompletionOptions.Default"/> names one.
+    /// Uses an explicitly registered completer unless <see cref="SignInCompletionOptions.Default"/> names one.
     /// Per session: call it on each session prefix. Also signs new users up when <c>AllowSignUp</c> is on.
     /// </summary>
     public static IEndpointConventionBuilder MapEmailCodeSignInEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -72,10 +70,6 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         return MapEmailCodeSignInCore<TUser>(endpoints, completer, honorDefault: false);
     }
 
-    /// <summary>
-    /// Facade email-code map. Keeps the 3.4.1 Identity bearer verify path and ignores
-    /// <see cref="SignInCompletionOptions.Default"/>.
-    /// </summary>
     internal static IEndpointConventionBuilder MapEmailCodeEndpointsPreserving3x<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {

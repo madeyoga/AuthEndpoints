@@ -10,9 +10,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Account endpoints for linking / unlinking external logins while signed in.
-/// </summary>
 public static class ExternalAccountEndpoints<TUser>
     where TUser : class, new()
 {
@@ -210,11 +207,7 @@ public static class ExternalAccountEndpoints<TUser>
 
     internal static string LinkCallbackEndpointName(string scheme) => $"ExternalLinkCallback-{scheme}";
 
-    /// <summary>
-    /// EF stores report passkey support while <see cref="IdentityOptions.Stores.SchemaVersion"/> is still below
-    /// <see cref="IdentitySchemaVersions.Version3"/>, then <see cref="UserManager{TUser}.GetPasskeysAsync"/> throws.
-    /// Unlink treats that as zero passkeys so a host that has not opted into passkeys can still remove a login.
-    /// </summary>
+    // UserStore reports passkey support, then GetPasskeysAsync throws while StoreOptions.SchemaVersion is below IdentitySchemaVersions.Version3.
     private static async Task<int> CountPasskeysAsync(
         UserManager<TUser> userManager,
         IdentityOptions identityOptions,
@@ -246,7 +239,4 @@ public static class ExternalAccountEndpoints<TUser>
     }
 }
 
-/// <summary>
-/// External login list item DTO.
-/// </summary>
 public sealed record ExternalLoginListItem(string LoginProvider, string ProviderKey, string? ProviderDisplayName);

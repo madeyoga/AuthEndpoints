@@ -6,10 +6,6 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 {
     private readonly string _dbName = "AuthEndpointsTests_" + Guid.NewGuid().ToString("N");
 
-    /// <summary>
-    /// Host with <c>AE_REQUIRE_CONFIRMED_ACCOUNT=true</c>.
-    /// The factory default forces <c>false</c> in both host settings and in-memory config.
-    /// </summary>
     public WebApplicationFactory<Program> WithRequireConfirmedAccount() =>
         WithWebHostBuilder(ApplyRequireConfirmedAccount);
 

@@ -220,7 +220,6 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
-        // Known and unknown emails both receive creation options. There is no shorter branch and no switch.
         if (signInManager.UserManager.SupportsUserEmail
             && await signInManager.UserManager.FindByEmailAsync(email) is null
             && signInManager.Context.RequestServices.GetService<IDataProtectionProvider>() is { } dataProtection)
@@ -265,8 +264,6 @@ public static class PasskeyEndpoints<TUser>
             });
         }
 
-        // Failures before a successful attestation share one problem. The email is not read on this path,
-        // so a known address and an unknown address return the same body.
         if (string.IsNullOrEmpty(request.CredentialJson))
         {
             return RegistrationNotCompleted();

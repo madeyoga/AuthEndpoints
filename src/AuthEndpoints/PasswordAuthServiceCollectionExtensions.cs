@@ -9,10 +9,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints;
 
-/// <summary>
-/// Decisions <c>AddPasswordAuth</c> already registered. <c>MapPasswordAuth</c> maps this snapshot.
-/// A later <c>Configure&lt;PasswordAuthOptions&gt;</c> that changes session, path, or passkey domain fails validation.
-/// </summary>
 internal sealed class PasswordAuthRegistration
 {
     public PasswordAuthRegistration(AuthEndpointsSession session, string path, string? serverDomain)
@@ -37,42 +33,10 @@ public static class PasswordAuthServiceCollectionExtensions
     /// Registers the password facade: Identity, password sign-up, sign-in, and recovery,
     /// account management, one session (cookie or JWT), and passkeys when
     /// <see cref="PasskeyScenarioOptions.ServerDomain"/> is set.
-    /// This is the building-block expansion below, with no facade-only routes.
     /// Hosts must call <c>UseAuthEndpoints</c> and <c>MapPasswordAuth&lt;TUser&gt;</c>,
     /// and in Production provide a real <c>IEmailSender&lt;TUser&gt;</c>.
     /// Do not also call <c>AddAuthEndpoints</c>.
     /// </summary>
-    /// <remarks>
-    /// <code>
-    /// services.AddAuthEndpointsIdentity&lt;TUser, TContext&gt;(identity =&gt;
-    /// {
-    ///     identity.SignIn.RequireConfirmedAccount = options.RequireConfirmedAccount;
-    ///     options.ConfigureIdentity?.Invoke(identity);
-    /// });
-    /// services.AddPasswordSignUpEndpoints();
-    /// services.AddPasswordSignInEndpoints();
-    /// services.AddPasswordRecoveryEndpoints();
-    /// services.AddAccountManagementEndpoints();
-    /// // Cookie:
-    /// services.AddCookieSessionEndpoints();
-    /// // Jwt (options.Jwt is required). AddJwtEndpoints copies a non-default SimpleJwtOptions.RefreshTokenTransport:
-    /// services.AddJwtEndpoints&lt;TUser, TContext&gt;(options.Jwt);
-    /// // When Passkeys.ServerDomain is set. These register PasskeyEndpointsModule and the split
-    /// // passkey modules. They do not register the password or cookie-session modules:
-    /// services.AddPasskeySignInEndpoints&lt;TUser&gt;();
-    /// services.AddPasskeySignUpEndpoints&lt;TUser&gt;();
-    /// services.AddPasskeyRegisterOptionsEndpoints();
-    /// services.AddPasskeyManagementEndpoints();
-    /// services.Configure&lt;IdentityPasskeyOptions&gt;(passkeys =&gt; passkeys.ServerDomain = options.Passkeys.ServerDomain);
-    /// // Confirm-email redirect, read by the shared handler:
-    /// services.Configure&lt;AuthEndpointsOptions&gt;(auth =&gt;
-    /// {
-    ///     auth.EmailConfirmation.ConfirmEmailRedirectUri = options.EmailConfirmation.ConfirmEmailRedirectUri;
-    ///     auth.EmailConfirmation.AllowedRedirectOrigins = options.EmailConfirmation.AllowedRedirectOrigins;
-    /// });
-    /// </code>
-    /// </remarks>
-    /// <returns>The <see cref="IdentityBuilder"/> for optional chaining.</returns>
     public static IdentityBuilder AddPasswordAuth<TUser, TContext>(
         this IServiceCollection services,
         Action<PasswordAuthOptions>? configure = null)

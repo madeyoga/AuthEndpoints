@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Identity;
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Default authenticator. Verifies email/username + password with lockout and confirmed-account checks.
+/// Verifies email or username and password with lockout and confirmed-account checks.
 /// </summary>
-/// <typeparam name="TUser"></typeparam>
 public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     where TUser : class
 {
@@ -20,8 +19,8 @@ public class DefaultAuthenticator<TUser> : IAuthenticator<TUser>
     }
 
     /// <summary>
-    /// Verifies credentials. Failed results use a generic invalid-credentials error (no enumeration).
-    /// An unknown user runs a password-hash verify, new in 4.0, so that path matches a wrong password.
+    /// Failed results use a generic invalid-credentials error.
+    /// An unknown user runs a password-hash verify so that path matches a wrong password.
     /// </summary>
     public async Task<AuthenticationResult<TUser>> AuthenticateAsync(string username, string password)
     {

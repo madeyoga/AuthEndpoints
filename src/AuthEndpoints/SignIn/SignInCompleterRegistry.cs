@@ -12,10 +12,6 @@ internal sealed class SignInCompleterNameRegistration
 
     public string Name { get; }
 
-    /// <summary>
-    /// Closed user type for <c>AddSignInCompleter&lt;TUser, T&gt;</c>.
-    /// Null is an open-generic built-in that applies to every user type.
-    /// </summary>
     public Type? UserType { get; }
 }
 

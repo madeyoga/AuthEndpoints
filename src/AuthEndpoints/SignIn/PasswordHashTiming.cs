@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.SignIn;
 
-/// <summary>
-/// Runs a password-hash verify when no user row exists, so that path takes about as long as a wrong password.
-/// The hasher receives a throwaway user. When that user cannot be constructed, a hasher failure stays a normal rejection.
-/// </summary>
 internal static class PasswordHashTiming<TUser>
     where TUser : class
 {

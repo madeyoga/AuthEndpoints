@@ -4,11 +4,6 @@ using Microsoft.Extensions.Hosting;
 
 namespace AuthEndpoints.EmailCode;
 
-/// <summary>
-/// Set when email-code sign-in (<c>POST /emailCode/verify</c>) is mapped.
-/// Send-only mapping does not set it. <see cref="AuthEndpoints.SignIn.SignInMethodPolicy"/> counts
-/// email code only when this flag is set and the email is confirmed.
-/// </summary>
 internal static class EmailCodeSignInMap
 {
     private static readonly ConditionalWeakTable<object, Marker> Markers = new();

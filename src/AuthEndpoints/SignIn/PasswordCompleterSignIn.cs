@@ -6,11 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.SignIn;
 
-/// <summary>
-/// Password sign-in used by parameterless password maps, by maps that name a session or completer,
-/// and by JWT <c>POST /create</c>. An explicit <c>PasswordLoginMode</c> and the frozen
-/// <c>MapAuthEndpoints</c> facade stay on the 3.4.1 handlers.
-/// </summary>
 internal static class PasswordCompleterSignIn<TUser>
     where TUser : class
 {
@@ -135,8 +130,7 @@ internal static class PasswordCompleterSignIn<TUser>
                     var redeemed = await userManager.RedeemTwoFactorRecoveryCodeAsync(user, twoFactorRecoveryCode);
                     if (!redeemed.Succeeded)
                     {
-                        // TwoFactorRecoveryCodeSignInAsync does not count a bad code. The shared pipeline does,
-                        // so JWT /create and password login agree.
+                        // SignInManager.TwoFactorRecoveryCodeSignInAsync does not call AccessFailedAsync on a bad code.
                         await RecordAccessFailedAsync(userManager, user);
                         return InvalidCredentials();
                     }

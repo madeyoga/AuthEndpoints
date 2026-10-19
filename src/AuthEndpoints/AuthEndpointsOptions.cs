@@ -29,7 +29,6 @@ public sealed class AuthEndpointsOptions
     /// <summary>When true, Identity requires a confirmed account before sign-in. Default: <c>true</c>.</summary>
     public bool RequireConfirmedAccount { get; set; } = true;
 
-    /// <summary>Passkey (WebAuthn) settings for the default bundle.</summary>
     public AuthEndpointsPasskeyOptions Passkeys { get; set; } = new();
 
     /// <summary>SPA redirect after browser GET confirm-email.</summary>
@@ -60,7 +59,6 @@ public sealed class AuthEndpointsOptions
     public bool RequireEmailSenderInProduction { get; set; } = true;
 }
 
-/// <summary>Passkey-related options for the opinionated facade.</summary>
 public sealed class AuthEndpointsPasskeyOptions
 {
     /// <summary>When false, passkey DI and mapping are skipped. Default: <c>true</c>.</summary>
@@ -73,7 +71,6 @@ public sealed class AuthEndpointsPasskeyOptions
     public string? ServerDomain { get; set; }
 }
 
-/// <summary>Email confirmation redirect settings for SPA hosts.</summary>
 public sealed class AuthEndpointsEmailConfirmationOptions
 {
     /// <summary>
@@ -89,7 +86,6 @@ public sealed class AuthEndpointsEmailConfirmationOptions
     public IList<string> AllowedRedirectOrigins { get; set; } = new List<string>();
 }
 
-/// <summary>JWT-related options for the opinionated facade.</summary>
 public sealed class AuthEndpointsJwtOptions
 {
     /// <summary>When true, registers and maps JWT endpoints. Default: <c>false</c>.</summary>
@@ -98,17 +94,14 @@ public sealed class AuthEndpointsJwtOptions
     /// <summary>Route prefix for JWT endpoints. Default: <c>/auth</c>.</summary>
     public string Path { get; set; } = "/auth";
 
-    /// <summary>Optional JWT options customization (signing key, issuer, audience, etc.).</summary>
     public Action<SimpleJwtOptions>? Configure { get; set; }
 }
 
-/// <summary>Emailed-code sign-in options for the opinionated facade.</summary>
 public sealed class AuthEndpointsEmailCodeOptions
 {
     /// <summary>When true, registers and maps email-code sign-in. Default: <c>false</c>.</summary>
     public bool Enabled { get; set; }
 
-    /// <summary>Optional email-code options customization.</summary>
     public Action<EmailCodeOptions>? Configure { get; set; }
 }
 

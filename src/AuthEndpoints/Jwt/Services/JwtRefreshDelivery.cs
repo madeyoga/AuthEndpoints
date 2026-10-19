@@ -5,9 +5,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Jwt;
 
-/// <summary>
-/// Issues and reads refresh tokens for the configured <see cref="RefreshTokenTransport"/>.
-/// </summary>
 internal static class JwtRefreshDelivery
 {
     public static JwtSessionOptions Session(HttpContext httpContext)
@@ -89,7 +86,4 @@ internal static class JwtRefreshDelivery
     }
 }
 
-/// <summary>
-/// Refresh token read from the configured transport.
-/// </summary>
 internal readonly record struct PresentedRefreshToken(string? Value, bool UnsupportedMediaType);

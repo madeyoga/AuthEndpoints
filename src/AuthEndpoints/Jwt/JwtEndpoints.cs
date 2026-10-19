@@ -8,16 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Jwt;
 
-/// <summary>
-/// Jwt endpoint definitions.
-/// </summary>
-/// <typeparam name="TUser"></typeparam>
 public class JwtEndpoints<TUser>
     where TUser : class, new()
 {
-    /// <summary>
-    /// Use this endpoint to obtain jwt
-    /// </summary>
     public static async Task<IResult> Create(
         [FromBody] SimpleJwtLoginRequest request,
         IAuthenticator<TUser> authenticator,
@@ -98,9 +91,6 @@ public class JwtEndpoints<TUser>
         return Results.Ok(response);
     }
 
-    /// <summary>
-    /// Use this endpoint to refresh jwt
-    /// </summary>
     public static async Task<IResult> Refresh(
         HttpContext context,
         IRefreshTokenService refreshTokenService,
@@ -168,7 +158,6 @@ public class JwtEndpoints<TUser>
         var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp);
         if (newRefreshToken is null)
         {
-            // Lost the rotation race (the family is revoked) or the token expired between checks.
             return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
@@ -231,9 +220,6 @@ public class JwtEndpoints<TUser>
         return Results.BadRequest(new SimpleJwtErrorResponse(message));
     }
 
-    /// <summary>
-    /// Use this endpoint to verify access jwt
-    /// </summary>
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public static IResult Verify()
     {

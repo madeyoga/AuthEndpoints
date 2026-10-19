@@ -26,7 +26,6 @@ public sealed class EmailCodeMessage<TUser>
 }
 
 /// <summary>
-/// Sends the email-code message.
 /// <see cref="EmailCodeMessage{TUser}.Code"/> and <see cref="EmailCodeMessage{TUser}.LinkUrl"/>
 /// are raw, not HTML-encoded. Encode them when the template is HTML.
 /// Queue the message and return. The send endpoint awaits

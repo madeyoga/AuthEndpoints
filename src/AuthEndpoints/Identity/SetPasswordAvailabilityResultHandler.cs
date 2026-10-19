@@ -4,10 +4,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace AuthEndpoints.Identity;
 
-/// <summary>
-/// Returns 404 for <c>POST /manage/password</c> when password sign-in is not mapped.
-/// Every other endpoint uses the framework result handler.
-/// </summary>
 internal sealed class SetPasswordAvailabilityResultHandler : IAuthorizationMiddlewareResultHandler
 {
     private readonly IAuthorizationMiddlewareResultHandler _inner;

@@ -10,14 +10,11 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Endpoint mapping helpers for external OAuth providers.
-/// </summary>
 public static class ExternalAuthEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps login and callback routes for every registered <see cref="IExternalAuthProvider"/>.
-    /// The callback keeps the 3.x cookie completer unless <see cref="SignInCompletionOptions.Default"/> names one,
+    /// The callback uses the cookie completer unless <see cref="SignInCompletionOptions.Default"/> names one,
     /// or the host registered <see cref="IExternalLoginCompleter{TUser}"/> with <see cref="ExternalAuthBuilder.AddCompleter{TCompleter}"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapExternalAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -55,7 +52,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps login and callback routes for a single provider.
-    /// The callback keeps the 3.x cookie completer unless <see cref="SignInCompletionOptions.Default"/> names one,
+    /// The callback uses the cookie completer unless <see cref="SignInCompletionOptions.Default"/> names one,
     /// or the host registered a legacy completer.
     /// </summary>
     public static IEndpointConventionBuilder MapExternalAuthProvider<TUser>(

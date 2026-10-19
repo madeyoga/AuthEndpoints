@@ -109,8 +109,6 @@ public static class EmailCodeEndpoints<TUser>
 
         if (!eligible)
         {
-            // Unknown and ineligible addresses skip the sender. Protect the address so this branch
-            // still does the same class of work as a send.
             var dataProtection = services.GetService<IDataProtectionProvider>();
             if (dataProtection is not null)
             {

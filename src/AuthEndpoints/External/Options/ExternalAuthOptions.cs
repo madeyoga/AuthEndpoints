@@ -1,8 +1,5 @@
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Options for external OAuth endpoints.
-/// </summary>
 public sealed class ExternalAuthOptions
 {
     /// <summary>

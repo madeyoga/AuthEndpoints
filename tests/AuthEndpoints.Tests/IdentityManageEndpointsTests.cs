@@ -133,7 +133,6 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
         await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
         await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
 
-        // Probe manage/2fa to mint a shared key when missing (exposed because key was just created).
         var probe = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new { });
         Assert.Equal(HttpStatusCode.OK, probe.StatusCode);
 

@@ -7,7 +7,6 @@ namespace AuthEndpoints.Jwt;
 /// </summary>
 public class JwtSessionOptionsValidator : IValidateOptions<JwtSessionOptions>
 {
-    /// <inheritdoc />
     public ValidateOptionsResult Validate(string? name, JwtSessionOptions options)
     {
         if (options.RefreshTokenLifetime <= TimeSpan.Zero)

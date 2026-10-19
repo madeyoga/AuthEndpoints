@@ -196,11 +196,6 @@ public static class ReAuthEndpoints<TUser>
         return TypedResults.Ok(new ConfirmIdentityResponse { ReauthToken = reauthToken });
     }
 
-    /// <summary>
-    /// Cookie sign-ins receive the ReAuth cookie and <c>reauthToken</c>.
-    /// A caller authenticated with <c>Authorization: Bearer</c> receives the token only.
-    /// Identity bearer principals use the application identity type, so this checks schemes.
-    /// </summary>
     private static async Task<bool> ShouldIssueReAuthCookieAsync(HttpContext context)
     {
         if (await SignInSchemes.IsAuthenticatedAsync(context, SignInSchemes.Application))

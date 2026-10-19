@@ -9,9 +9,6 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps account lifecycle endpoints (register, confirm/resend, forgot/reset, manage, ReAuth,
     /// and <c>POST /manage/password</c>).
-    /// This is <c>MapPasswordEndpoints&lt;TUser&gt;(PasswordLoginMode.None)</c>,
-    /// <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>,
-    /// and <see cref="AccountManagementEndpointRouteBuilderExtensions.MapAccountManagementEndpoints{TUser}"/>.
     /// Passkey reauthentication options stay mapped, including when passkey services are not registered.
     /// Compose with <see cref="MapCookieAuthEndpoints{TUser}"/>, <see cref="MapBearerAuthEndpoints{TUser}"/>,
     /// or <c>MapJwtAuthEndpoints</c> for sign-in. Call <c>UseRateLimiter()</c> and <c>UseAntiforgery()</c>.
@@ -32,10 +29,6 @@ public static class IdentityApiEndpointRouteBuilderExtensions
             includeSetPassword: true);
     }
 
-    /// <summary>
-    /// Facade management map. Keeps the 3.4.1 step-up surface: no email-code send route,
-    /// <c>authMethods.emailCode</c> stays false, and <c>POST /manage/password</c> is left unmapped.
-    /// </summary>
     internal static IEndpointConventionBuilder MapIdentityManagementApiPreserving3x<TUser>(
         this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -72,9 +65,6 @@ public static class IdentityApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps password register, login, forgot-password, and reset-password routes.
-    /// This is <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignUpEndpoints{TUser}"/>,
-    /// <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordSignInEndpoints{TUser}()"/>,
-    /// and <see cref="PasswordEndpointRouteBuilderExtensions.MapPasswordRecoveryEndpoints{TUser}"/>.
     /// Login finishes through <see cref="SignInCompleters.Cookie"/> unless
     /// <see cref="SignInCompletionOptions.Default"/> names a completer for this user.
     /// Also maps confirm-email when the default endpoint name is not mapped yet.
@@ -94,8 +84,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     /// Maps password routes with an explicit <paramref name="login"/> mode.
     /// Also maps confirm-email when <paramref name="confirmEmailEndpointName"/> is not mapped yet.
     /// <see cref="PasswordLoginMode.None"/> omits <c>POST /login</c> so a session map can own that route.
-    /// An explicit mode keeps the 3.4.1 <c>PasswordSignInAsync</c> handler and does not apply
-    /// <see cref="SignInCompletionOptions.Default"/>.
+    /// An explicit mode does not apply <see cref="SignInCompletionOptions.Default"/>.
     /// </summary>
     public static IEndpointConventionBuilder MapPasswordEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,

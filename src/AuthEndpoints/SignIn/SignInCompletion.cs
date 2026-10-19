@@ -136,10 +136,6 @@ internal static class SignInCompletion
             cancellationToken);
     }
 
-    /// <summary>
-    /// Map argument, then <see cref="SignInCompletionOptions.Default"/>.
-    /// Null keeps the 3.x per-method completer (Identity bearer for email code and passkey, cookie for external).
-    /// </summary>
     private static string? ResolveName(HttpContext httpContext, string? explicitName)
     {
         if (!string.IsNullOrWhiteSpace(explicitName))

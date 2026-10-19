@@ -7,12 +7,6 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Passkey;
 
-/// <summary>
-/// Passkey ceremonies keep antiforgery when the session carries an ambient credential.
-/// A cookie session does. JWT does when <see cref="JwtSessionOptions.RefreshTokenTransport"/>
-/// is <see cref="RefreshTokenTransport.Cookie"/>. Identity bearer does not, and JWT body
-/// refresh does not. Identity bearer maps no <c>csrfToken</c> route. JWT body refresh maps none.
-/// </summary>
 internal static class PasskeyCeremonyAntiforgery
 {
     public static bool Required(AuthEndpointsSession session, RefreshTokenTransport refreshTokenTransport)

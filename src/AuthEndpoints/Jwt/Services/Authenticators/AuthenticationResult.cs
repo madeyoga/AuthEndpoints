@@ -5,10 +5,6 @@ public class AuthenticationResult<TUser>
 {
     private readonly List<AuthenticationError> _errors = new();
 
-    /// <summary>
-    /// Flag indicating whether if the operation succeeded or not.
-    /// </summary>
-    /// <value>True if the operation succeeded, otherwise false.</value>
     public bool Succeeded { get; protected set; }
 
     public IEnumerable<AuthenticationError> Errors => _errors;

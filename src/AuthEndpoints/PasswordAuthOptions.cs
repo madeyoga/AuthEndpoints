@@ -70,9 +70,6 @@ public sealed class PasskeyScenarioOptions
     public string? ServerDomain { get; set; }
 }
 
-/// <summary>
-/// Email confirmation redirect settings for <see cref="PasswordAuthOptions"/>.
-/// </summary>
 public sealed class EmailConfirmationOptions
 {
     /// <summary>

@@ -2,12 +2,6 @@ using Microsoft.AspNetCore.Http;
 
 namespace AuthEndpoints.External.OAuth;
 
-/// <summary>
-/// Return-URL policy for external sign-in. Rooted paths are classified before
-/// <see cref="Uri.TryCreate(string, UriKind, out Uri)"/> because on Linux a leading
-/// slash is an absolute file URI. Absolute URLs are allowed only when scheme, host,
-/// and port match <see cref="ExternalAuthOptions.AllowedReturnUrlOrigins"/>.
-/// </summary>
 internal static class ExternalAuthReturnUrl
 {
     public static string Resolve(
@@ -94,6 +88,7 @@ internal static class ExternalAuthReturnUrl
             return false;
         }
 
+        // On Linux, Uri.TryCreate treats a leading slash as an absolute file URI.
         if (IsRootedPath(trimmed))
         {
             rooted = true;

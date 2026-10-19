@@ -7,13 +7,9 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.OAuth.GitHub;
 
-/// <summary>
-/// GitHub OAuth registration for <see cref="ExternalAuthBuilder"/>.
-/// </summary>
 public static class GitHubServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds GitHub as an external authentication provider.
     /// The library calls <c>GET /user/emails</c> after the host <c>configure</c> delegate and keeps a verified address only.
     /// </summary>
     public static ExternalAuthBuilder AddGitHub(

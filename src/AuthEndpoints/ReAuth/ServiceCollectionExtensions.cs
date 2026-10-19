@@ -38,7 +38,6 @@ public static class ServiceCollectionExtensions
             {
                 options.Cookie.Name = AuthEndpointsConstants.ReAuthScheme;
                 options.Cookie.HttpOnly = true;
-                // SameAsRequest → Secure on HTTPS (production); allows HTTP test hosts.
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.Cookie.SameSite = SameSiteMode.Strict;
                 options.SlidingExpiration = false;
