@@ -943,6 +943,8 @@ namespace AuthEndpoints.Passkey
     {
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, AuthEndpoints.AuthEndpointsSession session, string? confirmEmailEndpointName = null)
+            where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyManagementEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
             where TUser :  class, new () { }
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasskeyRegisterOptionsEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)

@@ -66,8 +66,11 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
 
         if (options.Passkeys.Enabled)
         {
+            var passkeySession = signIn == AuthEndpointsSignIn.IdentityBearer
+                ? AuthEndpointsSession.IdentityBearer
+                : AuthEndpointsSession.Cookie;
             endpoints.MapGroup(options.PasskeyPath)
-                .MapPasskeyEndpoints<TUser>()
+                .MapPasskeyEndpoints<TUser>(passkeySession)
                 .WithTags("Passkeys");
         }
 

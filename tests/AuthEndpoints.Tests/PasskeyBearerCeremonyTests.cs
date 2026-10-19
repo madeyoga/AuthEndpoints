@@ -7,7 +7,7 @@ namespace AuthEndpoints.Tests;
 public class PasskeyBearerCeremonyTests
 {
     [Fact]
-    public async Task AnonymousPasskeyRoutes_OnBearerFacade_SetAndReadCeremonyCookie_SoCsrfStaysRequired()
+    public async Task AnonymousPasskeyRoutes_OnBearerFacade_SetAndReadCeremonyCookie()
     {
         await using var root = new TestWebApplicationFactory();
         using var factory = root.WithWebHostBuilder(builder =>

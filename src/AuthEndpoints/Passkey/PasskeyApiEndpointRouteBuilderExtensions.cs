@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Passkey;
 
@@ -16,6 +17,13 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// Maps passkey register, login, and credential management endpoints under <c>/passkeys</c>.
     /// This is <see cref="MapPasskeySignInEndpoints{TUser}"/> without auto-mapping confirm-email,
     /// plus <see cref="MapPasskeyManagementEndpoints{TUser}"/>, on one <c>/passkeys</c> group.
+    /// The sign-in completer stays Identity bearer. Anonymous ceremonies keep antiforgery, because
+    /// this map is the 3.x surface used beside cookie sign-in. Pass
+    /// <see cref="AuthEndpointsSession.IdentityBearer"/> to omit it on those ceremonies.
+    /// <see cref="MapBearerAuthEndpoints{TUser}"/> maps no <c>csrfToken</c> route, and
+    /// the bearer facade passes that session. JWT body refresh omits it on those ceremonies when
+    /// the session is <see cref="AuthEndpointsSession.Jwt"/>. Signed-in passkey changes always
+    /// require antiforgery. An <c>Authorization: Bearer</c> access token still skips that check.
     /// </summary>
     /// <param name="confirmEmailEndpointName">
     /// Optional unique endpoint name for confirm-email link generation after passwordless register.
@@ -28,6 +36,23 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// </exception>
     public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
+        string? confirmEmailEndpointName = null)
+        where TUser : class, new()
+    {
+        return MapPasskeyEndpoints<TUser>(endpoints, AuthEndpointsSession.Cookie, confirmEmailEndpointName);
+    }
+
+    /// <summary>
+    /// Maps passkey register, login, and credential management for <paramref name="session"/>.
+    /// Anonymous ceremonies require antiforgery for <see cref="AuthEndpointsSession.Cookie"/> and for
+    /// <see cref="AuthEndpointsSession.Jwt"/> with cookie refresh transport. Identity bearer and
+    /// JWT with body refresh transport omit it on those ceremonies. Signed-in passkey changes always
+    /// require antiforgery. The 3.x completer is unchanged: register and login
+    /// still use Identity bearer unless the host registered another passkey completer.
+    /// </summary>
+    public static IEndpointConventionBuilder MapPasskeyEndpoints<TUser>(
+        this IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session,
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
@@ -45,7 +70,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             signIn: true,
             management: true,
             completer: null,
-            honorDefault: false);
+            honorDefault: false,
+            session);
         return group;
     }
 
@@ -61,6 +87,10 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// A single string is the confirm-email endpoint name, not a completer.
     /// When that string matches a registered completer name, this method logs a warning and still
     /// treats it as the confirm-email name. Pass <see cref="AuthEndpointsSession"/> to select a session.
+    /// Antiforgery on the anonymous ceremonies follows that session. With no completer and no
+    /// configured default, the session is cookie, so the token stays required.
+    /// Pass <see cref="AuthEndpointsSession.IdentityBearer"/> to omit it.
+    /// A cookie session and JWT with cookie refresh transport require it.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -74,6 +104,9 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps passkey sign-in and finishes register and login with the built-in completer for <paramref name="session"/>.
+    /// Antiforgery is required for <see cref="AuthEndpointsSession.Cookie"/> and for
+    /// <see cref="AuthEndpointsSession.Jwt"/> with cookie refresh transport. Identity bearer and
+    /// JWT with body refresh transport omit it. Identity bearer maps no <c>csrfToken</c> route.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeySignInEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
@@ -135,7 +168,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             signIn: true,
             management: false,
             completer,
-            honorDefault: completer is null);
+            honorDefault: completer is null,
+            SessionFor<TUser>(endpoints, completer, honorDefault: completer is null));
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
         return new CompositeEndpointConventionBuilder(group, confirm);
     }
@@ -143,6 +177,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps signed-in passkey credential management under <c>/passkeys</c>
     /// (<c>creationOptions</c>, <c>POST /</c>, <c>GET /</c>, <c>PATCH /</c>, <c>DELETE /{credentialIdUrl}</c>).
+    /// Mutations require antiforgery. An <c>Authorization: Bearer</c> access token skips that check.
+    /// Cookie callers, including <c>useCookies=true</c>, still send the token.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeyManagementEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -163,7 +199,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             signIn: false,
             management: true,
             completer: null,
-            honorDefault: false);
+            honorDefault: false,
+            AuthEndpointsSession.Cookie);
         return group;
     }
 
@@ -192,7 +229,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         bool signIn,
         bool management,
         string? completer,
-        bool honorDefault)
+        bool honorDefault,
+        AuthEndpointsSession session)
         where TUser : class, new()
     {
         // creationOptions is mapped before the anonymous ceremonies, and credential
@@ -213,7 +251,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         if (signIn)
         {
-            MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName!, mapMethod, completer, honorDefault);
+            MapPasskeySignInRoutes<TUser>(group, confirmEmailEndpointName!, mapMethod, completer, honorDefault, session);
         }
 
         if (!management || secured is null)
@@ -256,6 +294,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         string mapMethod,
         string? completer,
         bool honorDefault,
+        AuthEndpointsSession session,
         bool requestOptions = true,
         bool registerOptions = true,
         bool register = true,
@@ -267,7 +306,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             group.MapPost("/requestOptions", PasskeyEndpoints<TUser>.RequestOptions)
                 .WithSummary("Generate WebAuthn request options for passkey login.")
                 .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-                .RequireAntiforgery()
+                .RequirePasskeyCeremonyAntiforgery(group, session)
                 .Track(group, mapMethod);
         }
 
@@ -276,7 +315,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             group.MapPost("/register/options", PasskeyEndpoints<TUser>.RegisterOptions)
                 .WithSummary("Generate WebAuthn creation options for passwordless account registration.")
                 .RequireRateLimiting(AuthEndpointsConstants.PasskeyObtainOptionsPolicy)
-                .RequireAntiforgery()
+                .RequirePasskeyCeremonyAntiforgery(group, session)
                 .Track(group, mapMethod);
         }
 
@@ -312,10 +351,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                     Pass session: AuthEndpointsSession.Jwt or completer: SignInCompleters.Jwt for Simple JWT
                     (access token + refresh cookie, no credentialId).
                     When sign-in is not allowed, the body is credentialId and no session is issued.
-                    CSRF (antiforgery) is required.
+                    CSRF (antiforgery) is required for a cookie session and for JWT with cookie refresh transport.
+                    Identity bearer and JWT with body refresh transport do not require it.
                     """)
                 .RequireRateLimiting(AuthEndpointsConstants.PasskeyRegisterPolicy)
-                .RequireAntiforgery()
+                .RequirePasskeyCeremonyAntiforgery(group, session)
                 .Track(group, mapMethod);
         }
 
@@ -332,10 +372,11 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                     neither → Identity bearer token (AccessTokenResponse).
                     Pass session: AuthEndpointsSession.Jwt or completer: SignInCompleters.Jwt for Simple JWT
                     (access token + refresh cookie).
-                    CSRF (antiforgery) is required for the WebAuthn ceremony.
+                    CSRF (antiforgery) is required for a cookie session and for JWT with cookie refresh transport.
+                    Identity bearer and JWT with body refresh transport do not require it.
                     """)
                 .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-                .RequireAntiforgery()
+                .RequirePasskeyCeremonyAntiforgery(group, session)
                 .Track(group, mapMethod);
         }
 
@@ -421,6 +462,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps <c>POST /passkeys/register/options</c>. Shared: options do not start a session.
+    /// Antiforgery stays on, because a cookie session uses this one route.
     /// </summary>
     public static IEndpointConventionBuilder MapPasskeyRegisterOptionsEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -433,12 +475,14 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             nameof(MapPasskeyRegisterOptionsEndpoints));
 
         var group = endpoints.MapGroup("/passkeys");
+        // Shared with every session, including cookie. Keep the token check on this one route.
         MapPasskeySignInRoutes<TUser>(
             group,
             confirmEmailEndpointName: AuthEndpointsEndpointNames.ConfirmEmail<TUser>(),
             nameof(MapPasskeyRegisterOptionsEndpoints),
             completer: null,
             honorDefault: false,
+            AuthEndpointsSession.Cookie,
             requestOptions: false,
             registerOptions: true,
             register: false,
@@ -461,6 +505,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             mapMethod,
             completer,
             honorDefault: false,
+            SessionForName(completer),
             requestOptions: true,
             registerOptions: false,
             register: false,
@@ -510,6 +555,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             mapMethod,
             completer,
             honorDefault,
+            SessionFor<TUser>(endpoints, completer, honorDefault),
             requestOptions: false,
             registerOptions: false,
             register: true,
@@ -537,6 +583,54 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         }
 
         throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
+    }
+
+    /// <summary>
+    /// Built-in completer names select that session. A custom name keeps antiforgery.
+    /// No name uses the configured default when it wins, otherwise cookie, so a parameterless
+    /// map keeps antiforgery on a composed cookie host.
+    /// </summary>
+    private static AuthEndpointsSession SessionFor<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? completer,
+        bool honorDefault)
+        where TUser : class
+    {
+        if (!string.IsNullOrWhiteSpace(completer))
+        {
+            return SessionForName(completer);
+        }
+
+        if (honorDefault && !LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider))
+        {
+            var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
+            if (!string.IsNullOrWhiteSpace(configured))
+            {
+                return SessionForName(configured);
+            }
+        }
+
+        return AuthEndpointsSession.Cookie;
+    }
+
+    private static AuthEndpointsSession SessionForName(string completer)
+    {
+        if (string.Equals(completer, SignInCompleters.Cookie, StringComparison.Ordinal))
+        {
+            return AuthEndpointsSession.Cookie;
+        }
+
+        if (string.Equals(completer, SignInCompleters.IdentityBearer, StringComparison.Ordinal))
+        {
+            return AuthEndpointsSession.IdentityBearer;
+        }
+
+        if (string.Equals(completer, SignInCompleters.Jwt, StringComparison.Ordinal))
+        {
+            return AuthEndpointsSession.Jwt;
+        }
+
+        return AuthEndpointsSession.Cookie;
     }
 
     /// <summary>

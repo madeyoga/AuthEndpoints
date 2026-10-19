@@ -2,6 +2,8 @@
 
 Passwordless passkey register and login on `/account/passkeys`. Register creates the user and stores a credential. Confirmation mail matches password `POST /identity/register`. When `CanSignInAsync` fails, `PasskeySignInGate` returns `credentialId` and does not call the completer. This host registers `IdentityPasskeySignInCompleter`.
 
+Compose and the cookie facade keep antiforgery on the anonymous `/account/passkeys` ceremonies. A ceremony without a token returns `400`. The bearer facade omits the token on `requestOptions`, `register/options`, `register`, and `login`. Password cookie and JWT cookie refresh require one. Password JWT body refresh does not, and `GET /auth/csrfToken` is unmapped. Signed-in `PATCH` and `DELETE` still return `400` without a token on a cookie host. The Identity ceremony state lives in the `TwoFactorUserIdScheme` cookie (`Identity.TwoFactorUserId`). That cookie is single-use state, not a credential, and the client must send it between options and verify. Sending `RequestVerificationToken` is accepted when the filter is absent.
+
 ## Sub-features
 
 - `register-options` returns WebAuthn creation options for an email, including an existing email (no enumeration).
