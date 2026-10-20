@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using AuthEndpoints;
 using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
@@ -31,28 +32,28 @@ public class RecipeRouteTests
             services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options => options.AllowSignUp = true);
         }, app =>
         {
-            var identity = app.MapGroup("/identity");
-            identity.MapEmailCodeEndpoints<TestAppUser>();
-            identity.MapCookieSessionEndpoints<TestAppUser>();
-            identity.MapAccountManagementEndpoints<TestAppUser>();
+            var auth = app.MapGroup("/auth");
+            auth.MapEmailCodeEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+            auth.MapCookieSessionEndpoints<TestAppUser>();
+            auth.MapAccountManagementEndpoints<TestAppUser>();
         });
 
         Assert.Equal(
             [
-                "GET /identity/confirmEmail",
-                "GET /identity/csrfToken",
-                "GET /identity/manage/2fa",
-                "GET /identity/manage/authMethods",
-                "GET /identity/manage/info",
-                "POST /identity/confirmIdentity",
-                "POST /identity/confirmIdentity/emailCode/send",
-                "POST /identity/emailCode/send",
-                "POST /identity/emailCode/verify",
-                "POST /identity/logout",
-                "POST /identity/manage/2fa",
-                "POST /identity/manage/info",
-                "POST /identity/manage/password",
-                "POST /identity/resendConfirmationEmail",
+                "GET /auth/confirmEmail",
+                "GET /auth/csrfToken",
+                "GET /auth/manage/2fa",
+                "GET /auth/manage/authMethods",
+                "GET /auth/manage/info",
+                "POST /auth/confirmIdentity",
+                "POST /auth/confirmIdentity/emailCode/send",
+                "POST /auth/emailCode/send",
+                "POST /auth/emailCode/verify",
+                "POST /auth/logout",
+                "POST /auth/manage/2fa",
+                "POST /auth/manage/info",
+                "POST /auth/manage/password",
+                "POST /auth/resendConfirmationEmail",
             ],
             routes);
     }
@@ -65,40 +66,40 @@ public class RecipeRouteTests
         var email = $"recipe-{Guid.NewGuid():N}@test.local";
         var jar = new CookieJar();
 
-        var send = await PostAsync(host.Client, "/identity/emailCode/send", new { email }, jar);
+        var send = await PostAsync(host.Client, "/auth/emailCode/send", new { email }, jar);
         Assert.Equal(HttpStatusCode.OK, send.StatusCode);
 
         var code = host.Mail.Snapshot().Single(item => item.Kind == "email-code" && item.Email == email).Body;
         var verify = await PostAsync(
             host.Client,
-            "/identity/emailCode/verify?useCookies=true",
+            "/auth/emailCode/verify?useCookies=true",
             new { email, code },
             jar);
         Assert.Equal(HttpStatusCode.OK, verify.StatusCode);
 
-        var info = await GetAsync(host.Client, "/identity/manage/info", jar);
+        var info = await GetAsync(host.Client, "/auth/manage/info", jar);
         Assert.Equal(HttpStatusCode.OK, info.StatusCode);
 
-        var csrf = await GetAsync(host.Client, "/identity/csrfToken", jar);
+        var csrf = await GetAsync(host.Client, "/auth/csrfToken", jar);
         Assert.Equal(HttpStatusCode.OK, csrf.StatusCode);
         var token = ReadCsrf(await csrf.Content.ReadAsStringAsync());
         var stepUp = await PostAsync(
             host.Client,
-            "/identity/manage/info",
+            "/auth/manage/info",
             new { newEmail = email },
             jar,
             token);
         Assert.Equal(HttpStatusCode.Forbidden, stepUp.StatusCode);
 
-        Assert.Equal(HttpStatusCode.NotFound, (await PostAsync(host.Client, "/identity/register", new { email, password = "Passw0rd!" }, jar)).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await PostAsync(host.Client, "/identity/login", new { email, password = "Passw0rd!" }, jar)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostAsync(host.Client, "/auth/register", new { email, password = "Passw0rd!" }, jar)).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostAsync(host.Client, "/auth/login", new { email, password = "Passw0rd!" }, jar)).StatusCode);
 
-        var logout = await PostAsync(host.Client, "/identity/logout", new { }, jar, token);
+        var logout = await PostAsync(host.Client, "/auth/logout", new { }, jar, token);
         Assert.True(
             logout.StatusCode is HttpStatusCode.OK or HttpStatusCode.NoContent,
             $"Logout failed: {(int)logout.StatusCode} {await logout.Content.ReadAsStringAsync()}");
 
-        var signedOut = await GetAsync(host.Client, "/identity/manage/info", jar);
+        var signedOut = await GetAsync(host.Client, "/auth/manage/info", jar);
         Assert.Equal(HttpStatusCode.Unauthorized, signedOut.StatusCode);
         Assert.DoesNotContain(logs.Messages, message => message.Contains("was not called before", StringComparison.Ordinal));
     }
@@ -120,17 +121,17 @@ public class RecipeRouteTests
             services.AddPasskeyEndpoints<TestAppUser>();
         }, app =>
         {
-            var identity = app.MapGroup("/identity");
-            identity.MapIdentityManagementApi<TestAppUser>();
-            identity.MapBearerAuthEndpoints<TestAppUser>();
-            app.MapGroup("/account").MapPasskeyEndpoints<TestAppUser>();
+            var auth = app.MapGroup("/auth");
+            auth.MapIdentityManagementApi<TestAppUser>();
+            auth.MapBearerAuthEndpoints<TestAppUser>();
+            auth.MapPasskeyEndpoints<TestAppUser>();
         });
 
         Assert.Equal(WithSetPassword(BearerFacadeRoutes), routes);
     }
 
     [Fact]
-    public void JwtOnly_MapsManagementAndJwtOnSeparatePrefixes()
+    public void JwtOnly_MapsManagementAndJwtOnAuthPrefix()
     {
         var routes = Map(services =>
         {
@@ -151,30 +152,31 @@ public class RecipeRouteTests
             });
         }, app =>
         {
-            app.MapGroup("/account").MapIdentityManagementApi<TestAppUser>();
-            app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>();
+            var auth = app.MapGroup("/auth");
+            auth.MapIdentityManagementApi<TestAppUser>();
+            auth.MapJwtAuthEndpoints<TestAppUser>();
         });
 
         Assert.Equal(
             [
-                "GET /account/confirmEmail",
-                "GET /account/manage/2fa",
-                "GET /account/manage/authMethods",
-                "GET /account/manage/info",
+                "GET /auth/confirmEmail",
                 "GET /auth/csrfToken",
+                "GET /auth/manage/2fa",
+                "GET /auth/manage/authMethods",
+                "GET /auth/manage/info",
                 "GET /auth/verify",
-                "POST /account/confirmIdentity",
-                "POST /account/confirmIdentity/passkeyOptions",
-                "POST /account/forgotPassword",
-                "POST /account/manage/2fa",
-                "POST /account/manage/info",
-                "POST /account/manage/password",
-                "POST /account/register",
-                "POST /account/resendConfirmationEmail",
-                "POST /account/resetPassword",
+                "POST /auth/confirmIdentity",
+                "POST /auth/confirmIdentity/passkeyOptions",
                 "POST /auth/create",
+                "POST /auth/forgotPassword",
                 "POST /auth/logout",
+                "POST /auth/manage/2fa",
+                "POST /auth/manage/info",
+                "POST /auth/manage/password",
                 "POST /auth/refresh",
+                "POST /auth/register",
+                "POST /auth/resendConfirmationEmail",
+                "POST /auth/resetPassword",
             ],
             routes);
     }
@@ -242,37 +244,37 @@ public class RecipeRouteTests
     private static string[] WithSetPassword(IReadOnlyList<string> routes)
     {
         return routes
-            .Append("POST /identity/manage/password")
+            .Append("POST /auth/manage/password")
             .OrderBy(route => route, StringComparer.Ordinal)
             .ToArray();
     }
 
     private static readonly string[] BearerFacadeRoutes =
     [
-        "DELETE /account/passkeys/{credentialIdUrl}",
-        "GET /account/passkeys/",
-        "GET /identity/confirmEmail",
-        "GET /identity/manage/2fa",
-        "GET /identity/manage/authMethods",
-        "GET /identity/manage/info",
-        "PATCH /account/passkeys/",
-        "POST /account/passkeys/",
-        "POST /account/passkeys/creationOptions",
-        "POST /account/passkeys/login",
-        "POST /account/passkeys/register",
-        "POST /account/passkeys/register/options",
-        "POST /account/passkeys/requestOptions",
-        "POST /identity/confirmIdentity",
-        "POST /identity/confirmIdentity/passkeyOptions",
-        "POST /identity/forgotPassword",
-        "POST /identity/login",
-        "POST /identity/logout",
-        "POST /identity/manage/2fa",
-        "POST /identity/manage/info",
-        "POST /identity/refresh",
-        "POST /identity/register",
-        "POST /identity/resendConfirmationEmail",
-        "POST /identity/resetPassword",
+        "DELETE /auth/passkeys/{credentialIdUrl}",
+        "GET /auth/confirmEmail",
+        "GET /auth/manage/2fa",
+        "GET /auth/manage/authMethods",
+        "GET /auth/manage/info",
+        "GET /auth/passkeys/",
+        "PATCH /auth/passkeys/",
+        "POST /auth/confirmIdentity",
+        "POST /auth/confirmIdentity/passkeyOptions",
+        "POST /auth/forgotPassword",
+        "POST /auth/login",
+        "POST /auth/logout",
+        "POST /auth/manage/2fa",
+        "POST /auth/manage/info",
+        "POST /auth/passkeys/",
+        "POST /auth/passkeys/creationOptions",
+        "POST /auth/passkeys/login",
+        "POST /auth/passkeys/register",
+        "POST /auth/passkeys/register/options",
+        "POST /auth/passkeys/requestOptions",
+        "POST /auth/refresh",
+        "POST /auth/register",
+        "POST /auth/resendConfirmationEmail",
+        "POST /auth/resetPassword",
     ];
 
     private sealed class EmailCodeOnlyHost : IAsyncDisposable
@@ -329,10 +331,10 @@ public class RecipeRouteTests
             app.UseAuthorization();
             app.UseRateLimiter();
             app.UseAntiforgery();
-            var identity = app.MapGroup("/identity");
-            identity.MapEmailCodeEndpoints<TestAppUser>();
-            identity.MapCookieSessionEndpoints<TestAppUser>();
-            identity.MapAccountManagementEndpoints<TestAppUser>();
+            var auth = app.MapGroup("/auth");
+            auth.MapEmailCodeEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+            auth.MapCookieSessionEndpoints<TestAppUser>();
+            auth.MapAccountManagementEndpoints<TestAppUser>();
             await app.StartAsync();
             return new EmailCodeOnlyHost(app, path, mail);
         }
