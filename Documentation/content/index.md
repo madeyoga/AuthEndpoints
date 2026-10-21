@@ -6,7 +6,7 @@ seo:
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
 ---
-orientation: horizontal
+orientation: vertical
 ---
 #top
 :hero-background
@@ -38,35 +38,19 @@ Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, p
   ---
   GitHub
   :::
-
-#default
-  :::prose-pre
-  ---
-  code: |
-    builder.Services.AddPasswordAuth<AppUser, AppDbContext>();
-    builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
-
-    var app = builder.Build();
-    app.UseAuthEndpoints();
-    app.MapPasswordAuth<AppUser>();
-  filename: Program.cs
-  ---
-
-  ```cs [Program.cs]
-  builder.Services.AddPasswordAuth<AppUser, AppDbContext>();
-  builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
-
-  var app = builder.Build();
-  app.UseAuthEndpoints();
-  app.MapPasswordAuth<AppUser>();
-  ```
-  :::
 ::
 
 ::landing-pain
 ::
 
 ::landing-setup
+::
+
+::landing-video
+---
+id: tKR4jFmHlu0
+title: AuthEndpoints intro for documentation landing page
+---
 ::
 
 ::u-page-section{id="what-authendpoints-can-do" class="dark:bg-zinc-950"}
@@ -280,27 +264,6 @@ Each capability links to the guide that shows you how to use it.
   #description
   Logout, chosen routes, JWT, and passkeys.
   :::
-::
-
-::u-page-section{class="dark:bg-zinc-950"}
-#title
-I want to
-
-#description
-Each line is one task.
-
-- [Register users](/guides/registration)
-- [Sign users in](/guides/sign-in)
-- [Turn on two-factor authentication](/guides/two-factor)
-- [Reset a forgotten password](/guides/reset-password)
-- [Add, rename, and remove passkeys](/guides/manage-passkeys)
-- [Sign in with an emailed code](/guides/email-code)
-- [Add GitHub or Google](/guides/registration#register-with-github-or-google)
-- [Require step-up before sensitive actions](/guides/step-up)
-- [Run an app with no public sign-up](/guides/internal-app)
-- [Upgrade to 4.0](/getting-started/upgrading-to-4)
-
-The same list, plus sign-out, email change, and production, is on [Guides](/guides#i-want-to).
 ::
 
 ::u-page-section{class="dark:bg-zinc-950"}
