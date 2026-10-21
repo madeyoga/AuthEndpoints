@@ -6,7 +6,7 @@ seo:
 
 ::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
 ---
-orientation: horizontal
+orientation: vertical
 ---
 #top
 :hero-background
@@ -37,29 +37,6 @@ Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, p
   target: _blank
   ---
   GitHub
-  :::
-
-#default
-  :::prose-pre
-  ---
-  code: |
-    builder.Services.AddPasswordAuth<AppUser, AppDbContext>();
-    builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
-
-    var app = builder.Build();
-    app.UseAuthEndpoints();
-    app.MapPasswordAuth<AppUser>();
-  filename: Program.cs
-  ---
-
-  ```cs [Program.cs]
-  builder.Services.AddPasswordAuth<AppUser, AppDbContext>();
-  builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
-
-  var app = builder.Build();
-  app.UseAuthEndpoints();
-  app.MapPasswordAuth<AppUser>();
-  ```
   :::
 ::
 
