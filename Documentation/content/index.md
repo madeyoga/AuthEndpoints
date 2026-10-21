@@ -4,53 +4,17 @@ seo:
   description: 'Sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.'
 ---
 
-::u-page-hero{class="dark:bg-gradient-to-b from-zinc-900 to-zinc-950"}
+::landing-hero
 ---
-orientation: vertical
+src: "https://media.harten.id/images/authendpoints-promo-16x9.mp4"
+poster: "https://media.harten.id/images/authendpoints-promo-poster.webp"
 ---
-#top
-:hero-background
-
-#title
-[AuthEndpoints]{.text-primary}
-
-#description
-Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, emailed codes, GitHub and Google, two-factor codes, cookies, and tokens.
-
-#links
-  :::u-button
-  ---
-  to: /getting-started
-  size: xl
-  trailing-icon: i-lucide-arrow-right
-  ---
-  Get started
-  :::
-
-  :::u-button
-  ---
-  icon: i-simple-icons-github
-  color: neutral
-  variant: outline
-  size: xl
-  to: https://github.com/madeyoga/AuthEndpoints
-  target: _blank
-  ---
-  GitHub
-  :::
 ::
 
 ::landing-pain
 ::
 
 ::landing-setup
-::
-
-::landing-video
----
-id: tKR4jFmHlu0
-title: AuthEndpoints intro for documentation landing page
----
 ::
 
 ::u-page-section{id="what-authendpoints-can-do" class="dark:bg-zinc-950"}
