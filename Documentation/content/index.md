@@ -69,6 +69,13 @@ Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, p
 ::landing-setup
 ::
 
+::landing-video
+---
+id: tKR4jFmHlu0
+title: AuthEndpoints intro for documentation landing page
+---
+::
+
 ::u-page-section{id="what-authendpoints-can-do" class="dark:bg-zinc-950"}
 #title
 What AuthEndpoints can do
