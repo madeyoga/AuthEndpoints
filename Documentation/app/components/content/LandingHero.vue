@@ -4,8 +4,48 @@ defineProps<{
   poster: string
 }>()
 
+const reduceMotion = ref(false)
 const playing = ref(false)
 const video = ref<HTMLVideoElement | null>(null)
+
+let motionQuery: MediaQueryList | undefined
+
+async function syncMotion() {
+  const reduce = motionQuery?.matches === true
+  reduceMotion.value = reduce
+  await nextTick()
+  const player = video.value
+  if (!player) {
+    return
+  }
+
+  if (reduce) {
+    if (playing.value) {
+      return
+    }
+    player.pause()
+    player.load()
+    return
+  }
+
+  playing.value = false
+  player.muted = true
+  void player.play()
+}
+
+function onMotionChange() {
+  void syncMotion()
+}
+
+onMounted(() => {
+  motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  motionQuery.addEventListener('change', onMotionChange)
+  void syncMotion()
+})
+
+onBeforeUnmount(() => {
+  motionQuery?.removeEventListener('change', onMotionChange)
+})
 
 async function play() {
   const player = video.value
@@ -13,13 +53,15 @@ async function play() {
     return
   }
 
-  playing.value = true
+  player.muted = true
   try {
     await player.play()
+    playing.value = true
+    await nextTick()
+    player.focus()
   } catch {
-    // Native controls remain so playback can be started from the player.
+    playing.value = false
   }
-  player.focus()
 }
 </script>
 
@@ -89,19 +131,22 @@ async function play() {
       <div class="relative mx-auto mt-8 aspect-video w-full max-w-5xl overflow-hidden rounded-lg bg-elevated ring ring-default sm:mt-10">
         <video
           ref="video"
-          class="size-full bg-black object-contain"
+          class="size-full object-contain"
           :src="src"
           :poster="poster"
           width="1920"
           height="1080"
+          :autoplay="!reduceMotion"
+          muted
+          loop
           playsinline
-          preload="none"
-          :controls="playing"
+          preload="metadata"
+          :controls="reduceMotion && playing"
           aria-label="AuthEndpoints intro"
         />
 
         <button
-          v-if="!playing"
+          v-if="reduceMotion && !playing"
           type="button"
           class="group absolute inset-0 cursor-pointer rounded-[inherit] border-0 bg-transparent p-0 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-primary"
           aria-label="Play video: AuthEndpoints intro"
