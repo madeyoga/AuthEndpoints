@@ -291,27 +291,6 @@ Each capability links to the guide that shows you how to use it.
 
 ::u-page-section{class="dark:bg-zinc-950"}
 #title
-I want to
-
-#description
-Each line is one task.
-
-- [Register users](/guides/registration)
-- [Sign users in](/guides/sign-in)
-- [Turn on two-factor authentication](/guides/two-factor)
-- [Reset a forgotten password](/guides/reset-password)
-- [Add, rename, and remove passkeys](/guides/manage-passkeys)
-- [Sign in with an emailed code](/guides/email-code)
-- [Add GitHub or Google](/guides/registration#register-with-github-or-google)
-- [Require step-up before sensitive actions](/guides/step-up)
-- [Run an app with no public sign-up](/guides/internal-app)
-- [Upgrade to 4.0](/getting-started/upgrading-to-4)
-
-The same list, plus sign-out, email change, and production, is on [Guides](/guides#i-want-to).
-::
-
-::u-page-section{class="dark:bg-zinc-950"}
-#title
 Start with password sign-in
 
 #description
