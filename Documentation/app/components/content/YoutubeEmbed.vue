@@ -100,12 +100,12 @@ async function play() {
       @click="play"
     >
       <span
-        class="pointer-events-none absolute bottom-3 left-3 flex size-12 items-center justify-center rounded-full bg-primary text-inverted shadow-lg transition-transform group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:bottom-5 sm:left-5 sm:size-14"
+        class="pointer-events-none absolute bottom-1 left-2 flex size-11 items-center justify-center rounded-full bg-primary text-inverted shadow-lg transition-transform group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 sm:bottom-5 sm:left-5 sm:size-14"
         aria-hidden="true"
       >
         <UIcon
           name="i-lucide-play"
-          class="ms-0.5 size-6 sm:size-7"
+          class="ms-0.5 size-5 sm:size-7"
         />
       </span>
     </button>
