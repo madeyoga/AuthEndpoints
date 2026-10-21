@@ -6,8 +6,8 @@ seo:
 
 ::landing-hero
 ---
-src: "https://media.harten.id/authendpoints/authendpoints-promo-16x9.mp4"
-poster: "https://media.harten.id/authendpoints/authendpoints-promo-poster.webp"
+src: "https://media.harten.id/images/authendpoints-promo-16x9.mp4"
+poster: "https://media.harten.id/images/authendpoints-promo-poster.webp"
 ---
 ::
 
