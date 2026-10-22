@@ -100,12 +100,7 @@ async function play() {
     </template>
 
     <template #description>
-      <h2 class="text-balance text-xl font-semibold text-highlighted sm:text-2xl">
-        ASP.NET Core authentication, simplified
-      </h2>
-      <p class="mt-3 text-balance">
-        Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, email codes, OAuth, and 2FA.
-      </p>
+      Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, email codes, OAuth, and 2FA.
     </template>
 
     <template #footer>
