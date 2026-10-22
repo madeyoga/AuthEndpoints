@@ -96,11 +96,16 @@ async function play() {
     </template>
 
     <template #title>
-      <span class="text-primary">AuthEndpoints</span><span>: ASP.NET Core authentication, simplified</span>
+      <span class="text-primary">AuthEndpoints</span><span>: authentication library for ASP.NET Core Identity</span>
     </template>
 
     <template #description>
-      Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, email codes, OAuth, and 2FA.
+      <h2 class="text-balance text-xl font-semibold text-highlighted sm:text-2xl">
+        ASP.NET Core authentication, simplified
+      </h2>
+      <p class="mt-3 text-balance">
+        Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, email codes, OAuth, and 2FA.
+      </p>
     </template>
 
     <template #footer>

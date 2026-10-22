@@ -4,8 +4,8 @@ export const DOCS_BASE_PATH: string = ''
 export const DOCS_SITE_URL = `${DOCS_ORIGIN}${DOCS_BASE_PATH}`
 
 export const SITE_NAME = 'AuthEndpoints'
-export const SITE_TITLE = 'AuthEndpoints — ASP.NET Core Identity auth library'
-export const SITE_DESCRIPTION = 'Ready-made sign-up and sign-in endpoints for ASP.NET Core Identity: passwords, passkeys, GitHub and Google, two-factor codes, cookies, and tokens.'
+export const SITE_TITLE = 'AuthEndpoints: authentication library for ASP.NET Core Identity'
+export const SITE_DESCRIPTION = 'Authentication library for ASP.NET Core Identity. Ready-made sign-up and sign-in endpoints for passwords, passkeys, emailed codes, two-factor authentication, cookie sessions, and JWT bearer tokens.'
 export const REPOSITORY_URL = 'https://github.com/madeyoga/AuthEndpoints'
 export const NUGET_URL = 'https://www.nuget.org/packages/AuthEndpoints/'
 export const LICENSE_URL = 'https://opensource.org/licenses/MIT'
