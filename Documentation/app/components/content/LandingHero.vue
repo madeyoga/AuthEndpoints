@@ -96,7 +96,7 @@ async function play() {
     </template>
 
     <template #title>
-      <span class="text-primary">AuthEndpoints</span><span>: ASP.NET Core authentication, simplified</span>
+      <span class="text-primary">AuthEndpoints</span><span>: authentication library for ASP.NET Core Identity</span>
     </template>
 
     <template #description>
