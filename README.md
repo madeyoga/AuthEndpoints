@@ -4,8 +4,9 @@
 
 # AuthEndpoints
 
-<p align="center">
+<p>
   <a href="https://www.nuget.org/packages/AuthEndpoints"><img src="https://img.shields.io/nuget/v/AuthEndpoints.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="Version"></a>
+  <a href="https://www.nuget.org/packages/AuthEndpoints"><img src="https://img.shields.io/nuget/dt/AuthEndpoints.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="Downloads"></a>
   <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE"><img src="https://img.shields.io/github/license/madeyoga/AuthEndpoints.svg?style=flat&colorA=18181B&colorB=28CF8D" alt="License"></a>
   <a href="https://authendpoints.harten.id"><img src="https://img.shields.io/badge/Docs-18181B?logo=dotnet" alt="Docs"></a>
 </p>
