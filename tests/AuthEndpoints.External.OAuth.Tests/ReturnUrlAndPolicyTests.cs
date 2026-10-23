@@ -19,6 +19,38 @@ public class ReturnUrlAndPolicyTests
     }
 
     [Theory]
+    [InlineData("/auth/external/error", "/auth/external/error")]
+    [InlineData("/", "/")]
+    [InlineData("/auth/external/error?next=1", "/auth/external/error?next=1")]
+    public void Local_error_path_stays_on_the_redirect(string errorPath, string expectedPath)
+    {
+        var location = ExternalAuthErrorResults.BrowserLocation(
+            new ExternalAuthOptions { ErrorPath = errorPath },
+            "access_denied",
+            "denied");
+
+        Assert.Equal(
+            $"{expectedPath}{(expectedPath.Contains('?', StringComparison.Ordinal) ? "&" : "?")}error=access_denied&error_description=denied",
+            location);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("//evil.example/phish")]
+    [InlineData("https://evil.example/phish")]
+    [InlineData("/\\evil")]
+    public void Non_local_error_path_falls_back_to_the_root(string errorPath)
+    {
+        var location = ExternalAuthErrorResults.BrowserLocation(
+            new ExternalAuthOptions { ErrorPath = errorPath },
+            "access_denied",
+            "denied");
+
+        Assert.Equal("/?error=access_denied&error_description=denied", location);
+    }
+
+    [Theory]
     [InlineData("//evil.example/x")]
     [InlineData("/\\evil")]
     [InlineData("~/dashboard")]

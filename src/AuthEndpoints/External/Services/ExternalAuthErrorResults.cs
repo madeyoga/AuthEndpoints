@@ -21,7 +21,8 @@ internal static class ExternalAuthErrorResults
 
     internal static string BrowserLocation(ExternalAuthOptions options, string error, string description)
     {
-        var path = string.IsNullOrEmpty(options.ErrorPath) ? "/" : options.ErrorPath;
+        var configured = options.ErrorPath?.Trim();
+        var path = ExternalAuthReturnUrl.IsRelativeLocalUrl(configured) ? configured! : "/";
         var separator = path.Contains('?', StringComparison.Ordinal) ? "&" : "?";
         return $"{path}{separator}error={Uri.EscapeDataString(error)}&error_description={Uri.EscapeDataString(description)}";
     }

@@ -213,9 +213,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             return;
         }
 
-        AuthEndpointsModules.Log(
-            endpoints,
-            $"MapPasskeySignInEndpoints treated '{confirmEmailEndpointName}' as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass completer: \"{confirmEmailEndpointName}\" together with confirmEmailEndpointName.");
+        AuthEndpointsModules.LogPasskeyConfirmNameTreatedAsEndpoint(endpoints);
     }
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
