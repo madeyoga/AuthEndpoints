@@ -11,7 +11,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # Required for NuGet trusted publishing (OIDC)
+      id-token: write # Required for NuGet trusted publishing (OIDC) and build provenance
+      attestations: write # Publish build provenance for the packed packages
       contents: read
 
     steps:
@@ -44,6 +45,11 @@ jobs:
 
       - name: List Generated Packages
         run: ls -la nupkgs/
+
+      - name: Attest package provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8  # v4.2.2
+        with:
+          subject-path: nupkgs/*.nupkg
 
       - name: NuGet login (OIDC)
         id: login
