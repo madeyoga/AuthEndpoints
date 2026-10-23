@@ -1,20 +1,37 @@
 version: 2
 updates:
-  - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 0
-    rebase-strategy: auto
-    groups:
-      all-dependencies:
-        patterns:
-          - "*"
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: "nuget"
     directory: "/"
     schedule:
       interval: "weekly"
+    rebase-strategy: auto
+    groups:
+      nuget-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      nuget-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
   - package-ecosystem: "github-actions"
-    directory: "/Documentation"
+    directories:
+      - "/"
+      - "/Documentation"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+      github-actions-major:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
