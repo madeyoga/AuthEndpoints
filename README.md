@@ -1,12 +1,8 @@
-# AuthEndpoints
-
-AuthEndpoints is an authentication library for ASP.NET Core Identity that gives you ready-made login, register, refresh, 2FA, passkey and password reset endpoints.
-
-**Documentation: [https://authendpoints.harten.id](https://authendpoints.harten.id)**
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/madeyoga/AuthEndpoints/main/.github/assets/banner.png" alt="AuthEndpoints: authentication library for ASP.NET Core Identity" width="100%">
 </p>
+
+# AuthEndpoints
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=version&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![oauth](https://img.shields.io/nuget/vpre/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
@@ -15,7 +11,7 @@ AuthEndpoints is an authentication library for ASP.NET Core Identity that gives 
 ![workflow](https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg)
 [![license](https://img.shields.io/github/license/madeyoga/AuthEndpoints?color=blue&style=flat-square&logo=github)](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE)
 
-AuthEndpoints is for your own web and mobile clients. You keep ASP.NET Core Identity, your user type, and your database.
+AuthEndpoints is an authentication library for ASP.NET Core Identity that gives you ready-made login, register, refresh, 2FA, passkey and password reset endpoints. It is for your own web and mobile clients. You keep ASP.NET Core Identity, your user type, and your database.
 
 - Cookie sessions for browser apps, and JWT bearer sessions for token clients, including refresh
 - Two-factor authentication with authenticator codes and recovery codes
