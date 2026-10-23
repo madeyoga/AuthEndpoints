@@ -8,14 +8,14 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>4.0.2</Version>
+    <Version>4.0.3</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>On a host with email-code sign-in only, POST /confirmIdentity/emailCode/send returns 404 instead of 500, authMethods.emailCode is false, and POST /confirmIdentity with an email code returns 400 EmailCodeProofUnavailable instead of 401.</PackageReleaseNotes>
+    <PackageReleaseNotes>External sign-in failures now always redirect to a local URL. The NuGet README is refreshed. Published packages include build provenance; verify a download with gh attestation verify &lt;file&gt;.nupkg -R madeyoga/AuthEndpoints.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
