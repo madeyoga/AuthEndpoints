@@ -23,7 +23,7 @@ jobs:
           dotnet-version: 10.x
 
       - name: Restore Dependencies
-        run: dotnet restore AuthEndpoints.sln
+        run: dotnet restore AuthEndpoints.sln --locked-mode
 
       - name: Run Tests
         run: dotnet test AuthEndpoints.sln --configuration Release --verbosity minimal

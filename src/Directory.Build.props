@@ -5,6 +5,7 @@
     and do not import this file.
   -->
   <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <!-- CS1591: ship the XML file for IntelliSense without requiring a comment on every public member. -->
     <NoWarn>$(NoWarn);CS1591</NoWarn>

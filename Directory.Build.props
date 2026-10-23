@@ -1,0 +1,11 @@
+<Project>
+
+  <!--
+    Src projects use src/Directory.Build.props, which repeats this switch.
+    Test projects import this file.
+  -->
+  <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
+</Project>
