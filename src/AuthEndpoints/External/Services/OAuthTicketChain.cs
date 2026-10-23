@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -65,7 +66,18 @@ internal static class ExternalRemoteFailure
             ? "The external provider denied the request."
             : context.Failure.Message;
         var location = ExternalAuthErrorResults.BrowserLocation(options, error, description);
-        context.Response.Redirect(location);
+        RedirectBrowser(context.Response, location);
         context.HandleResponse();
+    }
+
+    internal static void RedirectBrowser(HttpResponse response, string location)
+    {
+        if (RedirectHttpResult.IsLocalUrl(location))
+        {
+            response.Redirect(location);
+            return;
+        }
+
+        response.Redirect("/");
     }
 }

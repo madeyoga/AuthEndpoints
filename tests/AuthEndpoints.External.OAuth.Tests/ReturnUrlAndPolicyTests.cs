@@ -1,7 +1,11 @@
+using System.Security.Claims;
 using System.Text.Json;
 using AuthEndpoints.External.OAuth;
 using AuthEndpoints.OAuth.GitHub;
 using AuthEndpoints.OAuth.Google;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth.Tests;
@@ -48,6 +52,44 @@ public class ReturnUrlAndPolicyTests
             "denied");
 
         Assert.Equal("/?error=access_denied&error_description=denied", location);
+    }
+
+    [Theory]
+    [InlineData("/auth/external/error?error=access_denied&error_description=denied", "/auth/external/error?error=access_denied&error_description=denied")]
+    [InlineData("/?error=access_denied&error_description=denied", "/?error=access_denied&error_description=denied")]
+    [InlineData("https://evil.example/phish", "/")]
+    [InlineData("//evil.example/phish", "/")]
+    [InlineData("/\\evil", "/")]
+    public void Redirect_target_stays_local_or_falls_back_to_the_root(string location, string expected)
+    {
+        var http = new DefaultHttpContext();
+        ExternalRemoteFailure.RedirectBrowser(http.Response, location);
+
+        Assert.Equal(StatusCodes.Status302Found, http.Response.StatusCode);
+        Assert.Equal(expected, http.Response.Headers.Location.ToString());
+    }
+
+    [Theory]
+    [InlineData("/auth/external/error", "/auth/external/error?error=access_denied&error_description=denied")]
+    [InlineData("https://evil.example/phish", "/?error=access_denied&error_description=denied")]
+    public async Task Remote_failure_redirects_the_browser_to_a_local_page(string errorPath, string expected)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<IAuthenticationService, StubAuthenticationService>();
+        services.AddSingleton(Options.Create(new ExternalAuthOptions { ErrorPath = errorPath }));
+        var http = new DefaultHttpContext { RequestServices = services.BuildServiceProvider() };
+        http.Request.QueryString = new QueryString("?error=access_denied");
+        var context = new RemoteFailureContext(
+            http,
+            new AuthenticationScheme("external", "external", typeof(IAuthenticationHandler)),
+            new RemoteAuthenticationOptions(),
+            new InvalidOperationException("denied"));
+
+        await ExternalRemoteFailure.CompleteAsync(context);
+
+        Assert.Equal(StatusCodes.Status302Found, http.Response.StatusCode);
+        Assert.Equal(expected, http.Response.Headers.Location.ToString());
+        Assert.True(context.Result.Handled);
     }
 
     [Theory]
@@ -218,6 +260,24 @@ public class ReturnUrlAndPolicyTests
         using var verified = JsonDocument.Parse("""{"email":"a@example.com","email_verified":true}""");
         GoogleEmailProof.Apply(identity, verified.RootElement);
         Assert.True(ExternalEmailClaims.IsEmailVerified(new System.Security.Claims.ClaimsPrincipal(identity)));
+    }
+
+    private sealed class StubAuthenticationService : IAuthenticationService
+    {
+        public Task<AuthenticateResult> AuthenticateAsync(HttpContext context, string? scheme) =>
+            Task.FromResult(AuthenticateResult.NoResult());
+
+        public Task ChallengeAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+
+        public Task ForbidAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+
+        public Task SignInAsync(HttpContext context, string? scheme, ClaimsPrincipal principal, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
+
+        public Task SignOutAsync(HttpContext context, string? scheme, AuthenticationProperties? properties) =>
+            Task.CompletedTask;
     }
 
     private sealed class StubHandler : HttpMessageHandler
