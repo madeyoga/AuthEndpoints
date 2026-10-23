@@ -45,12 +45,36 @@ internal static class AuthEndpointsModules
         throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
-    public static void Log(IEndpointRouteBuilder endpoints, string message)
+    public static void LogNoSignInModule(IEndpointRouteBuilder endpoints)
     {
-        endpoints.ServiceProvider
+        Logger(endpoints)?.LogWarning(
+            "MapSignInEndpoints mapped no sign-in method. Call AddPasswordSignInEndpoints, AddEmailCodeSignInEndpoints, AddPasskeySignInEndpoints, or AddPasskeySignUpEndpoints before MapSignInEndpoints.");
+    }
+
+    public static void LogDuplicateRoute(
+        IEndpointRouteBuilder endpoints,
+        string existingMap,
+        string mapMethod,
+        string route)
+    {
+        Logger(endpoints)?.LogWarning(
+            "{ExistingMap} and {MapMethod} both map {Route}.",
+            existingMap,
+            mapMethod,
+            route);
+    }
+
+    public static void LogPasskeyConfirmNameTreatedAsEndpoint(IEndpointRouteBuilder endpoints)
+    {
+        Logger(endpoints)?.LogWarning(
+            "MapPasskeySignInEndpoints treated the argument as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass the completer name together with confirmEmailEndpointName.");
+    }
+
+    private static ILogger? Logger(IEndpointRouteBuilder endpoints)
+    {
+        return endpoints.ServiceProvider
             .GetService<ILoggerFactory>()
-            ?.CreateLogger(LogCategory)
-            .LogWarning("{Message}", message);
+            ?.CreateLogger(LogCategory);
     }
 }
 

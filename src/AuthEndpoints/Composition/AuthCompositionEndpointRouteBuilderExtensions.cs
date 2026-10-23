@@ -36,9 +36,7 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
             && !passkeySignIn
             && !passkeySignUp)
         {
-            AuthEndpointsModules.Log(
-                endpoints,
-                "MapSignInEndpoints mapped no sign-in method. Call AddPasswordSignInEndpoints, AddEmailCodeSignInEndpoints, AddPasskeySignInEndpoints, or AddPasskeySignUpEndpoints before MapSignInEndpoints.");
+            AuthEndpointsModules.LogNoSignInModule(endpoints);
         }
 
         if (Registered<PasswordSignInEndpointsModule>(endpoints))

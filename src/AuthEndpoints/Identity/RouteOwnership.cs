@@ -51,7 +51,7 @@ internal static class RouteOwnership
                 {
                     if (!ReferenceEquals(existing.Owner, owner) && slot.Reported.Add(key))
                     {
-                        AuthEndpointsModules.Log(endpoints, $"{existing.MapMethod} and {mapMethod} both map {key}.");
+                        AuthEndpointsModules.LogDuplicateRoute(endpoints, existing.MapMethod, mapMethod, key);
                     }
                 }
                 else
