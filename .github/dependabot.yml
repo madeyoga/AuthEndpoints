@@ -10,3 +10,11 @@ updates:
       all-dependencies:
         patterns:
           - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/Documentation"
+    schedule:
+      interval: "weekly"
