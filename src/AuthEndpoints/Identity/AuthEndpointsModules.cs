@@ -64,14 +64,10 @@ internal static class AuthEndpointsModules
             route);
     }
 
-    public static void LogPasskeyConfirmNameTreatedAsEndpoint(
-        IEndpointRouteBuilder endpoints,
-        string confirmEmailEndpointName)
+    public static void LogPasskeyConfirmNameTreatedAsEndpoint(IEndpointRouteBuilder endpoints)
     {
         Logger(endpoints)?.LogWarning(
-            "MapPasskeySignInEndpoints treated '{ConfirmEmailEndpointName}' as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass completer: \"{CompleterName}\" together with confirmEmailEndpointName.",
-            confirmEmailEndpointName,
-            confirmEmailEndpointName);
+            "MapPasskeySignInEndpoints treated the string argument as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass completer: together with confirmEmailEndpointName.");
     }
 
     private static ILogger? Logger(IEndpointRouteBuilder endpoints)

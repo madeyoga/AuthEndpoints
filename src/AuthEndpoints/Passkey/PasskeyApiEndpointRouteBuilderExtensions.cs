@@ -213,7 +213,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             return;
         }
 
-        AuthEndpointsModules.LogPasskeyConfirmNameTreatedAsEndpoint(endpoints, confirmEmailEndpointName);
+        AuthEndpointsModules.LogPasskeyConfirmNameTreatedAsEndpoint(endpoints);
     }
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)

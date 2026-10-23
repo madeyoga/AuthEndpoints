@@ -457,11 +457,11 @@ public class SignInCompleterTests
         AssertConfirmNameStillDefault(app, "/mine", "MySession");
         AssertConfirmNameStillDefault(app, "/jwt", SignInCompleters.Jwt);
         AssertConfirmNameStillDefault(app, "/plain", "confirm-only");
-        Assert.Contains(logs.Messages, message => message.Contains("MySession", StringComparison.Ordinal)
-            && message.Contains("confirm-email", StringComparison.Ordinal)
-            && message.Contains("AuthEndpointsSession", StringComparison.Ordinal));
-        Assert.Contains(logs.Messages, message => message.Contains("'Jwt'", StringComparison.Ordinal)
-            && message.Contains("AuthEndpointsSession", StringComparison.Ordinal));
+        const string warning =
+            "MapPasskeySignInEndpoints treated the string argument as the confirm-email endpoint name, not a sign-in completer. Pass AuthEndpointsSession, or pass completer: together with confirmEmailEndpointName.";
+        Assert.Equal(2, logs.Messages.Count(message => message == warning));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains("MySession", StringComparison.Ordinal));
+        Assert.DoesNotContain(logs.Messages, message => message.Contains(SignInCompleters.Jwt, StringComparison.Ordinal));
         Assert.DoesNotContain(logs.Messages, message => message.Contains("confirm-only", StringComparison.Ordinal));
     }
 
