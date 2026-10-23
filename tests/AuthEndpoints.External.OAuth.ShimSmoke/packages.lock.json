@@ -201,7 +201,7 @@
       "authendpoints.external.oauth": {
         "type": "Project",
         "dependencies": {
-          "AuthEndpoints": "[4.0.2, )"
+          "AuthEndpoints": "[4.0.3, )"
         }
       }
     }
