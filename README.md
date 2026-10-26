@@ -23,7 +23,7 @@ AuthEndpoints is an authentication library for ASP.NET Core Identity that gives 
 - Hardening on the routes: rate limits, antiforgery, lockout-aware login, and hashed JWT refresh tokens with reuse detection
 - GitHub and Google sign-in through `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`. The endpoints live in the core package. Compose them. The password facade does not map them. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth/)
 
-Built for first-party SPAs, mobile apps, and APIs. If you need SSO, OAuth for third-party clients, or a full identity server, see [when not to use AuthEndpoints](https://authendpoints.harten.id/getting-started/).
+Built for first-party SPAs, mobile apps, and APIs. If you need SSO, OAuth for third-party clients, or a full identity server, see [when not to use AuthEndpoints](https://authendpoints.harten.id/getting-started/#when-not-to-use-authendpoints).
 
 If AuthEndpoints saves you time, please give the repository a star.
 
