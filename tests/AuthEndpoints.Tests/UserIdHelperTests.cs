@@ -1,5 +1,7 @@
+using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Tests;
 
@@ -69,6 +71,53 @@ public class UserIdHelperTests
 
         Assert.Equal(id, user.Id);
     }
+
+    [Theory]
+    [InlineData(typeof(NotAnIdentityUser), "NotAnIdentityUser")]
+    [InlineData(typeof(string), "String")]
+    public void FindKeyType_NotAnIdentityUser_NamesTheTypeAndTheRequirement(Type userType, string typeName)
+    {
+        var ex = Assert.Throws<InvalidOperationException>(() => TypeHelper.FindKeyType(userType));
+
+        Assert.Equal($"{typeName} must derive from IdentityUser<TKey> to use AuthEndpoints.", ex.Message);
+    }
+
+    [Fact]
+    public void CreateUserIdString_NotAnIdentityUser_NamesTheTypeAndTheRequirement()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => UserIdHelper.CreateUserIdString(typeof(NotAnIdentityUser)));
+
+        Assert.Equal(NotAnIdentityUserMessage, ex.Message);
+    }
+
+    [Fact]
+    public void SetUserId_NotAnIdentityUser_NamesTheTypeAndTheRequirement()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => UserIdHelper.SetUserId(new NotAnIdentityUser(), "user-id"));
+
+        Assert.Equal(NotAnIdentityUserMessage, ex.Message);
+    }
+
+    [Fact]
+    public void AddJwtEndpoints_NotAnIdentityUser_NamesTheTypeAndTheRequirement()
+    {
+        var services = new ServiceCollection();
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => services.AddJwtEndpoints<NotAnIdentityUser, TestDbContext>(o =>
+            {
+                o.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            }));
+
+        Assert.Equal(NotAnIdentityUserMessage, ex.Message);
+    }
+
+    private const string NotAnIdentityUserMessage =
+        "NotAnIdentityUser must derive from IdentityUser<TKey> to use AuthEndpoints.";
+
+    private sealed class NotAnIdentityUser;
 
     private sealed class FixedPasskeyUserIdFactory(string userId) : IPasskeyUserIdFactory
     {

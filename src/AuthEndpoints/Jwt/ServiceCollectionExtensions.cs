@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
         SignInCompleterRegistry.AddJwtCompleter(services);
 
         var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>))
-            ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser");
+            ?? throw TypeHelper.NotIdentityUser(typeof(TUser));
 
         services.AddSingleton(Options.Create(options));
         services.AddOptions<SimpleJwtOptions>()
