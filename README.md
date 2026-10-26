@@ -80,3 +80,4 @@ Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) fi
 ## License
 
 This project is licensed under the [MIT License](https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE).
+
