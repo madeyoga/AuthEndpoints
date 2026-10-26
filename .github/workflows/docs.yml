@@ -8,9 +8,6 @@ on:
       - '.github/workflows/docs.yml'
   pull_request:
     branches: [main, "release/**"]
-    paths:
-      - 'Documentation/**'
-      - '.github/workflows/docs.yml'
   workflow_dispatch:
 
 permissions:
@@ -21,7 +18,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d  # v4.0.3
+        with:
+          filters: |
+            docs:
+              - 'Documentation/**'
+              - '.github/workflows/docs.yml'
+
   build:
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.docs == 'true') }}
     permissions:
       contents: read
       pages: write
@@ -62,11 +77,11 @@ jobs:
           path: Documentation/.output/public
 
   deploy:
-    needs: build
+    needs: [changes, build]
     permissions:
       pages: write
       id-token: write
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ !cancelled() && needs.build.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages

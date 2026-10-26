@@ -4,34 +4,50 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'src/AuthEndpoints/**'
-      - 'src/AuthEndpoints.External.OAuth/**'
-      - 'src/AuthEndpoints.OAuth.GitHub/**'
-      - 'src/AuthEndpoints.OAuth.Google/**'
-      - 'tests/AuthEndpoints.Tests/**'
-      - 'tests/AuthEndpoints.External.OAuth.Tests/**'
-      - 'AuthEndpoints.sln'
+      - 'src/**'
+      - 'tests/**'
+      - '*.sln'
+      - '*.slnx'
+      - 'Directory.*.props'
+      - 'Directory.*.targets'
+      - 'global.json'
+      - '[Nn]u[Gg]et.[Cc]onfig'
+      - '**/packages.lock.json'
       - '.github/workflows/dotnet.yml'
   pull_request:
     branches: [ main, "release/**" ]
-    paths:
-      - 'src/AuthEndpoints/**'
-      - 'src/AuthEndpoints.External.OAuth/**'
-      - 'src/AuthEndpoints.OAuth.GitHub/**'
-      - 'src/AuthEndpoints.OAuth.Google/**'
-      - 'tests/AuthEndpoints.Tests/**'
-      - 'tests/AuthEndpoints.External.OAuth.Tests/**'
-      - 'AuthEndpoints.sln'
-      - '.github/workflows/dotnet.yml'
-      - '.github/**'
-      - '*.md'
 
 permissions:
   contents: read
 
 jobs:
-  build:
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      dotnet: ${{ steps.filter.outputs.dotnet }}
+    steps:
+      - id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d  # v4.0.3
+        with:
+          filters: |
+            dotnet:
+              - 'src/**'
+              - 'tests/**'
+              - '*.sln'
+              - '*.slnx'
+              - 'Directory.*.props'
+              - 'Directory.*.targets'
+              - 'global.json'
+              - '[Nn]u[Gg]et.[Cc]onfig'
+              - '**/packages.lock.json'
+              - '.github/workflows/dotnet.yml'
 
+  build:
+    needs: changes
+    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.dotnet == 'true') }}
     runs-on: ubuntu-latest
 
     steps:
