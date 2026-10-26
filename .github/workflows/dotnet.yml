@@ -23,6 +23,8 @@ on:
       - 'tests/AuthEndpoints.External.OAuth.Tests/**'
       - 'AuthEndpoints.sln'
       - '.github/workflows/dotnet.yml'
+      - '.github/**'
+      - '*.md'
 
 permissions:
   contents: read

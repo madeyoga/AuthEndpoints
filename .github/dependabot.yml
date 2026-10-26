@@ -1,7 +1,12 @@
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    directory: "/"
+    # Library projects under src/ are excluded: their versions are the minimums
+    # consumers need, raised only for a security advisory or a required API.
+    directories:
+      - "/tests/AuthEndpoints.Tests"
+      - "/tests/AuthEndpoints.External.OAuth.Tests"
+      - "/tests/AuthEndpoints.External.OAuth.ShimSmoke"
     schedule:
       interval: "weekly"
     rebase-strategy: auto

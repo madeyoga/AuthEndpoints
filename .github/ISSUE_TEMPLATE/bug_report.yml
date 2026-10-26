@@ -1,0 +1,46 @@
+name: Bug report
+description: Something does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: For security problems, follow SECURITY.md instead of opening an issue.
+  - type: input
+    id: version
+    attributes:
+      label: AuthEndpoints version
+      placeholder: "4.0.0"
+    validations:
+      required: true
+  - type: input
+    id: dotnet
+    attributes:
+      label: .NET SDK version
+      description: Output of `dotnet --version`
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal setup code and the request that fails.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or response body
+      render: text

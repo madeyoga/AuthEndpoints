@@ -5,6 +5,7 @@
 # AuthEndpoints
 
 <p>
+  <a href="https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml"><img src="https://github.com/madeyoga/AuthEndpoints/actions/workflows/dotnet.yml/badge.svg?branch=main" alt="Build"></a>
   <a href="https://www.nuget.org/packages/AuthEndpoints"><img src="https://img.shields.io/nuget/v/AuthEndpoints.svg?style=flat&colorA=18181B&colorB=14B8A6" alt="Version"></a>
   <a href="https://www.nuget.org/packages/AuthEndpoints"><img src="https://img.shields.io/nuget/dt/AuthEndpoints.svg?style=flat&colorA=18181B&colorB=14B8A6" alt="Downloads"></a>
   <a href="https://github.com/madeyoga/AuthEndpoints/blob/main/LICENSE"><img src="https://img.shields.io/github/license/madeyoga/AuthEndpoints.svg?style=flat&colorA=18181B&colorB=14B8A6" alt="License"></a>
@@ -21,6 +22,10 @@ AuthEndpoints is an authentication library for ASP.NET Core Identity that gives 
 - Account lifecycle: register, confirm email, forgot and reset password, manage account info, and step-up ReAuth
 - Hardening on the routes: rate limits, antiforgery, lockout-aware login, and hashed JWT refresh tokens with reuse detection
 - GitHub and Google sign-in through `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`. The endpoints live in the core package. Compose them. The password facade does not map them. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth/)
+
+Built for first-party SPAs, mobile apps, and APIs. If you need SSO, OAuth for third-party clients, or a full identity server, see [when not to use AuthEndpoints](https://authendpoints.harten.id/getting-started/#when-not-to-use-authendpoints).
+
+If AuthEndpoints saves you time, please give the repository a star.
 
 ## Why not MapIdentityApi?
 
@@ -70,7 +75,7 @@ See [AI agents](https://authendpoints.harten.id/getting-started/ai-agents/).
 
 ## Contribute
 
-Issues and pull requests are welcome. Open an issue at [madeyoga/AuthEndpoints](https://github.com/madeyoga/AuthEndpoints/issues) to report bugs or propose changes.
+Issues and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first, and look for issues labeled [good first issue](https://github.com/madeyoga/AuthEndpoints/labels/good%20first%20issue) to get started.
 
 ## License
 
