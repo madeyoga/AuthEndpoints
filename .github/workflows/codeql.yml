@@ -19,7 +19,6 @@ jobs:
       pull-requests: read
     outputs:
       csharp: ${{ steps.filter.outputs.csharp }}
-      actions: ${{ steps.filter.outputs.actions }}
     steps:
       - id: filter
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d  # v4.0.3
@@ -35,8 +34,6 @@ jobs:
               - 'Directory.*.targets'
               - 'global.json'
               - '.github/workflows/codeql.yml'
-            actions:
-              - '.github/workflows/**'
 
   analyze-csharp:
     name: Analyze (csharp)
@@ -59,10 +56,10 @@ jobs:
         with:
           category: "/language:csharp"
 
+  # Always runs (about 40 seconds) so every pull request has CodeQL results,
+  # which the main branch's code scanning rule requires.
   analyze-actions:
     name: Analyze (actions)
-    needs: changes
-    if: ${{ !cancelled() && (github.event_name != 'pull_request' || needs.changes.result != 'success' || needs.changes.outputs.actions == 'true') }}
     runs-on: ubuntu-latest
     permissions:
       security-events: write
