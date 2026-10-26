@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/madeyoga/AuthEndpoints/discussions
+    about: Ask questions and share ideas in Discussions.
+  - name: Security vulnerability
+    url: https://github.com/madeyoga/AuthEndpoints/blob/main/SECURITY.md
+    about: Report vulnerabilities privately. Do not open a public issue.
