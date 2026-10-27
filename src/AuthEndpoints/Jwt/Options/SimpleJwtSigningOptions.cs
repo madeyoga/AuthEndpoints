@@ -39,13 +39,16 @@ public class SimpleJwtSigningOptions
                         "SymmetricKey is required. Set SimpleJwtOptions.SigningOptions.SymmetricKey to a stable secret."))),
 
             SigningAlgorithm.Rsa =>
-                new RsaSecurityKey(RsaKey ?? throw new InvalidOperationException("RSA key required")),
+                new RsaSecurityKey(RsaKey ?? throw new InvalidOperationException(
+                    "RsaKey is required when Algorithm is Rsa. Set SimpleJwtOptions.SigningOptions.RsaKey.")),
 
             SigningAlgorithm.Ecdsa =>
-                new ECDsaSecurityKey(EcdsaKey ?? throw new InvalidOperationException("ECDsa key required")),
+                new ECDsaSecurityKey(EcdsaKey ?? throw new InvalidOperationException(
+                    "EcdsaKey is required when Algorithm is Ecdsa. Set SimpleJwtOptions.SigningOptions.EcdsaKey.")),
 
             SigningAlgorithm.X509 =>
-                new X509SecurityKey(Certificate ?? throw new InvalidOperationException("Certificate required")),
+                new X509SecurityKey(Certificate ?? throw new InvalidOperationException(
+                    "Certificate is required when Algorithm is X509. Set SimpleJwtOptions.SigningOptions.Certificate.")),
 
             _ => throw new NotSupportedException()
         };
