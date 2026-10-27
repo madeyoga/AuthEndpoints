@@ -8,14 +8,14 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>4.0.3</Version>
+    <Version>4.0.4</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>External sign-in failures now always redirect to a local URL. The NuGet README is refreshed. Published packages include build provenance; verify a download with gh attestation verify &lt;file&gt;.nupkg -R madeyoga/AuthEndpoints.</PackageReleaseNotes>
+    <PackageReleaseNotes>When TUser does not derive from IdentityUser, the error names the user type. A missing RSA, ECDsa, or X509 signing key error names the property to set and the algorithm that needs it.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
