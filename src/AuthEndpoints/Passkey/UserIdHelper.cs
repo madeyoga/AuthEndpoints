@@ -8,8 +8,7 @@ internal static class UserIdHelper
 {
     public static string CreateUserIdString(Type userType, IPasskeyUserIdFactory? factory = null)
     {
-        var keyType = TypeHelper.FindKeyType(userType)
-            ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser.");
+        var keyType = TypeHelper.FindKeyType(userType);
 
         if (keyType == typeof(string) || keyType == typeof(Guid))
         {
@@ -25,7 +24,7 @@ internal static class UserIdHelper
         where TUser : class
     {
         var identityUserType = TypeHelper.FindGenericBaseType(typeof(TUser), typeof(IdentityUser<>))
-            ?? throw new InvalidOperationException("Generic type TUser is not IdentityUser.");
+            ?? throw TypeHelper.NotIdentityUser(typeof(TUser));
 
         var keyType = identityUserType.GenericTypeArguments[0];
         var idProperty = identityUserType.GetProperty(nameof(IdentityUser.Id))

@@ -24,9 +24,13 @@ public static class TypeHelper
         var identityUserType = FindGenericBaseType(userType, typeof(IdentityUser<>));
         if (identityUserType == null)
         {
-            throw new InvalidOperationException("Generic type TUser is not IdentityUser");
+            throw NotIdentityUser(userType);
         }
         var keyType = identityUserType.GenericTypeArguments.First();
         return keyType;
     }
+
+    // One message for every place that rejects a user type, so it always names the type and the fix.
+    internal static InvalidOperationException NotIdentityUser(Type userType) =>
+        new($"{userType.Name} must derive from IdentityUser<TKey> to use AuthEndpoints.");
 }
