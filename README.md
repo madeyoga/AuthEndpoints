@@ -14,14 +14,11 @@
 
 AuthEndpoints is an authentication library for ASP.NET Core Identity that gives you ready-made login, register, refresh, 2FA, passkey and password reset endpoints. It is for your own web and mobile clients. You keep ASP.NET Core Identity, your user type, and your database.
 
-- Cookie sessions for browser apps, and JWT bearer sessions for token clients, including refresh
-- Two-factor authentication with authenticator codes and recovery codes
-- Passkeys (WebAuthn) for passwordless register and login
-- Email-code sign-in. Account creation and magic links stay off until you enable them
-- Password facade with `AddPasswordAuth`, `UseAuthEndpoints`, and `MapPasswordAuth`. Cookie is the default session. Set `AuthEndpointsSession.Jwt` for a JWT bearer session
-- Account lifecycle: register, confirm email, forgot and reset password, manage account info, and step-up ReAuth
-- Hardening on the routes: rate limits, antiforgery, lockout-aware login, and hashed JWT refresh tokens with reuse detection
-- GitHub and Google sign-in through `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`. The endpoints live in the core package. Compose them. The password facade does not map them. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth/)
+- Cookie sessions for browser apps, and JWT bearer sessions with refresh for token clients
+- Two-factor authentication, passkeys (WebAuthn), and email-code sign-in
+- Account lifecycle: register, confirm email, reset password, manage account, and step-up ReAuth
+- Hardening: rate limits, antiforgery, lockout-aware login, and refresh-token reuse detection
+- GitHub and Google sign-in. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth/)
 
 Built for first-party SPAs, mobile apps, and APIs. If you need SSO, OAuth for third-party clients, or a full identity server, see [when not to use AuthEndpoints](https://authendpoints.harten.id/getting-started/#when-not-to-use-authendpoints).
 
@@ -58,6 +55,8 @@ app.MapPasswordAuth<AppUser>();
 
 app.Run();
 ```
+
+This maps register, login, logout, email confirmation, password reset, ReAuth, and account management (`/auth/manage/info`, `/auth/manage/2fa`, `/auth/manage/password`) under `/auth`, plus passkeys under `/auth/passkeys` when `ServerDomain` is set; see the [endpoint reference](https://authendpoints.harten.id/modules/endpoints) for every route.
 
 ## Documentation
 
