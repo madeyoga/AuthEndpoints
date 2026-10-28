@@ -51,6 +51,29 @@ public class SimpleJwtOptionsValidator : IValidateOptions<SimpleJwtOptions>
             }
         }
 
+        // ToSecurityKey reads one property for the selected Algorithm.
+        // Rsa reads RsaKey, X509 reads Certificate, and Ecdsa reads EcdsaKey.
+        if (signingOptions.Algorithm == SimpleJwtSigningOptions.SigningAlgorithm.Rsa
+            && signingOptions.RsaKey == null)
+        {
+            return ValidateOptionsResult.Fail(
+                "RsaKey is required when Algorithm is Rsa. Set SimpleJwtOptions.SigningOptions.RsaKey.");
+        }
+
+        if (signingOptions.Algorithm == SimpleJwtSigningOptions.SigningAlgorithm.Ecdsa
+            && signingOptions.EcdsaKey == null)
+        {
+            return ValidateOptionsResult.Fail(
+                "EcdsaKey is required when Algorithm is Ecdsa. Set SimpleJwtOptions.SigningOptions.EcdsaKey.");
+        }
+
+        if (signingOptions.Algorithm == SimpleJwtSigningOptions.SigningAlgorithm.X509
+            && signingOptions.Certificate == null)
+        {
+            return ValidateOptionsResult.Fail(
+                "Certificate is required when Algorithm is X509. Set SimpleJwtOptions.SigningOptions.Certificate.");
+        }
+
         if (signingAlgorithm.StartsWith("RS") && signingOptions.RsaKey == null && signingOptions.Certificate == null)
             return ValidateOptionsResult.Fail("RSA key or X509 certificate is required for RSA algorithms.");
 
