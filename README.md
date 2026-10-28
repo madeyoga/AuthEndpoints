@@ -12,7 +12,7 @@
   <a href="https://authendpoints.harten.id"><img src="https://img.shields.io/badge/Docs-18181B?logo=dotnet" alt="Docs"></a>
 </p>
 
-AuthEndpoints is an authentication library for ASP.NET Core Identity that gives you ready-made login, register, refresh, 2FA, passkey and password reset endpoints. It is for your own web and mobile clients. You keep ASP.NET Core Identity, your user type, and your database.
+AuthEndpoints is an authentication library for ASP.NET Core Identity that gives you ready-made login, register, refresh, 2FA, passkey and password reset endpoints. It is for your own web and mobile clients. You keep ASP.NET Core Identity, your user type, and your database. Built for first-party SPAs, mobile apps, and APIs. 
 
 - Cookie sessions for browser apps, and JWT bearer sessions with refresh for token clients
 - Two-factor authentication, passkeys (WebAuthn), and email-code sign-in
@@ -20,15 +20,11 @@ AuthEndpoints is an authentication library for ASP.NET Core Identity that gives 
 - Hardening: rate limits, antiforgery, lockout-aware login, and refresh-token reuse detection
 - GitHub and Google sign-in. See [External OAuth](https://authendpoints.harten.id/modules/external-oauth/)
 
-Built for first-party SPAs, mobile apps, and APIs. If you need SSO, OAuth for third-party clients, or a full identity server, see [when not to use AuthEndpoints](https://authendpoints.harten.id/getting-started/#when-not-to-use-authendpoints).
-
-If AuthEndpoints saves you time, please give the repository a star.
-
 ## Why not MapIdentityApi?
 
 `MapIdentityApi` maps one fixed set of Identity API endpoints. AuthEndpoints covers register, login, refresh, and password reset, and adds cookie sessions, JWT bearer sessions, passkeys, logout, and a choice of which routes to map.
 
-The route-by-route comparison is in [AuthEndpoints compared with MapIdentityApi](https://authendpoints.harten.id/concepts/compare/).
+The route-by-route comparison is in [AuthEndpoints compared with MapIdentityApi](https://authendpoints.harten.id/concepts/compare/). 
 
 ## Getting started
 
