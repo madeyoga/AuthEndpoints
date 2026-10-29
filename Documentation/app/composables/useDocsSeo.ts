@@ -78,7 +78,13 @@ export function useDocsTwitterMeta() {
 export function useDocsCanonical() {
   const route = useRoute()
   // A moved page points its canonical link at the new URL, without any #fragment.
-  const canonical = computed(() => withoutUrlFragment(toCanonicalUrl(findDocsRedirect(toContentPath(route.path)) ?? route.path)))
+  // Redirects to the compare page keep their own URL. Only the compare page may use that URL.
+  const canonical = computed(() => {
+    const redirect = findDocsRedirect(toContentPath(route.path))
+    const pointsAtCompare = redirect !== undefined && toContentPath(redirect) === '/concepts/compare'
+    const target = redirect && !pointsAtCompare ? redirect : route.path
+    return withoutUrlFragment(toCanonicalUrl(target))
+  })
   return { canonical }
 }
 
@@ -276,8 +282,8 @@ export function useTechArticleJsonLd(input: { title: string, description?: strin
 
 /**
  * Head tags for a moved page: meta refresh to the new URL, noindex, and a client-side
- * replace for in-app navigation. The canonical link already points at the new URL
- * (see useDocsCanonical).
+ * replace for in-app navigation. The canonical link points at the new URL
+ * (see useDocsCanonical), except when that URL is the compare page.
  */
 export function useDocsRedirect(to: string) {
   const { app } = useRuntimeConfig()
