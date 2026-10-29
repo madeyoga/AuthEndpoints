@@ -25,7 +25,7 @@ The provider packages depend on `AuthEndpoints` `[4.0.0, 5.0.0)`. A reference to
 
 ## Wire one password session
 
-New hosts that want one password session call `AddPasswordAuth`, `UseAuthEndpoints`, and `MapPasswordAuth`. The session is a cookie. The prefix is `/auth`. Passkeys stay off until `Passkeys.ServerDomain` is set. Email-code sign-in and external sign-in stay unmapped. Roles use the three-type `AddAuthEndpoints` overload.
+New hosts that want one password session call `AddPasswordAuth`, `UseAuthEndpoints`, and `MapPasswordAuth`. The session is a cookie. The prefix is `/auth`. Passkeys stay off until `Passkeys.ServerDomain` is set. Email-code sign-in and external sign-in stay unmapped. Roles use `AddPasswordAuth<TUser, TRole, TContext>` so `AddRoles<TRole>()` runs before `AddEntityFrameworkStores`. `IUserStore<TUser>` then implements `IUserRoleStore<TUser>`, `RoleManager<TRole>` resolves, and sign-in uses `UserClaimsPrincipalFactory<TUser, TRole>`. The context is `IdentityDbContext<TUser, TRole, TKey>` or the equivalent. The two-type overload registers no roles. Do not chain `.AddRoles<TRole>()` after it.
 
 ```cs
 builder.Services.AddDbContext<AppDbContext>(/* your provider */);
@@ -218,7 +218,7 @@ builder.Services.AddAuthEndpoints<AppUser, AppRole, AppDbContext>(o =>
 });
 ```
 
-`DbContext` is `IdentityDbContext<AppUser, AppRole, TKey>` or the equivalent. Call the three-type overload when the host needs roles. A later `.AddRoles<TRole>()` on the two-type result leaves `IRoleStore` unregistered.
+`DbContext` is `IdentityDbContext<AppUser, AppRole, TKey>` or the equivalent. Call the three-type overload when this facade needs roles. A later `.AddRoles<TRole>()` on the two-type result leaves `IRoleStore` unregistered. The password facade uses `AddPasswordAuth<TUser, TRole, TContext>` for the same store order.
 
 | Property | Default | Meaning |
 | --- | --- | --- |
