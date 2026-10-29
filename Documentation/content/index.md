@@ -1,7 +1,7 @@
 ---
 seo:
   title: 'AuthEndpoints: authentication library for ASP.NET Core Identity'
-  description: 'Authentication library for ASP.NET Core Identity. Ready-made sign-up and sign-in endpoints for passwords, passkeys, emailed codes, two-factor authentication, cookie sessions, and JWT bearer tokens.'
+  description: 'AuthEndpoints is an authentication library for ASP.NET Core. Sign-up and sign-in include passwords, passkeys, emailed codes, two-factor, cookies, and JWT.'
 ---
 
 ::landing-hero
