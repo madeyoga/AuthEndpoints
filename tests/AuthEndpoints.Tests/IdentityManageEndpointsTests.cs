@@ -165,4 +165,92 @@ public class IdentityManageEndpointsTests : IClassFixture<TestWebApplicationFact
         var keyFromManager = await TestHelpers.GetAuthenticatorKeyAsync(_factory, user);
         Assert.Equal(sharedKey, keyFromManager);
     }
+
+    [Fact]
+    public async Task TwoFactorStatus_ReportsRecoveryCodesLeft()
+    {
+        var email = $"2fa-codes-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+
+        Assert.Equal(0, await GetRecoveryCodesLeftAsync(client));
+
+        await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
+        var sharedKey = await StartSetupAsync(client);
+        var enable = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new
+        {
+            enable = true,
+            twoFactorCode = TotpHelper.GenerateCode(sharedKey)
+        });
+        Assert.Equal(HttpStatusCode.OK, enable.StatusCode);
+        using var enableDoc = JsonDocument.Parse(await enable.Content.ReadAsStringAsync());
+        var codes = enableDoc.RootElement.GetProperty("recoveryCodes");
+        Assert.Equal(codes.GetArrayLength(), await GetRecoveryCodesLeftAsync(client));
+
+        await TestHelpers.ConfirmIdentityAsync(client, new { twoFactorRecoveryCode = codes[0].GetString() });
+        Assert.Equal(codes.GetArrayLength() - 1, await GetRecoveryCodesLeftAsync(client));
+    }
+
+    [Fact]
+    public async Task ManageTwoFactor_StartingSetup_KeepsIdentityConfirmation()
+    {
+        var email = $"2fa-keep-reauth-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+        using var client = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(client, email, TestHelpers.DefaultPassword);
+        await TestHelpers.ConfirmIdentityAsync(client, new { password = TestHelpers.DefaultPassword });
+
+        var reset = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new { resetSharedKey = true });
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+        using var resetDoc = JsonDocument.Parse(await reset.Content.ReadAsStringAsync());
+        var sharedKey = TestHelpers.TryGetString(resetDoc.RootElement, "sharedKey", "SharedKey");
+        Assert.False(string.IsNullOrWhiteSpace(sharedKey));
+
+        var enable = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new
+        {
+            enable = true,
+            twoFactorCode = TotpHelper.GenerateCode(sharedKey!)
+        });
+        Assert.True(
+            enable.StatusCode == HttpStatusCode.OK,
+            $"Enable 2FA after setup failed: {(int)enable.StatusCode} {await enable.Content.ReadAsStringAsync()}");
+
+        var info = await client.GetAsync("/identity/manage/info");
+        Assert.Equal(HttpStatusCode.OK, info.StatusCode);
+    }
+
+    [Fact]
+    public async Task ManageTwoFactor_WithoutConfirmation_StillRequiresIt()
+    {
+        var email = $"2fa-no-carry-{Guid.NewGuid():N}@test.local";
+        await TestHelpers.SeedUserAsync(_factory, email);
+        using var confirmed = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(confirmed, email, TestHelpers.DefaultPassword);
+        await TestHelpers.ConfirmIdentityAsync(confirmed, new { password = TestHelpers.DefaultPassword });
+        using var other = TestHelpers.CreateClientWithCookies(_factory);
+        await TestHelpers.LoginCookieAsync(other, email, TestHelpers.DefaultPassword);
+
+        var reset = await TestHelpers.PostWithCsrfAsync(confirmed, "/identity/manage/2fa", new { resetSharedKey = true });
+        Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
+
+        var otherReset = await TestHelpers.PostWithCsrfAsync(other, "/identity/manage/2fa", new { resetSharedKey = true });
+        Assert.True(otherReset.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden);
+    }
+
+    private static async Task<string> StartSetupAsync(HttpClient client)
+    {
+        var probe = await TestHelpers.PostWithCsrfAsync(client, "/identity/manage/2fa", new { });
+        Assert.Equal(HttpStatusCode.OK, probe.StatusCode);
+        using var doc = JsonDocument.Parse(await probe.Content.ReadAsStringAsync());
+        return TestHelpers.TryGetString(doc.RootElement, "sharedKey", "SharedKey")!;
+    }
+
+    private static async Task<int> GetRecoveryCodesLeftAsync(HttpClient client)
+    {
+        var response = await client.GetAsync("/identity/manage/2fa");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return doc.RootElement.GetProperty("recoveryCodesLeft").GetInt32();
+    }
 }

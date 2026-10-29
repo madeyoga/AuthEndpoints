@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using AuthEndpoints;
+using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
@@ -409,11 +410,15 @@ public class IdentityApiEndpoints<TUser>
 
         return Results.Ok(new
         {
-            IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(currentUser)
+            IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(currentUser),
+            RecoveryCodesLeft = await userManager.CountRecoveryCodesAsync(currentUser),
         });
     }
 
-    public static async Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorRequest tfaRequest, [FromServices] IServiceProvider sp)
+    public static Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorRequest tfaRequest, [FromServices] IServiceProvider sp)
+        => ManageTwoFactor(claimsPrincipal, tfaRequest, sp, context: null);
+
+    internal static async Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, TwoFactorRequest tfaRequest, IServiceProvider sp, HttpContext? context)
     {
         var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
         var userManager = signInManager.UserManager;
@@ -421,6 +426,11 @@ public class IdentityApiEndpoints<TUser>
         {
             return TypedResults.NotFound();
         }
+
+        // Changing two-factor settings rotates the security stamp. Carry the caller's session and
+        // identity confirmation over to the new stamp so the next step does not ask them to confirm again.
+        var reauthBefore = context is null ? null : await ReAuthProofRenewal.CaptureAsync(context);
+        var stampBefore = userManager.SupportsUserSecurityStamp ? await userManager.GetSecurityStampAsync(user) : null;
 
         if (tfaRequest.Enable == true)
         {
@@ -477,6 +487,18 @@ public class IdentityApiEndpoints<TUser>
             {
                 throw new NotSupportedException("The user manager must produce an authenticator key after reset.");
             }
+        }
+
+        if (context is not null && userManager.SupportsUserSecurityStamp
+            && !string.Equals(stampBefore, await userManager.GetSecurityStampAsync(user), StringComparison.Ordinal))
+        {
+            if (await SignInSchemes.IsAuthenticatedAsync(context, IdentityConstants.ApplicationScheme))
+            {
+                signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+                await signInManager.RefreshSignInAsync(user);
+            }
+
+            await ReAuthProofRenewal.RenewAsync(context, userManager, user, reauthBefore, stampBefore);
         }
 
         // Only expose the shared key when it was just (re)generated or 2FA is being enabled.

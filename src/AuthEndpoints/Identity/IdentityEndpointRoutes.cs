@@ -219,7 +219,11 @@ internal static class IdentityEndpointRoutes
         accountGroup.MapGet("/2fa", IdentityApiEndpoints<TUser>.TwoFactorStatus)
             .WithSummary("Get two-factor authentication status.")
             .Track(endpoints, mapMethod);
-        accountGroup.MapPost("/2fa", IdentityApiEndpoints<TUser>.ManageTwoFactor)
+        accountGroup.MapPost("/2fa", (
+            ClaimsPrincipal claimsPrincipal,
+            [FromBody] TwoFactorRequest tfaRequest,
+            HttpContext context,
+            IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageTwoFactor(claimsPrincipal, tfaRequest, sp, context))
             .WithSummary("Enables or disables two-factor authentication.")
             .RequireAntiforgery()
             .RequireReauth()
