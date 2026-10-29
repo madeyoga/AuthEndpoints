@@ -128,6 +128,10 @@
         public static Microsoft.AspNetCore.Identity.IdentityBuilder AddPasswordAuth<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.PasswordAuthOptions>? configure = null)
             where TUser :  class, new ()
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddPasswordAuth<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.PasswordAuthOptions>? configure = null)
+            where TUser :  class, new ()
+            where TRole :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
     }
     public static class SignInCompleterServiceCollectionExtensions
     {

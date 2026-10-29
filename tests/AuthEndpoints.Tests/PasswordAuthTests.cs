@@ -450,6 +450,68 @@ public class PasswordAuthTests
         Assert.Contains("changed " + field, mapped.ToString(), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AddPasswordAuth_Roles_ResolvesRoleStoreWithoutRemoveAll()
+    {
+        var builder = NewRolesBuilder();
+        builder.Services.AddPasswordAuth<TestAppUser, IdentityRole, TestRolesDbContext>();
+
+        using var app = builder.Build();
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+
+        var store = services.GetRequiredService<IUserStore<TestAppUser>>();
+        Assert.IsAssignableFrom<IUserRoleStore<TestAppUser>>(store);
+        Assert.NotNull(services.GetRequiredService<RoleManager<IdentityRole>>());
+        Assert.IsType<UserClaimsPrincipalFactory<TestAppUser, IdentityRole>>(
+            services.GetRequiredService<IUserClaimsPrincipalFactory<TestAppUser>>());
+    }
+
+    [Fact]
+    public void AddPasswordAuth_WithoutRoles_ResolvesUserOnlyStore()
+    {
+        var builder = NewBuilder();
+        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>();
+
+        using var app = builder.Build();
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+
+        var store = services.GetRequiredService<IUserStore<TestAppUser>>();
+        Assert.IsNotAssignableFrom<IUserRoleStore<TestAppUser>>(store);
+        Assert.Null(services.GetService<RoleManager<IdentityRole>>());
+        Assert.IsType<UserClaimsPrincipalFactory<TestAppUser>>(
+            services.GetRequiredService<IUserClaimsPrincipalFactory<TestAppUser>>());
+    }
+
+    [Fact]
+    public async Task CookieLogin_RoleClaim_AllowsRequireRole()
+    {
+        await using var app = await StartRolesAsync();
+        var http = app.GetTestServer().CreateClient();
+        var memberEmail = $"role-member-{Guid.NewGuid():N}@test.local";
+        var otherEmail = $"role-other-{Guid.NewGuid():N}@test.local";
+        await SeedRoleUserAsync(app, memberEmail, "Admin");
+        await SeedRoleUserAsync(app, otherEmail, role: null);
+
+        var memberCookies = new CookieContainer();
+        var memberLogin = await SendAsync(http, memberCookies, () =>
+            Post("/auth/login", new { email = memberEmail, password = TestHelpers.DefaultPassword }));
+        Assert.Equal(HttpStatusCode.OK, memberLogin.StatusCode);
+        Assert.Contains(".AspNetCore.Identity.Application", CookieHeader(memberLogin), StringComparison.Ordinal);
+
+        var member = await SendAsync(http, memberCookies, () => new HttpRequestMessage(HttpMethod.Get, "/admin"));
+        Assert.Equal(HttpStatusCode.OK, member.StatusCode);
+
+        var otherCookies = new CookieContainer();
+        var otherLogin = await SendAsync(http, otherCookies, () =>
+            Post("/auth/login", new { email = otherEmail, password = TestHelpers.DefaultPassword }));
+        Assert.Equal(HttpStatusCode.OK, otherLogin.StatusCode);
+
+        var other = await SendAsync(http, otherCookies, () => new HttpRequestMessage(HttpMethod.Get, "/admin"));
+        Assert.Equal(HttpStatusCode.Forbidden, other.StatusCode);
+    }
+
     private static WebApplicationBuilder NewBuilder(string environment = "Development")
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -459,6 +521,18 @@ public class PasswordAuthTests
         builder.WebHost.UseTestServer();
         var databaseName = "password-auth-" + Guid.NewGuid().ToString("N");
         builder.Services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase(databaseName));
+        return builder;
+    }
+
+    private static WebApplicationBuilder NewRolesBuilder()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = "Development",
+        });
+        builder.WebHost.UseTestServer();
+        var databaseName = "password-auth-roles-" + Guid.NewGuid().ToString("N");
+        builder.Services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase(databaseName));
         return builder;
     }
 
@@ -493,6 +567,60 @@ public class PasswordAuthTests
         app.MapPasswordAuth<TestAppUser>();
         await app.StartAsync();
         return app;
+    }
+
+    private static async Task<WebApplication> StartRolesAsync()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = "Development",
+        });
+        builder.WebHost.UseTestServer();
+        var path = Path.Combine(Path.GetTempPath(), $"ae-password-auth-roles-{Guid.NewGuid():N}.sqlite");
+        builder.Services.AddDbContext<TestRolesDbContext>(o => o.UseSqlite($"Data Source={path}"));
+        builder.Services.AddPasswordAuth<TestAppUser, IdentityRole, TestRolesDbContext>();
+        var app = builder.Build();
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TestRolesDbContext>();
+            await db.Database.EnsureDeletedAsync();
+            await db.Database.EnsureCreatedAsync();
+        }
+
+        app.UseAuthEndpoints();
+        app.MapPasswordAuth<TestAppUser>();
+        app.MapGet("/admin", () => Results.Ok())
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
+        await app.StartAsync();
+        return app;
+    }
+
+    private static async Task SeedRoleUserAsync(WebApplication app, string email, string? role)
+    {
+        using var scope = app.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = new TestAppUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true,
+        };
+        var created = await users.CreateAsync(user, TestHelpers.DefaultPassword);
+        Assert.True(created.Succeeded, string.Join(", ", created.Errors.Select(error => error.Description)));
+        if (role is null)
+        {
+            return;
+        }
+
+        var roles = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        if (!await roles.RoleExistsAsync(role))
+        {
+            var roleResult = await roles.CreateAsync(new IdentityRole(role));
+            Assert.True(roleResult.Succeeded, string.Join(", ", roleResult.Errors.Select(error => error.Description)));
+        }
+
+        var added = await users.AddToRoleAsync(user, role);
+        Assert.True(added.Succeeded, string.Join(", ", added.Errors.Select(error => error.Description)));
     }
 
     private static HttpRequestMessage Post(string path, object body)
