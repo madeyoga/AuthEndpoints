@@ -118,4 +118,35 @@ public sealed class AuthEndpointsReAuthOptions
     /// ticket <c>ExpiresUtc</c>, and <c>reauthToken</c> expiry.
     /// </summary>
     public TimeSpan Lifetime { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Step-up with a fresh sign-in at an external provider the account has linked.
+    /// On by default when external sign-in endpoints are registered.
+    /// </summary>
+    public ExternalReAuthOptions External { get; } = new();
+}
+
+/// <summary>
+/// Controls step-up with a fresh external provider sign-in.
+/// External step-up proves the user controls the provider account and its session right now.
+/// It is weaker than a password or passkey, and some providers ignore requests for a fresh sign-in.
+/// </summary>
+public sealed class ExternalReAuthOptions
+{
+    /// <summary>When false, no provider can be used for step-up. Default: <c>true</c>.</summary>
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Provider schemes (for example <c>GitHub</c>) that can't be used for step-up.
+    /// Scheme names are compared case-sensitively.
+    /// </summary>
+    public ISet<string> DisabledProviders { get; } = new HashSet<string>(StringComparer.Ordinal);
+
+    /// <summary>
+    /// How long the user has to finish the provider sign-in after starting step-up. Default: 5 minutes.
+    /// </summary>
+    public TimeSpan RequestLifetime { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>Returns true when <paramref name="scheme"/> may be used for step-up.</summary>
+    public bool IsAllowed(string scheme) => Enabled && !DisabledProviders.Contains(scheme);
 }

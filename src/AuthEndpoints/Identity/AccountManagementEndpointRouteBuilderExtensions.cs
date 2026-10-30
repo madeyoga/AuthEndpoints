@@ -66,6 +66,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
+        IdentityEndpointRoutes.MapExternalReAuth<TUser>(group, requireAntiforgery: true, mapMethod);
         IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod, includeEmailCode: emailCodeReAuth);
         IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName, mapMethod);
         if (includeSetPassword)

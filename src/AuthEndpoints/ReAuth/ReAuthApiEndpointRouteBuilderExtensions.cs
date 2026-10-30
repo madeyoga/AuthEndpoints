@@ -29,6 +29,7 @@ public static class ReAuthApiEndpointRouteBuilderExtensions
         IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
         IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
         IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
+        IdentityEndpointRoutes.MapExternalReAuth<TUser>(group, requireAntiforgery, nameof(MapReAuthEndpoints));
         IdentityEndpointRoutes.MapAuthMethods<TUser>(group, nameof(MapReAuthEndpoints));
         return group;
     }

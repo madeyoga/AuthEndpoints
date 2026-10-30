@@ -6,12 +6,12 @@ using AuthEndpoints.EmailCode;
 using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.Data.Sqlite;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -263,9 +263,17 @@ internal sealed class JarClient : IDisposable
             : doc.RootElement.GetProperty("token").GetString()!;
     }
 
-    private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content, string? csrf = null)
+    public Task<HttpResponseMessage> SendWithBearerAsync(HttpMethod method, string path, HttpContent? content, string bearer) =>
+        SendAsync(method, path, content, null, bearer);
+
+    private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, HttpContent? content, string? csrf = null, string? bearer = null)
     {
         var request = new HttpRequestMessage(method, path) { Content = content };
+        if (!string.IsNullOrEmpty(bearer))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearer);
+        }
+
         if (_cookies.Count > 0)
         {
             request.Headers.TryAddWithoutValidation("Cookie", string.Join("; ", _cookies));

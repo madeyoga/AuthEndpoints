@@ -10,7 +10,20 @@ internal sealed class AuthEndpointsReAuthOptionsValidator : IValidateOptions<Aut
 
     public ValidateOptionsResult Validate(string? name, AuthEndpointsReAuthOptions options)
     {
-        return ValidateLifetime(options.Lifetime);
+        var lifetime = ValidateLifetime(options.Lifetime);
+        if (lifetime.Failed)
+        {
+            return lifetime;
+        }
+
+        var request = options.External.RequestLifetime;
+        if (request < MinimumLifetime || request > TimeSpan.FromMinutes(30))
+        {
+            return ValidateOptionsResult.Fail(
+                "AuthEndpoints: ReAuth.External.RequestLifetime must be between 1 and 30 minutes.");
+        }
+
+        return ValidateOptionsResult.Success;
     }
 
     internal static ValidateOptionsResult ValidateLifetime(TimeSpan lifetime)

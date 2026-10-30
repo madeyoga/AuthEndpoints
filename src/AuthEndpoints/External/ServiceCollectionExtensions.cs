@@ -38,6 +38,8 @@ public static class ServiceCollectionExtensions
         services.AddAccountAbuseRateLimiting();
         services.AddConfirmIdentityRateLimiting();
         services.AddReAuthScheme();
+        services.TryAddSingleton<ExternalReAuthReplayLedger>();
+        services.TryAddSingleton<ExternalReAuthMapMarker>();
 
         services.AddAuthentication();
 

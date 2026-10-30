@@ -25,7 +25,7 @@ public static class ReAuthEndpoints<TUser>
         IServiceProvider services)
         => ListAuthMethods(principal, userManager, includeEmailCode: true, services);
 
-    private static async Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> ListAuthMethods(
+    internal static async Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> ListAuthMethods(
         ClaimsPrincipal principal,
         UserManager<TUser> userManager,
         bool includeEmailCode,
@@ -49,13 +49,20 @@ public static class ReAuthEndpoints<TUser>
             emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options);
         }
 
+        var external = services is null
+            ? []
+            : await ExternalReAuthEndpoints<TUser>.ListMethodsAsync(services, userManager, user);
+
         return TypedResults.Ok(new AuthMethodsResponse(
             Password: await userManager.HasPasswordAsync(user),
             Authenticator: await userManager.GetTwoFactorEnabledAsync(user),
             RecoveryCodes: recoveryCodesLeft > 0,
             Passkeys: passkeyCount > 0,
             PasskeyCount: passkeyCount,
-            EmailCode: emailCode));
+            EmailCode: emailCode)
+        {
+            External = external,
+        });
     }
 
     public static Task<Results<Ok<EmailCodeSendResponse>, UnauthorizedHttpResult, ProblemHttpResult>> SendEmailCode(
@@ -183,7 +190,7 @@ public static class ReAuthEndpoints<TUser>
             ExpiresUtc = now.Add(reAuthOptions.Lifetime)
         };
 
-        var claims = await CreateProofClaimsAsync(context, userManager, user, now);
+        var claims = await CreateProofClaimsAsync(context.User, userManager, user, now);
 
         if (await ShouldIssueReAuthCookieAsync(context))
         {
@@ -201,7 +208,7 @@ public static class ReAuthEndpoints<TUser>
     /// A caller authenticated with <c>Authorization: Bearer</c> receives the token only.
     /// Identity bearer principals use the application identity type, so this checks schemes.
     /// </summary>
-    private static async Task<bool> ShouldIssueReAuthCookieAsync(HttpContext context)
+    internal static async Task<bool> ShouldIssueReAuthCookieAsync(HttpContext context)
     {
         if (await SignInSchemes.IsAuthenticatedAsync(context, SignInSchemes.Application))
         {
@@ -224,8 +231,8 @@ public static class ReAuthEndpoints<TUser>
         return true;
     }
 
-    private static async Task<Claim[]> CreateProofClaimsAsync(
-        HttpContext context,
+    internal static async Task<Claim[]> CreateProofClaimsAsync(
+        ClaimsPrincipal principal,
         UserManager<TUser> userManager,
         TUser user,
         DateTimeOffset now)
@@ -237,7 +244,7 @@ public static class ReAuthEndpoints<TUser>
             new("ReauthTime", now.ToUnixTimeSeconds().ToString()),
         };
 
-        foreach (var claim in context.User.Claims)
+        foreach (var claim in principal.Claims)
         {
             if (string.Equals(claim.Type, stampClaimType, StringComparison.Ordinal)
                 || string.Equals(claim.Type, "Reauth", StringComparison.Ordinal)

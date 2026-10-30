@@ -1,4 +1,4 @@
-﻿namespace AuthEndpoints
+namespace AuthEndpoints
 {
     public static class AuthCompositionEndpointRouteBuilderExtensions
     {
@@ -60,6 +60,7 @@
     public sealed class AuthEndpointsReAuthOptions
     {
         public AuthEndpointsReAuthOptions() { }
+        public AuthEndpoints.ExternalReAuthOptions External { get; }
         public System.TimeSpan Lifetime { get; set; }
     }
     public static class AuthEndpointsServiceCollectionExtensions
@@ -95,6 +96,14 @@
         public EmailConfirmationOptions() { }
         public System.Collections.Generic.IList<string> AllowedRedirectOrigins { get; set; }
         public string? ConfirmEmailRedirectUri { get; set; }
+    }
+    public sealed class ExternalReAuthOptions
+    {
+        public ExternalReAuthOptions() { }
+        public System.Collections.Generic.ISet<string> DisabledProviders { get; }
+        public bool Enabled { get; set; }
+        public System.TimeSpan RequestLifetime { get; set; }
+        public bool IsAllowed(string scheme) { }
     }
     public interface ISignInCompleter<TUser>
         where TUser :  class
@@ -490,6 +499,10 @@ namespace AuthEndpoints.External.OAuth
         where TUser :  class
     {
         System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IExternalReAuthChallenge
+    {
+        void ConfigureFreshSignIn(Microsoft.AspNetCore.Authentication.AuthenticationProperties properties);
     }
     [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
         "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
@@ -1071,6 +1084,7 @@ namespace AuthEndpoints.ReAuth
         public AuthMethodsResponse(bool Password, bool Authenticator, bool RecoveryCodes, bool Passkeys, int PasskeyCount, bool EmailCode) { }
         public bool Authenticator { get; init; }
         public bool EmailCode { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AuthEndpoints.ReAuth.ExternalAuthMethod> External { get; init; }
         public int PasskeyCount { get; init; }
         public bool Passkeys { get; init; }
         public bool Password { get; init; }
@@ -1089,6 +1103,27 @@ namespace AuthEndpoints.ReAuth
     {
         public ConfirmIdentityResponse() { }
         public required string ReauthToken { get; init; }
+    }
+    public sealed record ExternalAuthMethod : System.IEquatable<AuthEndpoints.ReAuth.ExternalAuthMethod>
+    {
+        public ExternalAuthMethod(string Scheme, string? DisplayName) { }
+        public string? DisplayName { get; init; }
+        public string Scheme { get; init; }
+    }
+    public sealed class ExternalReAuthCompleteRequest
+    {
+        public ExternalReAuthCompleteRequest() { }
+        public string? Code { get; init; }
+    }
+    public sealed class ExternalReAuthStartRequest
+    {
+        public ExternalReAuthStartRequest() { }
+        public string? ReturnUrl { get; init; }
+    }
+    public sealed class ExternalReAuthStartResponse
+    {
+        public ExternalReAuthStartResponse() { }
+        public required string RedirectUrl { get; init; }
     }
     public static class ReAuthApiEndpointRouteBuilderExtensions
     {

@@ -2,13 +2,13 @@ using System.Security.Claims;
 using AuthEndpoints.EmailCode;
 using AuthEndpoints.ReAuth;
 using AuthEndpoints.SignIn;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.Identity;
 
@@ -150,6 +150,64 @@ internal static class IdentityEndpointRoutes
         confirm.Track(endpoints, mapMethod);
     }
 
+    /// <summary>
+    /// Maps external-provider step-up when external sign-in is registered:
+    /// start, launch, callback and the bearer code exchange.
+    /// </summary>
+    public static void MapExternalReAuth<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
+        where TUser : class, new()
+    {
+        if (!AuthEndpointsModules.IsRegistered<External.OAuth.ExternalAuthEndpointsModule>(endpoints.ServiceProvider))
+        {
+            return;
+        }
+
+        var marker = endpoints.ServiceProvider.GetRequiredService<ExternalReAuthMapMarker>();
+        if (marker.Mapped)
+        {
+            return;
+        }
+
+        marker.Mapped = true;
+
+        var complete = endpoints.MapPost("/confirmIdentity/external/complete", ExternalReAuthEndpoints<TUser>.Complete)
+            .WithSummary("Exchange a one-time external step-up code for a reauthToken.")
+            .WithDescription("For bearer clients. Send the reauthCode from the step-up return URL. Returns reauthToken.")
+            .RequireAuthEndpointsUser()
+            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);
+
+        var start = endpoints.MapPost("/confirmIdentity/external/{provider}", ExternalReAuthEndpoints<TUser>.Start)
+            .WithSummary("Start confirming the user's identity with a fresh sign-in at a linked external provider.")
+            .WithDescription("""
+                Returns redirectUrl. Navigate the browser there to sign in at the provider.
+                Cookie sign-ins come back with the AuthEndpoints.ReAuth cookie.
+                Bearer clients come back with a one-time reauthCode to exchange at /confirmIdentity/external/complete.
+                """)
+            .RequireAuthEndpointsUser()
+            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy);
+
+        if (requireAntiforgery)
+        {
+            complete.RequireAntiforgery();
+            start.RequireAntiforgery();
+        }
+
+        endpoints.MapGet("/confirmIdentity/external/{provider}/launch", ExternalReAuthEndpoints<TUser>.Launch)
+            .WithSummary("Redirect to the external provider for step-up.")
+            .WithName(ExternalReAuthEndpoints<TUser>.LaunchEndpointName)
+            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy)
+            .Track(endpoints, mapMethod);
+
+        endpoints.MapGet("/confirmIdentity/external/{provider}/callback", ExternalReAuthEndpoints<TUser>.Callback)
+            .WithSummary("Complete external-provider step-up.")
+            .WithName(ExternalReAuthEndpoints<TUser>.CallbackEndpointName)
+            .RequireRateLimiting(AuthEndpointsConstants.ConfirmIdentityPolicy)
+            .Track(endpoints, mapMethod);
+
+        complete.Track(endpoints, mapMethod);
+        start.Track(endpoints, mapMethod);
+    }
+
     public static void MapEmailCodeReAuthSend<TUser>(IEndpointRouteBuilder endpoints, bool requireAntiforgery, string mapMethod)
         where TUser : class, new()
     {
@@ -205,7 +263,9 @@ internal static class IdentityEndpointRoutes
                 IServiceProvider services) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager, services))
             : manage.MapGet("/authMethods", (
                 ClaimsPrincipal principal,
-                UserManager<TUser> userManager) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager));
+                UserManager<TUser> userManager,
+                IServiceProvider services) => ReAuthEndpoints<TUser>.ListAuthMethods(
+                    principal, userManager, includeEmailCode: false, services));
         authMethods
             .WithSummary("List available step-up / reauthentication methods for the current user.")
             .Track(endpoints, mapMethod);
