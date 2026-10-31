@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -20,7 +21,11 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
             return;
         }
 
-        var events = options.Events ??= new CookieAuthenticationEvents();
+        var events = options.EventsType is { } eventsType
+            ? ForwardTo(eventsType)
+            : options.Events ??= new CookieAuthenticationEvents();
+        options.EventsType = null;
+        options.Events = events;
         var cookie = options;
         var signingIn = events.OnSigningIn;
         var validate = events.OnValidatePrincipal;
@@ -40,6 +45,27 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
         {
             await SigningOutAsync(context);
             await signingOut(context);
+        };
+    }
+
+    // The cookie handler ignores Events when EventsType is set. Replace it with events that resolve
+    // the app's events type per request and forward every callback to it, so session hooks can chain.
+    private static CookieAuthenticationEvents ForwardTo(Type eventsType)
+    {
+        CookieAuthenticationEvents Resolve(HttpContext http) =>
+            (CookieAuthenticationEvents)http.RequestServices.GetRequiredService(eventsType);
+
+        return new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = c => Resolve(c.HttpContext).ValidatePrincipal(c),
+            OnCheckSlidingExpiration = c => Resolve(c.HttpContext).CheckSlidingExpiration(c),
+            OnSigningIn = c => Resolve(c.HttpContext).SigningIn(c),
+            OnSignedIn = c => Resolve(c.HttpContext).SignedIn(c),
+            OnSigningOut = c => Resolve(c.HttpContext).SigningOut(c),
+            OnRedirectToLogin = c => Resolve(c.HttpContext).RedirectToLogin(c),
+            OnRedirectToAccessDenied = c => Resolve(c.HttpContext).RedirectToAccessDenied(c),
+            OnRedirectToLogout = c => Resolve(c.HttpContext).RedirectToLogout(c),
+            OnRedirectToReturnUrl = c => Resolve(c.HttpContext).RedirectToReturnUrl(c),
         };
     }
 
@@ -126,23 +152,31 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
             return;
         }
 
-        var session = await store.FindAsync(id);
-        if (!IsUsable(session, userId, now))
-        {
-            context.RejectPrincipal();
-            await context.HttpContext.SignOutAsync(context.Scheme.Name);
-            return;
-        }
-
         if (!string.Equals(ActiveSessionRequest.Current(context.Principal), id, StringComparison.Ordinal))
         {
             ActiveSessionRequest.SetClaim(context.Principal, id);
         }
 
+        var cache = services.GetRequiredService<ActiveSessionValidationCache>();
+        if (cache.IsFresh(id, userId))
+        {
+            return;
+        }
+
+        var session = await store.FindAsync(id);
+        if (!IsUsable(session, userId, now))
+        {
+            cache.Remove([id]);
+            context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync(context.Scheme.Name);
+            return;
+        }
+
+        cache.MarkValid(id, userId);
         await store.TouchAsync(session, slidingExpiry);
     }
 
-    private static bool IsUsable(ActiveSession? session, string userId, DateTime now) =>
+    private static bool IsUsable([NotNullWhen(true)] ActiveSession? session, string userId, DateTime now) =>
         session is not null
         && session.RevokedAt is null
         && ActiveSessionStore.AsUtc(session.ExpiresAt) > now

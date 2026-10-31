@@ -61,12 +61,18 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
     private readonly TContext _db;
     private readonly TimeProvider _time;
     private readonly ActiveSessionOptions _options;
+    private readonly ActiveSessionValidationCache? _cache;
 
-    public ActiveSessionStore(TContext db, TimeProvider time, IOptions<ActiveSessionOptions> options)
+    public ActiveSessionStore(
+        TContext db,
+        TimeProvider time,
+        IOptions<ActiveSessionOptions> options,
+        ActiveSessionValidationCache? cache = null)
     {
         _db = db;
         _time = time;
         _options = options.Value;
+        _cache = cache;
     }
 
     private DateTime UtcNow => ActiveSessionStore.AsUtc(_time.GetUtcNow().UtcDateTime);
@@ -84,7 +90,7 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
         }
 
         var now = UtcNow;
-        Sessions.Add(new ActiveSession
+        var session = new ActiveSession
         {
             Id = id,
             UserId = userId,
@@ -93,8 +99,26 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
             CreatedAt = now,
             LastSeenAt = now,
             ExpiresAt = ActiveSessionStore.AsUtc(expiresAt),
-        });
-        await _db.SaveChangesAsync();
+        };
+        Sessions.Add(session);
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent request may have created the same session first; keep theirs.
+            if (!await ExistsAfterConflictAsync(session))
+            {
+                throw;
+            }
+        }
+    }
+
+    private async Task<bool> ExistsAfterConflictAsync(ActiveSession session)
+    {
+        _db.Entry(session).State = EntityState.Detached;
+        return await Sessions.AsNoTracking().AnyAsync(s => s.Id == session.Id);
     }
 
     public Task<ActiveSession?> FindAsync(string id)
@@ -165,6 +189,7 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
             return;
         }
 
+        _cache?.Remove(ids);
         var now = UtcNow;
         await Sessions
             .Where(s => ids.Contains(s.Id) && s.RevokedAt == null)
@@ -197,20 +222,10 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
             .Where(s => s.UserId == userId && s.RevokedAt == null && s.ExpiresAt > now)
             .ToListAsync();
 
-        if (currentStamp is not null)
-        {
-            var stale = sessions
-                .Where(s => !string.Equals(s.SecurityStamp, currentStamp, StringComparison.Ordinal))
-                .Select(s => s.Id)
-                .ToList();
-            if (stale.Count > 0)
-            {
-                await EndAsync(stale);
-                sessions.RemoveAll(s => stale.Contains(s.Id));
-            }
-        }
-
+        // Sessions from before the last stamp change are no longer usable; leave ending them to
+        // the cookie check and refresh path so listing stays read-only.
         return sessions
+            .Where(s => currentStamp is null || string.Equals(s.SecurityStamp, currentStamp, StringComparison.Ordinal))
             .OrderByDescending(s => s.LastSeenAt)
             .ToList();
     }
@@ -241,6 +256,7 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
 
     public async Task<int> CleanupAsync()
     {
+        _cache?.Sweep();
         var now = UtcNow;
         return await Sessions
             .Where(s => s.RevokedAt != null || s.ExpiresAt <= now)

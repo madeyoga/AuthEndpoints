@@ -44,11 +44,13 @@ public static class ActiveSessionServiceCollectionExtensions
 
         options
             .Validate(o => o.LastSeenUpdateInterval >= TimeSpan.Zero, "ActiveSessions: LastSeenUpdateInterval must not be negative.")
+            .Validate(o => o.RevalidationInterval >= TimeSpan.Zero, "ActiveSessions: RevalidationInterval must not be negative.")
             .Validate(o => o.CleanupInterval > TimeSpan.Zero, "ActiveSessions: CleanupInterval must be positive.")
             .ValidateOnStart();
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
+        services.TryAddSingleton<ActiveSessionValidationCache>();
         services.TryAddScoped<IActiveSessionStore, ActiveSessionStore<TContext>>();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, ActiveSessionCookieEvents>());

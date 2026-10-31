@@ -6,12 +6,18 @@ using AuthEndpoints.EmailCode;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Sessions;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -173,7 +179,7 @@ public class ActiveSessionTests
     [Fact]
     public async Task Cleanup_DeletesRevokedAndExpiredSessions()
     {
-        await using var host = await CookieHost.StartAsync();
+        await using var host = await CookieHost.StartAsync(revalidation: TimeSpan.Zero);
         var email = Email();
         await host.SeedAsync(email, Password);
         var keep = await host.SignInPasswordAsync(email, Password);
@@ -341,6 +347,195 @@ public class ActiveSessionTests
         Assert.Contains("AddActiveSessions", error.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task CustomCookieEventsType_IsChained_AndRevokeStillApplies()
+    {
+        await using var host = await CookieHost.StartAsync(customEventsType: true);
+        var email = Email();
+        await host.SeedAsync(email, Password);
+        var actor = await host.SignInPasswordAsync(email, Password);
+        var victim = await host.SignInPasswordAsync(email, Password);
+        var victimId = Assert.Single(await host.ListAsync(victim), s => s.Current).Id;
+        var events = host.App.Services.GetRequiredService<CountingCookieEvents>();
+        Assert.Equal(2, events.SignIns);
+        Assert.True(events.Validated > 0);
+
+        await host.ConfirmPasswordAsync(actor, Password);
+        Assert.Equal(HttpStatusCode.NoContent, (await host.SendAsync(actor, HttpMethod.Delete, $"/identity/sessions/{victimId}", csrf: true)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.GetAsync(victim, "/identity/manage/info")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
+    }
+
+    [Fact]
+    public async Task CookieCheck_ReadsSessionOncePerRevalidationInterval()
+    {
+        var time = new ManualTime(DateTimeOffset.UtcNow);
+        await using var host = await CookieHost.StartAsync(revalidation: TimeSpan.FromSeconds(30), time: time);
+        var email = Email();
+        await host.SeedAsync(email, Password);
+        var jar = await host.SignInPasswordAsync(email, Password);
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(jar, "/identity/manage/info")).StatusCode);
+
+        // Revoked behind the app's back (another server): trusted until the interval passes.
+        using (var scope = host.App.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<ActiveSessionsDbContext>();
+            await db.Set<ActiveSession>().ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAt, DateTime.UtcNow));
+        }
+
+        time.Advance(TimeSpan.FromSeconds(10));
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(jar, "/identity/manage/info")).StatusCode);
+        time.Advance(TimeSpan.FromSeconds(25));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.GetAsync(jar, "/identity/manage/info")).StatusCode);
+    }
+
+    [Fact]
+    public async Task List_HidesStaleStampSessions_WithoutEndingThem()
+    {
+        await WithStoreAsync(async (store, db, _) =>
+        {
+            var expires = DateTime.UtcNow.AddDays(1);
+            await store.CreateAsync("old", "u1", "ua", "stamp-1", expires);
+            await store.CreateAsync("new", "u1", "ua", "stamp-2", expires);
+
+            var listed = await store.ListAsync("u1", "stamp-2");
+            Assert.Equal("new", Assert.Single(listed).Id);
+            Assert.Null((await store.FindAsync("old"))!.RevokedAt);
+        });
+    }
+
+    [Fact]
+    public async Task Create_ConcurrentInsertOfSameSession_IsIgnored()
+    {
+        await WithStoreAsync(async (store, db, path) =>
+        {
+            var expires = DateTime.UtcNow.AddDays(1);
+            var racing = new InsertFirstInterceptor(path, "race", expires);
+            var options = new DbContextOptionsBuilder<ActiveSessionsDbContext>()
+                .UseSqlite($"Data Source={path}")
+                .AddInterceptors(racing)
+                .Options;
+            await using var racedDb = new ActiveSessionsDbContext(options);
+            var raced = new ActiveSessionStore<ActiveSessionsDbContext>(racedDb, TimeProvider.System, Options.Create(new ActiveSessionOptions()));
+
+            await raced.CreateAsync("race", "u1", "ua", "stamp", expires);
+
+            Assert.True(racing.Inserted);
+            Assert.Equal(1, await db.Set<ActiveSession>().CountAsync(s => s.Id == "race"));
+        });
+    }
+
+    [Fact]
+    public async Task RevokeOthers_WithoutCurrentSession_Is409_AndRevokesNothing()
+    {
+        await using var host = await JwtHost.StartAsync();
+        var email = Email();
+        await host.SeedAsync(email);
+        await host.CreateAsync(email);
+
+        using var scope = host.App.Services.CreateScope();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+        var user = (await users.FindByEmailAsync(email))!;
+        var principal = await scope.ServiceProvider.GetRequiredService<SignInManager<TestAppUser>>().CreateUserPrincipalAsync(user);
+        Assert.Null(ActiveSessionRequest.Current(principal));
+        var context = new DefaultHttpContext { RequestServices = scope.ServiceProvider, User = principal };
+
+        var result = await ActiveSessionEndpoints<TestAppUser>.RevokeOthers(
+            context,
+            users,
+            scope.ServiceProvider.GetRequiredService<IActiveSessionStore>());
+
+        Assert.IsType<Conflict>(result.Result);
+        Assert.Equal(1, await host.CountActiveAsync(email));
+    }
+
+    [Fact]
+    public async Task Jwt_RevokedSession_AccessTokenWorksUntilExpiry_RefreshFails()
+    {
+        await using var host = await JwtHost.StartAsync();
+        var email = Email();
+        await host.SeedAsync(email);
+        var (access, refresh) = await host.CreateAsync(email);
+        var sessionId = Assert.Single(await host.ListAsync(access)).Id;
+
+        using (var scope = host.App.Services.CreateScope())
+        {
+            var userId = (await scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>().FindByEmailAsync(email))!.Id;
+            Assert.True(await scope.ServiceProvider.GetRequiredService<IActiveSessionStore>().RevokeAsync(userId, sessionId));
+        }
+
+        // Access tokens are self-contained: the revoked session's token is accepted until it expires.
+        Assert.True(new JwtSecurityTokenHandler().ReadJwtToken(access).ValidTo > DateTime.UtcNow);
+        Assert.Empty(await host.ListAsync(access));
+        Assert.False((await host.Client.PostAsJsonAsync("/auth/refresh", new { refreshToken = refresh })).IsSuccessStatusCode);
+    }
+
+    private static async Task WithStoreAsync(Func<ActiveSessionStore<ActiveSessionsDbContext>, ActiveSessionsDbContext, string, Task> test)
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"ae-sessions-store-{Guid.NewGuid():N}.sqlite");
+        try
+        {
+            var options = new DbContextOptionsBuilder<ActiveSessionsDbContext>().UseSqlite($"Data Source={path}").Options;
+            await using var db = new ActiveSessionsDbContext(options);
+            await db.Database.EnsureCreatedAsync();
+            var store = new ActiveSessionStore<ActiveSessionsDbContext>(db, TimeProvider.System, Options.Create(new ActiveSessionOptions()));
+            await test(store, db, path);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(path);
+        }
+    }
+
+    private sealed class InsertFirstInterceptor(string path, string id, DateTime expires) : SaveChangesInterceptor
+    {
+        public bool Inserted { get; private set; }
+
+        public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            if (!Inserted)
+            {
+                Inserted = true;
+                var options = new DbContextOptionsBuilder<ActiveSessionsDbContext>().UseSqlite($"Data Source={path}").Options;
+                await using var other = new ActiveSessionsDbContext(options);
+                other.Set<ActiveSession>().Add(new ActiveSession
+                {
+                    Id = id,
+                    UserId = "u1",
+                    SecurityStamp = "stamp",
+                    CreatedAt = DateTime.UtcNow,
+                    LastSeenAt = DateTime.UtcNow,
+                    ExpiresAt = expires,
+                });
+                await other.SaveChangesAsync(cancellationToken);
+            }
+
+            return result;
+        }
+    }
+
+    private sealed class CountingCookieEvents : CookieAuthenticationEvents
+    {
+        public int SignIns;
+        public int Validated;
+
+        public override Task SigningIn(CookieSigningInContext context)
+        {
+            Interlocked.Increment(ref SignIns);
+            return base.SigningIn(context);
+        }
+
+        public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
+        {
+            Interlocked.Increment(ref Validated);
+            await SecurityStampValidator.ValidatePrincipalAsync(context);
+        }
+    }
+
     private static string Email() => $"sessions-{Guid.NewGuid():N}@test.local";
 
     private sealed class ManualTime(DateTimeOffset now) : TimeProvider
@@ -432,7 +627,11 @@ public class ActiveSessionTests
 
         public CapturingEmailSender Mail { get; }
 
-        public static async Task<CookieHost> StartAsync(bool mapIdentityBearer = false)
+        public static async Task<CookieHost> StartAsync(
+            bool mapIdentityBearer = false,
+            bool customEventsType = false,
+            TimeSpan? revalidation = null,
+            TimeProvider? time = null)
         {
             var path = NewPath("cookie");
             var mail = new CapturingEmailSender();
@@ -467,7 +666,24 @@ public class ActiveSessionTests
                 o.ResendCooldown = TimeSpan.Zero;
                 o.SendsPerIpPerMinute = 100;
             });
-            builder.Services.AddActiveSessions<TestAppUser, ActiveSessionsDbContext>();
+            if (time is not null)
+            {
+                builder.Services.AddSingleton(time);
+            }
+
+            if (customEventsType)
+            {
+                builder.Services.AddSingleton<CountingCookieEvents>();
+                builder.Services.ConfigureApplicationCookie(o => o.EventsType = typeof(CountingCookieEvents));
+            }
+
+            builder.Services.AddActiveSessions<TestAppUser, ActiveSessionsDbContext>(o =>
+            {
+                if (revalidation is { } interval)
+                {
+                    o.RevalidationInterval = interval;
+                }
+            });
 
             var app = builder.Build();
             await CreateDatabaseAsync(app);

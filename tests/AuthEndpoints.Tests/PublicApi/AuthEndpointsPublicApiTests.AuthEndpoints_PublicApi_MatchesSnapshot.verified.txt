@@ -1155,6 +1155,7 @@ namespace AuthEndpoints.Sessions
         public ActiveSessionOptions() { }
         public System.TimeSpan CleanupInterval { get; set; }
         public System.TimeSpan LastSeenUpdateInterval { get; set; }
+        public System.TimeSpan RevalidationInterval { get; set; }
     }
     public static class ActiveSessionServiceCollectionExtensions
     {

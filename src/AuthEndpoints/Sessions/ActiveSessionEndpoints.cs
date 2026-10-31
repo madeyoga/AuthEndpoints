@@ -64,7 +64,7 @@ public static class ActiveSessionEndpointRouteBuilderExtensions
             .RequireAuthEndpointsUser()
             .RequireReauth()
             .RequireAntiforgery()
-            .WithSummary("Sign out every session except the current one.")
+            .WithSummary("Sign out every session except the current one. 409 when the caller has no current session.")
             .WithName("ActiveSessionsRevokeOthers")
             .Track(endpoints, mapMethod);
 
@@ -118,7 +118,7 @@ internal static class ActiveSessionEndpoints<TUser>
             : TypedResults.NotFound();
     }
 
-    public static async Task<Results<Ok<RevokeOtherSessionsResponse>, UnauthorizedHttpResult>> RevokeOthers(
+    public static async Task<Results<Ok<RevokeOtherSessionsResponse>, Conflict, UnauthorizedHttpResult>> RevokeOthers(
         HttpContext context,
         UserManager<TUser> userManager,
         IActiveSessionStore store)
@@ -129,7 +129,14 @@ internal static class ActiveSessionEndpoints<TUser>
             return TypedResults.Unauthorized();
         }
 
-        var revoked = await store.RevokeOthersAsync(userId, ActiveSessionRequest.Current(context.User));
+        // Without a current session (a token issued before sessions were on) "others" would be all of them.
+        var current = ActiveSessionRequest.Current(context.User);
+        if (current is null)
+        {
+            return TypedResults.Conflict();
+        }
+
+        var revoked = await store.RevokeOthersAsync(userId, current);
         return TypedResults.Ok(new RevokeOtherSessionsResponse(revoked));
     }
 }
