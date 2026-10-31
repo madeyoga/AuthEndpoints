@@ -357,20 +357,20 @@
       "authendpoints.external.oauth": {
         "type": "Project",
         "dependencies": {
-          "AuthEndpoints": "[4.0.4, )"
+          "AuthEndpoints": "[4.1.0, )"
         }
       },
       "authendpoints.oauth.github": {
         "type": "Project",
         "dependencies": {
           "AspNet.Security.OAuth.GitHub": "[10.0.0, )",
-          "AuthEndpoints": "[4.0.4, )"
+          "AuthEndpoints": "[4.1.0, )"
         }
       },
       "authendpoints.oauth.google": {
         "type": "Project",
         "dependencies": {
-          "AuthEndpoints": "[4.0.4, )",
+          "AuthEndpoints": "[4.1.0, )",
           "Microsoft.AspNetCore.Authentication.Google": "[10.0.2, )"
         }
       }

@@ -8,14 +8,14 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
     <Description>Auth library that provides a set of minimal api endpoints to handle authentication actions</Description>
-    <Version>4.0.4</Version>
+    <Version>4.1.0</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
     <PackageTags>auth;endpoints;aspnetcore;jwt;passkey;webauthn;2fa;identity</PackageTags>
-    <PackageReleaseNotes>When TUser does not derive from IdentityUser, the error names the user type. A missing RSA, ECDsa, or X509 signing key error names the property to set and the algorithm that needs it.</PackageReleaseNotes>
+    <PackageReleaseNotes>Users can list and revoke their signed-in sessions (opt-in, needs a migration). AddPasswordAuth&lt;TUser, TRole, TContext&gt; registers Identity roles. GET /external/providers lists registered sign-in providers, and account routes map with no provider. GET /manage/2fa returns recoveryCodesLeft, and enabling two-factor keeps the step-up confirmation. JWT startup requires the signing key for the selected algorithm.</PackageReleaseNotes>
     <AssemblyVersion></AssemblyVersion>
     <FileVersion></FileVersion>
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
