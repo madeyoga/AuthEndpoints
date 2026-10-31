@@ -34,13 +34,14 @@ internal sealed class ReAuthBearerAuthenticationHandler : AuthenticationHandler<
             return Task.FromResult(AuthenticateResult.NoResult());
         }
 
-        var principal = _tokenService.Unprotect(token);
+        var principal = _tokenService.Unprotect(token, out var expiresUtc);
         if (principal is null)
         {
             return Task.FromResult(AuthenticateResult.Fail("Invalid or expired reauthentication token."));
         }
 
-        var ticket = new AuthenticationTicket(principal, Scheme.Name);
+        var properties = new AuthenticationProperties { ExpiresUtc = expiresUtc };
+        var ticket = new AuthenticationTicket(principal, properties, Scheme.Name);
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }
