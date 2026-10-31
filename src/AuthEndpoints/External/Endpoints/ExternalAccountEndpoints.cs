@@ -13,6 +13,26 @@ namespace AuthEndpoints.External.OAuth;
 public static class ExternalAccountEndpoints<TUser>
     where TUser : class, new()
 {
+    /// <summary>
+    /// Lists every registered <see cref="IExternalAuthProvider"/> in registration order.
+    /// The display name comes from the authentication scheme and falls back to the scheme name.
+    /// Returns an empty array when no provider is registered.
+    /// </summary>
+    public static async Task<IResult> ListProviders(
+        IEnumerable<IExternalAuthProvider> providers,
+        IAuthenticationSchemeProvider schemes)
+    {
+        var items = new List<ExternalProviderListItem>();
+        foreach (var provider in providers)
+        {
+            var scheme = await schemes.GetSchemeAsync(provider.Scheme);
+            var displayName = string.IsNullOrWhiteSpace(scheme?.DisplayName) ? provider.Scheme : scheme.DisplayName;
+            items.Add(new ExternalProviderListItem(provider.Scheme, displayName));
+        }
+
+        return Results.Ok(items);
+    }
+
     public static async Task<IResult> ListLogins(UserManager<TUser> userManager, HttpContext httpContext)
     {
         var user = await userManager.GetUserAsync(httpContext.User);
@@ -244,3 +264,5 @@ public static class ExternalAccountEndpoints<TUser>
 }
 
 public sealed record ExternalLoginListItem(string LoginProvider, string ProviderKey, string? ProviderDisplayName);
+
+public sealed record ExternalProviderListItem(string Scheme, string DisplayName);
