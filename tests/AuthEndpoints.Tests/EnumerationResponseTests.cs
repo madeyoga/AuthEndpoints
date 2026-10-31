@@ -422,12 +422,13 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
 
     private sealed class Host : IAsyncDisposable
     {
-        private readonly string _path;
+        // Keeps the in-memory database alive for the host's lifetime.
+        private readonly SqliteConnection _keepAlive;
 
-        private Host(WebApplication app, string path, CapturingEmailSender mail)
+        private Host(WebApplication app, SqliteConnection keepAlive, CapturingEmailSender mail)
         {
             App = app;
-            _path = path;
+            _keepAlive = keepAlive;
             Mail = mail;
             Client = app.GetTestClient();
             Client.BaseAddress = new Uri("http://localhost");
@@ -441,7 +442,11 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
 
         public static async Task<Host> StartAsync()
         {
-            var path = Path.Combine(Path.GetTempPath(), $"ae-enum-{Guid.NewGuid():N}.sqlite");
+            // In-memory storage: the timing checks compare endpoint work, so a new account's insert
+            // must not wait on disk sync that the duplicate branch never does.
+            var connectionString = $"Data Source=ae-enum-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
+            var keepAlive = new SqliteConnection(connectionString);
+            await keepAlive.OpenAsync();
             var mail = new CapturingEmailSender();
             var builder = WebApplication.CreateBuilder(new WebApplicationOptions
             {
@@ -449,7 +454,7 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             });
             builder.WebHost.UseTestServer();
             builder.Services.AddDbContext<TestDbContext>(options =>
-                options.UseSqlite($"Data Source={path};Pooling=False"));
+                options.UseSqlite(connectionString));
             builder.Services
                 .AddIdentityApiEndpoints<TestAppUser>(options =>
                 {
@@ -483,7 +488,6 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
-                await db.Database.EnsureDeletedAsync();
                 await db.Database.EnsureCreatedAsync();
             }
 
@@ -498,7 +502,7 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             account.MapPasskeyRegisterOptionsEndpoints<TestAppUser>();
             account.MapPasskeySignUpEndpoints<TestAppUser>("EnumerationPasskeyConfirmEmail");
             await app.StartAsync();
-            return new Host(app, path, mail);
+            return new Host(app, keepAlive, mail);
         }
 
         public Task SeedAsync(string email, bool confirmed) => SeedAsync(email, confirmed, userName: null);
@@ -530,17 +534,7 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             Client.Dispose();
             await App.StopAsync();
             await App.DisposeAsync();
-            SqliteConnection.ClearAllPools();
-            try
-            {
-                if (File.Exists(_path))
-                {
-                    File.Delete(_path);
-                }
-            }
-            catch (IOException)
-            {
-            }
+            await _keepAlive.DisposeAsync();
         }
     }
 }
