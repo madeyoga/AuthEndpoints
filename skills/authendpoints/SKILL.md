@@ -135,6 +135,8 @@ Paths below use `Path` (default `/auth`). A host that changes `Path` uses that p
 | `POST` | `/auth/manage/info` | Yes | Yes | Yes | |
 | `POST` | `/auth/manage/password` | Yes | Yes | Yes | `AccountAbuse` |
 
+`GET /auth/manage/2fa` returns `isTwoFactorEnabled` and `recoveryCodesLeft`. `POST /auth/manage/2fa` changes the security stamp. It refreshes a cookie session and renews a ReAuth cookie proof for the new stamp with the original expiry, so enabling 2FA after `{}` needs no second step-up. An `X-AuthEndpoints-Reauth` token is not renewed.
+
 `POST /auth/manage/password` sets a first password. It returns `404` when password sign-in is not mapped, and `400` when the account already has a password. Change an existing password with `POST /auth/manage/info`.
 
 A JWT session uses the same register, recovery, confirm-email, and management routes. It maps `POST /auth/create`, `POST /auth/refresh`, `GET /auth/verify`, and `POST /auth/logout` in place of `POST /auth/login`. Cookie refresh also maps `GET /auth/csrfToken`. Body refresh omits that route. `POST /auth/create` and `POST /auth/refresh` use `AuthEndpoints.Login`.
@@ -309,6 +311,7 @@ GitHub sign-in uses a verified address from `GET /user/emails`. The GitHub packa
 
 | Method | Path | Auth | CSRF | ReAuth | Rate limit |
 | --- | --- | --- | --- | --- | --- |
+| `GET` | `/providers` | | | | |
 | `GET` | `/login/github` | | | | `Login` |
 | `GET` | `/login/github/callback` | | | | |
 | `GET` | `/login/google` | | | | `Login` |
@@ -321,6 +324,8 @@ GitHub sign-in uses a verified address from `GET /user/emails`. The GitHub packa
 | `GET` | `/link/Google/callback` | Yes | | | |
 
 Unlink requires a signed-in user on a registered AuthEndpoints scheme (`Identity.Application`, `Identity.Bearer`, or JWT bearer), the antiforgery filter, and a ReAuth proof for that same user. A bearer `Authorization` header skips the antiforgery check under the CSRF rule above. A missing login is `404`. Success is `204`. Removal is refused with problem title `last_signin_method` when it would delete the last sign-in method. Email code counts only when email-code sign-in is mapped and the email is confirmed.
+
+`GET /providers` needs no sign-in. It returns `[{ "scheme", "displayName" }]` for each registered provider, in registration order. `displayName` falls back to the scheme. `MapExternalAccountEndpoints` works with zero providers: `/providers` and `/logins` return `[]`, and no link routes are mapped.
 
 Module: [External OAuth](https://authendpoints.harten.id/modules/external-oauth).
 
@@ -354,6 +359,26 @@ app.UseAntiforgery();
 `MapPasswordEndpoints()` with no arguments finishes `POST /login` through the cookie completer unless `SignInCompletionOptions.Default` names one. An explicit `PasswordLoginMode` uses `PasswordSignInAsync` and overrides that default. `MapCookieAuthEndpoints` and `MapBearerAuthEndpoints` stay on those 3.4.1 handlers.
 
 Copy-paste hosts: [Build a custom auth stack](https://authendpoints.harten.id/composables). Pairs and routes: [Composition table](https://authendpoints.harten.id/modules/composition). Completers: [Security model](https://authendpoints.harten.id/concepts/security-model).
+
+## List and revoke sessions
+
+Active sessions are off by default and support cookie and JWT sessions. Identity bearer fails at startup when it is mapped with active sessions on. Call `modelBuilder.UseActiveSessions()` (after `UseRefreshToken()` for JWT) and migrate (`AuthEndpointsActiveSessions`, plus a nullable `SessionId` on refresh tokens for JWT). Call `AddActiveSessions<TUser, TContext>(Action<ActiveSessionOptions>?)` after `AddPasswordAuth` or `AddJwtEndpoints` and after any custom refresh-token service or access-token generator. Map `MapActiveSessionEndpoints<TUser>()` on the sign-in prefix.
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `LastSeenUpdateInterval` | 5 minutes | Minimum time between `lastSeenAt` writes. Must not be negative. |
+| `RevalidationInterval` | 30 seconds | How long a cookie request trusts the last session check. `TimeSpan.Zero` checks every request. Must not be negative. |
+| `CleanupInterval` | 1 hour | How often expired and revoked records are deleted. Must be positive. |
+
+| Method | Path | Auth | CSRF | ReAuth | Result |
+| --- | --- | --- | --- | --- | --- |
+| `GET` | `/auth/sessions` | Yes | | | `200` `[{ id, userAgent, createdAt, lastSeenAt, current }]` |
+| `DELETE` | `/auth/sessions/{id}` | Yes | Yes | Yes | `204`, or `404` when the session is not the caller's |
+| `POST` | `/auth/sessions/revokeOthers` | Yes | Yes | Yes | `200` `{ revoked }`, or `409` when the caller has no current session |
+
+CSRF applies to cookie callers. A revoked cookie gets `401` on its next request. A revoked JWT session loses its refresh tokens. Issued access tokens stay valid until they expire.
+
+Guide: [List and revoke signed-in sessions](https://authendpoints.harten.id/guides/active-sessions).
 
 ## Require step-up
 
