@@ -22,8 +22,11 @@ internal sealed class ReAuthTokenService
     }
 
     public string CreateToken(IEnumerable<Claim> claims)
+        => CreateToken(claims, _timeProvider.GetUtcNow().Add(_options.Lifetime));
+
+    /// <summary>Creates a token that expires at <paramref name="expires"/>, for renewing a proof without extending it.</summary>
+    public string CreateToken(IEnumerable<Claim> claims, DateTimeOffset expires)
     {
-        var expires = _timeProvider.GetUtcNow().Add(_options.Lifetime);
         var payload = new ReAuthTokenPayload(
             expires.ToUnixTimeSeconds(),
             claims.Select(c => new ReAuthClaim(c.Type, c.Value)).ToArray());
@@ -32,8 +35,11 @@ internal sealed class ReAuthTokenService
         return Base64UrlEncode(_protector.Protect(bytes));
     }
 
-    public ClaimsPrincipal? Unprotect(string token)
+    public ClaimsPrincipal? Unprotect(string token) => Unprotect(token, out _);
+
+    public ClaimsPrincipal? Unprotect(string token, out DateTimeOffset expiresUtc)
     {
+        expiresUtc = default;
         try
         {
             var bytes = _protector.Unprotect(Base64UrlDecode(token));
@@ -49,6 +55,7 @@ internal sealed class ReAuthTokenService
                 return null;
             }
 
+            expiresUtc = expires;
             var identity = new ClaimsIdentity(
                 payload.Claims.Select(c => new Claim(c.Type, c.Value)),
                 AuthEndpoints.Identity.AuthEndpointsConstants.ReAuthBearerScheme);

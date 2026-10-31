@@ -227,6 +227,10 @@ internal static class IdentityEndpointRoutes
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageTwoFactor(claimsPrincipal, tfaRequest, sp, context))
             .WithSummary("Enables or disables two-factor authentication.")
+            .WithDescription("""
+                Changes that rotate the security stamp renew the caller's ReAuth proof with its original expiry.
+                A ReAuth cookie is reissued. A proof sent in X-AuthEndpoints-Reauth comes back renewed in the X-AuthEndpoints-Reauth response header.
+                """)
             .RequireAntiforgery()
             .RequireReauth()
             .Track(endpoints, mapMethod);

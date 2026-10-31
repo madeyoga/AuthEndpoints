@@ -428,7 +428,8 @@ public class IdentityApiEndpoints<TUser>
         }
 
         // Changing two-factor settings rotates the security stamp. Carry the caller's session and
-        // identity confirmation over to the new stamp so the next step does not ask them to confirm again.
+        // identity confirmation (ReAuth cookie or X-AuthEndpoints-Reauth token) over to the new stamp so the
+        // next step does not ask them to confirm again.
         var reauthBefore = context is null ? null : await ReAuthProofRenewal.CaptureAsync(context);
         var stampBefore = userManager.SupportsUserSecurityStamp ? await userManager.GetSecurityStampAsync(user) : null;
 
