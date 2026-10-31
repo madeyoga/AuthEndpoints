@@ -139,7 +139,8 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
     }
 
     /// <summary>
-    /// Maps authenticated account routes: list / link / unlink external logins.
+    /// Maps account routes: list providers (anonymous), and list / link / unlink external logins.
+    /// Works with zero registered providers: the provider and login lists return empty arrays.
     /// </summary>
     public static IEndpointConventionBuilder MapExternalAccountEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -149,6 +150,11 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 
         var group = endpoints.MapGroup("");
         var providers = endpoints.ServiceProvider.GetServices<IExternalAuthProvider>().ToList();
+
+        group.MapGet("/providers", ExternalAccountEndpoints<TUser>.ListProviders)
+            .AllowAnonymous()
+            .WithSummary("List the external sign-in providers this server offers.")
+            .WithName("ExternalListProviders");
 
         group.MapGet("/logins", ExternalAccountEndpoints<TUser>.ListLogins)
             .RequireAuthEndpointsUser()
