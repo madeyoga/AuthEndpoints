@@ -135,7 +135,7 @@ Paths below use `Path` (default `/auth`). A host that changes `Path` uses that p
 | `POST` | `/auth/manage/info` | Yes | Yes | Yes | |
 | `POST` | `/auth/manage/password` | Yes | Yes | Yes | `AccountAbuse` |
 
-`GET /auth/manage/2fa` returns `isTwoFactorEnabled` and `recoveryCodesLeft`. `POST /auth/manage/2fa` changes the security stamp. It refreshes a cookie session and renews a ReAuth cookie proof for the new stamp with the original expiry, so enabling 2FA after `{}` needs no second step-up. An `X-AuthEndpoints-Reauth` token is not renewed.
+`GET /auth/manage/2fa` returns `isTwoFactorEnabled` and `recoveryCodesLeft`. `POST /auth/manage/2fa` changes the security stamp. It refreshes a cookie session and renews the ReAuth proof for the new stamp with the original expiry, so enabling 2FA after `{}` needs no second step-up. A ReAuth cookie is reissued. A token sent in `X-AuthEndpoints-Reauth` comes back renewed in the `X-AuthEndpoints-Reauth` response header. The old token then gets `403`. A cross-origin browser client needs `WithExposedHeaders("X-AuthEndpoints-Reauth")` in its CORS policy to read it.
 
 `POST /auth/manage/password` sets a first password. It returns `404` when password sign-in is not mapped, and `400` when the account already has a password. Change an existing password with `POST /auth/manage/info`.
 
@@ -384,7 +384,7 @@ Guide: [List and revoke signed-in sessions](https://authendpoints.harten.id/guid
 
 `POST /manage/info`, `POST /manage/2fa`, signed-in passkey changes, and external unlink require a sign-in plus ReAuth for that same user, and CSRF where the route attaches the filter. `POST /confirmIdentity` accepts one proof: password, authenticator code, recovery code, passkey assertion, or `emailCode` when email-code step-up is available.
 
-Success returns `reauthToken`. Cookie sign-in also sets the `AuthEndpoints.ReAuth` cookie. An `Authorization: Bearer` confirm returns the token only. Keep the token in memory. Send it as `X-AuthEndpoints-Reauth`. The proof carries the user's security stamp. A password change, reset, or `UpdateSecurityStampAsync` cancels it.
+Success returns `reauthToken`. Cookie sign-in also sets the `AuthEndpoints.ReAuth` cookie. An `Authorization: Bearer` confirm returns the token only. Keep the token in memory. Send it as `X-AuthEndpoints-Reauth`. The proof carries the user's security stamp. A password change, reset, or `UpdateSecurityStampAsync` cancels it. Only `POST /manage/2fa` renews the proof after a stamp change (see the 2FA note above). A password change on `POST /manage/info`, `POST /manage/password`, and external unlink do not, so the client completes step-up again.
 
 Pair `.RequireReauth()` with an authorization requirement that signs the user in. `ReAuthPolicy` adds no authentication schemes. A signed-in caller without step-up gets `403`.
 
