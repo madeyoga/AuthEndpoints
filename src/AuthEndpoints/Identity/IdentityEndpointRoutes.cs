@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using AuthEndpoints.EmailCode;
 using AuthEndpoints.ReAuth;
+using AuthEndpoints.Sessions;
 using AuthEndpoints.SignIn;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
@@ -72,6 +73,7 @@ internal static class IdentityEndpointRoutes
             case PasswordLoginMode.IdentityBearer:
                 endpoints.MapPost("/login", IdentityApiEndpoints<TUser>.Login)
                     .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+                    .WithMetadata(IdentityBearerEndpointMarker.Instance)
                     .Track(endpoints, mapMethod);
                 PasswordSignInMap.Mark(endpoints.ServiceProvider);
                 return;
@@ -283,6 +285,7 @@ internal static class IdentityEndpointRoutes
         where TUser : class, new()
     {
         endpoints.MapPost("/refresh", IdentityApiEndpoints<TUser>.Refresh)
+            .WithMetadata(IdentityBearerEndpointMarker.Instance)
             .Track(endpoints, mapMethod);
 
         endpoints.MapPost("/logout", IdentityApiEndpoints<TUser>.Logout)
