@@ -122,26 +122,12 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
 
         if (string.IsNullOrEmpty(id))
         {
-            // Cookie issued before sessions were turned on: adopt it.
-            id = ActiveSessionRequest.NewId();
-            var stamp = context.Principal.FindFirst(identityOptions.ClaimsIdentity.SecurityStampClaimType)?.Value ?? string.Empty;
-            await store.CreateAsync(
-                id,
-                userId,
-                context.HttpContext.Request.Headers.UserAgent.ToString(),
-                stamp,
-                context.Properties.ExpiresUtc?.UtcDateTime ?? now.Add(cookie.ExpireTimeSpan));
-            context.Properties.Items[ActiveSessionRequest.PropertiesKey] = id;
-            ActiveSessionRequest.SetClaim(context.Principal, id);
-            context.ShouldRenew = true;
+            await AdoptAsync(context, cookie, store, identityOptions, userId, now);
             return;
         }
 
         var session = await store.FindAsync(id);
-        if (session is null
-            || session.RevokedAt is not null
-            || ActiveSessionStore.AsUtc(session.ExpiresAt) <= now
-            || !string.Equals(session.UserId, userId, StringComparison.Ordinal))
+        if (!IsUsable(session, userId, now))
         {
             context.RejectPrincipal();
             await context.HttpContext.SignOutAsync(context.Scheme.Name);
@@ -154,6 +140,35 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
         }
 
         await store.TouchAsync(session, slidingExpiry);
+    }
+
+    private static bool IsUsable(ActiveSession? session, string userId, DateTime now) =>
+        session is not null
+        && session.RevokedAt is null
+        && ActiveSessionStore.AsUtc(session.ExpiresAt) > now
+        && string.Equals(session.UserId, userId, StringComparison.Ordinal);
+
+    // Cookie issued before sessions were turned on: adopt it.
+    private static async Task AdoptAsync(
+        CookieValidatePrincipalContext context,
+        CookieAuthenticationOptions cookie,
+        IActiveSessionStore store,
+        IdentityOptions identityOptions,
+        string userId,
+        DateTime now)
+    {
+        var principal = context.Principal!;
+        var id = ActiveSessionRequest.NewId();
+        var stamp = principal.FindFirst(identityOptions.ClaimsIdentity.SecurityStampClaimType)?.Value ?? string.Empty;
+        await store.CreateAsync(
+            id,
+            userId,
+            context.HttpContext.Request.Headers.UserAgent.ToString(),
+            stamp,
+            context.Properties.ExpiresUtc?.UtcDateTime ?? now.Add(cookie.ExpireTimeSpan));
+        context.Properties.Items[ActiveSessionRequest.PropertiesKey] = id;
+        ActiveSessionRequest.SetClaim(principal, id);
+        context.ShouldRenew = true;
     }
 
     private static async Task SigningOutAsync(CookieSigningOutContext context)
