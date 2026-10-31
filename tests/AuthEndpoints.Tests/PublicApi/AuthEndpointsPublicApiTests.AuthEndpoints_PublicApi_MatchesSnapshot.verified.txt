@@ -382,6 +382,7 @@ namespace AuthEndpoints.External.OAuth
     {
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> LinkCallback(string scheme, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, [Microsoft.AspNetCore.Mvc.FromQuery] string? error, [Microsoft.AspNetCore.Mvc.FromQuery] string? error_description, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options, Microsoft.AspNetCore.Http.HttpContext httpContext) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> ListLogins(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Http.HttpContext httpContext) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> ListProviders(System.Collections.Generic.IEnumerable<AuthEndpoints.External.OAuth.IExternalAuthProvider> providers, Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider schemes) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> RemoveLogin([Microsoft.AspNetCore.Mvc.FromRoute] string loginProvider, [Microsoft.AspNetCore.Mvc.FromRoute] string providerKey, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.Extensions.Options.IOptions<Microsoft.AspNetCore.Identity.IdentityOptions> identityOptions, Microsoft.AspNetCore.Http.HttpContext httpContext) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> StartLink(string scheme, [Microsoft.AspNetCore.Mvc.FromQuery] string? returnUrl, Microsoft.AspNetCore.Http.HttpContext context, Microsoft.AspNetCore.Routing.LinkGenerator linkGenerator, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.Collections.Generic.IEnumerable<AuthEndpoints.External.OAuth.IExternalAuthProvider> providers) { }
     }
@@ -475,6 +476,12 @@ namespace AuthEndpoints.External.OAuth
     {
         public ExternalLoginService(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserStore<TUser> userStore, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options) { }
         public System.Threading.Tasks.Task<AuthEndpoints.External.OAuth.ExternalLoginProvisionResult<TUser>> ProvisionAsync(string expectedProvider, System.Threading.CancellationToken cancellationToken = default) { }
+    }
+    public sealed record ExternalProviderListItem : System.IEquatable<AuthEndpoints.External.OAuth.ExternalProviderListItem>
+    {
+        public ExternalProviderListItem(string Scheme, string DisplayName) { }
+        public string DisplayName { get; init; }
+        public string Scheme { get; init; }
     }
     public interface IExternalAuthProvider
     {
