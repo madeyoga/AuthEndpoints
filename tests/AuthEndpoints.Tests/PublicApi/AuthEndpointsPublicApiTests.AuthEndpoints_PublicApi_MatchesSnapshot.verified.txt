@@ -1118,3 +1118,54 @@ namespace AuthEndpoints.ReAuth
             where TBuilder : Microsoft.AspNetCore.Builder.IEndpointConventionBuilder { }
     }
 }
+namespace AuthEndpoints.Sessions
+{
+    public class ActiveSession
+    {
+        public ActiveSession() { }
+        public System.DateTime CreatedAt { get; set; }
+        public System.DateTime ExpiresAt { get; set; }
+        public string Id { get; set; }
+        public System.DateTime LastSeenAt { get; set; }
+        public System.DateTime? RevokedAt { get; set; }
+        public required string SecurityStamp { get; set; }
+        public string? UserAgent { get; set; }
+        public required string UserId { get; set; }
+    }
+    public static class ActiveSessionEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapActiveSessionEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+            where TUser :  class { }
+    }
+    public sealed record ActiveSessionInfo : System.IEquatable<AuthEndpoints.Sessions.ActiveSessionInfo>
+    {
+        public ActiveSessionInfo(string Id, string? UserAgent, System.DateTime CreatedAt, System.DateTime LastSeenAt, bool Current) { }
+        public System.DateTime CreatedAt { get; init; }
+        public bool Current { get; init; }
+        public string Id { get; init; }
+        public System.DateTime LastSeenAt { get; init; }
+        public string? UserAgent { get; init; }
+    }
+    public static class ActiveSessionModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseActiveSessions(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+    public sealed class ActiveSessionOptions
+    {
+        public ActiveSessionOptions() { }
+        public System.TimeSpan CleanupInterval { get; set; }
+        public System.TimeSpan LastSeenUpdateInterval { get; set; }
+        public System.TimeSpan RevalidationInterval { get; set; }
+    }
+    public static class ActiveSessionServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddActiveSessions<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Sessions.ActiveSessionOptions>? configure = null)
+            where TUser :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public sealed record RevokeOtherSessionsResponse : System.IEquatable<AuthEndpoints.Sessions.RevokeOtherSessionsResponse>
+    {
+        public RevokeOtherSessionsResponse(int Revoked) { }
+        public int Revoked { get; init; }
+    }
+}
