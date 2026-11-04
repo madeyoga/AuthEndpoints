@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <PackageId>AuthEndpoints.OpenIddict</PackageId>
     <Description>Opt-in OAuth 2.0 authorization server for AuthEndpoints apps, built on OpenIddict. Authorization code + PKCE (S256), rotating refresh tokens, a host-rendered consent step, and optional dynamic client registration.</Description>
-    <Version>4.2.0-preview.1</Version>
+    <Version>4.0.0-preview.1</Version>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
