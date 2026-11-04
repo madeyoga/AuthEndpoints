@@ -1,0 +1,166 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using OpenIddict.Abstractions;
+using OpenIddict.Server;
+using OpenIddict.Server.AspNetCore;
+using OpenIddict.Validation;
+using OpenIddict.Validation.AspNetCore;
+
+namespace AuthEndpoints.OpenIddict;
+
+/// <summary>Returned by <c>AddAuthEndpointsOpenIddict</c> for further configuration.</summary>
+public sealed class OAuthServerBuilder
+{
+    internal OAuthServerBuilder(IServiceCollection services, OpenIddictBuilder openIddict)
+    {
+        Services = services;
+        OpenIddict = openIddict;
+    }
+
+    public IServiceCollection Services { get; }
+
+    /// <summary>The underlying OpenIddict builder, for settings this package does not cover.</summary>
+    public OpenIddictBuilder OpenIddict { get; }
+
+    /// <summary>Binds <see cref="OAuthServerOptions"/> from a configuration section, for example <c>OAuthServer</c>.</summary>
+    public OAuthServerBuilder BindConfiguration(string sectionPath)
+    {
+        Services.AddOptions<OAuthServerOptions>().BindConfiguration(sectionPath);
+        return this;
+    }
+
+    /// <summary>Replaces the default <see cref="IOAuthPrincipalFactory"/> (which puts the user id in <c>sub</c>).</summary>
+    public OAuthServerBuilder AddPrincipalFactory<TFactory>()
+        where TFactory : class, IOAuthPrincipalFactory
+    {
+        Services.RemoveAll<IOAuthPrincipalFactory>();
+        Services.AddScoped<IOAuthPrincipalFactory, TFactory>();
+        return this;
+    }
+}
+
+public static class OAuthServerServiceCollectionExtensions
+{
+    /// <summary>
+    /// Adds an OpenIddict authorization server and local token validation, stored in <typeparamref name="TContext"/>.
+    /// Authorization code + PKCE (S256 only), rotating refresh tokens, reference tokens, and a host consent page.
+    /// Call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser, TKey&gt;()</c> in the DbContext and
+    /// <c>app.MapAuthEndpointsOpenIddict()</c> after <c>UseAuthentication</c>.
+    /// </summary>
+    /// <typeparam name="TContext">The EF Core context that holds the OpenIddict and consent tables.</typeparam>
+    /// <typeparam name="TKey">The Identity user key type, for example <see cref="string"/> or <see cref="Guid"/>.</typeparam>
+    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TContext, TKey>(
+        this IServiceCollection services,
+        Action<OAuthServerOptions>? configure = null)
+        where TContext : DbContext
+        where TKey : IEquatable<TKey>
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        var optionsBuilder = services.AddOptions<OAuthServerOptions>();
+        if (configure is not null)
+        {
+            optionsBuilder.Configure(configure);
+        }
+
+        optionsBuilder.ValidateOnStart();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<OAuthServerOptions>, OAuthServerOptionsValidator>());
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddHttpContextAccessor();
+        services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
+        services.TryAddScoped<IOAuthConsentService, OAuthConsentService<TContext, TKey>>();
+        services.TryAddSingleton<IOAuthServerCleanup, OAuthServerCleanup<TContext, TKey>>();
+        services.TryAddSingleton<OAuthRegistrationRateLimiter>();
+        services.TryAddSingleton<OAuthServerMarker, OAuthServerMarker<TContext, TKey>>();
+        services.AddHostedService<OAuthServerCleanupService>();
+
+        var openIddict = services.AddOpenIddict()
+            .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<TContext>())
+            .AddServer(options =>
+            {
+                options.SetAuthorizationEndpointUris(OAuthServerConstants.AuthorizationEndpointPath.TrimStart('/'))
+                    .SetTokenEndpointUris(OAuthServerConstants.TokenEndpointPath.TrimStart('/'))
+                    .SetRevocationEndpointUris(OAuthServerConstants.RevocationEndpointPath.TrimStart('/'))
+                    .SetConfigurationEndpointUris(OAuthServerConstants.AuthorizationServerMetadataPath.TrimStart('/'))
+                    .AllowAuthorizationCodeFlow()
+                    .AllowRefreshTokenFlow()
+                    .RequireProofKeyForCodeExchange()
+                    .SetRefreshTokenReuseLeeway(TimeSpan.Zero)
+                    .UseReferenceAccessTokens()
+                    .UseReferenceRefreshTokens();
+                options.UseAspNetCore()
+                    .EnableAuthorizationEndpointPassthrough();
+                options.AddEventHandler<OpenIddictServerEvents.ApplyAuthorizationResponseContext>(builder =>
+                {
+                    builder.UseSingletonHandler<SkipDetachedAuthorizationResponse>();
+                    builder.SetOrder(1_000_000);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.HandleConfigurationRequestContext>(builder =>
+                {
+                    builder.UseSingletonHandler<AttachRegistrationMetadata>();
+                    // After every built-in Attach* handler, so the endpoint URLs are final.
+                    builder.SetOrder(OpenIddictServerHandlers.Discovery.AttachAdditionalMetadata.Descriptor.Order + 1_000);
+                });
+            })
+            .AddValidation(options =>
+            {
+                options.UseLocalServer();
+                options.UseAspNetCore();
+                options.EnableAuthorizationEntryValidation();
+            });
+
+        services.AddOptions<OpenIddictServerOptions>()
+            .Configure<IOptions<OAuthServerOptions>, IServiceProvider>((server, oauth, provider) =>
+            {
+                var settings = oauth.Value;
+                var clock = provider.GetRequiredService<TimeProvider>();
+                server.Issuer = settings.Issuer;
+                server.TimeProvider = clock;
+                server.AuthorizationCodeLifetime = settings.AuthorizationCodeLifetime;
+                server.AccessTokenLifetime = settings.AccessTokenLifetime;
+                server.RefreshTokenLifetime = settings.RefreshTokenLifetime;
+                server.RefreshTokenReuseLeeway = TimeSpan.Zero;
+                server.DisableResourceValidation = settings.DisableResourceValidation;
+                server.IgnoreResourcePermissions = settings.IgnoreResourcePermissions;
+                foreach (var scope in settings.AllScopes())
+                {
+                    server.Scopes.Add(scope);
+                }
+
+                foreach (var resource in settings.AllResources())
+                {
+                    if (Uri.TryCreate(resource, UriKind.Absolute, out var uri))
+                    {
+                        server.Resources.Add(uri);
+                    }
+                }
+
+                OAuthServerCertificates.Apply(server, settings.Certificates, clock);
+            })
+            .PostConfigure(server =>
+            {
+                server.CodeChallengeMethods.Remove(OpenIddictConstants.CodeChallengeMethods.Plain);
+                server.CodeChallengeMethods.Add(OpenIddictConstants.CodeChallengeMethods.Sha256);
+                server.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
+            });
+        services.AddOptions<OpenIddictServerAspNetCoreOptions>()
+            .Configure<IOptions<OAuthServerOptions>>((aspNetCore, oauth)
+                => aspNetCore.DisableTransportSecurityRequirement = oauth.Value.DisableTransportSecurityRequirement);
+        services.AddOptions<OpenIddictValidationOptions>()
+            .Configure<IOptions<OAuthServerOptions>, IServiceProvider>((validation, oauth, provider) =>
+            {
+                validation.TimeProvider = provider.GetRequiredService<TimeProvider>();
+                if (!string.IsNullOrEmpty(oauth.Value.Audience))
+                {
+                    validation.Audiences.Add(oauth.Value.Audience);
+                }
+            })
+            .PostConfigure(validation => validation.TokenValidationParameters.ClockSkew = TimeSpan.Zero);
+
+        return new OAuthServerBuilder(services, openIddict);
+    }
+
+    /// <summary>The authentication scheme that validates access tokens issued by this server.</summary>
+    public const string ValidationScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+}
