@@ -81,7 +81,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
     public static async Task<OAuthTestHost> StartAsync(
         Action<OAuthServerOptions>? configure = null,
         Action<IServiceCollection>? services = null,
-        Action<WebApplication>? map = null)
+        Action<WebApplication>? map = null,
+        Action<OAuthServerBuilder>? server = null)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-openiddict-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
@@ -111,7 +112,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
             .RequireAuthenticatedUser()));
 
-        builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(options =>
+        var oauth = builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(options =>
         {
             options.Issuer = new Uri(Issuer);
             options.Audience = Audience;
@@ -133,6 +134,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             options.Clients.Add(seeded);
             configure?.Invoke(options);
         });
+        server?.Invoke(oauth);
         services?.Invoke(builder.Services);
 
         var app = builder.Build();

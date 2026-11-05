@@ -8,6 +8,10 @@
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthPendingRequest?> FindAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<bool> RevokeAuthorizationAsync(string authorizationId, System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IOAuthDeveloperAppOwnerDisplay
+    {
+        System.Threading.Tasks.ValueTask<string?> GetOwnerAsync(AuthEndpoints.OpenIddict.OAuthDeveloperAppOwnerContext context, System.Threading.CancellationToken cancellationToken);
+    }
     public interface IOAuthDeveloperAppService
     {
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult> CreateAsync(string ownerId, AuthEndpoints.OpenIddict.OAuthDeveloperAppInput input, bool confidential, System.Threading.CancellationToken cancellationToken = default);
@@ -65,10 +69,18 @@
         public string ClientId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("clientName")]
         public string ClientName { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("confidential")]
+        public bool? Confidential { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("description")]
+        public string? Description { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("expiresAt")]
         public System.DateTimeOffset ExpiresAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("homepageUrl")]
+        public string? HomepageUrl { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("id")]
         public System.Guid Id { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("owner")]
+        public string? Owner { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("redirectHost")]
         public string RedirectHost { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("resource")]
@@ -148,6 +160,13 @@
         LimitReached = 3,
         NotConfidential = 4,
     }
+    public sealed record OAuthDeveloperAppOwnerContext : System.IEquatable<AuthEndpoints.OpenIddict.OAuthDeveloperAppOwnerContext>
+    {
+        public OAuthDeveloperAppOwnerContext(System.Guid AppId, string ClientId, string OwnerId) { }
+        public System.Guid AppId { get; init; }
+        public string ClientId { get; init; }
+        public string OwnerId { get; init; }
+    }
     public sealed record OAuthDeveloperAppResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult>
     {
         public OAuthDeveloperAppResult(AuthEndpoints.OpenIddict.OAuthDeveloperAppOutcome Outcome, AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo? App = null, string? ClientSecret = null, System.Collections.Generic.IReadOnlyDictionary<string, string[]>? Errors = null) { }
@@ -201,9 +220,13 @@
         public OAuthPendingRequest(System.Guid Id, string UserId, string ClientId, string ClientName, string RedirectUri, string RedirectHost, System.Collections.Generic.IReadOnlyList<string> Scopes, string Resource, System.DateTimeOffset CreatedAt, System.DateTimeOffset ExpiresAt) { }
         public string ClientId { get; init; }
         public string ClientName { get; init; }
+        public bool? Confidential { get; init; }
         public System.DateTimeOffset CreatedAt { get; init; }
+        public string? Description { get; init; }
         public System.DateTimeOffset ExpiresAt { get; init; }
+        public string? HomepageUrl { get; init; }
         public System.Guid Id { get; init; }
+        public string? Owner { get; init; }
         public string RedirectHost { get; init; }
         public string RedirectUri { get; init; }
         public string Resource { get; init; }
@@ -255,6 +278,8 @@
     {
         public Microsoft.Extensions.DependencyInjection.OpenIddictBuilder OpenIddict { get; }
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public AuthEndpoints.OpenIddict.OAuthServerBuilder AddDeveloperAppOwnerDisplay<TDisplay>()
+            where TDisplay :  class, AuthEndpoints.OpenIddict.IOAuthDeveloperAppOwnerDisplay { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddPrincipalFactory<TFactory>()
             where TFactory :  class, AuthEndpoints.OpenIddict.IOAuthPrincipalFactory { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder BindConfiguration(string sectionPath) { }
