@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>AuthEndpoints.OpenIddict</PackageId>
+    <Description>Opt-in OAuth 2.0 authorization server for AuthEndpoints apps, built on OpenIddict. Authorization code + PKCE (S256), rotating refresh tokens, a host-rendered consent step, and optional dynamic client registration.</Description>
+    <Version>4.0.0-preview.1</Version>
+    <Authors>madeyoga</Authors>
+    <Company>madeyoga</Company>
+    <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
+    <PackageTags>auth;endpoints;aspnetcore;oauth;openiddict;pkce;identity</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>True</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <InternalsVisibleTo Include="AuthEndpoints.OpenIddict.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.7.2" />
+    <PackageReference Include="OpenIddict.Server.AspNetCore" Version="7.7.2" />
+    <PackageReference Include="OpenIddict.Validation.AspNetCore" Version="7.7.2" />
+    <PackageReference Include="OpenIddict.Validation.ServerIntegration" Version="7.7.2" />
+  </ItemGroup>
+
+  <Import Project="..\AuthEndpoints.DependencyRange.targets" />
+
+</Project>

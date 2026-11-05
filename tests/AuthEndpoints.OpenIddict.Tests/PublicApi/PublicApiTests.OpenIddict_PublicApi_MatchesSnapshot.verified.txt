@@ -1,0 +1,242 @@
+﻿namespace AuthEndpoints.OpenIddict
+{
+    public interface IOAuthConsentService
+    {
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthConsentResult> ApproveAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthConsentResult> ApproveAsync(System.Guid requestId, string userId, System.Func<AuthEndpoints.OpenIddict.OAuthPrincipalContext, System.Threading.Tasks.ValueTask<System.Security.Claims.ClaimsPrincipal?>> createPrincipal, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthConsentResult> DenyAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthPendingRequest?> FindAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool> RevokeAuthorizationAsync(string authorizationId, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IOAuthPrincipalFactory
+    {
+        System.Threading.Tasks.ValueTask<System.Security.Claims.ClaimsPrincipal?> CreateAsync(AuthEndpoints.OpenIddict.OAuthPrincipalContext context, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IOAuthServerCleanup
+    {
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthCleanupResult> SweepAsync(System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IOAuthUserValidator
+    {
+        System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken);
+    }
+    public sealed class IdentityOAuthUserValidator<TUser> : AuthEndpoints.OpenIddict.IOAuthUserValidator
+        where TUser :  class
+    {
+        public IdentityOAuthUserValidator(Microsoft.AspNetCore.Identity.UserManager<TUser> users, System.IServiceProvider services) { }
+        public System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken) { }
+    }
+    public sealed record OAuthCleanupResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthCleanupResult>
+    {
+        public OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations) { }
+        public long Authorizations { get; init; }
+        public int ExpiredRequests { get; init; }
+        public long Tokens { get; init; }
+        public int UnusedClients { get; init; }
+    }
+    public sealed class OAuthClientDefinition
+    {
+        public OAuthClientDefinition() { }
+        public string? ClientId { get; set; }
+        public string? ClientSecret { get; set; }
+        public string? DisplayName { get; set; }
+        public System.Collections.Generic.IList<string> RedirectUris { get; }
+        public System.Collections.Generic.IList<string> Resources { get; }
+        public System.Collections.Generic.IList<string> Scopes { get; }
+    }
+    public sealed record OAuthConsentCard : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConsentCard>
+    {
+        public OAuthConsentCard(System.Guid Id, string ClientId, string ClientName, string RedirectHost, System.Collections.Generic.IReadOnlyList<string> Scopes, string Resource, System.DateTimeOffset ExpiresAt) { }
+        [System.Text.Json.Serialization.JsonPropertyName("clientId")]
+        public string ClientId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("clientName")]
+        public string ClientName { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("expiresAt")]
+        public System.DateTimeOffset ExpiresAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("redirectHost")]
+        public string RedirectHost { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("resource")]
+        public string Resource { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("scopes")]
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
+    }
+    public sealed record OAuthConsentRedirect : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConsentRedirect>
+    {
+        public OAuthConsentRedirect(string RedirectUrl) { }
+        [System.Text.Json.Serialization.JsonPropertyName("redirectUrl")]
+        public string RedirectUrl { get; init; }
+    }
+    public sealed record OAuthConsentResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConsentResult>
+    {
+        public OAuthConsentResult(AuthEndpoints.OpenIddict.OAuthConsentStatus Status, string? RedirectUrl = null, string? ClientId = null, string? AuthorizationId = null) { }
+        public string? AuthorizationId { get; init; }
+        public string? ClientId { get; init; }
+        public string? RedirectUrl { get; init; }
+        public AuthEndpoints.OpenIddict.OAuthConsentStatus Status { get; init; }
+    }
+    public enum OAuthConsentStatus
+    {
+        Approved = 0,
+        Denied = 1,
+        NotFound = 2,
+        Declined = 3,
+    }
+    public sealed class OAuthDynamicRegistrationOptions
+    {
+        public OAuthDynamicRegistrationOptions() { }
+        public bool Enabled { get; set; }
+        public int MaxClientNameLength { get; set; }
+        public int MaxRedirectUris { get; set; }
+        public int PermitsPerMinute { get; set; }
+        public System.TimeSpan UnusedClientLifetime { get; set; }
+    }
+    public sealed record OAuthPendingRequest : System.IEquatable<AuthEndpoints.OpenIddict.OAuthPendingRequest>
+    {
+        public OAuthPendingRequest(System.Guid Id, string UserId, string ClientId, string ClientName, string RedirectUri, string RedirectHost, System.Collections.Generic.IReadOnlyList<string> Scopes, string Resource, System.DateTimeOffset CreatedAt, System.DateTimeOffset ExpiresAt) { }
+        public string ClientId { get; init; }
+        public string ClientName { get; init; }
+        public System.DateTimeOffset CreatedAt { get; init; }
+        public System.DateTimeOffset ExpiresAt { get; init; }
+        public System.Guid Id { get; init; }
+        public string RedirectHost { get; init; }
+        public string RedirectUri { get; init; }
+        public string Resource { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
+        public string UserId { get; init; }
+    }
+    public sealed class OAuthPrincipalContext
+    {
+        public OAuthPrincipalContext(Microsoft.AspNetCore.Http.HttpContext httpContext, string userId, AuthEndpoints.OpenIddict.OAuthPendingRequest request) { }
+        public Microsoft.AspNetCore.Http.HttpContext HttpContext { get; }
+        public AuthEndpoints.OpenIddict.OAuthPendingRequest Request { get; }
+        public string UserId { get; }
+    }
+    public static class OAuthPrincipals
+    {
+        public static System.Security.Claims.ClaimsPrincipal ForSubject(string subject) { }
+    }
+    public sealed class OAuthProtectedResourceOptions
+    {
+        public OAuthProtectedResourceOptions() { }
+        public System.Collections.Generic.IList<string> ChallengePaths { get; }
+        public bool Enabled { get; set; }
+        public string? ResourceName { get; set; }
+    }
+    public class OAuthRequest<TKey>
+        where TKey : System.IEquatable<TKey>
+    {
+        public OAuthRequest() { }
+        public required string ClientId { get; set; }
+        public required string ClientName { get; set; }
+        public required string CodeChallenge { get; set; }
+        public System.DateTimeOffset? ConsumedAt { get; set; }
+        public System.DateTimeOffset CreatedAt { get; set; }
+        public System.DateTimeOffset ExpiresAt { get; set; }
+        public System.Guid Id { get; init; }
+        public required string RedirectHost { get; set; }
+        public required string RedirectUri { get; set; }
+        public required string Resource { get; set; }
+        public required string Scope { get; set; }
+        public string? State { get; set; }
+        public TKey UserId { get; set; }
+    }
+    public static class OAuthServerApplicationBuilderExtensions
+    {
+        public static System.Threading.Tasks.Task SeedOAuthClientsAsync(this System.IServiceProvider services, System.Threading.CancellationToken cancellationToken = default) { }
+        public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseOAuthResourceChallenge(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
+    }
+    public sealed class OAuthServerBuilder
+    {
+        public Microsoft.Extensions.DependencyInjection.OpenIddictBuilder OpenIddict { get; }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public AuthEndpoints.OpenIddict.OAuthServerBuilder AddPrincipalFactory<TFactory>()
+            where TFactory :  class, AuthEndpoints.OpenIddict.IOAuthPrincipalFactory { }
+        public AuthEndpoints.OpenIddict.OAuthServerBuilder BindConfiguration(string sectionPath) { }
+    }
+    public sealed class OAuthServerCertificateOptions
+    {
+        public OAuthServerCertificateOptions() { }
+        public System.Security.Cryptography.X509Certificates.X509Certificate2? EncryptionCertificate { get; set; }
+        public string? Path { get; set; }
+        public System.Security.Cryptography.X509Certificates.X509Certificate2? SigningCertificate { get; set; }
+        public string SubjectName { get; set; }
+        public bool UseEphemeralKeys { get; set; }
+    }
+    public static class OAuthServerConstants
+    {
+        public const string AuthorizationEndpointPath = "/connect/authorize";
+        public const string AuthorizationServerMetadataPath = "/.well-known/oauth-authorization-server";
+        public const string CreatedAtSetting = "created_at";
+        public const string FallbackClientName = "OAuth client";
+        public const string OfflineAccessScope = "offline_access";
+        public const string ProtectedResourceMetadataPath = "/.well-known/oauth-protected-resource";
+        public const int ReferenceTokenLength = 512;
+        public const string RegistrationEndpointPath = "/connect/register";
+        public const string RequestTable = "OAuthRequests";
+        public const string RevocationEndpointPath = "/connect/revoke";
+        public const string TokenEndpointPath = "/connect/token";
+        public const string UserIdClaim = "ae_user_id";
+        public const string UserStampClaim = "ae_user_stamp";
+    }
+    public static class OAuthServerEndpointRouteBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapAuthEndpointsOpenIddict(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) { }
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthConsentEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth") { }
+    }
+    public static class OAuthServerModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseAuthEndpointsOpenIddict<TUser>(this Microsoft.EntityFrameworkCore.ModelBuilder builder, bool userForeignKey = true)
+            where TUser :  class { }
+    }
+    public sealed class OAuthServerOptions
+    {
+        public OAuthServerOptions() { }
+        public System.TimeSpan AccessTokenLifetime { get; set; }
+        public System.Collections.Generic.IList<string> AdditionalResources { get; }
+        public bool AlwaysIssueRefreshToken { get; set; }
+        public string? Audience { get; set; }
+        public string AuthenticationScheme { get; set; }
+        public System.TimeSpan AuthorizationCodeLifetime { get; set; }
+        public AuthEndpoints.OpenIddict.OAuthServerCertificateOptions Certificates { get; }
+        public System.TimeSpan CleanupInterval { get; set; }
+        public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthClientDefinition> Clients { get; }
+        public System.TimeSpan ConsentLifetime { get; set; }
+        public string ConsentRequestParameter { get; set; }
+        public string? ConsentUrl { get; set; }
+        public System.Collections.Generic.IList<string> DefaultScopes { get; }
+        public bool DisableResourceValidation { get; set; }
+        public bool DisableTransportSecurityRequirement { get; set; }
+        public AuthEndpoints.OpenIddict.OAuthDynamicRegistrationOptions DynamicRegistration { get; }
+        public bool IgnoreResourcePermissions { get; set; }
+        public System.Uri? Issuer { get; set; }
+        public string LoginReturnUrlParameter { get; set; }
+        public string? LoginUrl { get; set; }
+        public AuthEndpoints.OpenIddict.OAuthProtectedResourceOptions ProtectedResource { get; }
+        public System.TimeSpan PruneAfter { get; set; }
+        public System.TimeSpan RefreshTokenLifetime { get; set; }
+        public bool RevalidateUser { get; set; }
+        public System.Collections.Generic.IList<string> Scopes { get; }
+        public string UserIdClaimType { get; set; }
+    }
+    public sealed class OAuthServerOptionsValidator : Microsoft.Extensions.Options.IValidateOptions<AuthEndpoints.OpenIddict.OAuthServerOptions>
+    {
+        public OAuthServerOptionsValidator() { }
+        public Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, AuthEndpoints.OpenIddict.OAuthServerOptions options) { }
+    }
+    public static class OAuthServerServiceCollectionExtensions
+    {
+        public const string ValidationScheme = "OpenIddict.Validation.AspNetCore";
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+            where TUser :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public sealed class UserIdOAuthPrincipalFactory : AuthEndpoints.OpenIddict.IOAuthPrincipalFactory
+    {
+        public UserIdOAuthPrincipalFactory() { }
+        public System.Threading.Tasks.ValueTask<System.Security.Claims.ClaimsPrincipal?> CreateAsync(AuthEndpoints.OpenIddict.OAuthPrincipalContext context, System.Threading.CancellationToken cancellationToken) { }
+    }
+}
