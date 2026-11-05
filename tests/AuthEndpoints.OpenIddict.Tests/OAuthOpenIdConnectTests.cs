@@ -67,6 +67,7 @@ public sealed class OAuthOpenIdConnectTests
         var payload = Payload(idToken);
         Assert.Equal(Issuer, payload.GetProperty("iss").GetString());
         Assert.Equal(flow.Client.ClientId, Audiences(payload).Single());
+        Assert.Equal(flow.Client.ClientId, payload.GetProperty("azp").GetString());
         Assert.Equal(userId, payload.GetProperty("sub").GetString());
         Assert.Equal("n-0S6_WzA2Mj", payload.GetProperty("nonce").GetString());
         Assert.Equal(userId, await host.SubjectAsync(flow.Tokens.AccessToken));
@@ -103,7 +104,10 @@ public sealed class OAuthOpenIdConnectTests
         var refreshed = await ReadTokenAsync(await TokenAsync(anon, RefreshGrant(flow.Client.ClientId, flow.Tokens.RefreshToken)));
 
         var payload = Payload(IdToken(refreshed));
+        var original = Payload(IdToken(flow.Tokens));
         Assert.Equal(userId, payload.GetProperty("sub").GetString());
+        Assert.Equal(original.GetProperty("email").GetString(), payload.GetProperty("email").GetString());
+        Assert.Equal(original.GetProperty("email_verified").ValueKind, payload.GetProperty("email_verified").ValueKind);
         Assert.Equal(flow.Client.ClientId, Audiences(payload).Single());
         Assert.Equal(Issuer, payload.GetProperty("iss").GetString());
     }

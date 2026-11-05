@@ -134,6 +134,32 @@ public sealed class OAuthLogoutTests
 
         var response = await anon.GetAsync(Logout(null, clientId: client.ClientId, postLogout: PostLogout));
         Assert.StartsWith(PostLogout, response.Headers.Location?.ToString() ?? "", StringComparison.Ordinal);
+
+        var bare = await anon.GetAsync("/connect/logout");
+        Assert.Equal(HttpStatusCode.OK, bare.StatusCode);
+        Assert.Empty(await bare.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task A_disabled_developer_app_is_not_sent_back_after_logout()
+    {
+        await using var host = await StartOidcAsync();
+        var (user, userId) = await host.UserAsync("disabled");
+        await using var scope = host.Services.CreateAsyncScope();
+        var apps = scope.ServiceProvider.GetRequiredService<IOAuthDeveloperAppService>();
+        var created = await apps.CreateAsync(
+            userId,
+            new OAuthDeveloperAppInput("Disabled", "https://dev.example", null, ["https://dev.example/callback"])
+            {
+                PostLogoutRedirectUris = ["https://dev.example/bye"],
+            },
+            confidential: false);
+        Assert.True(await apps.SetStatusAsync(created.App!.Id, OAuthDeveloperAppStatus.Disabled));
+
+        using var anon = host.Client();
+        var response = await anon.GetAsync(Logout(null, clientId: created.App.ClientId, postLogout: "https://dev.example/bye"));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Null(response.Headers.Location);
     }
 
     [Fact]

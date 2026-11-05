@@ -7,10 +7,11 @@
 | `Issuer` | required | Absolute; `https` unless `DisableTransportSecurityRequirement`. Use the app root (`https://host/`), or the app's `PathBase`. |
 | `Audience` | required | Default resource and the only audience this host accepts. |
 | `AdditionalResources` | empty | Other resources clients may request (validated elsewhere). |
-| `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. |
+| `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. Add `openid` for [OpenID Connect](openid-connect.md), and `email` for the email claims. |
 | `AlwaysIssueRefreshToken` | `true` | Adds `offline_access` when the client has the refresh grant. |
 | `LoginUrl`, `LoginReturnUrlParameter` | required, `returnUrl` | |
 | `ConsentUrl`, `ConsentRequestParameter` | required, `request` | |
+| `LogoutUrl` | none | OpenID Connect only. The sign-out page for a [logout](openid-connect.md#logout) without a matching `id_token_hint`. Gets the logout URL in `LoginReturnUrlParameter`. |
 | `AuthenticationScheme`, `UserIdClaimType` | Identity cookie, `NameIdentifier` | |
 | `AccessTokenLifetime` | 15 minutes | |
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
@@ -45,7 +46,7 @@ Identity changes the security stamp when the password changes or is reset, an au
 
 The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
 
-The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens, even when a principal factory sends every claim to the access token. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. With OpenID Connect, the user id is also kept on the authorization in the database, so `userinfo` and logout can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
 
 ## Protected resource metadata (optional)
 

@@ -15,6 +15,7 @@ oauth.DeveloperApps!.RequireRateLimiting("developer-apps"); // the mapped groups
 | Part | Default | Where |
 | --- | --- | --- |
 | Authorization server (authorize, token, revocation, metadata) | on | Always mapped. |
+| OpenID Connect (`userinfo`, logout, discovery) | **off** | Add `openid` to `options.Scopes`. |
 | Consent API | on, `/oauth` | `parts.ConsentApi`, `parts.ConsentPrefix` |
 | Developer apps | on, `/oauth/apps` | `parts.DeveloperApps`, `parts.DeveloperAppsPrefix`. Approval and limits: `options.DeveloperApps`. |
 | Anonymous registration (RFC 7591) | **off** | `options.DynamicRegistration.Enabled` |

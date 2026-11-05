@@ -1,13 +1,13 @@
 ---
 name: authendpoints-openiddict
-description: "Turn an AuthEndpoints app into an OAuth 2.0 authorization server with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional dynamic registration and protected resource metadata for MCP clients. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access tokens. Not for signing in with GitHub or Google (use the authendpoints skill) and not for OpenID Connect, which this release does not support. Read this skill instead of decompiling the assembly or web-searching the API."
+description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional dynamic registration and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
   version: "4.0.0-preview.1"
 ---
 # Run an OAuth server with AuthEndpoints.OpenIddict
 
-Use this skill when the app issues OAuth 2.0 tokens to other clients through the `AuthEndpoints.OpenIddict` package. The app signs users in with AuthEndpoints first; for that part, use the `authendpoints` skill that ships in the `AuthEndpoints` package.
+Use this skill when the app issues OAuth 2.0 or OpenID Connect tokens to other clients through the `AuthEndpoints.OpenIddict` package. The app signs users in with AuthEndpoints first; for that part, use the `authendpoints` skill that ships in the `AuthEndpoints` package.
 
 Use the symbols, routes, and option names on this page and in `references/`. Do not decompile the assembly, and do not copy OpenIddict samples that call `AddOpenIddict()` directly; this package registers OpenIddict for you. For anything not covered here, read the package [README](https://github.com/madeyoga/AuthEndpoints/tree/main/src/AuthEndpoints.OpenIddict#readme).
 
@@ -23,6 +23,8 @@ The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 
 | `POST /connect/token` | OpenIddict | `authorization_code` and `refresh_token` grants. |
 | `POST /connect/revoke` | OpenIddict | RFC 7009. Public clients send `client_id`. |
 | `GET /.well-known/oauth-authorization-server` | OpenIddict | RFC 8414 metadata. Endpoint URLs come from `Issuer`, never from the request `Host`. |
+| `GET /.well-known/jwks` | OpenIddict | The public signing keys. |
+| `GET /.well-known/openid-configuration`, `GET\|POST /connect/userinfo`, `GET\|POST /connect/logout` | OpenIddict, this package | OpenID Connect. **Only with the `openid` scope.** See [references/openid-connect.md](references/openid-connect.md). |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
 | `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
@@ -98,7 +100,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options. OpenIddict serves the token, revocation, and metadata endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -129,13 +131,15 @@ Load only the file the task needs. Each one is self-contained.
 | Seed clients from configuration, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
+| Turn on OpenID Connect: ID tokens, the `email`, `email_verified`, and `amr` claims, `userinfo`, logout, and post-logout redirect URIs | [references/openid-connect.md](references/openid-connect.md) |
 | Every option, certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
 
 ## Limitations
 
 This is a preview. These are known gaps, not bugs. Do not promise these features to the user:
 
-- **No OpenID Connect yet.** There are no ID tokens, no `userinfo` or end-session (logout) endpoints, and no `email`, `email_verified`, or `amr` claims. The `openid` scope is rejected. Access tokens carry `sub`, plus whatever your principal factory adds.
+- **OpenID Connect covers sign-in and logout, not every option.** The claims are `sub`, `email`, `email_verified`, and `amr`; there are no `profile`, `phone`, or `address` claims, and no `auth_time`, so `prompt=login` and `max_age` are refused. Logout is RP-initiated only: there is no front-channel or back-channel logout and no session (`sid`) claim. There is no implicit or hybrid flow, so ID tokens come from the token endpoint only.
+- **`amr` depends on the cookie.** Sessions signed in before `openid` was turned on, and sign-ins through your own completers, have no `amr` until the user signs in again. See [How the user signed in](references/openid-connect.md#how-the-user-signed-in).
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](references/settings.md#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.

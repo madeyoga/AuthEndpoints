@@ -1,10 +1,10 @@
 # AuthEndpoints.OpenIddict
 
-An opt-in OAuth 2.0 authorization server for AuthEndpoints apps, built on [OpenIddict](https://documentation.openiddict.com/) 7.7. Other apps, CLIs, and tool clients (MCP clients, for example) sign users in through your app and receive access and refresh tokens.
+An opt-in OAuth 2.0 and OpenID Connect authorization server for AuthEndpoints apps, built on [OpenIddict](https://documentation.openiddict.com/) 7.7. Other apps, CLIs, and tool clients (MCP clients, for example) sign users in through your app and receive access, refresh, and ID tokens.
 
 The core `AuthEndpoints` package does not change and has no OpenIddict dependency. Install this package only in the app that issues tokens.
 
-> **Preview.** This release covers OAuth 2.0: authorization code + PKCE, refresh, revocation, metadata, and optional dynamic registration. OpenID Connect (ID tokens, `userinfo`, logout, and `email`/`email_verified`/`amr` claims) is not in this release. See [Limitations](#limitations).
+> **Preview.** This release covers OAuth 2.0 (authorization code + PKCE, refresh, revocation, metadata, and optional dynamic registration) and opt-in [OpenID Connect](#openid-connect-optional): ID tokens, `userinfo`, logout, and the `email`, `email_verified`, and `amr` claims. See [Limitations](#limitations).
 
 ## What you get
 
@@ -14,6 +14,8 @@ The core `AuthEndpoints` package does not change and has no OpenIddict dependenc
 | `POST /connect/token` | OpenIddict | `authorization_code` and `refresh_token` grants. |
 | `POST /connect/revoke` | OpenIddict | RFC 7009. Public clients send `client_id`. |
 | `GET /.well-known/oauth-authorization-server` | OpenIddict | RFC 8414 metadata. Endpoint URLs come from `Issuer`, never from the request `Host`. |
+| `GET /.well-known/jwks` | OpenIddict | The public signing keys. |
+| `GET /.well-known/openid-configuration`, `GET\|POST /connect/userinfo`, `GET\|POST /connect/logout` | OpenIddict, this package | OpenID Connect. **Only with the `openid` scope.** See [OpenID Connect](#openid-connect-optional). |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
 | `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
@@ -93,7 +95,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options. OpenIddict serves the token, revocation, and metadata endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -112,6 +114,7 @@ oauth.DeveloperApps!.RequireRateLimiting("developer-apps"); // the mapped groups
 | Part | Default | Where |
 | --- | --- | --- |
 | Authorization server (authorize, token, revocation, metadata) | on | Always mapped. |
+| OpenID Connect (`userinfo`, logout, discovery) | **off** | Add `openid` to `options.Scopes`. |
 | Consent API | on, `/oauth` | `parts.ConsentApi`, `parts.ConsentPrefix` |
 | Developer apps | on, `/oauth/apps` | `parts.DeveloperApps`, `parts.DeveloperAppsPrefix`. Approval and limits: `options.DeveloperApps`. |
 | Anonymous registration (RFC 7591) | **off** | `options.DynamicRegistration.Enabled` |
@@ -359,6 +362,8 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
 
 `IOAuthPrincipalFactory.CreateAsync` gets the signed-in user id and the pending request, and returns the principal (or `null` to decline without consuming the request). The principal needs a `sub` claim. Other claims reach the access token only when you call `SetDestinations` on them.
 
+With OpenID Connect, the ID token `sub` is the same `sub`, so a custom factory changes both. See [Claims](#claims).
+
 ## When the user changes
 
 Each grant remembers the user who approved it and that user's security stamp. On every code exchange and refresh, the server checks that the user still exists, can sign in (`SignInManager.CanSignInAsync`), is not locked out, and has the same security stamp. If any check fails, the request gets `invalid_grant`, and the authorization and all its tokens are revoked.
@@ -367,7 +372,87 @@ Identity changes the security stamp when the password changes or is reset, an au
 
 The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
 
-The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens, even when a principal factory sends every claim to the access token. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. With OpenID Connect, the user id is also kept on the authorization in the database, so `userinfo` and logout can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+
+## OpenID Connect (optional)
+
+Add the `openid` scope to turn on OpenID Connect. Without it, the server stays OAuth 2.0 only: `openid` is rejected and the routes below do not exist.
+
+```csharp
+options.Scopes.Add("openid");
+options.Scopes.Add("email");                            // optional: releases email and email_verified
+options.LogoutUrl = "https://app.example.com/sign-out"; // optional: see Logout
+```
+
+`OAuthRequests` has two nullable columns for OpenID Connect, `Nonce` and `AuthenticationMethods`. Add a migration when you upgrade, whether or not you turn OpenID Connect on.
+
+| Route | Served by | Notes |
+| --- | --- | --- |
+| `GET /.well-known/openid-configuration` | OpenIddict | Discovery. The same document as the RFC 8414 metadata, with endpoint URLs from `Issuer`, never from the request `Host`. |
+| `GET\|POST /connect/userinfo` | this package | `sub`, plus the email claims with the `email` scope. |
+| `GET\|POST /connect/logout` | this package | RP-initiated logout. |
+| `GET /.well-known/jwks` | OpenIddict | The keys that validate ID tokens. |
+
+A request with `openid` gets an `id_token` from the token endpoint, on the code exchange and on every refresh. It is a JWT signed with the signing certificate (RS256). It lasts 20 minutes, OpenIddict's default; change it with `builder.OpenIddict.AddServer(o => o.SetIdentityTokenLifetime(…))`.
+
+### Claims
+
+| Claim | In | Value |
+| --- | --- | --- |
+| `iss` | ID token | `Issuer`. |
+| `aud`, `azp` | ID token | The client id. |
+| `sub` | ID token, `userinfo`, access token | From `IOAuthPrincipalFactory`: the Identity user id by default. |
+| `nonce` | ID token | The authorize request's `nonce`, when it sent one. At most 512 characters. |
+| `amr` | ID token | How the user signed in. See [How the user signed in](#how-the-user-signed-in). Left out when unknown. |
+| `email`, `email_verified` | ID token, `userinfo` | With the `email` scope only. `email_verified` is the user's `EmailConfirmed`. |
+
+These claims never reach access tokens. An access token still carries `sub`, plus what your principal factory sends to it.
+
+The email claims come from the Identity user only when `sub` is that user's id. A principal factory that issues tokens for another subject (a service account the user picked, say) does not get the approving user's email attached to it. A claim the factory already set is kept as it is.
+
+ID token claims are read when the user approves, and a refreshed ID token repeats them. `userinfo` reads the user on every call.
+
+### How the user signed in
+
+| Sign-in | `amr` |
+| --- | --- |
+| Password | `["pwd"]` |
+| Password, then an authenticator or recovery code | `["pwd", "otp", "mfa"]` |
+| Passkey | `["pop"]` |
+| External provider (GitHub, Google, …) | `["fed"]` |
+| Email code | `["otp"]` |
+
+The values are from RFC 8176, except `fed`: RFC 8176 has none for a federated sign-in, and `fed` is the value Microsoft Entra ID uses. A recovery code counts as a one-time code. A passkey is `pop` whether or not the authenticator verified the user, because the sign-in result does not say.
+
+`amr` is read from the sign-in cookie when `/connect/authorize` runs. AuthEndpoints password sign-in already writes `amr` to the cookie (`pwd`, or `mfa` after a second factor), and so do Identity's `PasswordSignInAsync` and `TwoFactorSignInAsync`. Passkey, external, and email-code sign-in write nothing, so with `openid` on, this package wraps the built-in `Cookie` and `IdentityBearer` sign-in completers and adds `amr` to the cookie they write. It also keeps `amr` when Identity's security stamp check rebuilds the cookie, which otherwise drops it.
+
+`amr` is left out when the cookie does not say: a session signed in before `openid` was turned on, a sign-in completer you registered yourself, an obsolete `IPasskeySignInCompleter` or `IExternalLoginCompleter`, or a plain `SignInManager.SignInAsync`. To supply one, add an `amr` claim to the cookie principal when you sign the user in.
+
+### userinfo
+
+`GET` or `POST /connect/userinfo` with an access token that has the `openid` scope returns `sub`, and with the `email` scope also `email` and `email_verified`. A token without `openid` gets `403` with `insufficient_scope`. A token whose user was deleted gets `401` with `invalid_token` when it asks for the email claims.
+
+### Logout
+
+`GET` or `POST /connect/logout` follows OpenID Connect RP-Initiated Logout 1.0 (`id_token_hint`, `client_id`, `post_logout_redirect_uri`, `state`):
+
+- `post_logout_redirect_uri` must exactly match a post-logout redirect URI registered for the client that `client_id` or `id_token_hint` names. Without either, or with any other URI, the request gets `400` and the browser is not redirected. A disabled or unapproved developer app gets `400` too.
+- A signed-in user is signed out (the Identity application, external, and two-factor cookies) only when `id_token_hint` is an ID token that this server issued to that user. Otherwise the user stays signed in. When `LogoutUrl` is set, the browser goes there with the logout URL in `returnUrl`; your page asks the user, signs them out, and sends the browser back to `returnUrl`, which then completes. Without `LogoutUrl`, the request gets `400`. A link on another site cannot sign your users out.
+- A signed-out browser goes straight to the validated `post_logout_redirect_uri`, with `state`. With no `post_logout_redirect_uri`, the endpoint answers `200` with no body.
+
+Each client registers its own post-logout redirect URIs:
+
+| Client | Where |
+| --- | --- |
+| From configuration | `PostLogoutRedirectUris` on the entry in `options.Clients`. |
+| Dynamic registration | `post_logout_redirect_uris`, under the same rules as `redirect_uris`. |
+| Developer apps | `postLogoutRedirectUris` in the create and edit body, under the same rules as `redirectUris`, and returned with the app. Leave it out of an edit to keep the list. With `RequireApproval`, a change sends an active app back to review. |
+
+### Client permissions
+
+A client gets the `openid` scope and the logout endpoint permission when `openid` is among its scopes: every configured scope by default, or the `Scopes` of a configured client. Unlike plain OpenIddict, `openid` needs that permission here, so a configured client whose `Scopes` leave it out cannot use OpenID Connect. Clients that existed before you added `openid` get the permissions at the next `SeedOAuthClientsAsync` (configured clients) or the next edit (developer apps). A dynamically registered client keeps the permissions it registered with, so it registers again.
+
+`prompt=login` and `max_age` are refused with `invalid_request` instead of being ignored, because the server does not record when the user signed in.
 
 ## Certificates
 
@@ -402,10 +487,11 @@ app.UseOAuthResourceChallenge(); // before UseAuthentication
 | `Issuer` | required | Absolute; `https` unless `DisableTransportSecurityRequirement`. Use the app root (`https://host/`), or the app's `PathBase`. |
 | `Audience` | required | Default resource and the only audience this host accepts. |
 | `AdditionalResources` | empty | Other resources clients may request (validated elsewhere). |
-| `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. |
+| `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. Add `openid` for [OpenID Connect](#openid-connect-optional), and `email` for the email claims. |
 | `AlwaysIssueRefreshToken` | `true` | Adds `offline_access` when the client has the refresh grant. |
 | `LoginUrl`, `LoginReturnUrlParameter` | required, `returnUrl` | |
 | `ConsentUrl`, `ConsentRequestParameter` | required, `request` | |
+| `LogoutUrl` | none | OpenID Connect only. The sign-out page for a [logout](#logout) without a matching `id_token_hint`. Gets the logout URL in `LoginReturnUrlParameter`. |
 | `AuthenticationScheme`, `UserIdClaimType` | Identity cookie, `NameIdentifier` | |
 | `AccessTokenLifetime` | 15 minutes | |
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
@@ -428,7 +514,8 @@ External providers (`AuthEndpoints.OAuth.GitHub`, `AuthEndpoints.OAuth.Google`) 
 
 This is a preview. These are known gaps, not bugs:
 
-- **No OpenID Connect yet.** There are no ID tokens, no `userinfo` or end-session (logout) endpoints, and no `email`, `email_verified`, or `amr` claims. The `openid` scope is rejected. Access tokens carry `sub`, plus whatever your principal factory adds.
+- **OpenID Connect covers sign-in and logout, not every option.** The claims are `sub`, `email`, `email_verified`, and `amr`; there are no `profile`, `phone`, or `address` claims, and no `auth_time`, so `prompt=login` and `max_age` are refused. Logout is RP-initiated only: there is no front-channel or back-channel logout and no session (`sid`) claim. There is no implicit or hybrid flow, so ID tokens come from the token endpoint only.
+- **`amr` depends on the cookie.** Sessions signed in before `openid` was turned on, and sign-ins through your own completers, have no `amr` until the user signs in again. See [How the user signed in](#how-the-user-signed-in).
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
