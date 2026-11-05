@@ -4,7 +4,7 @@ An opt-in OAuth 2.0 authorization server for AuthEndpoints apps, built on [OpenI
 
 The core `AuthEndpoints` package does not change and has no OpenIddict dependency. Install this package only in the app that issues tokens.
 
-> **Preview.** This release covers OAuth 2.0: authorization code + PKCE, refresh, revocation, metadata, and optional dynamic registration. OpenID Connect (ID tokens, `userinfo`, logout, and `email`/`email_verified`/`amr` claims) is not in this release. See [Not yet included](#not-yet-included).
+> **Preview.** This release covers OAuth 2.0: authorization code + PKCE, refresh, revocation, metadata, and optional dynamic registration. OpenID Connect (ID tokens, `userinfo`, logout, and `email`/`email_verified`/`amr` claims) is not in this release. See [Limitations](#limitations).
 
 ## What you get
 
@@ -25,6 +25,7 @@ Defaults:
 - Access tokens last 15 minutes. Refresh tokens last 30 days and rotate on every use, with **zero reuse leeway**.
 - Authorization codes last 5 minutes. Consent requests last 10 minutes and work once.
 - `ClockSkew` is zero for both issuing and validating.
+- Every code exchange and refresh checks the approving user again. See [When the user changes](#when-the-user-changes).
 - HTTPS is required. Token audiences (RFC 8707 resources) are validated, and each client needs a permission for each resource.
 - The issuer, endpoint URLs, and audience come from configuration. The request `Host` header is never trusted.
 
@@ -37,7 +38,7 @@ using AuthEndpoints.OpenIddict;
 
 builder.Services.AddPasswordAuth<AppUser, AppDbContext>(); // or your existing AuthEndpoints setup
 
-builder.Services.AddAuthEndpointsOpenIddict<AppDbContext, string>(options =>
+builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext, string>(options =>
 {
     options.Issuer = new Uri("https://auth.example.com/");
     options.Audience = "https://api.example.com/";
@@ -50,7 +51,7 @@ builder.Services.AddAuthEndpointsOpenIddict<AppDbContext, string>(options =>
 .BindConfiguration("OAuthServer"); // optional: appsettings values override the code above
 ```
 
-`TKey` is your Identity user key type (`string` for `IdentityUser`, `Guid` for `IdentityUser<Guid>`).
+`TUser` is your Identity user type. `TKey` is its key type (`string` for `IdentityUser`, `Guid` for `IdentityUser<Guid>`).
 
 The app fails at startup when a required setting is missing: `Issuer`, `Audience`, `LoginUrl`, `ConsentUrl`, and exactly one certificate source.
 
@@ -102,7 +103,7 @@ app.MapGet("/api/me", (ClaimsPrincipal user) => user.FindFirst("sub")?.Value)
     .RequireAuthorization("api");
 ```
 
-Access tokens are reference tokens, validated against this server's database. APIs in other processes are not supported yet (that needs introspection or JWT access tokens, see [Not yet included](#not-yet-included)).
+Access tokens are reference tokens, validated against this server's database. APIs in other processes are not supported yet (that needs introspection or JWT access tokens, see [Limitations](#limitations)).
 
 ## Clients
 
@@ -204,11 +205,21 @@ The service uses the scoped DbContext, so your transaction also covers the OpenI
 By default `sub` is the Identity user id. Replace it for every approval:
 
 ```csharp
-builder.Services.AddAuthEndpointsOpenIddict<AppDbContext, string>(…)
+builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext, string>(…)
     .AddPrincipalFactory<MyPrincipalFactory>();
 ```
 
 `IOAuthPrincipalFactory.CreateAsync` gets the signed-in user id and the pending request, and returns the principal (or `null` to decline without consuming the request). The principal needs a `sub` claim. Other claims reach the access token only when you call `SetDestinations` on them.
+
+## When the user changes
+
+Each grant remembers the user who approved it and that user's security stamp. On every code exchange and refresh, the server checks that the user still exists, can sign in (`SignInManager.CanSignInAsync`), is not locked out, and has the same security stamp. If any check fails, the request gets `invalid_grant`, and the authorization and all its tokens are revoked.
+
+Identity changes the security stamp when the password changes or is reset, an authenticator is reset, two-factor is turned off, or an external login is removed. Call `UserManager.UpdateSecurityStampAsync(user)` to end every OAuth grant for a user on demand, for example from a "sign out everywhere" button.
+
+The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
+
+The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens, even when a principal factory sends every claim to the access token. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
 
 ## Certificates
 
@@ -253,6 +264,7 @@ app.UseOAuthResourceChallenge(); // before UseAuthentication
 | `AuthorizationCodeLifetime` | 5 minutes | |
 | `ConsentLifetime` | 10 minutes | |
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
+| `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
 | `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |
 | `IgnoreResourcePermissions` | `false` | Skips per-client `rsrc:` permissions. |
@@ -263,8 +275,14 @@ The fixed routes are in `OAuthServerConstants`. Anything else can be set on `OAu
 
 External providers (`AuthEndpoints.OAuth.GitHub`, `AuthEndpoints.OAuth.Google`) let users sign in to **your** app with another account. This package makes **your** app the provider for other clients. They combine: with cookie-mode external sign-in, a user who signs in with GitHub has an Identity cookie, and the authorize step accepts it like any other sign-in. JWT-mode sign-in does not set that cookie.
 
-## Not yet included
+## Limitations
 
-- OpenID Connect: ID tokens, `userinfo`, end-session/logout, and the `email`, `email_verified`, and `amr` claims.
-- An OIDC client for AuthEndpoints (issue #380).
-- Introspection or JWT access tokens for APIs in other processes (reference tokens only for now).
+This is a preview. These are known gaps, not bugs:
+
+- **No OpenID Connect yet.** There are no ID tokens, no `userinfo` or end-session (logout) endpoints, and no `email`, `email_verified`, or `amr` claims. The `openid` scope is rejected. Access tokens carry `sub`, plus whatever your principal factory adds.
+- **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
+- **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](#when-the-user-changes).
+- **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
+- **Cookie sign-in only at the authorize step.** The user is read from `AuthenticationScheme` (the Identity cookie by default). Password, two-factor, passkey, and cookie-mode external sign-in all end with that cookie. A sign-in that is still waiting for a second factor, or an external sign-in that has not been completed, does not count.
+
+An OIDC client for AuthEndpoints (the other direction) is tracked separately in issue #380.

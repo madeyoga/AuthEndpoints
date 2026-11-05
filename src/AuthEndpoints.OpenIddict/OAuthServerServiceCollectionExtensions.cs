@@ -49,11 +49,13 @@ public static class OAuthServerServiceCollectionExtensions
     /// Call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser, TKey&gt;()</c> in the DbContext and
     /// <c>app.MapAuthEndpointsOpenIddict()</c> after <c>UseAuthentication</c>.
     /// </summary>
+    /// <typeparam name="TUser">The Identity user type. Used to re-check the user on every code exchange and refresh.</typeparam>
     /// <typeparam name="TContext">The EF Core context that holds the OpenIddict and consent tables.</typeparam>
     /// <typeparam name="TKey">The Identity user key type, for example <see cref="string"/> or <see cref="Guid"/>.</typeparam>
-    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TContext, TKey>(
+    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext, TKey>(
         this IServiceCollection services,
         Action<OAuthServerOptions>? configure = null)
+        where TUser : class
         where TContext : DbContext
         where TKey : IEquatable<TKey>
     {
@@ -69,6 +71,7 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
         services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
+        services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped<IOAuthConsentService, OAuthConsentService<TContext, TKey>>();
         services.TryAddSingleton<IOAuthServerCleanup, OAuthServerCleanup<TContext, TKey>>();
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
@@ -95,6 +98,12 @@ public static class OAuthServerServiceCollectionExtensions
                 {
                     builder.UseSingletonHandler<SkipDetachedAuthorizationResponse>();
                     builder.SetOrder(1_000_000);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
+                {
+                    builder.UseScopedHandler<RevalidateGrantUser>();
+                    // Before any token is generated for the code or refresh grant.
+                    builder.SetOrder(OpenIddictServerHandlers.ValidateSignInDemand.Descriptor.Order + 500);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.HandleConfigurationRequestContext>(builder =>
                 {
@@ -123,6 +132,8 @@ public static class OAuthServerServiceCollectionExtensions
                 server.RefreshTokenReuseLeeway = TimeSpan.Zero;
                 server.DisableResourceValidation = settings.DisableResourceValidation;
                 server.IgnoreResourcePermissions = settings.IgnoreResourcePermissions;
+                // OpenID Connect is not supported yet, so do not accept or advertise openid.
+                server.Scopes.Remove(OpenIddictConstants.Scopes.OpenId);
                 foreach (var scope in settings.AllScopes())
                 {
                     server.Scopes.Add(scope);

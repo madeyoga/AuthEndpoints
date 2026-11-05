@@ -186,7 +186,9 @@ public sealed class OAuthOptionsTests
             {
                 var services = new ServiceCollection();
                 services.AddDbContext<NoopDb>();
-                services.AddAuthEndpointsOpenIddict<NoopDb, string>(options =>
+                services.AddDbContext<IdentityDbContext>(o => o.UseSqlite("Data Source=:memory:"));
+                services.AddIdentityCore<IdentityUser>().AddEntityFrameworkStores<IdentityDbContext>();
+                services.AddAuthEndpointsOpenIddict<IdentityUser, NoopDb, string>(options =>
                 {
                     options.Issuer = new Uri("https://localhost/");
                     options.Audience = "https://localhost/api";

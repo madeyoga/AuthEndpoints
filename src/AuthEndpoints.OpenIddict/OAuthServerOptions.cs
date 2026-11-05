@@ -99,6 +99,12 @@ public sealed class OAuthServerOptions
     /// <summary>Expired or revoked tokens and authorizations older than this are deleted by the cleanup. Default 14 days.</summary>
     public TimeSpan PruneAfter { get; set; } = TimeSpan.FromDays(14);
 
+    /// <summary>
+    /// On every code exchange and refresh, check that the approving user still exists, can sign in, is not locked out,
+    /// and has the same security stamp. A failed check revokes the grant. Default <see langword="true"/>.
+    /// </summary>
+    public bool RevalidateUser { get; set; } = true;
+
     /// <summary>Allow plain HTTP. Only for local development behind no proxy. Default <see langword="false"/>.</summary>
     public bool DisableTransportSecurityRequirement { get; set; }
 

@@ -24,6 +24,12 @@ public static class OAuthServerConstants
     /// <summary>Table that holds pending consent requests.</summary>
     public const string RequestTable = "OAuthRequests";
 
+    /// <summary>Grant claim with the approving user's id. Kept in codes and refresh tokens, never in access tokens.</summary>
+    public const string UserIdClaim = "ae_user_id";
+
+    /// <summary>Grant claim with the approving user's security stamp at approval.</summary>
+    public const string UserStampClaim = "ae_user_stamp";
+
     /// <summary>Fallback display name for a client without one.</summary>
     public const string FallbackClientName = "OAuth client";
 }

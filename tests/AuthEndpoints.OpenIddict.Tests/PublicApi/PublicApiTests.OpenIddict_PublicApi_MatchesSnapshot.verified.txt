@@ -16,6 +16,18 @@
     {
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthCleanupResult> SweepAsync(System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IOAuthUserValidator
+    {
+        System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken);
+    }
+    public sealed class IdentityOAuthUserValidator<TUser> : AuthEndpoints.OpenIddict.IOAuthUserValidator
+        where TUser :  class
+    {
+        public IdentityOAuthUserValidator(Microsoft.AspNetCore.Identity.UserManager<TUser> users, System.IServiceProvider services) { }
+        public System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken) { }
+        public System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken) { }
+    }
     public sealed record OAuthCleanupResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthCleanupResult>
     {
         public OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations) { }
@@ -167,6 +179,8 @@
         public const string RequestTable = "OAuthRequests";
         public const string RevocationEndpointPath = "/connect/revoke";
         public const string TokenEndpointPath = "/connect/token";
+        public const string UserIdClaim = "ae_user_id";
+        public const string UserStampClaim = "ae_user_stamp";
     }
     public static class OAuthServerEndpointRouteBuilderExtensions
     {
@@ -207,6 +221,7 @@
         public AuthEndpoints.OpenIddict.OAuthProtectedResourceOptions ProtectedResource { get; }
         public System.TimeSpan PruneAfter { get; set; }
         public System.TimeSpan RefreshTokenLifetime { get; set; }
+        public bool RevalidateUser { get; set; }
         public System.Collections.Generic.IList<string> Scopes { get; }
         public string UserIdClaimType { get; set; }
     }
@@ -218,7 +233,8 @@
     public static class OAuthServerServiceCollectionExtensions
     {
         public const string ValidationScheme = "OpenIddict.Validation.AspNetCore";
-        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TContext, TKey>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext, TKey>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+            where TUser :  class
             where TContext : Microsoft.EntityFrameworkCore.DbContext
             where TKey : System.IEquatable<TKey> { }
     }

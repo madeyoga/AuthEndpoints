@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -95,7 +96,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
                 identity.Password.RequireUppercase = false;
                 identity.Password.RequireNonAlphanumeric = false;
             })
-            .AddEntityFrameworkStores<TestDb>();
+            .AddEntityFrameworkStores<TestDb>()
+            .AddDefaultTokenProviders();
         builder.Services.ConfigureApplicationCookie(options =>
         {
             options.Events.OnRedirectToLogin = context =>
@@ -109,7 +111,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
             .RequireAuthenticatedUser()));
 
-        builder.Services.AddAuthEndpointsOpenIddict<TestDb, string>(options =>
+        builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb, string>(options =>
         {
             options.Issuer = new Uri(Issuer);
             options.Audience = Audience;
@@ -144,7 +146,40 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         {
             sub = http.User.FindFirst(OpenIddictConstants.Claims.Subject)?.Value,
             scopes = http.User.GetScopes().ToArray(),
+            claims = http.User.Claims.Select(claim => claim.Type).Distinct().ToArray(),
         })).RequireAuthorization("api");
+        app.MapPost("/test/2fa/start", async (string email, UserManager<IdentityUser> users, SignInManager<IdentityUser> signIn) =>
+        {
+            var user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true, TwoFactorEnabled = true };
+            var created = await users.CreateAsync(user, "Passw0rd1");
+            if (!created.Succeeded)
+            {
+                return Results.BadRequest(created.Errors);
+            }
+
+            var result = await signIn.PasswordSignInAsync(email, "Passw0rd1", isPersistent: false, lockoutOnFailure: false);
+            return Results.Ok(new { id = user.Id, requiresTwoFactor = result.RequiresTwoFactor });
+        }).DisableAntiforgery();
+        app.MapPost("/test/2fa/finish", async (UserManager<IdentityUser> users, SignInManager<IdentityUser> signIn) =>
+        {
+            var user = await signIn.GetTwoFactorAuthenticationUserAsync();
+            if (user is null)
+            {
+                return Results.BadRequest();
+            }
+
+            var code = await users.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
+            var result = await signIn.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, code, false, false);
+            return result.Succeeded ? Results.NoContent() : Results.BadRequest();
+        }).DisableAntiforgery();
+        app.MapPost("/test/external-only", async (HttpContext http) =>
+        {
+            var identity = new System.Security.Claims.ClaimsIdentity(
+                [new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, "github-123")],
+                IdentityConstants.ExternalScheme);
+            await http.SignInAsync(IdentityConstants.ExternalScheme, new System.Security.Claims.ClaimsPrincipal(identity));
+            return Results.NoContent();
+        }).DisableAntiforgery();
         app.MapPost("/test/signin", async (string email, UserManager<IdentityUser> users, SignInManager<IdentityUser> signIn) =>
         {
             var user = await users.FindByEmailAsync(email);

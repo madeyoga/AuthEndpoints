@@ -79,6 +79,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     TContext db,
     IHttpContextAccessor httpContextAccessor,
     IOAuthPrincipalFactory principalFactory,
+    IOAuthUserValidator userValidator,
     IOpenIddictServerDispatcher dispatcher,
     IOptionsMonitor<OpenIddictServerOptions> serverOptions,
     IOpenIddictAuthorizationManager authorizations,
@@ -140,6 +141,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
+        await OAuthGrantClaims.AddAsync(principal, userId, userValidator, cancellationToken);
         var issuer = options.Value.Issuer!;
         var issued = await OAuthCodeIssuer.IssueAsync(
             dispatcher,
