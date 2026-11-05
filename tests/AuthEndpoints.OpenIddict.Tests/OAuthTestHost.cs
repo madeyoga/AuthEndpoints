@@ -142,6 +142,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         app.UseAntiforgery();
         app.MapAuthEndpointsOpenIddict();
         app.MapOAuthConsentEndpoints();
+        app.MapOAuthDeveloperAppEndpoints();
         app.MapGet("/api/me", (HttpContext http) => Results.Ok(new
         {
             sub = http.User.FindFirst(OpenIddictConstants.Claims.Subject)?.Value,

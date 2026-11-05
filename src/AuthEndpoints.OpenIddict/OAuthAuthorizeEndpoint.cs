@@ -28,6 +28,7 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
         HttpContext http,
         TContext db,
         IOpenIddictApplicationManager applications,
+        IOAuthDeveloperAppGate developerApps,
         IOptions<OAuthServerOptions> options,
         TimeProvider clock,
         CancellationToken cancellationToken)
@@ -43,6 +44,11 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
         if (application is null)
         {
             return Reject(OpenIddictConstants.Errors.InvalidClient, "Unknown client.");
+        }
+
+        if (!await developerApps.AllowsAsync(application, cancellationToken))
+        {
+            return Reject(OpenIddictConstants.Errors.UnauthorizedClient, "This application is not active.");
         }
 
         if (!string.Equals(request.CodeChallengeMethod, OpenIddictConstants.CodeChallengeMethods.Sha256, StringComparison.Ordinal)

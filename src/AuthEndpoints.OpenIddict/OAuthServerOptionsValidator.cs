@@ -124,6 +124,11 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             Positive(failures, registration.UnusedClientLifetime, "DynamicRegistration.UnusedClientLifetime");
         }
 
+        if (options.DeveloperApps.MaxAppsPerUser < 1 || options.DeveloperApps.MaxRedirectUris < 1)
+        {
+            failures.Add("DeveloperApps.MaxAppsPerUser and MaxRedirectUris must be at least 1.");
+        }
+
         var ids = new HashSet<string>(StringComparer.Ordinal);
         foreach (var client in options.Clients)
         {

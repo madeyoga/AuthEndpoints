@@ -8,6 +8,17 @@
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthPendingRequest?> FindAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<bool> RevokeAuthorizationAsync(string authorizationId, System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IOAuthDeveloperAppService
+    {
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult> CreateAsync(string ownerId, AuthEndpoints.OpenIddict.OAuthDeveloperAppInput input, bool confidential, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool> DeleteAsync(System.Guid id, string ownerId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo?> FindAsync(System.Guid id, string ownerId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo>> ListAsync(string ownerId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo>> ListByStatusAsync(AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult> RotateSecretAsync(System.Guid id, string ownerId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool> SetStatusAsync(System.Guid id, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult> UpdateAsync(System.Guid id, string ownerId, AuthEndpoints.OpenIddict.OAuthDeveloperAppInput input, System.Threading.CancellationToken cancellationToken = default);
+    }
     public interface IOAuthPrincipalFactory
     {
         System.Threading.Tasks.ValueTask<System.Security.Claims.ClaimsPrincipal?> CreateAsync(AuthEndpoints.OpenIddict.OAuthPrincipalContext context, System.Threading.CancellationToken cancellationToken);
@@ -30,9 +41,10 @@
     }
     public sealed record OAuthCleanupResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthCleanupResult>
     {
-        public OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations) { }
+        public OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations, int OrphanedDeveloperApps = 0) { }
         public long Authorizations { get; init; }
         public int ExpiredRequests { get; init; }
+        public int OrphanedDeveloperApps { get; init; }
         public long Tokens { get; init; }
         public int UnusedClients { get; init; }
     }
@@ -84,6 +96,96 @@
         Denied = 1,
         NotFound = 2,
         Declined = 3,
+    }
+    public sealed record OAuthDeveloperAppInfo : System.IEquatable<AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo>
+    {
+        public OAuthDeveloperAppInfo(System.Guid Id, string ClientId, string Name, string HomepageUrl, string? Description, System.Collections.Generic.IReadOnlyList<string> RedirectUris, bool Confidential, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus Status, System.DateTimeOffset CreatedAt, System.DateTimeOffset UpdatedAt, System.DateTimeOffset? SecretCreatedAt) { }
+        [System.Text.Json.Serialization.JsonPropertyName("clientId")]
+        public string ClientId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("confidential")]
+        public bool Confidential { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
+        public System.DateTimeOffset CreatedAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("description")]
+        public string? Description { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("homepageUrl")]
+        public string HomepageUrl { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public System.Guid Id { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; init; }
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string OwnerId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("redirectUris")]
+        public System.Collections.Generic.IReadOnlyList<string> RedirectUris { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("secretCreatedAt")]
+        public System.DateTimeOffset? SecretCreatedAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus Status { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("updatedAt")]
+        public System.DateTimeOffset UpdatedAt { get; init; }
+    }
+    public sealed record OAuthDeveloperAppInput : System.IEquatable<AuthEndpoints.OpenIddict.OAuthDeveloperAppInput>
+    {
+        public OAuthDeveloperAppInput(string? Name, string? HomepageUrl, string? Description, System.Collections.Generic.IReadOnlyList<string>? RedirectUris) { }
+        public string? Description { get; init; }
+        public string? HomepageUrl { get; init; }
+        public string? Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? RedirectUris { get; init; }
+    }
+    public sealed class OAuthDeveloperAppOptions
+    {
+        public OAuthDeveloperAppOptions() { }
+        public int MaxAppsPerUser { get; set; }
+        public int MaxRedirectUris { get; set; }
+        public bool RequireApproval { get; set; }
+    }
+    public enum OAuthDeveloperAppOutcome
+    {
+        Succeeded = 0,
+        NotFound = 1,
+        Invalid = 2,
+        LimitReached = 3,
+        NotConfidential = 4,
+    }
+    public sealed record OAuthDeveloperAppResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult>
+    {
+        public OAuthDeveloperAppResult(AuthEndpoints.OpenIddict.OAuthDeveloperAppOutcome Outcome, AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo? App = null, string? ClientSecret = null, System.Collections.Generic.IReadOnlyDictionary<string, string[]>? Errors = null) { }
+        public AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo? App { get; init; }
+        public string? ClientSecret { get; init; }
+        public System.Collections.Generic.IReadOnlyDictionary<string, string[]>? Errors { get; init; }
+        public AuthEndpoints.OpenIddict.OAuthDeveloperAppOutcome Outcome { get; init; }
+    }
+    public sealed record OAuthDeveloperAppSecret : System.IEquatable<AuthEndpoints.OpenIddict.OAuthDeveloperAppSecret>
+    {
+        public OAuthDeveloperAppSecret(AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo App, string? ClientSecret) { }
+        [System.Text.Json.Serialization.JsonPropertyName("app")]
+        public AuthEndpoints.OpenIddict.OAuthDeveloperAppInfo App { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("clientSecret")]
+        public string? ClientSecret { get; init; }
+    }
+    [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus>))]
+    public enum OAuthDeveloperAppStatus
+    {
+        Active = 0,
+        PendingApproval = 1,
+        Disabled = 2,
+    }
+    public class OAuthDeveloperApp<TKey>
+        where TKey : System.IEquatable<TKey>
+    {
+        public OAuthDeveloperApp() { }
+        public required string ClientId { get; set; }
+        public bool Confidential { get; set; }
+        public System.DateTimeOffset CreatedAt { get; set; }
+        public string? Description { get; set; }
+        public required string HomepageUrl { get; set; }
+        public System.Guid Id { get; init; }
+        public required string Name { get; set; }
+        public TKey OwnerId { get; set; }
+        public System.DateTimeOffset? SecretCreatedAt { get; set; }
+        public AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus Status { get; set; }
+        public System.DateTimeOffset UpdatedAt { get; set; }
     }
     public sealed class OAuthDynamicRegistrationOptions
     {
@@ -171,6 +273,8 @@
         public const string AuthorizationEndpointPath = "/connect/authorize";
         public const string AuthorizationServerMetadataPath = "/.well-known/oauth-authorization-server";
         public const string CreatedAtSetting = "created_at";
+        public const string DeveloperAppSetting = "ae_developer_app";
+        public const string DeveloperAppTable = "OAuthDeveloperApps";
         public const string FallbackClientName = "OAuth client";
         public const string OfflineAccessScope = "offline_access";
         public const string ProtectedResourceMetadataPath = "/.well-known/oauth-protected-resource";
@@ -186,6 +290,7 @@
     {
         public static Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapAuthEndpointsOpenIddict(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthConsentEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth") { }
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthDeveloperAppEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth/apps") { }
     }
     public static class OAuthServerModelBuilderExtensions
     {
@@ -208,6 +313,7 @@
         public string ConsentRequestParameter { get; set; }
         public string? ConsentUrl { get; set; }
         public System.Collections.Generic.IList<string> DefaultScopes { get; }
+        public AuthEndpoints.OpenIddict.OAuthDeveloperAppOptions DeveloperApps { get; }
         public bool DisableResourceValidation { get; set; }
         public bool DisableTransportSecurityRequirement { get; set; }
         public AuthEndpoints.OpenIddict.OAuthDynamicRegistrationOptions DynamicRegistration { get; }

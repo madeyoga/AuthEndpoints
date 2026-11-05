@@ -77,6 +77,10 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
+        var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
+        services.TryAddScoped(developerApps);
+        services.TryAddScoped(typeof(IOAuthDeveloperAppService), provider => provider.GetRequiredService(developerApps));
+        services.TryAddScoped(typeof(IOAuthDeveloperAppGate), provider => provider.GetRequiredService(developerApps));
         services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<,>).MakeGenericType(typeof(TContext), keyType));
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
         services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<,>).MakeGenericType(typeof(TContext), keyType));
@@ -108,6 +112,11 @@ public static class OAuthServerServiceCollectionExtensions
                     builder.UseScopedHandler<RevalidateGrantUser>();
                     // Before any token is generated for the code or refresh grant.
                     builder.SetOrder(OpenIddictServerHandlers.ValidateSignInDemand.Descriptor.Order + 500);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
+                {
+                    builder.UseScopedHandler<RequireActiveDeveloperApp>();
+                    builder.SetOrder(OpenIddictServerHandlers.ValidateSignInDemand.Descriptor.Order + 400);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.HandleConfigurationRequestContext>(builder =>
                 {

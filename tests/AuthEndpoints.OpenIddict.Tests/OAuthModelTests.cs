@@ -59,6 +59,48 @@ public sealed class OAuthModelTests
     }
 
     [Fact]
+    public void Developer_app_table_has_the_documented_schema()
+    {
+        using var db = new GuidDb();
+        var entity = db.Model.FindEntityType(typeof(OAuthDeveloperApp<Guid>))!;
+        var table = StoreObjectIdentifier.Table("OAuthDeveloperApps", null);
+
+        Assert.Equal("OAuthDeveloperApps", entity.GetTableName());
+        Assert.Equal("PK_OAuthDeveloperApps", entity.FindPrimaryKey()!.GetName());
+        var expected = new Dictionary<string, (int? Length, bool Nullable)>
+        {
+            ["Id"] = (null, false),
+            ["OwnerId"] = (null, false),
+            ["ClientId"] = (64, false),
+            ["Name"] = (200, false),
+            ["HomepageUrl"] = (2048, false),
+            ["Description"] = (1000, true),
+            ["Confidential"] = (null, false),
+            ["Status"] = (32, false),
+            ["CreatedAt"] = (null, false),
+            ["UpdatedAt"] = (null, false),
+            ["SecretCreatedAt"] = (null, true),
+        };
+        Assert.Equal(expected.Keys.Order(), entity.GetProperties().Select(p => p.GetColumnName(table)!).Order());
+        foreach (var property in entity.GetProperties())
+        {
+            var (length, nullable) = expected[property.GetColumnName(table)!];
+            Assert.Equal(length, property.GetMaxLength());
+            Assert.Equal(nullable, property.IsColumnNullable(table));
+        }
+
+        Assert.Equal(typeof(string), entity.FindProperty("Status")!.GetProviderClrType());
+        Assert.Equal(ValueGenerated.Never, entity.FindProperty("Id")!.ValueGenerated);
+        var foreignKey = Assert.Single(entity.GetForeignKeys());
+        Assert.Equal("FK_OAuthDeveloperApps_AspNetUsers_OwnerId", foreignKey.GetConstraintName());
+        Assert.Equal(DeleteBehavior.Cascade, foreignKey.DeleteBehavior);
+        Assert.Equal(
+            ["IX_OAuthDeveloperApps_ClientId", "IX_OAuthDeveloperApps_OwnerId"],
+            entity.GetIndexes().Select(index => index.GetDatabaseName()!).Order().ToArray());
+        Assert.True(entity.GetIndexes().Single(index => index.GetDatabaseName() == "IX_OAuthDeveloperApps_ClientId").IsUnique);
+    }
+
+    [Fact]
     public void OpenIddict_tables_have_the_documented_schema()
     {
         using var db = new GuidDb();
@@ -92,6 +134,7 @@ public sealed class OAuthModelTests
     {
         using var db = new NoUserDb();
         Assert.Empty(db.Model.FindEntityType(typeof(OAuthRequest<string>))!.GetForeignKeys());
+        Assert.Empty(db.Model.FindEntityType(typeof(OAuthDeveloperApp<string>))!.GetForeignKeys());
     }
 
     private sealed class NotAUser;
@@ -126,6 +169,8 @@ public sealed class OAuthOptionsTests
         Assert.False(options.IgnoreResourcePermissions);
         Assert.False(options.DynamicRegistration.Enabled);
         Assert.False(options.ProtectedResource.Enabled);
+        Assert.False(options.DeveloperApps.RequireApproval);
+        Assert.Equal(10, options.DeveloperApps.MaxAppsPerUser);
         Assert.False(options.Certificates.UseEphemeralKeys);
         Assert.Equal(TimeSpan.FromMinutes(15), options.AccessTokenLifetime);
         Assert.Equal(TimeSpan.FromMinutes(5), options.AuthorizationCodeLifetime);

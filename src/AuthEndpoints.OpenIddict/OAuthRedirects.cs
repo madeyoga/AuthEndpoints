@@ -38,23 +38,53 @@ internal static class OAuthRedirects
 
     /// <summary>https, or http on a loopback host, with no fragment or user info.</summary>
     public static bool IsAllowedPublicClientRedirect(string? value)
+        => TryParse(value, out var uri) && IsWebOrLoopback(uri);
+
+    /// <summary>
+    /// A developer app redirect: https, or http on a loopback host, for any app. A public app may also use a
+    /// private-use scheme (RFC 8252 §7.1) such as <c>com.example.app:/callback</c>. No fragment or user info.
+    /// </summary>
+    public static bool IsAllowedDeveloperAppRedirect(string? value, bool confidential)
     {
-        if (value is null || value.Length > 2048
-            || !Uri.TryCreate(value, UriKind.Absolute, out var uri)
-            || !string.IsNullOrEmpty(uri.Fragment)
-            || !string.IsNullOrEmpty(uri.UserInfo))
+        if (!TryParse(value, out var uri))
         {
             return false;
         }
 
-        if (uri.Scheme == Uri.UriSchemeHttps)
+        if (IsWebOrLoopback(uri))
         {
             return true;
         }
 
-        // IsLoopback covers localhost, 127.0.0.0/8, and [::1].
-        return uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback;
+        return !confidential && IsPrivateUseScheme(uri.Scheme);
     }
+
+    /// <summary>An absolute http or https URL with no user info.</summary>
+    public static bool IsHomepage(string? value)
+        => TryParse(value, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
+
+    private static bool TryParse(string? value, out Uri uri)
+    {
+        uri = null!;
+        return value is not null && value.Length <= 2048
+            && Uri.TryCreate(value, UriKind.Absolute, out uri!)
+            && string.IsNullOrEmpty(uri.Fragment)
+            && string.IsNullOrEmpty(uri.UserInfo);
+    }
+
+    // IsLoopback covers localhost, 127.0.0.0/8, and [::1].
+    private static bool IsWebOrLoopback(Uri uri)
+        => uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp && uri.IsLoopback;
+
+    /// <summary>
+    /// A reverse-domain scheme with at least one dot, so <c>javascript:</c>, <c>data:</c>, <c>file:</c>, and
+    /// other single-word schemes are never accepted.
+    /// </summary>
+    private static bool IsPrivateUseScheme(string scheme)
+        => scheme.Contains('.', StringComparison.Ordinal)
+            && !scheme.StartsWith('.')
+            && !scheme.EndsWith('.')
+            && !scheme.Contains("..", StringComparison.Ordinal);
 }
 
 internal static class OAuthScopes
