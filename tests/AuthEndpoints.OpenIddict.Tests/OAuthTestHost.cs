@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -82,7 +83,9 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         Action<OAuthServerOptions>? configure = null,
         Action<IServiceCollection>? services = null,
         Action<WebApplication>? map = null,
-        Action<OAuthServerBuilder>? server = null)
+        Action<OAuthServerBuilder>? server = null,
+        bool recipe = false,
+        Action<OAuthServerEndpointOptions>? endpoints = null)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-openiddict-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
@@ -107,12 +110,22 @@ internal sealed class OAuthTestHost : IAsyncDisposable
                 return Task.CompletedTask;
             };
         });
-        builder.Services.AddAntiforgery(options => options.HeaderName = CsrfHeader);
-        builder.Services.AddAuthorization(options => options.AddPolicy("api", policy => policy
+        Action<AuthorizationOptions> policies = options => options.AddPolicy("api", policy => policy
             .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
-            .RequireAuthenticatedUser()));
+            .RequireAuthenticatedUser());
+        if (recipe)
+        {
+            // Options only: the recipe has to register the authorization and antiforgery services itself.
+            builder.Services.Configure<AntiforgeryOptions>(options => options.HeaderName = CsrfHeader);
+            builder.Services.Configure(policies);
+        }
+        else
+        {
+            builder.Services.AddAntiforgery(options => options.HeaderName = CsrfHeader);
+            builder.Services.AddAuthorization(policies);
+        }
 
-        var oauth = builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(options =>
+        Action<OAuthServerOptions> settings = options =>
         {
             options.Issuer = new Uri(Issuer);
             options.Audience = Audience;
@@ -133,7 +146,10 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             seeded.RedirectUris.Add(SeededRedirect);
             options.Clients.Add(seeded);
             configure?.Invoke(options);
-        });
+        };
+        var oauth = recipe
+            ? builder.Services.AddOAuthServer<IdentityUser, TestDb>(settings)
+            : builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(settings);
         server?.Invoke(oauth);
         services?.Invoke(builder.Services);
 
@@ -142,9 +158,17 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseAntiforgery();
-        app.MapAuthEndpointsOpenIddict();
-        app.MapOAuthConsentEndpoints();
-        app.MapOAuthDeveloperAppEndpoints();
+        if (recipe)
+        {
+            app.MapOAuthServer(endpoints);
+        }
+        else
+        {
+            app.MapAuthEndpointsOpenIddict();
+            app.MapOAuthConsentEndpoints();
+            app.MapOAuthDeveloperAppEndpoints();
+        }
+
         app.MapGet("/api/me", (HttpContext http) => Results.Ok(new
         {
             sub = http.User.FindFirst(OpenIddictConstants.Claims.Subject)?.Value,

@@ -12,6 +12,52 @@ namespace AuthEndpoints.OpenIddict;
 public static class OAuthServerEndpointRouteBuilderExtensions
 {
     /// <summary>
+    /// The default recipe's map call. Maps the authorization server (<see cref="MapAuthEndpointsOpenIddict"/>:
+    /// authorize, plus registration and protected resource metadata when they are enabled in
+    /// <see cref="OAuthServerOptions"/>), the JSON consent API (<see cref="MapOAuthConsentEndpoints"/>), and the developer
+    /// app API (<see cref="MapOAuthDeveloperAppEndpoints"/>). Turn a part off or move it in <paramref name="configure"/>.
+    /// Use it instead of those calls, not together with them.
+    /// Fails at once when the server is not registered or <c>UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> is missing from the model.
+    /// It does not seed <see cref="OAuthServerOptions.Clients"/>: call <c>SeedOAuthClientsAsync()</c> after migrations.
+    /// </summary>
+    public static OAuthServerEndpoints MapOAuthServer(
+        this IEndpointRouteBuilder endpoints,
+        Action<OAuthServerEndpointOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        var marker = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
+            ?? throw new InvalidOperationException("Call services.AddOAuthServer<TUser, TContext>() first.");
+        var parts = new OAuthServerEndpointOptions();
+        configure?.Invoke(parts);
+        if (parts.ConsentApi)
+        {
+            RequireRootedPrefix(parts.ConsentPrefix, nameof(OAuthServerEndpointOptions.ConsentPrefix));
+        }
+
+        if (parts.DeveloperApps)
+        {
+            RequireRootedPrefix(parts.DeveloperAppsPrefix, nameof(OAuthServerEndpointOptions.DeveloperAppsPrefix));
+        }
+
+        // Validates OAuthServerOptions now instead of on the first request.
+        _ = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
+        marker.EnsureModel(endpoints.ServiceProvider);
+
+        endpoints.MapAuthEndpointsOpenIddict();
+        return new OAuthServerEndpoints(
+            parts.ConsentApi ? MapOAuthConsentEndpoints(endpoints, parts.ConsentPrefix) : null,
+            parts.DeveloperApps ? MapOAuthDeveloperAppEndpoints(endpoints, parts.DeveloperAppsPrefix) : null);
+    }
+
+    private static void RequireRootedPrefix(string? prefix, string name)
+    {
+        if (string.IsNullOrWhiteSpace(prefix) || !prefix.StartsWith('/') || prefix.StartsWith("//", StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"OAuthServerEndpointOptions.{name} must be a rooted path, for example \"/oauth\".", "configure");
+        }
+    }
+
+    /// <summary>
     /// Maps <c>GET /connect/authorize</c>, plus <c>POST /connect/register</c> and
     /// <c>GET /.well-known/oauth-protected-resource</c> when they are enabled.
     /// OpenIddict serves <c>/connect/token</c>, <c>/connect/revoke</c>, and
@@ -91,12 +137,29 @@ public static class OAuthServerEndpointRouteBuilderExtensions
 internal abstract class OAuthServerMarker
 {
     public abstract RouteHandlerBuilder MapAuthorize(IEndpointRouteBuilder endpoints);
+
+    /// <summary>Throws when the DbContext model lacks the tables added by <c>UseAuthEndpointsOpenIddict</c>. Builds the model only.</summary>
+    public abstract void EnsureModel(IServiceProvider services);
 }
 
 internal sealed class OAuthServerMarker<TContext, TKey> : OAuthServerMarker
     where TContext : DbContext
     where TKey : IEquatable<TKey>
 {
+    public override void EnsureModel(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var model = scope.ServiceProvider.GetRequiredService<TContext>().Model;
+        if (model.FindEntityType(typeof(OAuthRequest<TKey>)) is null
+            || model.FindEntityType(typeof(OAuthDeveloperApp<TKey>)) is null
+            || model.FindEntityType(typeof(global::OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication)) is null)
+        {
+            throw new InvalidOperationException(
+                $"{typeof(TContext).Name} has no OAuth server tables for user key type {typeof(TKey).Name}. " +
+                "Call modelBuilder.UseAuthEndpointsOpenIddict<TUser>() in OnModelCreating, with the same TUser as AddOAuthServer, then add a migration.");
+        }
+    }
+
     public override RouteHandlerBuilder MapAuthorize(IEndpointRouteBuilder endpoints)
         => endpoints.MapMethods(
             OAuthServerConstants.AuthorizationEndpointPath,
