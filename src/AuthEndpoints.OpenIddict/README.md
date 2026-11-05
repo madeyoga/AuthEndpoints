@@ -230,7 +230,7 @@ When the user is signed out, it redirects to:
 
 The POSTs require a CSRF token for cookie callers (the same filter as other AuthEndpoints cookie routes). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
 
-The client is checked again when the user answers, because it can be deleted, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, or whose developer app is not `Active`, is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
+The client is checked again when the user answers, because it can be deleted or edited, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, whose developer app is not `Active`, or whose redirect URI is no longer registered for the client (with the same loopback any-port rule as authorize), is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
 
 ### Option B: your own approve endpoint
 

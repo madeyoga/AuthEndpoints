@@ -31,8 +31,8 @@ public enum OAuthConsentStatus
     Denied,
 
     /// <summary>
-    /// The request is unknown, expired, already used, or belongs to another user, or its client was deleted or
-    /// is a developer app that is no longer active.
+    /// The request is unknown, expired, already used, or belongs to another user, or its client was deleted,
+    /// is a developer app that is no longer active, or no longer has the request's redirect URI.
     /// </summary>
     NotFound,
 
@@ -60,7 +60,8 @@ public interface IOAuthConsentService
 {
     /// <summary>
     /// The usable request with this id that belongs to <paramref name="userId"/>, or <see langword="null"/>.
-    /// A request whose client was deleted, or whose developer app is no longer active, is not usable.
+    /// A request whose client was deleted, whose developer app is no longer active, or whose redirect URI was removed
+    /// from the client, is not usable.
     /// </summary>
     Task<OAuthPendingRequest?> FindAsync(Guid requestId, string userId, CancellationToken cancellationToken = default);
 
@@ -110,7 +111,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         }
 
         var row = await LoadAsync(requestId, key, cancellationToken);
-        return row is null || !await ClientUsableAsync(row.ClientId, cancellationToken) ? null : ToPending(row, userId);
+        return row is null || !await ClientUsableAsync(row, cancellationToken) ? null : ToPending(row, userId);
     }
 
     public Task<OAuthConsentResult> ApproveAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
@@ -134,7 +135,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
-        if (!await ClientUsableAsync(row.ClientId, cancellationToken))
+        if (!await ClientUsableAsync(row, cancellationToken))
         {
             // Retire the request: re-enabling the app later must not revive a consent started before it was turned off.
             await ConsumeAsync(requestId, key, cancellationToken);
@@ -178,8 +179,8 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         }
         catch (InvalidOperationException)
         {
-            // The client was deleted or disabled after the check above. The request is already consumed.
-            if (!await ClientUsableAsync(row.ClientId, cancellationToken))
+            // The client was deleted, disabled, or edited after the check above. The request is already consumed.
+            if (!await ClientUsableAsync(row, cancellationToken))
             {
                 return OAuthConsentResult.NotFound;
             }
@@ -203,8 +204,8 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
-        // The redirect URI belonged to a client that is gone or turned off. Do not send the browser there.
-        if (!await ClientUsableAsync(row.ClientId, cancellationToken))
+        // The redirect URI belongs to a client that is gone or turned off, or was removed from it. Do not send the browser there.
+        if (!await ClientUsableAsync(row, cancellationToken))
         {
             return OAuthConsentResult.NotFound;
         }
@@ -234,12 +235,14 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     }
 
     /// <summary>
-    /// Whether the client still exists and, for a developer app, is active. The authorize endpoint checked this when
-    /// it stored the request, but the client can be deleted or disabled before the user answers.
+    /// Whether the client still exists, is active when it is a developer app, and still has the request's redirect URI.
+    /// The authorize endpoint checked these when it stored the request, but the client can be deleted, disabled, or
+    /// edited before the user answers.
     /// </summary>
-    private async Task<bool> ClientUsableAsync(string clientId, CancellationToken cancellationToken)
-        => await applications.FindByClientIdAsync(clientId, cancellationToken) is { } application
-            && await developerApps.AllowsAsync(application, cancellationToken);
+    private async Task<bool> ClientUsableAsync(OAuthRequest<TKey> row, CancellationToken cancellationToken)
+        => await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is { } application
+            && await developerApps.AllowsAsync(application, cancellationToken)
+            && await OAuthLoopbackRedirects.IsRegisteredAsync(applications, application, row.RedirectUri, cancellationToken);
 
     private Task<OAuthRequest<TKey>?> LoadAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
     {

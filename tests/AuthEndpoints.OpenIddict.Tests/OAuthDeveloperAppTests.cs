@@ -482,6 +482,31 @@ public sealed class OAuthDeveloperAppTests
         await IssuePublicAsync(host, user, clientId);
     }
 
+    [Fact]
+    public async Task Approving_for_a_redirect_uri_the_owner_removed_is_not_found()
+    {
+        await using var host = await StartAsync();
+        var (owner, _) = await host.UserAsync("owner");
+        var (clientId, _) = await CreateOkAsync(owner, App("Moving", [WebRedirect, Loopback]));
+        var id = await IdAsync(owner, clientId);
+        var (user, _) = await host.UserAsync("user");
+        var removed = await OAuthTestHost.StartAsync(user, clientId, WebRedirect, Pkce.Create().Challenge);
+        var removedDeny = await OAuthTestHost.StartAsync(user, clientId, WebRedirect, Pkce.Create().Challenge);
+        var otherPort = new UriBuilder(Loopback) { Port = 49152 }.Uri.ToString();
+        var kept = await OAuthTestHost.StartAsync(user, clientId, otherPort, Pkce.Create().Challenge);
+
+        var edited = await SendAsync(owner, HttpMethod.Put, $"/oauth/apps/{id}", App("Moving", [Loopback]));
+        Assert.Equal(HttpStatusCode.OK, edited.StatusCode);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await user.GetAsync($"/oauth/requests/{removed}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, removed, "approve")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, removedDeny, "deny")).StatusCode);
+        Assert.True(await OAuthConsentTests.IsConsumedAsync(host, removed));
+
+        // A loopback request on another port still matches the URI that was kept.
+        Assert.False(string.IsNullOrEmpty((await ApproveAsync(user, kept))["code"]));
+    }
+
     private static async Task SetStatusAsync(OAuthTestHost host, Guid id, OAuthDeveloperAppStatus status)
     {
         await using var scope = host.Services.CreateAsyncScope();
