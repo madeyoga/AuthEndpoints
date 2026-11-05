@@ -97,6 +97,32 @@ public class PackageSkillTests
         }
     }
 
+    /// <summary>
+    /// The package README is the source for the OpenIddict skill references. Each paragraph,
+    /// table, and code block there is a README excerpt, so a README edit that changes one
+    /// fails here until the skill is updated too.
+    /// </summary>
+    [Fact]
+    public void OpenIddictReferences_AreReadmeExcerpts()
+    {
+        var readme = NormalizeLinks(File.ReadAllText(Path.Combine(Repo, "src", "AuthEndpoints.OpenIddict", "README.md")));
+        var references = Path.Combine(SkillDirectory("authendpoints-openiddict"), "references");
+
+        foreach (var file in Directory.EnumerateFiles(references, "*.md"))
+        {
+            var blocks = NormalizeLinks(File.ReadAllText(file)).Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
+            foreach (var block in blocks.Select(block => block.Trim('\n')).Where(block => !block.StartsWith('#')))
+            {
+                Assert.True(
+                    readme.Contains(block, StringComparison.Ordinal),
+                    $"{Path.GetFileName(file)} has text that is not in the AuthEndpoints.OpenIddict README. Copy the README change into the skill:\n{block}");
+            }
+        }
+    }
+
+    private static string NormalizeLinks(string text)
+        => Regex.Replace(text.ReplaceLineEndings("\n"), "\\]\\([^)]*\\)", "]()");
+
     private static string SkillDirectory(string skill) => Path.Combine(Repo, "skills", skill);
 
     private static string PackageVersion(string project)
