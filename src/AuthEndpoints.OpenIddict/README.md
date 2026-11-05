@@ -17,6 +17,7 @@ The core `AuthEndpoints` package does not change and has no OpenIddict dependenc
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
 | `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | Optional JSON consent API (`MapOAuthConsentEndpoints`). |
+| `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Optional developer console API (`MapOAuthDeveloperAppEndpoints`). |
 
 Defaults:
 
@@ -68,7 +69,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 }
 ```
 
-This adds the four OpenIddict tables (`OpenIddictApplications`, `OpenIddictAuthorizations`, `OpenIddictScopes`, `OpenIddictTokens`, with `ReferenceId` widened to 512 characters) and an `OAuthRequests` table for pending consents, with a cascading foreign key to the user. Then add a migration:
+This adds the four OpenIddict tables (`OpenIddictApplications`, `OpenIddictAuthorizations`, `OpenIddictScopes`, `OpenIddictTokens`, with `ReferenceId` widened to 512 characters) an `OAuthRequests` table for pending consents, and an `OAuthDeveloperApps` table for [developer apps](#developer-apps-optional), each with a cascading foreign key to the user. Then add a migration:
 
 ```bash
 dotnet ef migrations add OAuthServer
@@ -85,6 +86,7 @@ app.UseAntiforgery();
 
 app.MapAuthEndpointsOpenIddict();
 app.MapOAuthConsentEndpoints();      // optional JSON consent API, see below
+app.MapOAuthDeveloperAppEndpoints(); // optional developer console API, see below
 
 await app.Services.SeedOAuthClientsAsync(); // optional, creates clients from options.Clients
 app.Run();
@@ -136,6 +138,63 @@ options.DynamicRegistration.PermitsPerMinute = 10; // per client IP
 `POST /connect/register` accepts only public clients (`token_endpoint_auth_method` `none`, no `client_secret`), the `authorization_code` and `refresh_token` grants, the `code` response type, and configured scopes. Each redirect URI must be `https`, or `http` on `localhost`, `127.0.0.1`, or `[::1]`, with no fragment and no user info. The rate limit runs inside the endpoint, so it works without `UseRateLimiter`. Behind a proxy, configure forwarded headers so the client IP is right.
 
 A registered client that no user approved within `UnusedClientLifetime` (24 hours) is deleted by the background cleanup. Seeded clients are never deleted.
+
+### Developer apps (optional)
+
+Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthDeveloperAppEndpoints()` maps a JSON API for your developer console page. Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token for cookie callers, as the consent API does.
+
+| Route | |
+| --- | --- |
+| `GET /oauth/apps` | The caller's apps. |
+| `POST /oauth/apps` | Register an app. `201` with `{ app, clientSecret }`. |
+| `GET /oauth/apps/{id}` | One app. |
+| `PUT /oauth/apps/{id}` | Edit the name, homepage, description, and redirect URIs. |
+| `DELETE /oauth/apps/{id}` | Delete the app and every authorization and token issued to it. |
+| `POST /oauth/apps/{id}/secret` | Confidential apps only: replace the secret. `{ app, clientSecret }`. The old secret stops working at once. |
+
+```json
+{
+  "name": "My dashboard",
+  "homepageUrl": "https://dashboard.example.com",
+  "description": "Optional",
+  "redirectUris": [ "https://dashboard.example.com/oauth/callback" ],
+  "confidential": true
+}
+```
+
+There is no SPA, native, or web type to pick. The only choice is whether the app can keep a secret:
+
+- **Confidential** (`"confidential": true`, for server-side apps): a client secret is generated and returned once, with `Cache-Control: no-store`. Only its hash is stored. The app authenticates at the token endpoint with `client_secret_basic` or `client_secret_post`, and still uses PKCE.
+- **Public** (the default, for SPAs, desktop and mobile apps, and CLIs): no secret, PKCE only.
+
+`confidential` is fixed at creation and ignored on edit. Each redirect URI is checked on its own:
+
+| Redirect URI | Public | Confidential |
+| --- | --- | --- |
+| `https://…` | yes | yes |
+| `http://localhost`, `http://127.0.0.1`, `http://[::1]` | yes | yes |
+| A reverse-domain private-use scheme (RFC 8252 §7.1), for example `com.example.app:/callback` | yes | no |
+| `http://` on any other host, single-word schemes (`myapp:`, `javascript:`, `data:`, `file:`), a fragment, or user info | no | no |
+
+Loopback redirects must match exactly, port included.
+
+Settings, under `options.DeveloperApps`:
+
+| Option | Default | |
+| --- | --- | --- |
+| `RequireApproval` | `false` | New apps start as `PendingApproval` and cannot sign anyone in until an admin approves them. |
+| `MaxAppsPerUser` | 10 | A user at the limit gets `409`. |
+| `MaxRedirectUris` | 10 | |
+
+Admin review is in `IOAuthDeveloperAppService`, not in the mapped API, because only your app knows who an admin is. `ListByStatusAsync(OAuthDeveloperAppStatus.PendingApproval)` returns the review queue, and `SetStatusAsync` approves (`Active`) or turns an app off (`Disabled`). Setting any status other than `Active` through `SetStatusAsync` revokes the app's authorizations and tokens. The authorize endpoint answers `unauthorized_client` for an app that is not active, and so does the token endpoint for a code or refresh token issued before the change. Protect your admin endpoints yourself.
+
+With `RequireApproval`, an edit that changes an active app's name or redirect URIs sends it back to `PendingApproval`, so an owner cannot swap in a new redirect or a misleading name after approval. Until an admin approves it again, new sign-ins and token refreshes get `unauthorized_client`. Existing grants are not revoked, so they work again once the app is approved. Access tokens that were already issued keep working until they expire. Homepage and description edits do not need review, and editing a disabled app leaves it disabled.
+
+The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`, …) take the caller's user id, for hosts that want their own routes.
+
+When an owner's account is deleted, the cascade removes the app's row. From then on, the authorize and token endpoints refuse its client, and the next cleanup pass deletes it. Developer apps are never treated as unused dynamic registrations.
+
+Developer apps and [dynamic registration](#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, `IOAuthConsentService.RevokeAuthorizationAsync` still disconnects one app from one account.
 
 ## The consent step
 
@@ -263,7 +322,8 @@ app.UseOAuthResourceChallenge(); // before UseAuthentication
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
 | `AuthorizationCodeLifetime` | 5 minutes | |
 | `ConsentLifetime` | 10 minutes | |
-| `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
+| `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](#developer-apps-optional). |
+| `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
 | `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |

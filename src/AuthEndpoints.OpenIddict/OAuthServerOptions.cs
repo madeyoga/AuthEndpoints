@@ -87,6 +87,9 @@ public sealed class OAuthServerOptions
     /// <summary>Anonymous client registration (RFC 7591). Off by default.</summary>
     public OAuthDynamicRegistrationOptions DynamicRegistration { get; } = new();
 
+    /// <summary>OAuth clients that signed-in users register and own (<c>MapOAuthDeveloperAppEndpoints</c>).</summary>
+    public OAuthDeveloperAppOptions DeveloperApps { get; } = new();
+
     /// <summary>Protected resource metadata (RFC 9728) and the matching <c>WWW-Authenticate</c> challenge. Off by default.</summary>
     public OAuthProtectedResourceOptions ProtectedResource { get; } = new();
 
@@ -162,6 +165,22 @@ public sealed class OAuthDynamicRegistrationOptions
     public int MaxClientNameLength { get; set; } = 200;
 
     /// <summary>Most redirect URIs one registration may list. Default 10.</summary>
+    public int MaxRedirectUris { get; set; } = 10;
+}
+
+/// <summary>Limits for developer apps, the OAuth clients that signed-in users register and own.</summary>
+public sealed class OAuthDeveloperAppOptions
+{
+    /// <summary>
+    /// New apps start as <see cref="OAuthDeveloperAppStatus.PendingApproval"/> and cannot sign users in
+    /// until <c>IOAuthDeveloperAppService.SetStatusAsync</c> makes them active. Default <see langword="false"/>.
+    /// </summary>
+    public bool RequireApproval { get; set; }
+
+    /// <summary>Most apps one user may own. Default 10.</summary>
+    public int MaxAppsPerUser { get; set; } = 10;
+
+    /// <summary>Most redirect URIs one app may list. Default 10.</summary>
     public int MaxRedirectUris { get; set; } = 10;
 }
 

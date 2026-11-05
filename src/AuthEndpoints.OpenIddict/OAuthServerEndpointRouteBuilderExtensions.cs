@@ -62,6 +62,19 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         return OAuthConsentEndpoints.Map(endpoints, prefix);
     }
 
+    /// <summary>
+    /// Maps a JSON API for a developer console, where signed-in users register and manage the OAuth apps they own:
+    /// <c>GET {prefix}</c>, <c>POST {prefix}</c>, <c>GET|PUT|DELETE {prefix}/{id}</c>, and <c>POST {prefix}/{id}/secret</c>.
+    /// The writes require a CSRF token for cookie callers. Admin review is in <see cref="IOAuthDeveloperAppService"/>.
+    /// </summary>
+    public static RouteGroupBuilder MapOAuthDeveloperAppEndpoints(this IEndpointRouteBuilder endpoints, string prefix = "/oauth/apps")
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        _ = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
+        return OAuthDeveloperAppEndpoints.Map(endpoints, prefix);
+    }
+
     private static IResult ProtectedResource(IOptions<OAuthServerOptions> options)
     {
         var settings = options.Value;

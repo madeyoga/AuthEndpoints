@@ -9,10 +9,15 @@ using OpenIddict.Abstractions;
 namespace AuthEndpoints.OpenIddict;
 
 /// <summary>Rows removed by one cleanup pass.</summary>
-public sealed record OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations);
+/// <param name="UnusedClients">Dynamically registered clients that no user approved.</param>
+/// <param name="ExpiredRequests">Expired consent requests.</param>
+/// <param name="Tokens">Old expired or revoked tokens.</param>
+/// <param name="Authorizations">Old revoked or orphaned authorizations.</param>
+/// <param name="OrphanedDeveloperApps">Developer app clients whose <c>OAuthDeveloperApps</c> row is gone, for example because the owner was deleted.</param>
+public sealed record OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations, int OrphanedDeveloperApps = 0);
 
 /// <summary>
-/// Deletes dynamically registered clients nobody approved, expired consent requests, and old
+/// Deletes dynamically registered clients nobody approved, developer app clients without an owner, expired consent requests, and old
 /// expired or revoked tokens and authorizations. The background service calls it on <see cref="OAuthServerOptions.CleanupInterval"/>.
 /// </summary>
 public interface IOAuthServerCleanup
@@ -39,13 +44,58 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
         var now = clock.GetUtcNow();
 
         var clients = await DeleteUnusedClientsAsync(applications, authorizations, tokens, settings, now, cancellationToken);
+        var orphans = await DeleteOrphanedDeveloperAppsAsync(db, applications, authorizations, tokens, cancellationToken);
         var requests = await db.Set<OAuthRequest<TKey>>()
             .Where(request => request.ExpiresAt <= now)
             .ExecuteDeleteAsync(cancellationToken);
         var threshold = now - settings.PruneAfter;
         var prunedTokens = await tokens.PruneAsync(threshold, cancellationToken);
         var prunedAuthorizations = await authorizations.PruneAsync(threshold, cancellationToken);
-        return new OAuthCleanupResult(clients, requests, prunedTokens, prunedAuthorizations);
+        return new OAuthCleanupResult(clients, requests, prunedTokens, prunedAuthorizations, orphans);
+    }
+
+    private static async Task<int> DeleteOrphanedDeveloperAppsAsync(
+        TContext db,
+        IOpenIddictApplicationManager applications,
+        IOpenIddictAuthorizationManager authorizations,
+        IOpenIddictTokenManager tokens,
+        CancellationToken cancellationToken)
+    {
+        var marked = new List<(object Application, Guid Id)>();
+        await foreach (var application in applications.ListAsync(cancellationToken: cancellationToken))
+        {
+            if (await OAuthDeveloperAppService<TContext, TKey>.DeveloperAppIdAsync(applications, application, cancellationToken) is { } id)
+            {
+                marked.Add((application, id));
+            }
+        }
+
+        if (marked.Count == 0)
+        {
+            return 0;
+        }
+
+        // Rows are written before their application, so a missing row never belongs to an app being created.
+        var ids = marked.Select(item => item.Id).ToList();
+        var existing = await db.Set<OAuthDeveloperApp<TKey>>()
+            .Where(app => ids.Contains(app.Id))
+            .Select(app => app.Id)
+            .ToListAsync(cancellationToken);
+        var kept = existing.ToHashSet();
+        var deleted = 0;
+        foreach (var (application, id) in marked)
+        {
+            if (kept.Contains(id))
+            {
+                continue;
+            }
+
+            await OAuthDeveloperAppService<TContext, TKey>.DeleteApplicationAsync(
+                applications, tokens, authorizations, application, cancellationToken);
+            deleted++;
+        }
+
+        return deleted;
     }
 
     private static async Task<int> DeleteUnusedClientsAsync(

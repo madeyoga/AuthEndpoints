@@ -79,6 +79,31 @@ internal static class OAuthGrantClaims
 }
 
 /// <summary>
+/// Runs at the token endpoint for code and refresh grants. Rejects with <c>unauthorized_client</c> when the client is
+/// a developer app that is pending approval, disabled, or whose row is gone (its owner was deleted).
+/// </summary>
+internal sealed class RequireActiveDeveloperApp(
+    IOpenIddictApplicationManager applications,
+    IOAuthDeveloperAppGate gate) : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessSignInContext>
+{
+    public async ValueTask HandleAsync(OpenIddictServerEvents.ProcessSignInContext context)
+    {
+        if (context.EndpointType != OpenIddictServerEndpointType.Token
+            || context.Request is not { ClientId: { Length: > 0 } clientId } request
+            || !(request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType()))
+        {
+            return;
+        }
+
+        if (await applications.FindByClientIdAsync(clientId, context.CancellationToken) is { } application
+            && !await gate.AllowsAsync(application, context.CancellationToken))
+        {
+            context.Reject(OpenIddictConstants.Errors.UnauthorizedClient, "This application is not active.");
+        }
+    }
+}
+
+/// <summary>
 /// Runs at the token endpoint for code and refresh grants. Rejects with <c>invalid_grant</c> and revokes the
 /// authorization when the approving user is no longer allowed to sign in.
 /// </summary>

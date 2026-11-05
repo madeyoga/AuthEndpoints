@@ -9,8 +9,8 @@ namespace AuthEndpoints.OpenIddict;
 public static class OAuthServerModelBuilderExtensions
 {
     /// <summary>
-    /// Adds the OpenIddict entities and the <c>OAuthRequests</c> pending-consent table, keyed by
-    /// <typeparamref name="TUser"/>'s key type, with a cascading foreign key to <typeparamref name="TUser"/>.
+    /// Adds the OpenIddict entities, the <c>OAuthRequests</c> pending-consent table, and the <c>OAuthDeveloperApps</c>
+    /// table, keyed by <typeparamref name="TUser"/>'s key type, with cascading foreign keys to <typeparamref name="TUser"/>.
     /// Call it from <c>OnModelCreating</c> after <c>base.OnModelCreating</c>, then add a migration.
     /// </summary>
     /// <typeparam name="TUser">The Identity user type. It must derive from <c>IdentityUser&lt;TKey&gt;</c>.</typeparam>
@@ -39,6 +39,7 @@ public static class OAuthServerModelBuilderExtensions
             .Property(token => token.ReferenceId)
             .HasMaxLength(OAuthServerConstants.ReferenceTokenLength);
         Configure(builder.Entity<OAuthRequest<TKey>>());
+        Configure(builder.Entity<OAuthDeveloperApp<TKey>>());
         if (userForeignKey)
         {
             builder.Entity<OAuthRequest<TKey>>()
@@ -46,7 +47,30 @@ public static class OAuthServerModelBuilderExtensions
                 .WithMany()
                 .HasForeignKey(row => row.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Deleting the owner removes the row. The OpenIddict application is then refused at once
+            // and deleted by the next cleanup pass.
+            builder.Entity<OAuthDeveloperApp<TKey>>()
+                .HasOne<TUser>()
+                .WithMany()
+                .HasForeignKey(row => row.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
+    }
+
+    private static void Configure<TKey>(EntityTypeBuilder<OAuthDeveloperApp<TKey>> builder)
+        where TKey : IEquatable<TKey>
+    {
+        builder.ToTable(OAuthServerConstants.DeveloperAppTable);
+        builder.HasKey(row => row.Id);
+        builder.Property(row => row.Id).ValueGeneratedNever();
+        builder.Property(row => row.ClientId).HasMaxLength(64);
+        builder.Property(row => row.Name).HasMaxLength(OAuthDeveloperAppLimits.NameLength);
+        builder.Property(row => row.HomepageUrl).HasMaxLength(2048);
+        builder.Property(row => row.Description).HasMaxLength(OAuthDeveloperAppLimits.DescriptionLength);
+        builder.Property(row => row.Status).HasConversion<string>().HasMaxLength(32);
+        builder.HasIndex(row => row.ClientId).IsUnique();
+        builder.HasIndex(row => row.OwnerId);
     }
 
     private static void Configure<TKey>(EntityTypeBuilder<OAuthRequest<TKey>> builder)
