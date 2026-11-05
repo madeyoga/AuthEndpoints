@@ -66,6 +66,11 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             failures.Add("OAuthServerOptions.ConsentUrl must be an absolute URI or a path starting with '/'.");
         }
 
+        if (options.LogoutUrl is not null && !IsPage(options.LogoutUrl))
+        {
+            failures.Add("OAuthServerOptions.LogoutUrl must be an absolute URI or a path starting with '/'.");
+        }
+
         if (string.IsNullOrWhiteSpace(options.LoginReturnUrlParameter) || string.IsNullOrWhiteSpace(options.ConsentRequestParameter))
         {
             failures.Add("LoginReturnUrlParameter and ConsentRequestParameter must not be empty.");
@@ -158,6 +163,14 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
                 if (!Uri.TryCreate(redirect, UriKind.Absolute, out var uri) || !string.IsNullOrEmpty(uri.Fragment))
                 {
                     failures.Add($"Client '{client.ClientId}' redirect URI '{redirect}' must be absolute with no fragment.");
+                }
+            }
+
+            foreach (var redirect in client.PostLogoutRedirectUris)
+            {
+                if (!Uri.TryCreate(redirect, UriKind.Absolute, out var uri) || !string.IsNullOrEmpty(uri.Fragment))
+                {
+                    failures.Add($"Client '{client.ClientId}' post-logout redirect URI '{redirect}' must be absolute with no fragment.");
                 }
             }
 

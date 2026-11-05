@@ -31,6 +31,15 @@ public class OAuthRequest<TKey>
     /// <summary>Resource indicator stamped into the access token audience.</summary>
     public required string Resource { get; set; }
 
+    /// <summary>The OpenID Connect <c>nonce</c>, copied into the ID token. Only for requests with the <c>openid</c> scope.</summary>
+    public string? Nonce { get; set; }
+
+    /// <summary>
+    /// Space-separated <c>amr</c> values (RFC 8176) read from the sign-in cookie at authorize.
+    /// Only for requests with the <c>openid</c> scope.
+    /// </summary>
+    public string? AuthenticationMethods { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset ExpiresAt { get; set; }

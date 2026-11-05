@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using AuthEndpoints.External.OAuth;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -85,7 +86,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         Action<WebApplication>? map = null,
         Action<OAuthServerBuilder>? server = null,
         bool recipe = false,
-        Action<OAuthServerEndpointOptions>? endpoints = null)
+        Action<OAuthServerEndpointOptions>? endpoints = null,
+        bool signInCompleters = false)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-openiddict-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
@@ -151,6 +153,12 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             ? builder.Services.AddOAuthServer<IdentityUser, TestDb>(settings)
             : builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(settings);
         server?.Invoke(oauth);
+        if (signInCompleters)
+        {
+            // AuthEndpoints' built-in Cookie and IdentityBearer completers, registered after the OAuth server on purpose.
+            builder.Services.AddExternalAuthEndpoints<IdentityUser>();
+        }
+
         services?.Invoke(builder.Services);
 
         var app = builder.Build();
@@ -223,6 +231,43 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             await signIn.SignInAsync(user, isPersistent: false);
             return Results.Ok(new { id = user.Id });
         }).DisableAntiforgery();
+        if (signInCompleters)
+        {
+            // What a real sign-in endpoint does once the proof is checked: hand the user to the selected completer.
+            app.MapPost("/test/complete", async (
+                string email, SignInMethod method, bool? twoFactor, HttpContext http, UserManager<IdentityUser> users) =>
+            {
+                var user = await users.FindByEmailAsync(email);
+                if (user is null)
+                {
+                    user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+                    var created = await users.CreateAsync(user);
+                    if (!created.Succeeded)
+                    {
+                        return Results.BadRequest(created.Errors);
+                    }
+                }
+
+                var completer = http.RequestServices.GetRequiredKeyedService<ISignInCompleter<IdentityUser>>(SignInCompleters.Cookie);
+                return await completer.CompleteAsync(http, user, new SignInCompletionContext
+                {
+                    Method = method,
+                    UsedTwoFactor = twoFactor == true,
+                    ReturnUrl = method == SignInMethod.External ? "/" : null,
+                });
+            }).DisableAntiforgery();
+        }
+
+        app.MapPost("/test/signout", async (SignInManager<IdentityUser> signIn) =>
+        {
+            await signIn.SignOutAsync();
+            return Results.NoContent();
+        }).DisableAntiforgery();
+        app.MapGet("/test/cookie-claims", async (HttpContext http) =>
+        {
+            var result = await http.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+            return Results.Ok(result.Principal?.Claims.Select(claim => new[] { claim.Type, claim.Value }).ToArray() ?? []);
+        });
         app.MapGet("/test/csrf", (HttpContext http, IAntiforgery antiforgery)
             => Results.Ok(new { token = antiforgery.GetAndStoreTokens(http).RequestToken }));
         map?.Invoke(app);
@@ -287,7 +332,9 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         string? method = "S256",
         string? scope = "api",
         string? resource = null,
-        string? prompt = null)
+        string? prompt = null,
+        string? nonce = null,
+        string? maxAge = null)
     {
         var query = new Dictionary<string, string?>
         {
@@ -321,14 +368,24 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             query["prompt"] = prompt;
         }
 
+        if (nonce is not null)
+        {
+            query["nonce"] = nonce;
+        }
+
+        if (maxAge is not null)
+        {
+            query["max_age"] = maxAge;
+        }
+
         return QueryHelpers.AddQueryString("/connect/authorize", query);
     }
 
     /// <summary>Runs authorize as a signed-in user and returns the pending consent id.</summary>
     public static async Task<Guid> StartAsync(
-        HttpClient user, string clientId, string redirect, string challenge, string state = "st", string? scope = "api", string? resource = null)
+        HttpClient user, string clientId, string redirect, string challenge, string state = "st", string? scope = "api", string? resource = null, string? nonce = null)
     {
-        var response = await user.GetAsync(AuthorizeUrl(clientId, redirect, challenge, state, scope: scope, resource: resource));
+        var response = await user.GetAsync(AuthorizeUrl(clientId, redirect, challenge, state, scope: scope, resource: resource, nonce: nonce));
         var body = await response.Content.ReadAsStringAsync();
         Assert.True(response.StatusCode == HttpStatusCode.Redirect, $"authorize returned {(int)response.StatusCode} {body}");
         var location = response.Headers.Location!.ToString();

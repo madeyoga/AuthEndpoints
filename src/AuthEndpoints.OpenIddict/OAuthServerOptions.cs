@@ -30,7 +30,10 @@ public sealed class OAuthServerOptions
     /// </summary>
     public IList<string> AdditionalResources { get; } = new List<string>();
 
-    /// <summary>Scopes clients may request. <c>offline_access</c> is always registered.</summary>
+    /// <summary>
+    /// Scopes clients may request. <c>offline_access</c> is always registered. Add <c>openid</c> to turn on
+    /// OpenID Connect (ID tokens, userinfo, logout), and <c>email</c> to release the user's email in them.
+    /// </summary>
     public IList<string> Scopes { get; } = new List<string>();
 
     /// <summary>Scopes granted when the authorize request has no <c>scope</c>. Must be in <see cref="Scopes"/>.</summary>
@@ -59,6 +62,14 @@ public sealed class OAuthServerOptions
 
     /// <summary>Query parameter that carries the pending request id to the consent page. Default <c>request</c>.</summary>
     public string ConsentRequestParameter { get; set; } = "request";
+
+    /// <summary>
+    /// The host's sign-out confirmation page, for OpenID Connect logout. A logout request for a signed-in user that
+    /// does not carry an <c>id_token_hint</c> issued to that user is redirected here, with the logout URL (a relative path
+    /// on this server) in <see cref="LoginReturnUrlParameter"/>. The page signs the user out and sends the browser back.
+    /// Absolute or rooted. Optional: without it, such a request is refused and the user stays signed in.
+    /// </summary>
+    public string? LogoutUrl { get; set; }
 
     /// <summary>
     /// Scheme that identifies the signed-in user at the authorize and consent endpoints.
@@ -122,6 +133,9 @@ public sealed class OAuthServerOptions
 
     internal IEnumerable<string> AllResources()
         => (Audience is null ? [] : new[] { Audience }).Concat(AdditionalResources).Distinct(StringComparer.Ordinal);
+
+    /// <summary>OpenID Connect is on when the host registers the <c>openid</c> scope.</summary>
+    internal bool OpenIdConnectEnabled => Scopes.Contains(OAuthServerConstants.OpenIdScope, StringComparer.Ordinal);
 
     internal IEnumerable<string> AllScopes()
         => Scopes.Append(OAuthServerConstants.OfflineAccessScope).Distinct(StringComparer.Ordinal);
@@ -211,6 +225,9 @@ public sealed class OAuthClientDefinition
     public string? ClientSecret { get; set; }
 
     public IList<string> RedirectUris { get; } = new List<string>();
+
+    /// <summary>Where the OpenID Connect logout endpoint may send the browser back to. Matched exactly.</summary>
+    public IList<string> PostLogoutRedirectUris { get; } = new List<string>();
 
     /// <summary>Scopes this client may request. Empty means every configured scope.</summary>
     public IList<string> Scopes { get; } = new List<string>();

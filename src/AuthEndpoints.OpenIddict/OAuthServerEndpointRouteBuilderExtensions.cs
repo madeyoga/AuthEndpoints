@@ -59,9 +59,11 @@ public static class OAuthServerEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps <c>GET /connect/authorize</c>, plus <c>POST /connect/register</c> and
-    /// <c>GET /.well-known/oauth-protected-resource</c> when they are enabled.
+    /// <c>GET /.well-known/oauth-protected-resource</c> when they are enabled, and <c>/connect/userinfo</c> and
+    /// <c>/connect/logout</c> when the <c>openid</c> scope is configured.
     /// OpenIddict serves <c>/connect/token</c>, <c>/connect/revoke</c>, and
-    /// <c>/.well-known/oauth-authorization-server</c> itself.
+    /// <c>/.well-known/oauth-authorization-server</c> itself, plus <c>/.well-known/openid-configuration</c> and
+    /// <c>/.well-known/jwks</c> with OpenID Connect.
     /// </summary>
     public static IEndpointRouteBuilder MapAuthEndpointsOpenIddict(this IEndpointRouteBuilder endpoints)
     {
@@ -73,6 +75,18 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         marker.MapAuthorize(endpoints)
             .AllowAnonymous()
             .ExcludeFromDescription();
+
+        if (settings.OpenIdConnectEnabled)
+        {
+            endpoints.MapMethods(OAuthServerConstants.UserInfoEndpointPath, [HttpMethods.Get, HttpMethods.Post], OAuthUserInfoEndpoint.HandleAsync)
+                .AllowAnonymous()
+                .DisableAntiforgery()
+                .ExcludeFromDescription();
+            endpoints.MapMethods(OAuthServerConstants.EndSessionEndpointPath, [HttpMethods.Get, HttpMethods.Post], OAuthEndSessionEndpoint.HandleAsync)
+                .AllowAnonymous()
+                .DisableAntiforgery()
+                .ExcludeFromDescription();
+        }
 
         if (settings.DynamicRegistration.Enabled)
         {
@@ -236,6 +250,14 @@ public static class OAuthServerApplicationBuilderExtensions
             foreach (var redirect in client.RedirectUris.Distinct(StringComparer.Ordinal))
             {
                 descriptor.RedirectUris.Add(new Uri(redirect));
+            }
+
+            if (settings.OpenIdConnectEnabled)
+            {
+                foreach (var redirect in client.PostLogoutRedirectUris.Distinct(StringComparer.Ordinal))
+                {
+                    descriptor.PostLogoutRedirectUris.Add(new Uri(redirect));
+                }
             }
 
             OAuthClientPermissions.AddCodeFlow(

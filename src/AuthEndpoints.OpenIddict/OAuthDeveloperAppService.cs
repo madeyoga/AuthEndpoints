@@ -15,7 +15,14 @@ public sealed record OAuthDeveloperAppInput(
     string? Name,
     string? HomepageUrl,
     string? Description,
-    IReadOnlyList<string>? RedirectUris);
+    IReadOnlyList<string>? RedirectUris)
+{
+    /// <summary>
+    /// Where OpenID Connect logout may send the browser back to, under the same rules as <see cref="RedirectUris"/>.
+    /// <see langword="null"/> keeps the current list on update. Ignored without the <c>openid</c> scope.
+    /// </summary>
+    public IReadOnlyList<string>? PostLogoutRedirectUris { get; init; }
+}
 
 /// <summary>A developer app as its owner or an admin sees it. Never holds the client secret.</summary>
 public sealed record OAuthDeveloperAppInfo(
@@ -31,6 +38,10 @@ public sealed record OAuthDeveloperAppInfo(
     [property: JsonPropertyName("updatedAt")] DateTimeOffset UpdatedAt,
     [property: JsonPropertyName("secretCreatedAt")] DateTimeOffset? SecretCreatedAt)
 {
+    /// <summary>The registered OpenID Connect post-logout redirect URIs.</summary>
+    [JsonPropertyName("postLogoutRedirectUris")]
+    public IReadOnlyList<string> PostLogoutRedirectUris { get; init; } = [];
+
     /// <summary>The owning user's id. Not sent to the owner by the JSON API.</summary>
     [JsonIgnore]
     public string OwnerId { get; init; } = string.Empty;
@@ -82,8 +93,8 @@ public interface IOAuthDeveloperAppService
         string ownerId, OAuthDeveloperAppInput input, bool confidential, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Edits the app. With <see cref="OAuthDeveloperAppOptions.RequireApproval"/>, changing the name or redirect URIs
-    /// of an active app sends it back to <see cref="OAuthDeveloperAppStatus.PendingApproval"/> until an admin approves it again.
+    /// Edits the app. With <see cref="OAuthDeveloperAppOptions.RequireApproval"/>, changing the name, redirect URIs, or
+    /// post-logout redirect URIs of an active app sends it back to <see cref="OAuthDeveloperAppStatus.PendingApproval"/> until an admin approves it again.
     /// </summary>
     Task<OAuthDeveloperAppResult> UpdateAsync(
         Guid id, string ownerId, OAuthDeveloperAppInput input, CancellationToken cancellationToken = default);
@@ -159,7 +170,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         }
 
         var settings = options.Value;
-        if (Validate(input, confidential, settings.DeveloperApps) is { } errors)
+        if (Validate(input, confidential, settings) is { } errors)
         {
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Invalid, Errors: errors);
         }
@@ -186,6 +197,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         };
         var secret = confidential ? NewSecret() : null;
         var redirects = Redirects(input);
+        var postLogout = settings.OpenIdConnectEnabled ? PostLogoutRedirects(input) ?? [] : [];
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = row.ClientId,
@@ -197,6 +209,11 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         foreach (var redirect in redirects)
         {
             descriptor.RedirectUris.Add(new Uri(redirect));
+        }
+
+        foreach (var redirect in postLogout)
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(redirect));
         }
 
         OAuthClientPermissions.AddCodeFlow(descriptor, settings.Scopes, settings.AllResources());
@@ -216,7 +233,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
             throw;
         }
 
-        return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects), secret);
+        return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout), secret);
     }
 
     public async Task<OAuthDeveloperAppResult> UpdateAsync(
@@ -229,27 +246,41 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.NotFound);
         }
 
-        if (Validate(input, row.Confidential, options.Value.DeveloperApps) is { } errors)
+        if (Validate(input, row.Confidential, options.Value) is { } errors)
         {
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Invalid, Errors: errors);
         }
 
+        var settings = options.Value;
         var redirects = Redirects(input);
         var descriptor = new OpenIddictApplicationDescriptor();
         await applications.PopulateAsync(descriptor, application, cancellationToken);
         var name = input.Name!.Trim();
         var reviewed = descriptor.RedirectUris.Select(uri => uri.OriginalString).ToHashSet(StringComparer.Ordinal);
+        var reviewedPostLogout = descriptor.PostLogoutRedirectUris.Select(uri => uri.OriginalString).ToArray();
+        var postLogout = settings.OpenIdConnectEnabled ? PostLogoutRedirects(input) ?? reviewedPostLogout : reviewedPostLogout;
 
-        // What users see and where codes go must not change behind an approval. Disabled apps stay disabled.
-        var needsReview = options.Value.DeveloperApps.RequireApproval
+        // What users see and where browsers go must not change behind an approval. Disabled apps stay disabled.
+        var needsReview = settings.DeveloperApps.RequireApproval
             && row.Status == OAuthDeveloperAppStatus.Active
-            && (!string.Equals(name, row.Name, StringComparison.Ordinal) || !reviewed.SetEquals(redirects));
+            && (!string.Equals(name, row.Name, StringComparison.Ordinal)
+                || !reviewed.SetEquals(redirects)
+                || !reviewedPostLogout.ToHashSet(StringComparer.Ordinal).SetEquals(postLogout));
         descriptor.DisplayName = name;
         descriptor.RedirectUris.Clear();
         foreach (var redirect in redirects)
         {
             descriptor.RedirectUris.Add(new Uri(redirect));
         }
+
+        descriptor.PostLogoutRedirectUris.Clear();
+        foreach (var redirect in postLogout)
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(redirect));
+        }
+
+        // An app created before openid was configured gets OpenID Connect on its next edit.
+        OAuthClientPermissions.AddOpenIdConnect(descriptor, settings);
 
         if (needsReview)
         {
@@ -267,7 +298,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         row.Description = Description(input.Description);
         row.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(cancellationToken);
-        return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects));
+        return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout));
     }
 
     public async Task<bool> DeleteAsync(Guid id, string ownerId, CancellationToken cancellationToken = default)
@@ -308,7 +339,8 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         row.UpdatedAt = now;
         await db.SaveChangesAsync(cancellationToken);
         var redirects = await RedirectsAsync(application, cancellationToken);
-        return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects), secret);
+        var postLogout = (await applications.GetPostLogoutRedirectUrisAsync(application, cancellationToken)).ToArray();
+        return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout), secret);
     }
 
     public async Task<IReadOnlyList<OAuthDeveloperAppInfo>> ListByStatusAsync(
@@ -411,14 +443,14 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         var clientIds = rows.Select(row => row.ClientId).ToList();
         var stored = await db.Set<OpenIddictEntityFrameworkCoreApplication>().AsNoTracking()
             .Where(application => clientIds.Contains(application.ClientId!))
-            .Select(application => new { application.ClientId, application.RedirectUris })
+            .Select(application => new { application.ClientId, application.RedirectUris, application.PostLogoutRedirectUris })
             .ToListAsync(cancellationToken);
         var redirects = stored.ToDictionary(
             application => application.ClientId!,
-            application => ParseRedirects(application.RedirectUris),
+            application => (ParseRedirects(application.RedirectUris), ParseRedirects(application.PostLogoutRedirectUris)),
             StringComparer.Ordinal);
         return rows
-            .Select(row => ToInfo(row, redirects.GetValueOrDefault(row.ClientId) ?? []))
+            .Select(row => redirects.TryGetValue(row.ClientId, out var uris) ? ToInfo(row, uris.Item1, uris.Item2) : ToInfo(row, [], []))
             .ToList();
     }
 
@@ -442,7 +474,8 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         }
     }
 
-    private static OAuthDeveloperAppInfo ToInfo(OAuthDeveloperApp<TKey> row, IReadOnlyList<string> redirects) => new(
+    private static OAuthDeveloperAppInfo ToInfo(
+        OAuthDeveloperApp<TKey> row, IReadOnlyList<string> redirects, IReadOnlyList<string> postLogoutRedirects) => new(
         row.Id,
         row.ClientId,
         row.Name,
@@ -456,10 +489,14 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         row.SecretCreatedAt)
     {
         OwnerId = OAuthConsentService<TContext, TKey>.KeyToString(row.OwnerId),
+        PostLogoutRedirectUris = postLogoutRedirects,
     };
 
     private static string[] Redirects(OAuthDeveloperAppInput input)
         => input.RedirectUris!.Select(uri => uri.Trim()).Distinct(StringComparer.Ordinal).ToArray();
+
+    private static string[]? PostLogoutRedirects(OAuthDeveloperAppInput input)
+        => input.PostLogoutRedirectUris?.Select(uri => uri.Trim()).Distinct(StringComparer.Ordinal).ToArray();
 
     private static string? Description(string? value)
         => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -467,8 +504,9 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
     /// <summary>256 random bits, base64url.</summary>
     private static string NewSecret() => WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
 
-    private static Dictionary<string, string[]>? Validate(OAuthDeveloperAppInput input, bool confidential, OAuthDeveloperAppOptions limits)
+    private static Dictionary<string, string[]>? Validate(OAuthDeveloperAppInput input, bool confidential, OAuthServerOptions settings)
     {
+        var limits = settings.DeveloperApps;
         var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
         var name = input.Name?.Trim();
         if (string.IsNullOrEmpty(name))
@@ -510,6 +548,23 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
             if (invalid.Length > 0)
             {
                 errors["redirectUris"] = invalid;
+            }
+        }
+
+        var postLogout = settings.OpenIdConnectEnabled ? input.PostLogoutRedirectUris?.Select(uri => uri?.Trim()).ToArray() ?? [] : [];
+        if (postLogout.Length > limits.MaxRedirectUris)
+        {
+            errors["postLogoutRedirectUris"] = [$"Post-logout redirect URIs are limited to {limits.MaxRedirectUris}."];
+        }
+        else
+        {
+            var invalid = postLogout
+                .Where(uri => !OAuthRedirects.IsAllowedDeveloperAppRedirect(uri, confidential))
+                .Select(uri => $"'{uri}' is not an allowed post-logout redirect URI. The redirect URI rules apply.")
+                .ToArray();
+            if (invalid.Length > 0)
+            {
+                errors["postLogoutRedirectUris"] = invalid;
             }
         }
 

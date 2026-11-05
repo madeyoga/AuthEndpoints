@@ -23,6 +23,7 @@ internal static class OAuthCodeIssuer
         string codeChallenge,
         string scope,
         string resource,
+        string? nonce,
         ClaimsPrincipal principal,
         CancellationToken cancellationToken)
     {
@@ -37,6 +38,8 @@ internal static class OAuthCodeIssuer
             CodeChallengeMethod = OpenIddictConstants.CodeChallengeMethods.Sha256,
             ResponseType = OpenIddictConstants.ResponseTypes.Code,
             Scope = scope,
+            // OpenIddict copies it from the code into the ID token.
+            Nonce = nonce,
         };
         request.SetParameter(OpenIddictConstants.Parameters.Resource, resource);
 

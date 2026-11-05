@@ -50,6 +50,20 @@ internal static class OAuthRegistrationEndpoint
             }
         }
 
+        // OpenID Connect RP-Initiated Logout metadata. Ignored, as unknown metadata is, without the openid scope.
+        var postLogout = settings.OpenIdConnectEnabled ? body.PostLogoutRedirectUris ?? [] : [];
+        if (postLogout.Length > registration.MaxRedirectUris)
+        {
+            return Error("invalid_client_metadata", $"post_logout_redirect_uris is limited to {registration.MaxRedirectUris} entries.");
+        }
+
+        if (postLogout.Any(redirect => !OAuthRedirects.IsAllowedPublicClientRedirect(redirect)))
+        {
+            return Error(
+                "invalid_client_metadata",
+                "A post-logout redirect URI must be https, or http on localhost, 127.0.0.1, or [::1], with no fragment.");
+        }
+
         if (!string.IsNullOrEmpty(body.ClientSecret)
             || body.TokenEndpointAuthMethod is { Length: > 0 } method
                 && !string.Equals(method, OpenIddictConstants.ClientAuthenticationMethods.None, StringComparison.Ordinal))
@@ -98,6 +112,11 @@ internal static class OAuthRegistrationEndpoint
             descriptor.RedirectUris.Add(new Uri(redirect));
         }
 
+        foreach (var redirect in postLogout.Distinct(StringComparer.Ordinal))
+        {
+            descriptor.PostLogoutRedirectUris.Add(new Uri(redirect));
+        }
+
         OAuthClientPermissions.AddCodeFlow(descriptor, settings.Scopes, settings.AllResources());
         descriptor.Settings[OAuthServerConstants.CreatedAtSetting] = now.ToString("O", CultureInfo.InvariantCulture);
         await applications.CreateAsync(descriptor, cancellationToken);
@@ -110,7 +129,12 @@ internal static class OAuthRegistrationEndpoint
                 descriptor.RedirectUris.Select(uri => uri.OriginalString).ToArray(),
                 [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
                 [OpenIddictConstants.ResponseTypes.Code],
-                clientName),
+                clientName)
+            {
+                PostLogoutRedirectUris = descriptor.PostLogoutRedirectUris.Count == 0
+                    ? null
+                    : descriptor.PostLogoutRedirectUris.Select(uri => uri.OriginalString).ToArray(),
+            },
             statusCode: StatusCodes.Status201Created);
     }
 
@@ -143,6 +167,16 @@ internal sealed class OAuthRegistrationRateLimiter : IDisposable
 
 internal static class OAuthClientPermissions
 {
+    /// <summary>The OpenID Connect permissions, when openid is configured. For clients created before it was.</summary>
+    public static void AddOpenIdConnect(OpenIddictApplicationDescriptor descriptor, OAuthServerOptions settings)
+    {
+        if (settings.OpenIdConnectEnabled)
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + OAuthServerConstants.OpenIdScope);
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.EndSession);
+        }
+    }
+
     public static void AddCodeFlow(
         OpenIddictApplicationDescriptor descriptor, IEnumerable<string> scopes, IEnumerable<string> resources)
     {
@@ -155,6 +189,12 @@ internal static class OAuthClientPermissions
         foreach (var scope in scopes.Where(scope => scope != OAuthServerConstants.OfflineAccessScope))
         {
             descriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + scope);
+        }
+
+        // A client allowed to sign users in with OpenID Connect may also send them to logout.
+        if (scopes.Contains(OAuthServerConstants.OpenIdScope, StringComparer.Ordinal))
+        {
+            descriptor.Permissions.Add(OpenIddictConstants.Permissions.Endpoints.EndSession);
         }
 
         foreach (var resource in resources)
@@ -192,6 +232,9 @@ internal sealed class RegisterClientBody
 
     [JsonPropertyName("scope")]
     public string? Scope { get; init; }
+
+    [JsonPropertyName("post_logout_redirect_uris")]
+    public string[]? PostLogoutRedirectUris { get; init; }
 }
 
 internal sealed record RegisterClientResponse(
@@ -201,4 +244,9 @@ internal sealed record RegisterClientResponse(
     [property: JsonPropertyName("redirect_uris")] string[] RedirectUris,
     [property: JsonPropertyName("grant_types")] string[] GrantTypes,
     [property: JsonPropertyName("response_types")] string[] ResponseTypes,
-    [property: JsonPropertyName("client_name")] string ClientName);
+    [property: JsonPropertyName("client_name")] string ClientName)
+{
+    [JsonPropertyName("post_logout_redirect_uris")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? PostLogoutRedirectUris { get; init; }
+}
