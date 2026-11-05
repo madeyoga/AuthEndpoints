@@ -311,11 +311,25 @@
         public const string UserIdClaim = "ae_user_id";
         public const string UserStampClaim = "ae_user_stamp";
     }
+    public sealed class OAuthServerEndpointOptions
+    {
+        public OAuthServerEndpointOptions() { }
+        public bool ConsentApi { get; set; }
+        public string ConsentPrefix { get; set; }
+        public bool DeveloperApps { get; set; }
+        public string DeveloperAppsPrefix { get; set; }
+    }
     public static class OAuthServerEndpointRouteBuilderExtensions
     {
         public static Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapAuthEndpointsOpenIddict(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthConsentEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth") { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthDeveloperAppEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth/apps") { }
+        public static AuthEndpoints.OpenIddict.OAuthServerEndpoints MapOAuthServer(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, System.Action<AuthEndpoints.OpenIddict.OAuthServerEndpointOptions>? configure = null) { }
+    }
+    public sealed class OAuthServerEndpoints
+    {
+        public Microsoft.AspNetCore.Routing.RouteGroupBuilder? Consent { get; }
+        public Microsoft.AspNetCore.Routing.RouteGroupBuilder? DeveloperApps { get; }
     }
     public static class OAuthServerModelBuilderExtensions
     {
@@ -362,6 +376,9 @@
     {
         public const string ValidationScheme = "OpenIddict.Validation.AspNetCore";
         public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+            where TUser :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddOAuthServer<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
             where TUser :  class
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
     }

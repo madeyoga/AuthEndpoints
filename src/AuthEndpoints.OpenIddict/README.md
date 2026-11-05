@@ -16,8 +16,8 @@ The core `AuthEndpoints` package does not change and has no OpenIddict dependenc
 | `GET /.well-known/oauth-authorization-server` | OpenIddict | RFC 8414 metadata. Endpoint URLs come from `Issuer`, never from the request `Host`. |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
 | `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
-| `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | Optional JSON consent API (`MapOAuthConsentEndpoints`). |
-| `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Optional developer console API (`MapOAuthDeveloperAppEndpoints`). |
+| `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
+| `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Developer console API. Mapped by `MapOAuthServer` unless turned off. |
 
 Defaults:
 
@@ -32,6 +32,8 @@ Defaults:
 
 ## Setup
 
+The default recipe is one registration call, one model call, and one map call, in the style of `AddPasswordAuth` / `MapPasswordAuth`. It turns on the authorization server (code + PKCE, refresh, revocation, metadata), the JSON consent API, and developer app management. Anonymous (dynamic) registration stays off. Everything else keeps the defaults above, and each optional part can be turned off.
+
 ### 1. Register the server
 
 ```csharp
@@ -39,7 +41,7 @@ using AuthEndpoints.OpenIddict;
 
 builder.Services.AddPasswordAuth<AppUser, AppDbContext>(); // or your existing AuthEndpoints setup
 
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 {
     options.Issuer = new Uri("https://auth.example.com/");
     options.Audience = "https://api.example.com/";
@@ -54,7 +56,9 @@ builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options =>
 
 `TUser` is your Identity user type and must derive from `IdentityUser<TKey>`, as everywhere else in AuthEndpoints. The key type (`string`, `Guid`, …) is read from it.
 
-The app fails at startup when a required setting is missing: `Issuer`, `Audience`, `LoginUrl`, `ConsentUrl`, and exactly one certificate source.
+The app fails at startup when a required setting is missing: `Issuer`, `Audience`, `LoginUrl`, `ConsentUrl`, and exactly one certificate source. These are the settings only your app can decide. `Scopes` lists what clients may ask for.
+
+`AddOAuthServer` also registers the authorization and antiforgery services that the consent and developer app routes need. It returns `OAuthServerBuilder`, so `AddPrincipalFactory<T>()`, `AddDeveloperAppOwnerDisplay<T>()`, `BindConfiguration(…)`, and `.OpenIddict` work as before. Call it once, instead of `AddAuthEndpointsOpenIddict` (see [Without the recipe](#without-the-recipe)).
 
 ### 2. Add the tables
 
@@ -69,7 +73,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
 }
 ```
 
-This adds the four OpenIddict tables (`OpenIddictApplications`, `OpenIddictAuthorizations`, `OpenIddictScopes`, `OpenIddictTokens`, with `ReferenceId` widened to 512 characters) an `OAuthRequests` table for pending consents, and an `OAuthDeveloperApps` table for [developer apps](#developer-apps-optional), each with a cascading foreign key to the user. Then add a migration:
+This adds the four OpenIddict tables (`OpenIddictApplications`, `OpenIddictAuthorizations`, `OpenIddictScopes`, `OpenIddictTokens`, with `ReferenceId` widened to 512 characters) an `OAuthRequests` table for pending consents, and an `OAuthDeveloperApps` table for [developer apps](#developer-apps), each with a cascading foreign key to the user. Then add a migration:
 
 ```bash
 dotnet ef migrations add OAuthServer
@@ -80,17 +84,61 @@ Pass `userForeignKey: false` when the users table is in a different DbContext.
 ### 3. Map the routes
 
 ```csharp
-app.UseAuthentication();
-app.UseAuthorization();
-app.UseAntiforgery();
+app.UseAuthEndpoints(); // or UseAuthentication, UseAuthorization, UseAntiforgery
 
-app.MapAuthEndpointsOpenIddict();
-app.MapOAuthConsentEndpoints();      // optional JSON consent API, see below
-app.MapOAuthDeveloperAppEndpoints(); // optional developer console API, see below
+app.MapOAuthServer();
 
-await app.Services.SeedOAuthClientsAsync(); // optional, creates clients from options.Clients
+// After migrations, when options.Clients lists clients:
+await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
+
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options. OpenIddict serves the token, revocation, and metadata endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+
+The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
+
+#### Turning parts off
+
+```csharp
+var oauth = app.MapOAuthServer(parts =>
+{
+    parts.ConsentApi = false;                       // approve through IOAuthConsentService from your own routes
+    parts.DeveloperAppsPrefix = "/developers/apps"; // keep developer apps, under another path
+    // parts.DeveloperApps = false;                 // or no developer console API at all
+});
+oauth.DeveloperApps!.RequireRateLimiting("developer-apps"); // the mapped groups take conventions
+```
+
+| Part | Default | Where |
+| --- | --- | --- |
+| Authorization server (authorize, token, revocation, metadata) | on | Always mapped. |
+| Consent API | on, `/oauth` | `parts.ConsentApi`, `parts.ConsentPrefix` |
+| Developer apps | on, `/oauth/apps` | `parts.DeveloperApps`, `parts.DeveloperAppsPrefix`. Approval and limits: `options.DeveloperApps`. |
+| Anonymous registration (RFC 7591) | **off** | `options.DynamicRegistration.Enabled` |
+| Protected resource metadata (RFC 9728) | **off** | `options.ProtectedResource.Enabled` |
+
+Anonymous registration and protected resource metadata are server settings, not route switches, because they also change what the metadata advertises. With developer apps on, any signed-in user can register up to `DeveloperApps.MaxAppsPerUser` (10) clients. Set `options.DeveloperApps.RequireApproval = true` to review them first, or turn the part off.
+
+`MapOAuthServer` returns the consent and developer app groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](#option-b-your-own-approve-endpoint)).
+
+#### Without the recipe
+
+The recipe is a shortcut for these calls, which stay public for hosts that want them one by one:
+
+```csharp
+builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery();
+builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { … });
+
+app.MapAuthEndpointsOpenIddict();        // authorize, plus registration and resource metadata when enabled
+app.MapOAuthConsentEndpoints();          // optional JSON consent API
+app.MapOAuthDeveloperAppEndpoints();     // optional developer console API
+await app.Services.SeedOAuthClientsAsync();
+```
+
+Use one or the other. Mapping `MapOAuthServer` and also `MapOAuthConsentEndpoints` maps the same routes twice.
+
+There is no sample host or template yet. The login, consent, and developer console pages are your app's UI, and this package only provides their JSON APIs.
 
 ### 4. Protect your API with the issued tokens
 
@@ -139,9 +187,9 @@ options.DynamicRegistration.PermitsPerMinute = 10; // per client IP
 
 A registered client that no user approved within `UnusedClientLifetime` (24 hours) is deleted by the background cleanup. Seeded clients are never deleted.
 
-### Developer apps (optional)
+### Developer apps
 
-Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthDeveloperAppEndpoints()` maps a JSON API for your developer console page. Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token for cookie callers, as the consent API does.
+Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthServer()` maps a JSON API for your developer console page (or `MapOAuthDeveloperAppEndpoints()` without the recipe; `parts.DeveloperApps = false` turns it off). Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token for cookie callers, as the consent API does.
 
 | Route | |
 | --- | --- |
@@ -220,7 +268,7 @@ When the user is signed out, it redirects to:
 
 ### Option A: the built-in JSON consent API
 
-`MapOAuthConsentEndpoints("/oauth")` maps, for the signed-in user:
+`MapOAuthServer()` maps (or `MapOAuthConsentEndpoints("/oauth")` without the recipe), for the signed-in user:
 
 | Route | Response |
 | --- | --- |
@@ -234,7 +282,7 @@ The client is checked again when the user answers, because it can be deleted or 
 
 #### Developer app details on the card
 
-When the client is a [developer app](#developer-apps-optional), the card also tells the user what they are approving, since another user built it:
+When the client is a [developer app](#developer-apps), the card also tells the user what they are approving, since another user built it:
 
 | Field | Value |
 | --- | --- |
@@ -250,7 +298,7 @@ For seeded and dynamically registered clients all four are `null`. `OAuthPending
 The owner's email and user name may be private, so the package never shows them. To show something, such as a developer or organization name the owner chose to make public, register a display:
 
 ```csharp
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { … })
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { … })
     .AddDeveloperAppOwnerDisplay<DeveloperProfileOwnerDisplay>();
 
 public sealed class DeveloperProfileOwnerDisplay(AppDbContext db) : IOAuthDeveloperAppOwnerDisplay
@@ -305,7 +353,7 @@ The service uses the scoped DbContext, so your transaction also covers the OpenI
 By default `sub` is the Identity user id. Replace it for every approval:
 
 ```csharp
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(…)
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
     .AddPrincipalFactory<MyPrincipalFactory>();
 ```
 
@@ -363,7 +411,7 @@ app.UseOAuthResourceChallenge(); // before UseAuthentication
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
 | `AuthorizationCodeLifetime` | 5 minutes | |
 | `ConsentLifetime` | 10 minutes | |
-| `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](#developer-apps-optional). |
+| `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](#developer-apps). |
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |

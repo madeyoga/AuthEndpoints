@@ -57,6 +57,41 @@ public sealed class OAuthServerBuilder
 public static class OAuthServerServiceCollectionExtensions
 {
     /// <summary>
+    /// The default recipe: registers the OAuth 2.0 authorization server (authorization code + PKCE, rotating refresh
+    /// tokens, revocation, metadata) with the safe defaults of <see cref="OAuthServerOptions"/>, local token validation,
+    /// and the services the consent API and developer app API need (authorization and antiforgery).
+    /// Set what only the host can decide: <see cref="OAuthServerOptions.Issuer"/>, <see cref="OAuthServerOptions.Audience"/>,
+    /// <see cref="OAuthServerOptions.Scopes"/>, <see cref="OAuthServerOptions.LoginUrl"/>,
+    /// <see cref="OAuthServerOptions.ConsentUrl"/>, and one <see cref="OAuthServerOptions.Certificates"/> source.
+    /// Anonymous registration stays off unless <see cref="OAuthDynamicRegistrationOptions.Enabled"/> is set.
+    /// Then call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> in the DbContext,
+    /// <c>app.MapOAuthServer()</c> after <c>UseAuthentication</c>, and, when <see cref="OAuthServerOptions.Clients"/>
+    /// is used, <c>SeedOAuthClientsAsync()</c> after migrations.
+    /// Use it instead of <see cref="AddAuthEndpointsOpenIddict{TUser, TContext}"/>, once per host.
+    /// </summary>
+    /// <typeparam name="TUser">The Identity user type. It must derive from <c>IdentityUser&lt;TKey&gt;</c>.</typeparam>
+    /// <typeparam name="TContext">The EF Core context that holds the OpenIddict, consent, and developer app tables.</typeparam>
+    /// <returns>The builder, for <c>AddPrincipalFactory</c>, <c>AddDeveloperAppOwnerDisplay</c>, and OpenIddict settings.</returns>
+    public static OAuthServerBuilder AddOAuthServer<TUser, TContext>(
+        this IServiceCollection services,
+        Action<OAuthServerOptions>? configure = null)
+        where TUser : class
+        where TContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(OAuthServerMarker)))
+        {
+            throw new InvalidOperationException(
+                "The OAuth server is already registered. Call AddOAuthServer<TUser, TContext>() once, and not together with AddAuthEndpointsOpenIddict<TUser, TContext>().");
+        }
+
+        // The consent and developer app routes require a signed-in user and a CSRF token for cookie callers.
+        services.AddAuthorization();
+        services.AddAntiforgery();
+        return services.AddAuthEndpointsOpenIddict<TUser, TContext>(configure);
+    }
+
+    /// <summary>
     /// Adds an OpenIddict authorization server and local token validation, stored in <typeparamref name="TContext"/>.
     /// Authorization code + PKCE (S256 only), rotating refresh tokens, reference tokens, and a host consent page.
     /// Call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> in the DbContext and
