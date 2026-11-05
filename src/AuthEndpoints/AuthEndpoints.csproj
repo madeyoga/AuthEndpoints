@@ -31,6 +31,14 @@
     <None Include="buildTransitive\AuthEndpoints.targets" Pack="true" PackagePath="buildTransitive\" />
   </ItemGroup>
 
+  <!--
+    Agent skill shipped in the package (https://agentskills.io). Restore puts it at
+    ~/.nuget/packages/authendpoints/<version>/skills/authendpoints/, matched to this version.
+  -->
+  <ItemGroup>
+    <None Include="..\..\skills\authendpoints\**\*.md" Pack="true" PackagePath="skills\authendpoints\" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="..\..\README.md">
       <Pack>True</Pack>
