@@ -27,7 +27,7 @@ internal sealed class TestDb(DbContextOptions<TestDb> options) : IdentityDbConte
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        builder.UseAuthEndpointsOpenIddict<IdentityUser, string>();
+        builder.UseAuthEndpointsOpenIddict<IdentityUser>();
     }
 
     // SQLite cannot compare DateTimeOffset values. Production providers do not need this.
@@ -111,7 +111,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
             .RequireAuthenticatedUser()));
 
-        builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb, string>(options =>
+        builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(options =>
         {
             options.Issuer = new Uri(Issuer);
             options.Audience = Audience;

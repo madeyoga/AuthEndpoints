@@ -189,11 +189,8 @@
     }
     public static class OAuthServerModelBuilderExtensions
     {
-        public static Microsoft.EntityFrameworkCore.ModelBuilder UseAuthEndpointsOpenIddict<TKey>(this Microsoft.EntityFrameworkCore.ModelBuilder builder)
-            where TKey : System.IEquatable<TKey> { }
-        public static Microsoft.EntityFrameworkCore.ModelBuilder UseAuthEndpointsOpenIddict<TUser, TKey>(this Microsoft.EntityFrameworkCore.ModelBuilder builder)
-            where TUser :  class
-            where TKey : System.IEquatable<TKey> { }
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseAuthEndpointsOpenIddict<TUser>(this Microsoft.EntityFrameworkCore.ModelBuilder builder, bool userForeignKey = true)
+            where TUser :  class { }
     }
     public sealed class OAuthServerOptions
     {
@@ -233,10 +230,9 @@
     public static class OAuthServerServiceCollectionExtensions
     {
         public const string ValidationScheme = "OpenIddict.Validation.AspNetCore";
-        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext, TKey>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
             where TUser :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext
-            where TKey : System.IEquatable<TKey> { }
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
     }
     public sealed class UserIdOAuthPrincipalFactory : AuthEndpoints.OpenIddict.IOAuthPrincipalFactory
     {

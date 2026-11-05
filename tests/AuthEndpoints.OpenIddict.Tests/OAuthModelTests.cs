@@ -72,11 +72,29 @@ public sealed class OAuthModelTests
     }
 
     [Fact]
-    public void The_overload_without_a_user_type_adds_no_foreign_key()
+    public void The_key_type_comes_from_the_user_type()
+    {
+        using var guid = new GuidDb();
+        Assert.Equal(typeof(Guid), guid.Model.FindEntityType(typeof(OAuthRequest<Guid>))!.FindProperty("UserId")!.ClrType);
+        Assert.Null(guid.Model.FindEntityType(typeof(OAuthRequest<string>)));
+    }
+
+    [Fact]
+    public void A_user_type_that_is_not_an_IdentityUser_is_rejected()
+    {
+        var model = new ModelBuilder();
+        Assert.Throws<InvalidOperationException>(() => model.UseAuthEndpointsOpenIddict<NotAUser>());
+        Assert.Throws<InvalidOperationException>(() => new ServiceCollection().AddAuthEndpointsOpenIddict<NotAUser, NoUserDb>());
+    }
+
+    [Fact]
+    public void Without_the_user_foreign_key_there_is_no_foreign_key()
     {
         using var db = new NoUserDb();
         Assert.Empty(db.Model.FindEntityType(typeof(OAuthRequest<string>))!.GetForeignKeys());
     }
+
+    private sealed class NotAUser;
 
     private sealed class GuidDb : IdentityDbContext<IdentityUser<Guid>, IdentityRole<Guid>, Guid>
     {
@@ -85,7 +103,7 @@ public sealed class OAuthModelTests
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.UseAuthEndpointsOpenIddict<IdentityUser<Guid>, Guid>();
+            builder.UseAuthEndpointsOpenIddict<IdentityUser<Guid>>();
         }
     }
 
@@ -93,7 +111,7 @@ public sealed class OAuthModelTests
     {
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite("Data Source=:memory:");
 
-        protected override void OnModelCreating(ModelBuilder builder) => builder.UseAuthEndpointsOpenIddict<string>();
+        protected override void OnModelCreating(ModelBuilder builder) => builder.UseAuthEndpointsOpenIddict<IdentityUser>(userForeignKey: false);
     }
 }
 
@@ -188,7 +206,7 @@ public sealed class OAuthOptionsTests
                 services.AddDbContext<NoopDb>();
                 services.AddDbContext<IdentityDbContext>(o => o.UseSqlite("Data Source=:memory:"));
                 services.AddIdentityCore<IdentityUser>().AddEntityFrameworkStores<IdentityDbContext>();
-                services.AddAuthEndpointsOpenIddict<IdentityUser, NoopDb, string>(options =>
+                services.AddAuthEndpointsOpenIddict<IdentityUser, NoopDb>(options =>
                 {
                     options.Issuer = new Uri("https://localhost/");
                     options.Audience = "https://localhost/api";
@@ -232,6 +250,6 @@ public sealed class OAuthOptionsTests
     {
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options.UseSqlite("Data Source=:memory:");
 
-        protected override void OnModelCreating(ModelBuilder builder) => builder.UseAuthEndpointsOpenIddict<string>();
+        protected override void OnModelCreating(ModelBuilder builder) => builder.UseAuthEndpointsOpenIddict<IdentityUser>(userForeignKey: false);
     }
 }

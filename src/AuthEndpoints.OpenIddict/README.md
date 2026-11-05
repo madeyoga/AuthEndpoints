@@ -38,7 +38,7 @@ using AuthEndpoints.OpenIddict;
 
 builder.Services.AddPasswordAuth<AppUser, AppDbContext>(); // or your existing AuthEndpoints setup
 
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext, string>(options =>
+builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options =>
 {
     options.Issuer = new Uri("https://auth.example.com/");
     options.Audience = "https://api.example.com/";
@@ -51,7 +51,7 @@ builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext, string>(optio
 .BindConfiguration("OAuthServer"); // optional: appsettings values override the code above
 ```
 
-`TUser` is your Identity user type. `TKey` is its key type (`string` for `IdentityUser`, `Guid` for `IdentityUser<Guid>`).
+`TUser` is your Identity user type and must derive from `IdentityUser<TKey>`, as everywhere else in AuthEndpoints. The key type (`string`, `Guid`, …) is read from it.
 
 The app fails at startup when a required setting is missing: `Issuer`, `Audience`, `LoginUrl`, `ConsentUrl`, and exactly one certificate source.
 
@@ -63,7 +63,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : Ident
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        builder.UseAuthEndpointsOpenIddict<AppUser, string>();
+        builder.UseAuthEndpointsOpenIddict<AppUser>();
     }
 }
 ```
@@ -74,7 +74,7 @@ This adds the four OpenIddict tables (`OpenIddictApplications`, `OpenIddictAutho
 dotnet ef migrations add OAuthServer
 ```
 
-Use `UseAuthEndpointsOpenIddict<TKey>()` when you do not want the user foreign key.
+Pass `userForeignKey: false` when the users table is in a different DbContext.
 
 ### 3. Map the routes
 
@@ -205,7 +205,7 @@ The service uses the scoped DbContext, so your transaction also covers the OpenI
 By default `sub` is the Identity user id. Replace it for every approval:
 
 ```csharp
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext, string>(…)
+builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(…)
     .AddPrincipalFactory<MyPrincipalFactory>();
 ```
 

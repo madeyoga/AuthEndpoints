@@ -1,3 +1,4 @@
+using AuthEndpoints.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -46,20 +47,23 @@ public static class OAuthServerServiceCollectionExtensions
     /// <summary>
     /// Adds an OpenIddict authorization server and local token validation, stored in <typeparamref name="TContext"/>.
     /// Authorization code + PKCE (S256 only), rotating refresh tokens, reference tokens, and a host consent page.
-    /// Call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser, TKey&gt;()</c> in the DbContext and
+    /// Call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> in the DbContext and
     /// <c>app.MapAuthEndpointsOpenIddict()</c> after <c>UseAuthentication</c>.
     /// </summary>
-    /// <typeparam name="TUser">The Identity user type. Used to re-check the user on every code exchange and refresh.</typeparam>
+    /// <typeparam name="TUser">
+    /// The Identity user type. It must derive from <c>IdentityUser&lt;TKey&gt;</c>; the key type of the consent table comes from it.
+    /// Also used to re-check the user on every code exchange and refresh.
+    /// </typeparam>
     /// <typeparam name="TContext">The EF Core context that holds the OpenIddict and consent tables.</typeparam>
-    /// <typeparam name="TKey">The Identity user key type, for example <see cref="string"/> or <see cref="Guid"/>.</typeparam>
-    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext, TKey>(
+    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(
         this IServiceCollection services,
         Action<OAuthServerOptions>? configure = null)
         where TUser : class
         where TContext : DbContext
-        where TKey : IEquatable<TKey>
     {
         ArgumentNullException.ThrowIfNull(services);
+        // Fails here, at registration, when TUser is not an IdentityUser<TKey>.
+        var keyType = TypeHelper.FindKeyType(typeof(TUser));
         var optionsBuilder = services.AddOptions<OAuthServerOptions>();
         if (configure is not null)
         {
@@ -72,10 +76,10 @@ public static class OAuthServerServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
-        services.TryAddScoped<IOAuthConsentService, OAuthConsentService<TContext, TKey>>();
-        services.TryAddSingleton<IOAuthServerCleanup, OAuthServerCleanup<TContext, TKey>>();
+        services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<,>).MakeGenericType(typeof(TContext), keyType));
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
-        services.TryAddSingleton<OAuthServerMarker, OAuthServerMarker<TContext, TKey>>();
+        services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<,>).MakeGenericType(typeof(TContext), keyType));
         services.AddHostedService<OAuthServerCleanupService>();
 
         var openIddict = services.AddOpenIddict()

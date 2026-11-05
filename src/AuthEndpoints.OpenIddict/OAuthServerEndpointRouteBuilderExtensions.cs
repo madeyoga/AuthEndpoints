@@ -21,7 +21,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var marker = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
-            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext, TKey>() first.");
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
         var settings = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
 
         marker.MapAuthorize(endpoints)

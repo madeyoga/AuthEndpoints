@@ -8,7 +8,7 @@ tag: openiddict-v4.0.0-preview.1
 
 ### AuthEndpoints.OpenIddict
 
-- New package. `AddAuthEndpointsOpenIddict<TUser, TContext, TKey>()`, `modelBuilder.UseAuthEndpointsOpenIddict<TUser, TKey>()`, and `MapAuthEndpointsOpenIddict()` turn an AuthEndpoints app into an OAuth 2.0 authorization server. It depends on AuthEndpoints `[4.0.0, 5.0.0)` and OpenIddict 7.7.2.
+- New package. `AddAuthEndpointsOpenIddict<TUser, TContext>()`, `modelBuilder.UseAuthEndpointsOpenIddict<TUser>()`, and `MapAuthEndpointsOpenIddict()` turn an AuthEndpoints app into an OAuth 2.0 authorization server. It depends on AuthEndpoints `[4.0.0, 5.0.0)` and OpenIddict 7.7.2.
 - Authorization code flow with PKCE (S256 only). Refresh tokens rotate on every use with no reuse leeway. Access tokens are reference tokens that last 15 minutes. `POST /connect/revoke` revokes tokens, and `GET /.well-known/oauth-authorization-server` serves RFC 8414 metadata.
 - `/connect/authorize` sends signed-out users to `LoginUrl` with a `returnUrl` on this server, and signed-in users to `ConsentUrl?request={id}`. The host's consent page approves or denies through `MapOAuthConsentEndpoints()` or `IOAuthConsentService`. `IOAuthPrincipalFactory` sets the token subject; the default is the Identity user id.
 - Dynamic client registration (RFC 7591) and protected resource metadata (RFC 9728) are off by default. Registration accepts public clients only, validates redirect URIs, and is rate limited per client IP.

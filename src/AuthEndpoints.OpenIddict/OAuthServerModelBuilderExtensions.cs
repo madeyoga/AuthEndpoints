@@ -1,3 +1,5 @@
+using System.Reflection;
+using AuthEndpoints.Jwt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using OpenIddict.EntityFrameworkCore.Models;
@@ -7,27 +9,29 @@ namespace AuthEndpoints.OpenIddict;
 public static class OAuthServerModelBuilderExtensions
 {
     /// <summary>
-    /// Adds the OpenIddict entities and the <c>OAuthRequests</c> pending-consent table, with a cascading
-    /// foreign key to <typeparamref name="TUser"/>. Call it from <c>OnModelCreating</c> after <c>base.OnModelCreating</c>,
-    /// then add a migration.
+    /// Adds the OpenIddict entities and the <c>OAuthRequests</c> pending-consent table, keyed by
+    /// <typeparamref name="TUser"/>'s key type, with a cascading foreign key to <typeparamref name="TUser"/>.
+    /// Call it from <c>OnModelCreating</c> after <c>base.OnModelCreating</c>, then add a migration.
     /// </summary>
-    public static ModelBuilder UseAuthEndpointsOpenIddict<TUser, TKey>(this ModelBuilder builder)
+    /// <typeparam name="TUser">The Identity user type. It must derive from <c>IdentityUser&lt;TKey&gt;</c>.</typeparam>
+    /// <param name="builder">The model builder.</param>
+    /// <param name="userForeignKey">
+    /// <see langword="false"/> when the users table is not in this context, for example when Identity uses a separate DbContext.
+    /// </param>
+    public static ModelBuilder UseAuthEndpointsOpenIddict<TUser>(this ModelBuilder builder, bool userForeignKey = true)
         where TUser : class
-        where TKey : IEquatable<TKey>
     {
-        builder.UseAuthEndpointsOpenIddict<TKey>();
-        builder.Entity<OAuthRequest<TKey>>()
-            .HasOne<TUser>()
-            .WithMany()
-            .HasForeignKey(row => row.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        ArgumentNullException.ThrowIfNull(builder);
+        var keyType = TypeHelper.FindKeyType(typeof(TUser));
+        typeof(OAuthServerModelBuilderExtensions)
+            .GetMethod(nameof(Apply), BindingFlags.NonPublic | BindingFlags.Static)!
+            .MakeGenericMethod(typeof(TUser), keyType)
+            .Invoke(null, BindingFlags.DoNotWrapExceptions, binder: null, [builder, userForeignKey], culture: null);
         return builder;
     }
 
-    /// <summary>
-    /// Adds the OpenIddict entities and the <c>OAuthRequests</c> pending-consent table without a user foreign key.
-    /// </summary>
-    public static ModelBuilder UseAuthEndpointsOpenIddict<TKey>(this ModelBuilder builder)
+    private static void Apply<TUser, TKey>(ModelBuilder builder, bool userForeignKey)
+        where TUser : class
         where TKey : IEquatable<TKey>
     {
         builder.UseOpenIddict();
@@ -35,7 +39,14 @@ public static class OAuthServerModelBuilderExtensions
             .Property(token => token.ReferenceId)
             .HasMaxLength(OAuthServerConstants.ReferenceTokenLength);
         Configure(builder.Entity<OAuthRequest<TKey>>());
-        return builder;
+        if (userForeignKey)
+        {
+            builder.Entity<OAuthRequest<TKey>>()
+                .HasOne<TUser>()
+                .WithMany()
+                .HasForeignKey(row => row.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 
     private static void Configure<TKey>(EntityTypeBuilder<OAuthRequest<TKey>> builder)
