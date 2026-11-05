@@ -186,7 +186,11 @@ Settings, under `options.DeveloperApps`:
 | `MaxAppsPerUser` | 10 | A user at the limit gets `409`. |
 | `MaxRedirectUris` | 10 | |
 
-Admin review is in `IOAuthDeveloperAppService`, not in the mapped API, because only your app knows who an admin is. `ListByStatusAsync(OAuthDeveloperAppStatus.PendingApproval)` returns the review queue, and `SetStatusAsync` approves (`Active`) or turns an app off (`Disabled`). Any status other than `Active` revokes the app's authorizations and tokens. The authorize endpoint answers `unauthorized_client` for an app that is not active, and so does the token endpoint for a code or refresh token issued before the change. Protect your admin endpoints yourself. The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`, …) take the caller's user id, for hosts that want their own routes.
+Admin review is in `IOAuthDeveloperAppService`, not in the mapped API, because only your app knows who an admin is. `ListByStatusAsync(OAuthDeveloperAppStatus.PendingApproval)` returns the review queue, and `SetStatusAsync` approves (`Active`) or turns an app off (`Disabled`). Setting any status other than `Active` through `SetStatusAsync` revokes the app's authorizations and tokens. The authorize endpoint answers `unauthorized_client` for an app that is not active, and so does the token endpoint for a code or refresh token issued before the change. Protect your admin endpoints yourself.
+
+With `RequireApproval`, an edit that changes an active app's name or redirect URIs sends it back to `PendingApproval`, so an owner cannot swap in a new redirect or a misleading name after approval. Until an admin approves it again, new sign-ins and token refreshes get `unauthorized_client`. Existing grants are not revoked, so they work again once the app is approved. Access tokens that were already issued keep working until they expire. Homepage and description edits do not need review, and editing a disabled app leaves it disabled.
+
+The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`, …) take the caller's user id, for hosts that want their own routes.
 
 When an owner's account is deleted, the cascade removes the app's row. From then on, the authorize and token endpoints refuse its client, and the next cleanup pass deletes it. Developer apps are never treated as unused dynamic registrations.
 
@@ -338,7 +342,6 @@ This is a preview. These are known gaps, not bugs:
 - **No OpenID Connect yet.** There are no ID tokens, no `userinfo` or end-session (logout) endpoints, and no `email`, `email_verified`, or `amr` claims. The `openid` scope is rejected. Access tokens carry `sub`, plus whatever your principal factory adds.
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](#when-the-user-changes).
-- **Developer app edits are not re-reviewed.** With `RequireApproval`, an approved app's owner can change its redirect URIs without another review.
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
 - **Cookie sign-in only at the authorize step.** The user is read from `AuthenticationScheme` (the Identity cookie by default). Password, two-factor, passkey, and cookie-mode external sign-in all end with that cookie. A sign-in that is still waiting for a second factor, or an external sign-in that has not been completed, does not count.
 

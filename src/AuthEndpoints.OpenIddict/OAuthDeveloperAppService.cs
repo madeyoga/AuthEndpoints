@@ -81,6 +81,10 @@ public interface IOAuthDeveloperAppService
     Task<OAuthDeveloperAppResult> CreateAsync(
         string ownerId, OAuthDeveloperAppInput input, bool confidential, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Edits the app. With <see cref="OAuthDeveloperAppOptions.RequireApproval"/>, changing the name or redirect URIs
+    /// of an active app sends it back to <see cref="OAuthDeveloperAppStatus.PendingApproval"/> until an admin approves it again.
+    /// </summary>
     Task<OAuthDeveloperAppResult> UpdateAsync(
         Guid id, string ownerId, OAuthDeveloperAppInput input, CancellationToken cancellationToken = default);
 
@@ -233,11 +237,26 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         var redirects = Redirects(input);
         var descriptor = new OpenIddictApplicationDescriptor();
         await applications.PopulateAsync(descriptor, application, cancellationToken);
-        descriptor.DisplayName = input.Name!.Trim();
+        var name = input.Name!.Trim();
+        var reviewed = descriptor.RedirectUris.Select(uri => uri.OriginalString).ToHashSet(StringComparer.Ordinal);
+
+        // What users see and where codes go must not change behind an approval. Disabled apps stay disabled.
+        var needsReview = options.Value.DeveloperApps.RequireApproval
+            && row.Status == OAuthDeveloperAppStatus.Active
+            && (!string.Equals(name, row.Name, StringComparison.Ordinal) || !reviewed.SetEquals(redirects));
+        descriptor.DisplayName = name;
         descriptor.RedirectUris.Clear();
         foreach (var redirect in redirects)
         {
             descriptor.RedirectUris.Add(new Uri(redirect));
+        }
+
+        if (needsReview)
+        {
+            // Saved before the new redirects go live, so a failure later never leaves them on an active app.
+            row.Status = OAuthDeveloperAppStatus.PendingApproval;
+            row.UpdatedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync(cancellationToken);
         }
 
         // The hashed secret round-trips unchanged, so OpenIddict keeps it as is.

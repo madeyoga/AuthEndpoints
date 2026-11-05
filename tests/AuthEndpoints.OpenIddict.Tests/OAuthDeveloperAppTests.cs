@@ -309,6 +309,70 @@ public sealed class OAuthDeveloperAppTests
     }
 
     [Fact]
+    public async Task Changing_the_redirects_or_name_of_an_approved_app_sends_it_back_for_review()
+    {
+        await using var host = await StartAsync(options => options.DeveloperApps.RequireApproval = true);
+        var (owner, _) = await host.UserAsync("owner");
+        var (clientId, _) = await CreateOkAsync(owner, App("Reviewed", [Loopback]));
+        var id = await IdAsync(owner, clientId);
+        await SetStatusAsync(host, id, OAuthDeveloperAppStatus.Active);
+        var (user, _) = await host.UserAsync("user");
+        var tokens = await IssuePublicAsync(host, user, clientId);
+
+        // Homepage and description are not part of the review.
+        var edited = await SendAsync(owner, HttpMethod.Put, $"/oauth/apps/{id}", new
+        {
+            name = "Reviewed",
+            homepageUrl = "https://dev.example/new-home",
+            description = "New text",
+            redirectUris = new[] { Loopback },
+        });
+        Assert.Equal("Active", (await edited.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+
+        var moved = await SendAsync(owner, HttpMethod.Put, $"/oauth/apps/{id}", App("Reviewed", ["https://evil.example/callback"]));
+        Assert.Equal("PendingApproval", (await moved.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+        var refused = await user.GetAsync(AuthorizeUrl(clientId, "https://evil.example/callback", Pkce.Create().Challenge));
+        Assert.Equal("unauthorized_client", Query(refused.Headers.Location!.ToString())["error"]);
+        using var anon = host.Client(cookies: false);
+        Assert.Equal("unauthorized_client", await ErrorAsync(await TokenAsync(anon, RefreshGrant(clientId, tokens.RefreshToken))));
+
+        // Re-approval restores existing grants, because review does not revoke them.
+        await SetStatusAsync(host, id, OAuthDeveloperAppStatus.Active);
+        var refreshed = await ReadTokenAsync(await TokenAsync(anon, RefreshGrant(clientId, tokens.RefreshToken)));
+
+        var renamed = await SendAsync(owner, HttpMethod.Put, $"/oauth/apps/{id}", App("Google", ["https://evil.example/callback"]));
+        Assert.Equal("PendingApproval", (await renamed.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+        Assert.Equal("unauthorized_client", await ErrorAsync(await TokenAsync(anon, RefreshGrant(clientId, refreshed.RefreshToken))));
+    }
+
+    [Fact]
+    public async Task Editing_a_disabled_app_keeps_it_disabled()
+    {
+        await using var host = await StartAsync(options => options.DeveloperApps.RequireApproval = true);
+        var (owner, _) = await host.UserAsync("owner");
+        var (clientId, _) = await CreateOkAsync(owner, App("Off", [Loopback]));
+        var id = await IdAsync(owner, clientId);
+        await SetStatusAsync(host, id, OAuthDeveloperAppStatus.Disabled);
+
+        var edited = await SendAsync(owner, HttpMethod.Put, $"/oauth/apps/{id}", App("Off again", ["https://dev.example/other"]));
+
+        Assert.Equal("Disabled", (await edited.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task Without_required_approval_edits_keep_the_app_active()
+    {
+        await using var host = await StartAsync();
+        var (owner, _) = await host.UserAsync("owner");
+        var (clientId, _) = await CreateOkAsync(owner, App("Open", [Loopback]));
+        var id = await IdAsync(owner, clientId);
+
+        var edited = await SendAsync(owner, HttpMethod.Put, $"/oauth/apps/{id}", App("Renamed", ["https://dev.example/other"]));
+
+        Assert.Equal("Active", (await edited.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+    }
+
+    [Fact]
     public async Task A_code_issued_before_disabling_cannot_be_exchanged()
     {
         await using var host = await StartAsync();
@@ -372,6 +436,12 @@ public sealed class OAuthDeveloperAppTests
         Assert.Equal(0, result.UnusedClients);
         await using var scope = host.Services.CreateAsyncScope();
         Assert.NotNull(await scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>().FindByClientIdAsync(clientId));
+    }
+
+    private static async Task SetStatusAsync(OAuthTestHost host, Guid id, OAuthDeveloperAppStatus status)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        Assert.True(await scope.ServiceProvider.GetRequiredService<IOAuthDeveloperAppService>().SetStatusAsync(id, status));
     }
 
     private static object App(string name, string[] redirects, bool confidential = false) => new
