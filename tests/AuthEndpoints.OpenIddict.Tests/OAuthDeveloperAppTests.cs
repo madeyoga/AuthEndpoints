@@ -438,6 +438,50 @@ public sealed class OAuthDeveloperAppTests
         Assert.NotNull(await scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>().FindByClientIdAsync(clientId));
     }
 
+    [Fact]
+    public async Task Approving_after_the_owner_deletes_the_app_is_not_found()
+    {
+        await using var host = await StartAsync();
+        var (owner, _) = await host.UserAsync("owner");
+        var (clientId, _) = await CreateOkAsync(owner, App("Deleted", [Loopback]));
+        var id = await IdAsync(owner, clientId);
+        var (user, _) = await host.UserAsync("user");
+        var request = await OAuthTestHost.StartAsync(user, clientId, Loopback, Pkce.Create().Challenge);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await SendAsync(owner, HttpMethod.Delete, $"/oauth/apps/{id}")).StatusCode);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await user.GetAsync($"/oauth/requests/{request}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, request, "approve")).StatusCode);
+        Assert.True(await OAuthConsentTests.IsConsumedAsync(host, request));
+    }
+
+    [Theory]
+    [InlineData(OAuthDeveloperAppStatus.Disabled)]
+    [InlineData(OAuthDeveloperAppStatus.PendingApproval)]
+    public async Task Approving_for_an_app_that_is_no_longer_active_is_not_found_even_after_it_is_reenabled(
+        OAuthDeveloperAppStatus status)
+    {
+        await using var host = await StartAsync();
+        var (owner, _) = await host.UserAsync("owner");
+        var (clientId, _) = await CreateOkAsync(owner, App("Paused", [Loopback]));
+        var id = await IdAsync(owner, clientId);
+        var (user, _) = await host.UserAsync("user");
+        var approveId = await OAuthTestHost.StartAsync(user, clientId, Loopback, Pkce.Create().Challenge);
+        var denyId = await OAuthTestHost.StartAsync(user, clientId, Loopback, Pkce.Create().Challenge);
+
+        await SetStatusAsync(host, id, status);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await user.GetAsync($"/oauth/requests/{approveId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, approveId, "approve")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, denyId, "deny")).StatusCode);
+
+        // The refused requests were used up; the user starts a new authorize once the app is active again.
+        await SetStatusAsync(host, id, OAuthDeveloperAppStatus.Active);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, approveId, "approve")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, denyId, "deny")).StatusCode);
+        await IssuePublicAsync(host, user, clientId);
+    }
+
     private static async Task SetStatusAsync(OAuthTestHost host, Guid id, OAuthDeveloperAppStatus status)
     {
         await using var scope = host.Services.CreateAsyncScope();

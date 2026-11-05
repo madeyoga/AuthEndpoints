@@ -30,7 +30,10 @@ public enum OAuthConsentStatus
     /// <summary>The user denied. Send the browser to <see cref="OAuthConsentResult.RedirectUrl"/>.</summary>
     Denied,
 
-    /// <summary>The request is unknown, expired, already used, or belongs to another user.</summary>
+    /// <summary>
+    /// The request is unknown, expired, already used, or belongs to another user, or its client was deleted or
+    /// is a developer app that is no longer active.
+    /// </summary>
     NotFound,
 
     /// <summary>The principal factory returned <see langword="null"/>. The request was not consumed.</summary>
@@ -55,7 +58,10 @@ public sealed record OAuthConsentResult(
 /// </summary>
 public interface IOAuthConsentService
 {
-    /// <summary>The usable request with this id that belongs to <paramref name="userId"/>, or <see langword="null"/>.</summary>
+    /// <summary>
+    /// The usable request with this id that belongs to <paramref name="userId"/>, or <see langword="null"/>.
+    /// A request whose client was deleted, or whose developer app is no longer active, is not usable.
+    /// </summary>
     Task<OAuthPendingRequest?> FindAsync(Guid requestId, string userId, CancellationToken cancellationToken = default);
 
     /// <summary>Approves with the registered <see cref="IOAuthPrincipalFactory"/>.</summary>
@@ -68,7 +74,10 @@ public interface IOAuthConsentService
         Func<OAuthPrincipalContext, ValueTask<ClaimsPrincipal?>> createPrincipal,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Consumes the request and returns an <c>access_denied</c> redirect for the client.</summary>
+    /// <summary>
+    /// Consumes the request and returns an <c>access_denied</c> redirect for the client. When the client is no longer
+    /// usable, consumes the request and returns <see cref="OAuthConsentStatus.NotFound"/> without a redirect.
+    /// </summary>
     Task<OAuthConsentResult> DenyAsync(Guid requestId, string userId, CancellationToken cancellationToken = default);
 
     /// <summary>Revokes an authorization and every token issued from it. Returns <see langword="false"/> when it does not exist.</summary>
@@ -84,6 +93,8 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOptionsMonitor<OpenIddictServerOptions> serverOptions,
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
+    IOpenIddictApplicationManager applications,
+    IOAuthDeveloperAppGate developerApps,
     IOptions<OAuthServerOptions> options,
     TimeProvider clock) : IOAuthConsentService
     where TContext : DbContext
@@ -99,7 +110,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         }
 
         var row = await LoadAsync(requestId, key, cancellationToken);
-        return row is null ? null : ToPending(row, userId);
+        return row is null || !await ClientUsableAsync(row.ClientId, cancellationToken) ? null : ToPending(row, userId);
     }
 
     public Task<OAuthConsentResult> ApproveAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
@@ -123,6 +134,13 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
+        if (!await ClientUsableAsync(row.ClientId, cancellationToken))
+        {
+            // Retire the request: re-enabling the app later must not revive a consent started before it was turned off.
+            await ConsumeAsync(requestId, key, cancellationToken);
+            return OAuthConsentResult.NotFound;
+        }
+
         var http = httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("ApproveAsync must run inside an HTTP request.");
         var principal = await createPrincipal(new OAuthPrincipalContext(http, userId, ToPending(row, userId)));
@@ -143,17 +161,31 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         await OAuthGrantClaims.AddAsync(principal, userId, userValidator, cancellationToken);
         var issuer = options.Value.Issuer!;
-        var issued = await OAuthCodeIssuer.IssueAsync(
-            dispatcher,
-            serverOptions.CurrentValue,
-            issuer,
-            row.ClientId,
-            row.RedirectUri,
-            row.CodeChallenge,
-            row.Scope,
-            row.Resource,
-            principal,
-            cancellationToken);
+        IssuedAuthorizationCode issued;
+        try
+        {
+            issued = await OAuthCodeIssuer.IssueAsync(
+                dispatcher,
+                serverOptions.CurrentValue,
+                issuer,
+                row.ClientId,
+                row.RedirectUri,
+                row.CodeChallenge,
+                row.Scope,
+                row.Resource,
+                principal,
+                cancellationToken);
+        }
+        catch (InvalidOperationException)
+        {
+            // The client was deleted or disabled after the check above. The request is already consumed.
+            if (!await ClientUsableAsync(row.ClientId, cancellationToken))
+            {
+                return OAuthConsentResult.NotFound;
+            }
+
+            throw;
+        }
         var redirect = OAuthRedirects.Authorization(row.RedirectUri, issued.Code, row.State, issuer.AbsoluteUri, null, null);
         return new OAuthConsentResult(OAuthConsentStatus.Approved, redirect, row.ClientId, issued.AuthorizationId);
     }
@@ -167,6 +199,12 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         var row = await LoadAsync(requestId, key, cancellationToken);
         if (row is null || !await ConsumeAsync(requestId, key, cancellationToken))
+        {
+            return OAuthConsentResult.NotFound;
+        }
+
+        // The redirect URI belonged to a client that is gone or turned off. Do not send the browser there.
+        if (!await ClientUsableAsync(row.ClientId, cancellationToken))
         {
             return OAuthConsentResult.NotFound;
         }
@@ -194,6 +232,14 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         await authorizations.TryRevokeAsync(authorization, cancellationToken);
         return true;
     }
+
+    /// <summary>
+    /// Whether the client still exists and, for a developer app, is active. The authorize endpoint checked this when
+    /// it stored the request, but the client can be deleted or disabled before the user answers.
+    /// </summary>
+    private async Task<bool> ClientUsableAsync(string clientId, CancellationToken cancellationToken)
+        => await applications.FindByClientIdAsync(clientId, cancellationToken) is { } application
+            && await developerApps.AllowsAsync(application, cancellationToken);
 
     private Task<OAuthRequest<TKey>?> LoadAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
     {

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Time.Testing;
@@ -138,6 +139,68 @@ public sealed class OAuthConsentTests
         using var anon = host.Client(cookies: false);
         var tokens = await ReadTokenAsync(await TokenAsync(anon, CodeGrant(client, code, pkce.Verifier)));
         Assert.Equal("agent:" + client.ClientId, await host.SubjectAsync(tokens.AccessToken));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task A_request_whose_client_was_deleted_is_not_found_and_issues_no_code(bool seeded)
+    {
+        await using var host = await StartAsync();
+        var (user, _) = await host.UserAsync("deleted-client");
+        var client = seeded ? new RegisteredClient(SeededClientId, SeededRedirect) : await host.RegisterAsync("Doomed");
+        var approveId = await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge);
+        var denyId = await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge);
+
+        await DeleteClientAsync(host, client.ClientId);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await user.GetAsync($"/oauth/requests/{approveId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, approveId, "approve")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await PostConsentAsync(user, denyId, "deny")).StatusCode);
+        Assert.True(await IsConsumedAsync(host, approveId));
+        Assert.True(await IsConsumedAsync(host, denyId));
+        await using var scope = host.Services.CreateAsyncScope();
+        Assert.Equal(0, await scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>().CountAsync());
+    }
+
+    [Fact]
+    public async Task A_client_deleted_while_the_principal_is_built_is_not_found()
+    {
+        await using var host = await StartAsync(map: app => app.MapPost("/racing/{id:guid}/approve", async (
+            Guid id, HttpContext http, IOAuthConsentService consent, IOpenIddictApplicationManager applications) =>
+        {
+            var userId = http.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+            var result = await consent.ApproveAsync(id, userId, async context =>
+            {
+                await applications.DeleteAsync((await applications.FindByClientIdAsync(context.Request.ClientId))!);
+                return OAuthPrincipals.ForSubject(context.UserId);
+            });
+            return Results.Ok(new { status = result.Status.ToString() });
+        }).RequireAuthorization());
+        var (user, _) = await host.UserAsync("racing");
+        var client = await host.RegisterAsync("Racing");
+        var id = await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge);
+
+        var response = await user.PostAsync($"/racing/{id}/approve", null);
+        var text = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.OK, text);
+        Assert.Equal("NotFound", System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(text).GetProperty("status").GetString());
+        Assert.True(await IsConsumedAsync(host, id));
+    }
+
+    internal static async Task DeleteClientAsync(OAuthTestHost host, string clientId)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        var applications = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        await applications.DeleteAsync((await applications.FindByClientIdAsync(clientId))!);
+    }
+
+    internal static async Task<bool> IsConsumedAsync(OAuthTestHost host, Guid id)
+    {
+        await using var scope = host.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TestDb>();
+        var row = await db.Set<OAuthRequest<string>>().AsNoTracking().SingleAsync(request => request.Id == id);
+        return row.ConsumedAt is not null;
     }
 
     private sealed class AgentPrincipalFactory : IOAuthPrincipalFactory
