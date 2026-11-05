@@ -230,6 +230,8 @@ When the user is signed out, it redirects to:
 
 The POSTs require a CSRF token for cookie callers (the same filter as other AuthEndpoints cookie routes). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
 
+The client is checked again when the user answers, because it can be deleted or edited, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, whose developer app is not `Active`, or whose redirect URI is no longer registered for the client (with the same loopback any-port rule as authorize), is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
+
 #### Developer app details on the card
 
 When the client is a [developer app](#developer-apps-optional), the card also tells the user what they are approving, since another user built it:
@@ -243,7 +245,7 @@ When the client is a [developer app](#developer-apps-optional), the card also te
 
 For seeded and dynamically registered clients all four are `null`. `OAuthPendingRequest` (from `IOAuthConsentService.FindAsync`, and `OAuthPrincipalContext.Request` on approve) has the same fields.
 
-`clientName` is copied when `/connect/authorize` runs, as before. The other fields are read from the app when the card is fetched, in the same query as the request, so an owner's homepage or description edit shows up on a pending card. A pending card whose app was deleted shows `null` for them.
+`clientName` is copied when `/connect/authorize` runs, as before. The other fields are read from the app when the card is fetched, in the same query as the request, so an owner's homepage or description edit shows up on a pending card.
 
 The owner's email and user name may be private, so the package never shows them. To show something, such as a developer or organization name the owner chose to make public, register a display:
 

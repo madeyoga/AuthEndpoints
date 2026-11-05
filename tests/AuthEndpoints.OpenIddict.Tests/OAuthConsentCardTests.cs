@@ -131,7 +131,7 @@ public sealed class OAuthConsentCardTests
     }
 
     [Fact]
-    public async Task A_deleted_developer_app_leaves_the_card_with_null_details()
+    public async Task A_deleted_developer_app_makes_the_card_not_found()
     {
         await using var host = await StartAsync();
         var (owner, _) = await host.UserAsync("owner");
@@ -142,9 +142,8 @@ public sealed class OAuthConsentCardTests
 
         Assert.Equal(HttpStatusCode.NoContent, (await SendAsync(owner, HttpMethod.Delete, $"/oauth/apps/{appId}")).StatusCode);
 
-        var card = await user.GetFromJsonAsync<OAuthConsentCard>($"/oauth/requests/{id}");
-        Assert.Null(card!.HomepageUrl);
-        Assert.Null(card.Confidential);
+        // The client is gone, so the request is no longer usable. The details are never shown as null for it.
+        Assert.Equal(HttpStatusCode.NotFound, (await user.GetAsync($"/oauth/requests/{id}")).StatusCode);
     }
 
     [Fact]

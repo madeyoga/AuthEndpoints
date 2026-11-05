@@ -35,6 +35,34 @@ internal sealed class ValidateClientRedirectUriWithLoopbackPorts(IOpenIddictAppl
 
 internal static class OAuthLoopbackRedirects
 {
+    /// <summary>
+    /// Whether <paramref name="redirectUri"/> is still registered for the application: an exact match, or a loopback IP
+    /// URI that matches a registered one in everything but the port. The same rule authorize applies.
+    /// </summary>
+    public static async ValueTask<bool> IsRegisteredAsync(
+        IOpenIddictApplicationManager applications, object application, string redirectUri, CancellationToken cancellationToken)
+    {
+        if (await applications.ValidateRedirectUriAsync(application, redirectUri, cancellationToken))
+        {
+            return true;
+        }
+
+        if (!TryParse(redirectUri, out var requested))
+        {
+            return false;
+        }
+
+        foreach (var registered in await applications.GetRedirectUrisAsync(application, cancellationToken))
+        {
+            if (MatchesIgnoringPort(registered, requested))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>An <c>http</c> URI on a loopback IP literal, with no user info or fragment. <c>localhost</c> is not one.</summary>
     public static bool TryParse(string? value, out Uri uri)
     {
