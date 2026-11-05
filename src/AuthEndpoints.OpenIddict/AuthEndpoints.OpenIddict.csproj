@@ -25,6 +25,14 @@
     <InternalsVisibleTo Include="AuthEndpoints.OpenIddict.Tests" />
   </ItemGroup>
 
+  <!--
+    Agent skill shipped in the package (https://agentskills.io). Restore puts it at
+    ~/.nuget/packages/authendpoints.openiddict/<version>/skills/authendpoints-openiddict/.
+  -->
+  <ItemGroup>
+    <None Include="..\..\skills\authendpoints-openiddict\**\*.md" Pack="true" PackagePath="skills\authendpoints-openiddict\" Visible="false" />
+  </ItemGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />

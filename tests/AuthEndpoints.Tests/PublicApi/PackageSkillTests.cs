@@ -4,47 +4,71 @@ using System.Xml.Linq;
 namespace AuthEndpoints.Tests.PublicApi;
 
 /// <summary>
-/// The AuthEndpoints package ships skills/authendpoints in the nupkg. These checks keep
-/// that skill valid under the Agent Skills format and matched to the package version.
+/// Each package ships its skill under skills/&lt;name&gt; in the nupkg. These checks keep
+/// every skill valid under the Agent Skills format and matched to its package version.
 /// </summary>
 public class PackageSkillTests
 {
     private static readonly string Repo = FindRepoRoot();
-    private static readonly string SkillDirectory = Path.Combine(Repo, "skills", "authendpoints");
 
-    [Fact]
-    public void Frontmatter_FollowsAgentSkillsFormat()
+    public static TheoryData<string, string> Skills => new()
     {
-        var frontmatter = ReadFrontmatter();
+        { "authendpoints", "AuthEndpoints" },
+        { "authendpoints-openiddict", "AuthEndpoints.OpenIddict" },
+    };
 
-        Assert.Equal("authendpoints", Value(frontmatter, "name"));
-        Assert.Equal(Path.GetFileName(SkillDirectory), Value(frontmatter, "name"));
+    [Theory]
+    [MemberData(nameof(Skills))]
+    public void Frontmatter_FollowsAgentSkillsFormat(string skill, string project)
+    {
+        _ = project;
+        var frontmatter = ReadFrontmatter(skill);
+
+        var name = Value(frontmatter, "name");
+        Assert.Equal(skill, name);
+        Assert.Matches("^[a-z0-9]+(-[a-z0-9]+)*$", name);
+        Assert.InRange(name.Length, 1, 64);
 
         var description = Value(frontmatter, "description");
         Assert.InRange(description.Length, 1, 1024);
     }
 
-    [Fact]
-    public void MetadataVersion_MatchesPackageVersion()
+    [Theory]
+    [MemberData(nameof(Skills))]
+    public void MetadataVersion_MatchesPackageVersion(string skill, string project)
     {
-        var project = XDocument.Load(Path.Combine(Repo, "src", "AuthEndpoints", "AuthEndpoints.csproj"));
-        var packageVersion = project.Descendants("Version").Single().Value.Trim();
+        var packageVersion = PackageVersion(project);
 
-        var match = Regex.Match(ReadFrontmatter(), "^metadata:\\s*\\n\\s+version:\\s*\"([^\"]+)\"", RegexOptions.Multiline);
-        Assert.True(match.Success, "SKILL.md needs metadata.version.");
+        var match = Regex.Match(ReadFrontmatter(skill), "^metadata:\\s*\\n\\s+version:\\s*\"([^\"]+)\"", RegexOptions.Multiline);
+        Assert.True(match.Success, $"{skill}/SKILL.md needs metadata.version.");
         Assert.Equal(packageVersion, match.Groups[1].Value);
-
-        var body = File.ReadAllText(Path.Combine(SkillDirectory, "SKILL.md"));
-        Assert.Contains($"| `AuthEndpoints` | {packageVersion} |", body);
     }
 
     [Fact]
-    public void RelativeLinks_Resolve()
+    public void CorePackageTable_MatchesPackageVersion()
     {
-        foreach (var file in Directory.EnumerateFiles(SkillDirectory, "*.md", SearchOption.AllDirectories))
+        var body = File.ReadAllText(Path.Combine(SkillDirectory("authendpoints"), "SKILL.md"));
+        Assert.Contains($"| `AuthEndpoints` | {PackageVersion("AuthEndpoints")} |", body);
+    }
+
+    [Theory]
+    [MemberData(nameof(Skills))]
+    public void Project_PacksSkill(string skill, string project)
+    {
+        var text = File.ReadAllText(Path.Combine(Repo, "src", project, $"{project}.csproj"));
+        Assert.Contains($"PackagePath=\"skills\\{skill}\\\"", text);
+    }
+
+    [Theory]
+    [MemberData(nameof(Skills))]
+    public void RelativeLinks_Resolve(string skill, string project)
+    {
+        _ = project;
+        var directory = SkillDirectory(skill);
+        foreach (var file in Directory.EnumerateFiles(directory, "*.md", SearchOption.AllDirectories))
         {
             var text = File.ReadAllText(file);
-            foreach (Match link in Regex.Matches(text, "\\]\\(([^)#]+\\.md)\\)"))
+            foreach (Match link in Regex.Matches(text, "\\]\\(([^)#]+\\.md)(#[^)]*)?\\)"))
             {
                 var target = link.Groups[1].Value;
                 if (target.Contains("://", StringComparison.Ordinal))
@@ -54,24 +78,36 @@ public class PackageSkillTests
 
                 var resolved = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(file)!, target));
                 Assert.True(File.Exists(resolved), $"{Path.GetRelativePath(Repo, file)} links to missing {target}.");
+                Assert.StartsWith(directory, resolved);
             }
         }
     }
 
-    [Fact]
-    public void EveryReference_IsLinkedFromSkill()
+    [Theory]
+    [MemberData(nameof(Skills))]
+    public void EveryReference_IsLinkedFromSkill(string skill, string project)
     {
-        var skill = File.ReadAllText(Path.Combine(SkillDirectory, "SKILL.md"));
-        foreach (var file in Directory.EnumerateFiles(Path.Combine(SkillDirectory, "references"), "*.md"))
+        _ = project;
+        var directory = SkillDirectory(skill);
+        var text = File.ReadAllText(Path.Combine(directory, "SKILL.md"));
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(directory, "references"), "*.md"))
         {
             var link = $"(references/{Path.GetFileName(file)})";
-            Assert.True(skill.Contains(link, StringComparison.Ordinal), $"SKILL.md does not link {link}.");
+            Assert.True(text.Contains(link, StringComparison.Ordinal), $"{skill}/SKILL.md does not link {link}.");
         }
     }
 
-    private static string ReadFrontmatter()
+    private static string SkillDirectory(string skill) => Path.Combine(Repo, "skills", skill);
+
+    private static string PackageVersion(string project)
     {
-        var text = File.ReadAllText(Path.Combine(SkillDirectory, "SKILL.md")).ReplaceLineEndings("\n");
+        var document = XDocument.Load(Path.Combine(Repo, "src", project, $"{project}.csproj"));
+        return document.Descendants("Version").Single().Value.Trim();
+    }
+
+    private static string ReadFrontmatter(string skill)
+    {
+        var text = File.ReadAllText(Path.Combine(SkillDirectory(skill), "SKILL.md")).ReplaceLineEndings("\n");
         Assert.StartsWith("---\n", text);
         var end = text.IndexOf("\n---\n", 4, StringComparison.Ordinal);
         Assert.True(end > 0, "SKILL.md frontmatter is not closed.");

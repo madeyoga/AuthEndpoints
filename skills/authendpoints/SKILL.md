@@ -112,6 +112,8 @@ Load only the file the task needs. Each one is self-contained.
 | More than one session, or a mix neither facade covers | [references/composition.md](references/composition.md) |
 | A host still on `AddAuthEndpoints` and `MapAuthEndpoints` (3.x) | [references/compatibility-facade.md](references/compatibility-facade.md) |
 
+To make this app an OAuth 2.0 authorization server for other apps, CLIs, or MCP clients, use the `authendpoints-openiddict` skill that ships in the `AuthEndpoints.OpenIddict` package.
+
 ## Check production
 
 - Serve the API over HTTPS. `UseAuthEndpoints` leaves HTTPS to the host.
