@@ -113,6 +113,14 @@ public static class OAuthServerServiceCollectionExtensions
                     // Before any token is generated for the code or refresh grant.
                     builder.SetOrder(OpenIddictServerHandlers.ValidateSignInDemand.Descriptor.Order + 500);
                 });
+                // RFC 8252 §7.3: any port on loopback IP redirect URIs. Takes the built-in check's place.
+                options.RemoveEventHandler(OpenIddictServerHandlers.Authentication.ValidateClientRedirectUri.Descriptor);
+                options.AddEventHandler<OpenIddictServerEvents.ValidateAuthorizationRequestContext>(builder =>
+                {
+                    builder.AddFilter<OpenIddictServerHandlerFilters.RequireDegradedModeDisabled>();
+                    builder.UseScopedHandler<ValidateClientRedirectUriWithLoopbackPorts>();
+                    builder.SetOrder(OpenIddictServerHandlers.Authentication.ValidateClientRedirectUri.Descriptor.Order);
+                });
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
                 {
                     builder.UseScopedHandler<RequireActiveDeveloperApp>();

@@ -176,7 +176,7 @@ There is no SPA, native, or web type to pick. The only choice is whether the app
 | A reverse-domain private-use scheme (RFC 8252 §7.1), for example `com.example.app:/callback` | yes | no |
 | `http://` on any other host, single-word schemes (`myapp:`, `javascript:`, `data:`, `file:`), a fragment, or user info | no | no |
 
-Loopback redirects must match exactly, port included.
+Loopback IP redirects may use any port. See [Redirect URIs](#redirect-uris).
 
 Settings, under `options.DeveloperApps`:
 
@@ -195,6 +195,12 @@ The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`
 When an owner's account is deleted, the cascade removes the app's row. From then on, the authorize and token endpoints refuse its client, and the next cleanup pass deletes it. Developer apps are never treated as unused dynamic registrations.
 
 Developer apps and [dynamic registration](#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, `IOAuthConsentService.RevokeAuthorizationAsync` still disconnects one app from one account.
+
+### Redirect URIs
+
+An authorize request's `redirect_uri` must match one of the client's registered redirect URIs exactly, with one exception from RFC 8252 §7.3: on a loopback IP literal, `http://127.0.0.1` or `http://[::1]`, the port may differ. A native app or CLI can register `http://127.0.0.1/callback` and listen on whatever port is free. The scheme, host, path, and query must still match, so `http://127.0.0.1:51234/callback` matches a registered `http://127.0.0.1:9/callback`, but `/other`, `127.0.0.2`, or `[::1]` do not. This applies to every client: from configuration, dynamic registration, or developer apps.
+
+`localhost` is matched exactly, port included. RFC 8252 §8.3 recommends the IP literals over `localhost`, so register `http://127.0.0.1/…` for a native app. The token request must repeat the `redirect_uri` sent at authorize, port included.
 
 ## The consent step
 
