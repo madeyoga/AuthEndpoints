@@ -40,6 +40,18 @@ public sealed class OAuthServerBuilder
         Services.AddScoped<IOAuthPrincipalFactory, TFactory>();
         return this;
     }
+
+    /// <summary>
+    /// Shows who built a developer app on the consent card (<c>owner</c>). Without it, <c>owner</c> is always
+    /// <see langword="null"/>: the package never reads the owner's email or user name itself.
+    /// </summary>
+    public OAuthServerBuilder AddDeveloperAppOwnerDisplay<TDisplay>()
+        where TDisplay : class, IOAuthDeveloperAppOwnerDisplay
+    {
+        Services.RemoveAll<IOAuthDeveloperAppOwnerDisplay>();
+        Services.AddScoped<IOAuthDeveloperAppOwnerDisplay, TDisplay>();
+        return this;
+    }
 }
 
 public static class OAuthServerServiceCollectionExtensions
@@ -76,6 +88,7 @@ public static class OAuthServerServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
+        services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
         services.TryAddScoped(developerApps);

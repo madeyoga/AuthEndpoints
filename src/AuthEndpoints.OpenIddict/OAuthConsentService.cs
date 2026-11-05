@@ -20,7 +20,26 @@ public sealed record OAuthPendingRequest(
     IReadOnlyList<string> Scopes,
     string Resource,
     DateTimeOffset CreatedAt,
-    DateTimeOffset ExpiresAt);
+    DateTimeOffset ExpiresAt)
+{
+    /// <summary>The developer app's homepage. <see langword="null"/> for seeded and dynamically registered clients.</summary>
+    public string? HomepageUrl { get; init; }
+
+    /// <summary>The developer app's description, when it has one. <see langword="null"/> for other clients.</summary>
+    public string? Description { get; init; }
+
+    /// <summary>
+    /// Whether the developer app is confidential (has a client secret). <see langword="null"/> for seeded and
+    /// dynamically registered clients.
+    /// </summary>
+    public bool? Confidential { get; init; }
+
+    /// <summary>
+    /// Who built the developer app, as the host's <see cref="IOAuthDeveloperAppOwnerDisplay"/> describes them.
+    /// <see langword="null"/> when no display is registered (the default), when it returns nothing, and for other clients.
+    /// </summary>
+    public string? Owner { get; init; }
+}
 
 public enum OAuthConsentStatus
 {
@@ -85,6 +104,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
     IOptions<OAuthServerOptions> options,
+    IOAuthDeveloperAppOwnerDisplay ownerDisplay,
     TimeProvider clock) : IOAuthConsentService
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -98,8 +118,8 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return null;
         }
 
-        var row = await LoadAsync(requestId, key, cancellationToken);
-        return row is null ? null : ToPending(row, userId);
+        var loaded = await LoadAsync(requestId, key, cancellationToken);
+        return loaded is null ? null : await ToPendingAsync(loaded, userId, cancellationToken);
     }
 
     public Task<OAuthConsentResult> ApproveAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
@@ -117,15 +137,17 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
-        var row = await LoadAsync(requestId, key, cancellationToken);
-        if (row is null)
+        var loaded = await LoadAsync(requestId, key, cancellationToken);
+        if (loaded is null)
         {
             return OAuthConsentResult.NotFound;
         }
 
+        var row = loaded.Request;
         var http = httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("ApproveAsync must run inside an HTTP request.");
-        var principal = await createPrincipal(new OAuthPrincipalContext(http, userId, ToPending(row, userId)));
+        var pending = await ToPendingAsync(loaded, userId, cancellationToken);
+        var principal = await createPrincipal(new OAuthPrincipalContext(http, userId, pending));
         if (principal is null)
         {
             return OAuthConsentResult.Declined;
@@ -165,7 +187,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
-        var row = await LoadAsync(requestId, key, cancellationToken);
+        var row = (await LoadAsync(requestId, key, cancellationToken))?.Request;
         if (row is null || !await ConsumeAsync(requestId, key, cancellationToken))
         {
             return OAuthConsentResult.NotFound;
@@ -195,13 +217,24 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         return true;
     }
 
-    private Task<OAuthRequest<TKey>?> LoadAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
+    /// <summary>
+    /// The usable request, with the developer app row for its client when there is one. One statement: the app is
+    /// a left join on its unique client id, so seeded and dynamically registered clients cost nothing extra.
+    /// The app is read when the card is fetched, not copied at authorize.
+    /// </summary>
+    private async Task<LoadedRequest?> LoadAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
-        return Requests.AsNoTracking()
-            .Where(request => request.Id == requestId && request.UserId.Equals(key)
-                && request.ConsumedAt == null && request.ExpiresAt > now)
+        var loaded = await (
+                from request in Requests.AsNoTracking()
+                where request.Id == requestId && request.UserId.Equals(key)
+                    && request.ConsumedAt == null && request.ExpiresAt > now
+                join app in db.Set<OAuthDeveloperApp<TKey>>().AsNoTracking()
+                    on request.ClientId equals app.ClientId into apps
+                from app in apps.DefaultIfEmpty()
+                select new { Request = request, App = app })
             .FirstOrDefaultAsync(cancellationToken);
+        return loaded is null ? null : new LoadedRequest(loaded.Request, loaded.App);
     }
 
     /// <summary>Marks the request used. Only one caller wins when two race.</summary>
@@ -215,17 +248,37 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         return won == 1;
     }
 
-    private static OAuthPendingRequest ToPending(OAuthRequest<TKey> row, string userId) => new(
-        row.Id,
-        userId,
-        row.ClientId,
-        row.ClientName,
-        row.RedirectUri,
-        row.RedirectHost,
-        OAuthScopes.Split(row.Scope),
-        row.Resource,
-        row.CreatedAt,
-        row.ExpiresAt);
+    private async Task<OAuthPendingRequest> ToPendingAsync(LoadedRequest loaded, string userId, CancellationToken cancellationToken)
+    {
+        var row = loaded.Request;
+        var pending = new OAuthPendingRequest(
+            row.Id,
+            userId,
+            row.ClientId,
+            row.ClientName,
+            row.RedirectUri,
+            row.RedirectHost,
+            OAuthScopes.Split(row.Scope),
+            row.Resource,
+            row.CreatedAt,
+            row.ExpiresAt);
+        if (loaded.App is not { } app)
+        {
+            return pending;
+        }
+
+        var owner = await ownerDisplay.GetOwnerAsync(
+            new OAuthDeveloperAppOwnerContext(app.Id, app.ClientId, KeyToString(app.OwnerId)), cancellationToken);
+        return pending with
+        {
+            HomepageUrl = app.HomepageUrl,
+            Description = app.Description,
+            Confidential = app.Confidential,
+            Owner = string.IsNullOrWhiteSpace(owner) ? null : owner.Trim(),
+        };
+    }
+
+    private sealed record LoadedRequest(OAuthRequest<TKey> Request, OAuthDeveloperApp<TKey>? App);
 
     internal static bool TryKey(string? value, out TKey key)
     {

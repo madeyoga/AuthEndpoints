@@ -17,7 +17,24 @@ public sealed record OAuthConsentCard(
     [property: JsonPropertyName("redirectHost")] string RedirectHost,
     [property: JsonPropertyName("scopes")] IReadOnlyList<string> Scopes,
     [property: JsonPropertyName("resource")] string Resource,
-    [property: JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt);
+    [property: JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt)
+{
+    /// <summary>The developer app's homepage. <see langword="null"/> for seeded and dynamically registered clients.</summary>
+    [JsonPropertyName("homepageUrl")]
+    public string? HomepageUrl { get; init; }
+
+    /// <summary>The developer app's description, when it has one. <see langword="null"/> for other clients.</summary>
+    [JsonPropertyName("description")]
+    public string? Description { get; init; }
+
+    /// <summary>Whether the developer app has a client secret. <see langword="null"/> for other clients.</summary>
+    [JsonPropertyName("confidential")]
+    public bool? Confidential { get; init; }
+
+    /// <summary>Who built the developer app, from the host's <see cref="IOAuthDeveloperAppOwnerDisplay"/>. <see langword="null"/> by default.</summary>
+    [JsonPropertyName("owner")]
+    public string? Owner { get; init; }
+}
 
 /// <summary>Where the consent page sends the browser next.</summary>
 public sealed record OAuthConsentRedirect([property: JsonPropertyName("redirectUrl")] string RedirectUrl);
@@ -59,7 +76,13 @@ internal static class OAuthConsentEndpoints
         return request is null
             ? NotFound()
             : Results.Ok(new OAuthConsentCard(
-                request.Id, request.ClientId, request.ClientName, request.RedirectHost, request.Scopes, request.Resource, request.ExpiresAt));
+                request.Id, request.ClientId, request.ClientName, request.RedirectHost, request.Scopes, request.Resource, request.ExpiresAt)
+            {
+                HomepageUrl = request.HomepageUrl,
+                Description = request.Description,
+                Confidential = request.Confidential,
+                Owner = request.Owner,
+            });
     }
 
     private static async Task<IResult> ApproveAsync(
