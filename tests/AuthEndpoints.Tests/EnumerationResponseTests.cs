@@ -20,13 +20,14 @@ namespace AuthEndpoints.Tests;
 public sealed class EnumerationResponseTests : IAsyncLifetime
 {
     /// <summary>
-    /// Median absolute difference allowed between a known-account request and an unknown-account request
+    /// Largest allowed size of the median signed difference between paired known-account and unknown-account requests
     /// after one warmed pair. The test sender does not perform network I/O.
     /// Hosts should queue mail and return; inline SMTP is the gap this bound does not cover.
     /// </summary>
     private static readonly TimeSpan TimingBound = TimeSpan.FromMilliseconds(50);
 
-    private const int TimedSamples = 4;
+    // Odd, so the median is one sample.
+    private const int TimedSamples = 9;
 
     private readonly ITestOutputHelper _output;
     private Host _host = null!;
@@ -270,20 +271,35 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
         var warmupUnknown = await unknown();
         AssertSame(warmupKnown, warmupUnknown, compareBody);
 
+        // Signed known-minus-unknown differences. Scheduler stalls land on either side of a pair, so they
+        // cancel in the median; an absolute value per pair would turn every stall into a "gap" and grow
+        // with machine load. A real oracle shifts every pair the same way and moves the median.
         var diffs = new long[TimedSamples];
         for (var i = 0; i < TimedSamples; i++)
         {
-            var knownSample = await known();
-            var unknownSample = await unknown();
+            // Alternate which request goes first so order effects do not lean on one side.
+            Captured knownSample;
+            Captured unknownSample;
+            if (i % 2 == 0)
+            {
+                knownSample = await known();
+                unknownSample = await unknown();
+            }
+            else
+            {
+                unknownSample = await unknown();
+                knownSample = await known();
+            }
+
             AssertSame(knownSample, unknownSample, compareBody);
-            diffs[i] = Math.Abs(knownSample.ElapsedMilliseconds - unknownSample.ElapsedMilliseconds);
+            diffs[i] = knownSample.ElapsedMilliseconds - unknownSample.ElapsedMilliseconds;
         }
 
         Array.Sort(diffs);
         var median = diffs[diffs.Length / 2];
-        _output.WriteLine($"{route} timing diffs ms: {string.Join(", ", diffs)}; median {median}");
+        _output.WriteLine($"{route} known-minus-unknown ms: {string.Join(", ", diffs)}; median {median}");
         Assert.True(
-            median <= TimingBound.TotalMilliseconds,
+            Math.Abs(median) <= TimingBound.TotalMilliseconds,
             $"{route} median timing difference {median}ms exceeds {TimingBound.TotalMilliseconds}ms.");
     }
 
