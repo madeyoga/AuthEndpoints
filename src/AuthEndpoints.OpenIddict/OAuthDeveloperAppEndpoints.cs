@@ -28,11 +28,18 @@ internal sealed class DeveloperAppBody
     [JsonPropertyName("redirectUris")]
     public string[]? RedirectUris { get; init; }
 
+    /// <summary>OpenID Connect only. Omit on update to keep the current list.</summary>
+    [JsonPropertyName("postLogoutRedirectUris")]
+    public string[]? PostLogoutRedirectUris { get; init; }
+
     /// <summary>Create only. Ignored on update, because it cannot change.</summary>
     [JsonPropertyName("confidential")]
     public bool Confidential { get; init; }
 
-    public OAuthDeveloperAppInput ToInput() => new(Name, HomepageUrl, Description, RedirectUris);
+    public OAuthDeveloperAppInput ToInput() => new(Name, HomepageUrl, Description, RedirectUris)
+    {
+        PostLogoutRedirectUris = PostLogoutRedirectUris,
+    };
 }
 
 internal static class OAuthDeveloperAppEndpoints

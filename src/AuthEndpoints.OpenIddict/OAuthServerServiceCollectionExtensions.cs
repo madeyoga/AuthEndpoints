@@ -1,4 +1,6 @@
 using AuthEndpoints.Jwt;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -123,6 +125,11 @@ public static class OAuthServerServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
+        services.TryAddScoped<IOAuthUserProfiles, IdentityOAuthUserProfiles<TUser>>();
+        // OpenID Connect amr: tell the sign-in cookie which method signed the user in. Inert without the openid scope.
+        OAuthSignInMethodRegistration<TUser>.Register(services);
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SecurityStampValidatorOptions>, OAuthSignInMethodCookieEvents>());
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
@@ -201,8 +208,18 @@ public static class OAuthServerServiceCollectionExtensions
                 server.RefreshTokenReuseLeeway = TimeSpan.Zero;
                 server.DisableResourceValidation = settings.DisableResourceValidation;
                 server.IgnoreResourcePermissions = settings.IgnoreResourcePermissions;
-                // OpenID Connect is not supported yet, so do not accept or advertise openid.
+                // OpenID Connect is opt-in: without the openid scope, openid is neither accepted nor advertised.
                 server.Scopes.Remove(OpenIddictConstants.Scopes.OpenId);
+                if (settings.OpenIdConnectEnabled)
+                {
+                    server.UserInfoEndpointUris.Add(Relative(OAuthServerConstants.UserInfoEndpointPath));
+                    server.EndSessionEndpointUris.Add(Relative(OAuthServerConstants.EndSessionEndpointPath));
+                    server.ConfigurationEndpointUris.Add(Relative(OAuthServerConstants.OpenIdConfigurationPath));
+                    server.Claims.Add(OpenIddictConstants.Claims.AuthenticationMethodReference);
+                    server.Claims.Add(OpenIddictConstants.Claims.Email);
+                    server.Claims.Add(OAuthIdentityClaims.EmailVerified);
+                }
+
                 foreach (var scope in settings.AllScopes())
                 {
                     server.Scopes.Add(scope);
@@ -225,8 +242,15 @@ public static class OAuthServerServiceCollectionExtensions
                 server.TokenValidationParameters.ClockSkew = TimeSpan.Zero;
             });
         services.AddOptions<OpenIddictServerAspNetCoreOptions>()
-            .Configure<IOptions<OAuthServerOptions>>((aspNetCore, oauth)
-                => aspNetCore.DisableTransportSecurityRequirement = oauth.Value.DisableTransportSecurityRequirement);
+            .Configure<IOptions<OAuthServerOptions>>((aspNetCore, oauth) =>
+            {
+                aspNetCore.DisableTransportSecurityRequirement = oauth.Value.DisableTransportSecurityRequirement;
+                if (oauth.Value.OpenIdConnectEnabled)
+                {
+                    aspNetCore.EnableUserInfoEndpointPassthrough = true;
+                    aspNetCore.EnableEndSessionEndpointPassthrough = true;
+                }
+            });
         services.AddOptions<OpenIddictValidationOptions>()
             .Configure<IOptions<OAuthServerOptions>, IServiceProvider>((validation, oauth, provider) =>
             {
@@ -240,6 +264,8 @@ public static class OAuthServerServiceCollectionExtensions
 
         return new OAuthServerBuilder(services, openIddict);
     }
+
+    private static Uri Relative(string path) => new(path.TrimStart('/'), UriKind.Relative);
 
     /// <summary>The authentication scheme that validates access tokens issued by this server.</summary>
     public const string ValidationScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;

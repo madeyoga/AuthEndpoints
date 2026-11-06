@@ -6,6 +6,12 @@ using OpenIddict.EntityFrameworkCore.Models;
 
 namespace AuthEndpoints.OpenIddict;
 
+internal static class OAuthRequestLimits
+{
+    public const int NonceLength = 512;
+    public const int AuthenticationMethodsLength = 128;
+}
+
 public static class OAuthServerModelBuilderExtensions
 {
     /// <summary>
@@ -87,6 +93,8 @@ public static class OAuthServerModelBuilderExtensions
         builder.Property(row => row.Scope).HasMaxLength(256);
         builder.Property(row => row.State).HasMaxLength(2048);
         builder.Property(row => row.Resource).HasMaxLength(2048);
+        builder.Property(row => row.Nonce).HasMaxLength(OAuthRequestLimits.NonceLength);
+        builder.Property(row => row.AuthenticationMethods).HasMaxLength(OAuthRequestLimits.AuthenticationMethodsLength);
         builder.HasIndex(row => row.UserId);
         builder.HasIndex(row => row.ExpiresAt);
     }

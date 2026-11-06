@@ -58,6 +58,7 @@
         public string? ClientId { get; set; }
         public string? ClientSecret { get; set; }
         public string? DisplayName { get; set; }
+        public System.Collections.Generic.IList<string> PostLogoutRedirectUris { get; }
         public System.Collections.Generic.IList<string> RedirectUris { get; }
         public System.Collections.Generic.IList<string> Resources { get; }
         public System.Collections.Generic.IList<string> Scopes { get; }
@@ -128,6 +129,8 @@
         public string Name { get; init; }
         [System.Text.Json.Serialization.JsonIgnore]
         public string OwnerId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("postLogoutRedirectUris")]
+        public System.Collections.Generic.IReadOnlyList<string> PostLogoutRedirectUris { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("redirectUris")]
         public System.Collections.Generic.IReadOnlyList<string> RedirectUris { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("secretCreatedAt")]
@@ -143,6 +146,7 @@
         public string? Description { get; init; }
         public string? HomepageUrl { get; init; }
         public string? Name { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string>? PostLogoutRedirectUris { get; init; }
         public System.Collections.Generic.IReadOnlyList<string>? RedirectUris { get; init; }
     }
     public sealed class OAuthDeveloperAppOptions
@@ -255,6 +259,7 @@
         where TKey : System.IEquatable<TKey>
     {
         public OAuthRequest() { }
+        public string? AuthenticationMethods { get; set; }
         public required string ClientId { get; set; }
         public required string ClientName { get; set; }
         public required string CodeChallenge { get; set; }
@@ -262,6 +267,7 @@
         public System.DateTimeOffset CreatedAt { get; set; }
         public System.DateTimeOffset ExpiresAt { get; set; }
         public System.Guid Id { get; init; }
+        public string? Nonce { get; set; }
         public required string RedirectHost { get; set; }
         public required string RedirectUri { get; set; }
         public required string Resource { get; set; }
@@ -297,11 +303,17 @@
     {
         public const string AuthorizationEndpointPath = "/connect/authorize";
         public const string AuthorizationServerMetadataPath = "/.well-known/oauth-authorization-server";
+        public const string AuthorizationUserProperty = "ae_user_id";
         public const string CreatedAtSetting = "created_at";
         public const string DeveloperAppSetting = "ae_developer_app";
         public const string DeveloperAppTable = "OAuthDeveloperApps";
+        public const string EmailScope = "email";
+        public const string EndSessionEndpointPath = "/connect/logout";
         public const string FallbackClientName = "OAuth client";
+        public const string JsonWebKeySetPath = "/.well-known/jwks";
         public const string OfflineAccessScope = "offline_access";
+        public const string OpenIdConfigurationPath = "/.well-known/openid-configuration";
+        public const string OpenIdScope = "openid";
         public const string ProtectedResourceMetadataPath = "/.well-known/oauth-protected-resource";
         public const int ReferenceTokenLength = 512;
         public const string RegistrationEndpointPath = "/connect/register";
@@ -309,6 +321,7 @@
         public const string RevocationEndpointPath = "/connect/revoke";
         public const string TokenEndpointPath = "/connect/token";
         public const string UserIdClaim = "ae_user_id";
+        public const string UserInfoEndpointPath = "/connect/userinfo";
         public const string UserStampClaim = "ae_user_stamp";
     }
     public sealed class OAuthServerEndpointOptions
@@ -360,6 +373,7 @@
         public System.Uri? Issuer { get; set; }
         public string LoginReturnUrlParameter { get; set; }
         public string? LoginUrl { get; set; }
+        public string? LogoutUrl { get; set; }
         public AuthEndpoints.OpenIddict.OAuthProtectedResourceOptions ProtectedResource { get; }
         public System.TimeSpan PruneAfter { get; set; }
         public System.TimeSpan RefreshTokenLifetime { get; set; }

@@ -117,6 +117,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOAuthDeveloperAppGate developerApps,
     IOptions<OAuthServerOptions> options,
     IOAuthDeveloperAppOwnerDisplay ownerDisplay,
+    IOAuthUserProfiles profiles,
     TimeProvider clock) : IOAuthConsentService
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -184,6 +185,14 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             return OAuthConsentResult.NotFound;
         }
 
+        var scopes = OAuthScopes.Split(row.Scope);
+        var openId = scopes.Contains(OAuthServerConstants.OpenIdScope);
+        if (openId)
+        {
+            var profile = scopes.Contains(OAuthServerConstants.EmailScope) ? await profiles.FindAsync(userId, cancellationToken) : null;
+            OAuthIdentityClaims.Add(principal, userId, scopes, row.AuthenticationMethods, profile);
+        }
+
         await OAuthGrantClaims.AddAsync(principal, userId, userValidator, cancellationToken);
         var issuer = options.Value.Issuer!;
         IssuedAuthorizationCode issued;
@@ -198,6 +207,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
                 row.CodeChallenge,
                 row.Scope,
                 row.Resource,
+                row.Nonce,
                 principal,
                 cancellationToken);
         }
@@ -211,6 +221,12 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
             throw;
         }
+        if (openId)
+        {
+            // Userinfo and logout find the user through the authorization, since no token carries the user id.
+            await OAuthAuthorizationUser.SetAsync(authorizations, issued.AuthorizationId, userId, cancellationToken);
+        }
+
         var redirect = OAuthRedirects.Authorization(row.RedirectUri, issued.Code, row.State, issuer.AbsoluteUri, null, null);
         return new OAuthConsentResult(OAuthConsentStatus.Approved, redirect, row.ClientId, issued.AuthorizationId);
     }

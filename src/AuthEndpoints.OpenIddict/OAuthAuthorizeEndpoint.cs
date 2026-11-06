@@ -102,6 +102,21 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
             return Reject(OpenIddictConstants.Errors.InvalidScope, "Too many scopes.");
         }
 
+        var openId = scopes.Granted.Contains(OAuthServerConstants.OpenIdScope);
+        if (openId)
+        {
+            // The sign-in time is not tracked, so a forced or recent sign-in cannot be honored. Refuse rather than ignore it.
+            if (request.HasPromptValue(OpenIddictConstants.PromptValues.Login) || request.MaxAge is not null)
+            {
+                return Reject(OpenIddictConstants.Errors.InvalidRequest, "prompt=login and max_age are not supported.");
+            }
+
+            if ((request.Nonce?.Length ?? 0) > OAuthRequestLimits.NonceLength)
+            {
+                return Reject(OpenIddictConstants.Errors.InvalidRequest, "nonce is too long.");
+            }
+        }
+
         var result = await http.AuthenticateAsync(settings.AuthenticationScheme);
         var userId = result.Succeeded ? result.Principal?.FindFirst(settings.UserIdClaimType)?.Value : null;
         var promptNone = request.HasPromptValue(OpenIddictConstants.PromptValues.None);
@@ -147,6 +162,9 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
             Scope = scope,
             State = string.IsNullOrEmpty(request.State) ? null : request.State,
             Resource = resource,
+            Nonce = openId && !string.IsNullOrEmpty(request.Nonce) ? request.Nonce : null,
+            // How this session signed in, for the ID token amr. Read here, where the sign-in cookie is known to be present.
+            AuthenticationMethods = openId ? OAuthAuthenticationMethods.Join(OAuthAuthenticationMethods.FromPrincipal(result.Principal)) : null,
             CreatedAt = now,
             ExpiresAt = now + settings.ConsentLifetime,
         };
@@ -173,6 +191,12 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
                 if (!known.Contains(item))
                 {
                     return ([], $"The scope '{item}' is not supported.");
+                }
+
+                // OpenIddict never checks a permission for openid. Do, so a client defined without it cannot use OpenID Connect.
+                if (item == OAuthServerConstants.OpenIdScope && !await AllowedAsync(item))
+                {
+                    return ([], "This client may not request the scope 'openid'.");
                 }
 
                 if (!granted.Contains(item))

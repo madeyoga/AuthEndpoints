@@ -1,6 +1,6 @@
 ---
 title: AuthEndpoints.OpenIddict 4.0.0-preview.1
-description: New opt-in OAuth 2.0 authorization server for AuthEndpoints 4 apps, built on OpenIddict 7.7.
+description: New opt-in OAuth 2.0 authorization server and OpenID Connect provider for AuthEndpoints 4 apps, built on OpenIddict 7.7.
 date: 2026-11-04
 badge: Preview
 tag: openiddict-v4.0.0-preview.1
@@ -13,10 +13,13 @@ tag: openiddict-v4.0.0-preview.1
 - `/connect/authorize` sends signed-out users to `LoginUrl` with a `returnUrl` on this server, and signed-in users to `ConsentUrl?request={id}`. The host's consent page approves or denies through `MapOAuthConsentEndpoints()` or `IOAuthConsentService`. `IOAuthPrincipalFactory` sets the token subject; the default is the Identity user id.
 - Dynamic client registration (RFC 7591) and protected resource metadata (RFC 9728) are off by default. Registration accepts public clients only, validates redirect URIs, and is rate limited per client IP.
 - Every code exchange and refresh checks the approving user again: the user must still exist, be able to sign in, not be locked out, and have the same security stamp. A failed check returns `invalid_grant` and revokes the grant. Changing the password, resetting the authenticator, or calling `UpdateSecurityStampAsync` ends the user's OAuth grants.
+- OpenID Connect is opt-in: add `openid` to `Scopes`. The token endpoint then returns ID tokens with `iss`, `aud`, `sub` (from `IOAuthPrincipalFactory`), `nonce`, and `amr`, plus `email` and `email_verified` with the `email` scope. `/connect/userinfo`, `/connect/logout`, and `/.well-known/openid-configuration` are served. A host without `openid` keeps OAuth 2.0 only, and `openid` is rejected.
+- `amr` reflects how the user signed in: password (`pwd`), two-factor (`pwd`, `otp`, `mfa`), passkey (`pop`, plus `mfa` when Identity requires user verification), external (`fed`), and email code (`otp`). ID token claims never reach access tokens, and the approving user's id and security stamp never reach any token.
+- Logout redirects only to a post-logout URI registered for the client named by `client_id` or `id_token_hint`, and signs a user out only with an `id_token_hint` issued to that user, or through the optional `LogoutUrl` confirmation page. Configured clients, dynamically registered clients, and developer apps can register post-logout redirect URIs.
 - The issuer, endpoint URLs, and audience come from configuration, never from the request `Host` header. HTTPS, resource validation, and per-client resource permissions are on by default.
 - Clients can be defined in configuration and created with `SeedOAuthClientsAsync()`. Signing and encryption keys come from a persisted self-signed pair (`Certificates.Path`), certificates you supply, or ephemeral keys for tests.
 
-Enabling the package needs a migration that adds the OpenIddict tables and the `OAuthRequests` table. OpenID Connect (ID tokens, `userinfo`, logout, and the `email`, `email_verified`, and `amr` claims) is not in this preview, and the `openid` scope is rejected. See the package README's Limitations section for the other known gaps.
+Enabling the package needs a migration that adds the OpenIddict tables and the `OAuthRequests` table. OpenID Connect in this preview has no `profile`, `phone`, or `address` claims and no `auth_time`, so `prompt=login` and `max_age` are refused, and logout is RP-initiated only. See the package README's Limitations section for the other known gaps.
 
 ### Packages
 

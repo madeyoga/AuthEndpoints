@@ -35,6 +35,8 @@ public sealed class OAuthModelTests
             ["Scope"] = (256, false),
             ["State"] = (2048, true),
             ["Resource"] = (2048, false),
+            ["Nonce"] = (512, true),
+            ["AuthenticationMethods"] = (128, true),
             ["CreatedAt"] = (null, false),
             ["ExpiresAt"] = (null, false),
             ["ConsumedAt"] = (null, true),

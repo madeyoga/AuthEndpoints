@@ -167,7 +167,7 @@ public sealed class OAuthSignInStateTests
     }
 
     [Fact]
-    public async Task Openid_is_neither_advertised_nor_accepted()
+    public async Task Without_the_openid_scope_openid_is_neither_advertised_nor_accepted()
     {
         await using var host = await StartAsync();
         var (user, _) = await host.UserAsync("openid");
