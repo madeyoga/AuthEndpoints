@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using AuthEndpoints.External.OAuth;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -295,7 +298,7 @@ public sealed class OAuthAuthenticationMethodTests
     [Theory]
     [InlineData(SignInMethod.Password, false, new[] { "pwd" })]
     [InlineData(SignInMethod.Password, true, new[] { "pwd", "otp", "mfa" })]
-    [InlineData(SignInMethod.Passkey, false, new[] { "pop" })]
+    [InlineData(SignInMethod.Passkey, false, new[] { "pop", "mfa" })]
     [InlineData(SignInMethod.External, false, new[] { "fed" })]
     [InlineData(SignInMethod.EmailCode, false, new[] { "otp" })]
     public async Task Amr_follows_the_AuthEndpoints_sign_in_method(SignInMethod method, bool twoFactor, string[] expected)
@@ -307,6 +310,91 @@ public sealed class OAuthAuthenticationMethodTests
 
         var flow = await host.SignInAsync(browser);
         Assert.Equal(expected, Strings(Payload(IdToken(flow.Tokens)), "amr"));
+    }
+
+    [Theory]
+    [InlineData("preferred")]
+    [InlineData("discouraged")]
+    public async Task A_passkey_is_not_multi_factor_when_user_verification_is_not_required(string requirement)
+    {
+        await using var host = await StartOidcAsync(
+            signInCompleters: true,
+            services: services => services.Configure<IdentityPasskeyOptions>(options => options.UserVerificationRequirement = requirement));
+        using var browser = host.Client();
+        await browser.PostAsync($"/test/complete?email=uv-{Guid.NewGuid():N}@example.test&method={SignInMethod.Passkey}", null);
+
+        var flow = await host.SignInAsync(browser);
+        Assert.Equal(["pop"], Strings(Payload(IdToken(flow.Tokens)), "amr"));
+    }
+
+    [Fact]
+    public async Task A_host_completer_registered_before_the_server_is_wrapped_and_one_registered_after_is_reported()
+    {
+        await using var host = await StartOidcAsync(
+            signInCompleters: true,
+            services: services => services.AddSignInCompleter<IdentityUser, HostCookieCompleter>("Late"),
+            beforeServer: services => services.AddSignInCompleter<IdentityUser, HostCookieCompleter>("Mine"));
+        using var browser = host.Client();
+        await browser.PostAsync($"/test/complete?email=host-{Guid.NewGuid():N}@example.test&method={SignInMethod.External}&completer=Mine", null);
+
+        var flow = await host.SignInAsync(browser);
+        Assert.Equal(["fed"], Strings(Payload(IdToken(flow.Tokens)), "amr"));
+        Assert.Equal(["ISignInCompleter 'Late'"], host.Services.GetRequiredService<OAuthSignInMethodAudit>().Unwrapped());
+    }
+
+#pragma warning disable CS0618 // The obsolete completers are what this test is about.
+    [Fact]
+    public async Task A_host_obsolete_completer_is_wrapped_and_the_built_in_one_is_left_alone()
+    {
+        await using var host = await StartOidcAsync(
+            beforeServer: services =>
+            {
+                services.AddExternalAuthEndpoints<IdentityUser>();
+                services.AddScoped<AuthEndpoints.Passkey.IPasskeySignInCompleter<IdentityUser>, HostPasskeyCompleter>();
+            },
+            map: app => app.MapPost("/test/legacy-passkey", async (string email, HttpContext http, UserManager<IdentityUser> users) =>
+            {
+                var user = new IdentityUser { UserName = email, Email = email, EmailConfirmed = true };
+                await users.CreateAsync(user);
+                var completer = http.RequestServices.GetRequiredService<AuthEndpoints.Passkey.IPasskeySignInCompleter<IdentityUser>>();
+                return await completer.CompleteAsync(http, user, new AuthEndpoints.Passkey.PasskeySignInCompletionContext
+                {
+                    Kind = AuthEndpoints.Passkey.PasskeySignInKind.Login,
+                });
+            }).DisableAntiforgery());
+
+        // AuthEndpoints only routes to an obsolete completer that is not the built-in type, so the built-in one must stay as is.
+        await using (var scope = host.Services.CreateAsyncScope())
+        {
+            Assert.IsType<AuthEndpoints.External.OAuth.CookieExternalLoginCompleter<IdentityUser>>(
+                scope.ServiceProvider.GetRequiredService<AuthEndpoints.External.OAuth.IExternalLoginCompleter<IdentityUser>>());
+        }
+
+        using var browser = host.Client();
+        await browser.PostAsync($"/test/legacy-passkey?email=legacy-{Guid.NewGuid():N}@example.test", null);
+        var flow = await host.SignInAsync(browser);
+        Assert.Equal(["pop", "mfa"], Strings(Payload(IdToken(flow.Tokens)), "amr"));
+    }
+
+    private sealed class HostPasskeyCompleter(SignInManager<IdentityUser> signIn) : AuthEndpoints.Passkey.IPasskeySignInCompleter<IdentityUser>
+    {
+        public async Task<IResult> CompleteAsync(
+            HttpContext httpContext, IdentityUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, CancellationToken cancellationToken = default)
+        {
+            await signIn.SignInAsync(user, isPersistent: false);
+            return Results.NoContent();
+        }
+    }
+#pragma warning restore CS0618
+
+    private sealed class HostCookieCompleter(SignInManager<IdentityUser> signIn) : ISignInCompleter<IdentityUser>
+    {
+        public async Task<IResult> CompleteAsync(
+            HttpContext httpContext, IdentityUser user, SignInCompletionContext context, CancellationToken cancellationToken = default)
+        {
+            await signIn.SignInAsync(user, isPersistent: false);
+            return Results.NoContent();
+        }
     }
 
     [Fact]
@@ -346,7 +434,7 @@ public sealed class OAuthAuthenticationMethodTests
         Assert.Contains(claims!, claim => claim[0] == "amr" && claim[1] == "pop");
 
         var flow = await host.SignInAsync(browser);
-        Assert.Equal(["pop"], Strings(Payload(IdToken(flow.Tokens)), "amr"));
+        Assert.Equal(["pop", "mfa"], Strings(Payload(IdToken(flow.Tokens)), "amr"));
     }
 
     [Fact]

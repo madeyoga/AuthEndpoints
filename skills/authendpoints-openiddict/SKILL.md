@@ -139,7 +139,7 @@ Load only the file the task needs. Each one is self-contained.
 This is a preview. These are known gaps, not bugs. Do not promise these features to the user:
 
 - **OpenID Connect covers sign-in and logout, not every option.** The claims are `sub`, `email`, `email_verified`, and `amr`; there are no `profile`, `phone`, or `address` claims, and no `auth_time`, so `prompt=login` and `max_age` are refused. Logout is RP-initiated only: there is no front-channel or back-channel logout and no session (`sid`) claim. There is no implicit or hybrid flow, so ID tokens come from the token endpoint only.
-- **`amr` depends on the cookie.** Sessions signed in before `openid` was turned on, and sign-ins through your own completers, have no `amr` until the user signs in again. See [How the user signed in](references/openid-connect.md#how-the-user-signed-in).
+- **`amr` depends on the cookie.** A session signed in before `openid` was turned on has no `amr` until the user signs in again, and neither does a sign-in through a completer registered after `AddOAuthServer`. See [How the user signed in](references/openid-connect.md#how-the-user-signed-in).
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](references/settings.md#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.

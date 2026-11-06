@@ -384,7 +384,7 @@ options.Scopes.Add("email");                            // optional: releases em
 options.LogoutUrl = "https://app.example.com/sign-out"; // optional: see Logout
 ```
 
-`OAuthRequests` has two nullable columns for OpenID Connect, `Nonce` and `AuthenticationMethods`. Add a migration when you upgrade, whether or not you turn OpenID Connect on.
+`OAuthRequests` has two nullable columns for OpenID Connect, `Nonce` and `AuthenticationMethods`. If you created the tables from an earlier build of this package, add a migration, whether or not you turn OpenID Connect on.
 
 | Route | Served by | Notes |
 | --- | --- | --- |
@@ -418,15 +418,16 @@ ID token claims are read when the user approves, and a refreshed ID token repeat
 | --- | --- |
 | Password | `["pwd"]` |
 | Password, then an authenticator or recovery code | `["pwd", "otp", "mfa"]` |
-| Passkey | `["pop"]` |
+| Passkey, when Identity requires user verification (the .NET default) | `["pop", "mfa"]` |
+| Passkey, when it does not | `["pop"]` |
 | External provider (GitHub, Google, …) | `["fed"]` |
 | Email code | `["otp"]` |
 
-The values are from RFC 8176, except `fed`: RFC 8176 has none for a federated sign-in, and `fed` is the value Microsoft Entra ID uses. A recovery code counts as a one-time code. A passkey is `pop` whether or not the authenticator verified the user, because the sign-in result does not say.
+The values are from RFC 8176, except `fed`: RFC 8176 has none for a federated sign-in, and `fed` is the value Microsoft Entra ID uses. A recovery code counts as a one-time code, like an authenticator code. A passkey is `mfa` only when `IdentityPasskeyOptions.UserVerificationRequirement` is `required`: Identity then rejects any passkey sign-in where the authenticator did not check a PIN or biometric, so the key and that check are two factors. With `preferred` or `discouraged`, the check may not have happened, so a passkey is `pop` alone.
 
-`amr` is read from the sign-in cookie when `/connect/authorize` runs. AuthEndpoints password sign-in already writes `amr` to the cookie (`pwd`, or `mfa` after a second factor), and so do Identity's `PasswordSignInAsync` and `TwoFactorSignInAsync`. Passkey, external, and email-code sign-in write nothing, so with `openid` on, this package wraps the built-in `Cookie` and `IdentityBearer` sign-in completers and adds `amr` to the cookie they write. It also keeps `amr` when Identity's security stamp check rebuilds the cookie, which otherwise drops it.
+`amr` is read from the sign-in cookie when `/connect/authorize` runs. AuthEndpoints password sign-in already writes `amr` to the cookie (`pwd`, or `mfa` after a second factor), and so do Identity's `PasswordSignInAsync` and `TwoFactorSignInAsync`. Passkey, external, and email-code sign-in write nothing, so with `openid` on, this package wraps the sign-in completers and adds `amr` to the cookie they write. That covers the built-in `Cookie` and `IdentityBearer` completers, every `ISignInCompleter<TUser>` you register before `AddOAuthServer` under any name, and your own obsolete `IPasskeySignInCompleter`, `IEmailCodeSignInCompleter`, or `IExternalLoginCompleter`. The built-in obsolete completers are left as they are, because AuthEndpoints only routes to an obsolete completer that is not the built-in type. It also keeps `amr` when Identity's security stamp check rebuilds the cookie, which otherwise drops it.
 
-`amr` is left out when the cookie does not say: a session signed in before `openid` was turned on, a sign-in completer you registered yourself, an obsolete `IPasskeySignInCompleter` or `IExternalLoginCompleter`, or a plain `SignInManager.SignInAsync`. To supply one, add an `amr` claim to the cookie principal when you sign the user in.
+`amr` is left out when the cookie does not say: a session signed in before `openid` was turned on (it gets `amr` at its next sign-in), a completer registered after `AddOAuthServer`, or a plain `SignInManager.SignInAsync` outside a completer. `MapOAuthServer` logs a warning that names every completer registered too late. To supply `amr` yourself, add an `amr` claim to the cookie principal when you sign the user in.
 
 ### userinfo
 
@@ -515,7 +516,7 @@ External providers (`AuthEndpoints.OAuth.GitHub`, `AuthEndpoints.OAuth.Google`) 
 This is a preview. These are known gaps, not bugs:
 
 - **OpenID Connect covers sign-in and logout, not every option.** The claims are `sub`, `email`, `email_verified`, and `amr`; there are no `profile`, `phone`, or `address` claims, and no `auth_time`, so `prompt=login` and `max_age` are refused. Logout is RP-initiated only: there is no front-channel or back-channel logout and no session (`sid`) claim. There is no implicit or hybrid flow, so ID tokens come from the token endpoint only.
-- **`amr` depends on the cookie.** Sessions signed in before `openid` was turned on, and sign-ins through your own completers, have no `amr` until the user signs in again. See [How the user signed in](#how-the-user-signed-in).
+- **`amr` depends on the cookie.** A session signed in before `openid` was turned on has no `amr` until the user signs in again, and neither does a sign-in through a completer registered after `AddOAuthServer`. See [How the user signed in](#how-the-user-signed-in).
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.

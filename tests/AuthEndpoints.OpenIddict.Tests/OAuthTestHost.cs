@@ -87,7 +87,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         Action<OAuthServerBuilder>? server = null,
         bool recipe = false,
         Action<OAuthServerEndpointOptions>? endpoints = null,
-        bool signInCompleters = false)
+        bool signInCompleters = false,
+        Action<IServiceCollection>? beforeServer = null)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-openiddict-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
@@ -149,6 +150,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             options.Clients.Add(seeded);
             configure?.Invoke(options);
         };
+        beforeServer?.Invoke(builder.Services);
         var oauth = recipe
             ? builder.Services.AddOAuthServer<IdentityUser, TestDb>(settings)
             : builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(settings);
@@ -231,11 +233,10 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             await signIn.SignInAsync(user, isPersistent: false);
             return Results.Ok(new { id = user.Id });
         }).DisableAntiforgery();
-        if (signInCompleters)
         {
             // What a real sign-in endpoint does once the proof is checked: hand the user to the selected completer.
             app.MapPost("/test/complete", async (
-                string email, SignInMethod method, bool? twoFactor, HttpContext http, UserManager<IdentityUser> users) =>
+                string email, SignInMethod method, bool? twoFactor, string? completer, HttpContext http, UserManager<IdentityUser> users) =>
             {
                 var user = await users.FindByEmailAsync(email);
                 if (user is null)
@@ -248,8 +249,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
                     }
                 }
 
-                var completer = http.RequestServices.GetRequiredKeyedService<ISignInCompleter<IdentityUser>>(SignInCompleters.Cookie);
-                return await completer.CompleteAsync(http, user, new SignInCompletionContext
+                var selected = http.RequestServices.GetRequiredKeyedService<ISignInCompleter<IdentityUser>>(completer ?? SignInCompleters.Cookie);
+                return await selected.CompleteAsync(http, user, new SignInCompletionContext
                 {
                     Method = method,
                     UsedTwoFactor = twoFactor == true,

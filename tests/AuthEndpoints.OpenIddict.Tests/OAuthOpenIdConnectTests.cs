@@ -277,7 +277,9 @@ public sealed class OAuthOpenIdConnectTests
         Action<OAuthServerOptions>? configure = null,
         Action<OAuthServerBuilder>? server = null,
         Action<IServiceCollection>? services = null,
-        bool signInCompleters = false)
+        bool signInCompleters = false,
+        Action<IServiceCollection>? beforeServer = null,
+        Action<Microsoft.AspNetCore.Builder.WebApplication>? map = null)
         => OAuthTestHost.StartAsync(
             options =>
             {
@@ -287,7 +289,9 @@ public sealed class OAuthOpenIdConnectTests
             },
             services: services,
             server: server,
-            signInCompleters: signInCompleters);
+            signInCompleters: signInCompleters,
+            beforeServer: beforeServer,
+            map: map);
 
     internal static string IdToken(TokenPair tokens) => tokens.Body.GetProperty("id_token").GetString()!;
 

@@ -8,7 +8,7 @@ options.Scopes.Add("email");                            // optional: releases em
 options.LogoutUrl = "https://app.example.com/sign-out"; // optional: see Logout
 ```
 
-`OAuthRequests` has two nullable columns for OpenID Connect, `Nonce` and `AuthenticationMethods`. Add a migration when you upgrade, whether or not you turn OpenID Connect on.
+`OAuthRequests` has two nullable columns for OpenID Connect, `Nonce` and `AuthenticationMethods`. If you created the tables from an earlier build of this package, add a migration, whether or not you turn OpenID Connect on.
 
 | Route | Served by | Notes |
 | --- | --- | --- |
@@ -42,15 +42,16 @@ ID token claims are read when the user approves, and a refreshed ID token repeat
 | --- | --- |
 | Password | `["pwd"]` |
 | Password, then an authenticator or recovery code | `["pwd", "otp", "mfa"]` |
-| Passkey | `["pop"]` |
+| Passkey, when Identity requires user verification (the .NET default) | `["pop", "mfa"]` |
+| Passkey, when it does not | `["pop"]` |
 | External provider (GitHub, Google, …) | `["fed"]` |
 | Email code | `["otp"]` |
 
-The values are from RFC 8176, except `fed`: RFC 8176 has none for a federated sign-in, and `fed` is the value Microsoft Entra ID uses. A recovery code counts as a one-time code. A passkey is `pop` whether or not the authenticator verified the user, because the sign-in result does not say.
+The values are from RFC 8176, except `fed`: RFC 8176 has none for a federated sign-in, and `fed` is the value Microsoft Entra ID uses. A recovery code counts as a one-time code, like an authenticator code. A passkey is `mfa` only when `IdentityPasskeyOptions.UserVerificationRequirement` is `required`: Identity then rejects any passkey sign-in where the authenticator did not check a PIN or biometric, so the key and that check are two factors. With `preferred` or `discouraged`, the check may not have happened, so a passkey is `pop` alone.
 
-`amr` is read from the sign-in cookie when `/connect/authorize` runs. AuthEndpoints password sign-in already writes `amr` to the cookie (`pwd`, or `mfa` after a second factor), and so do Identity's `PasswordSignInAsync` and `TwoFactorSignInAsync`. Passkey, external, and email-code sign-in write nothing, so with `openid` on, this package wraps the built-in `Cookie` and `IdentityBearer` sign-in completers and adds `amr` to the cookie they write. It also keeps `amr` when Identity's security stamp check rebuilds the cookie, which otherwise drops it.
+`amr` is read from the sign-in cookie when `/connect/authorize` runs. AuthEndpoints password sign-in already writes `amr` to the cookie (`pwd`, or `mfa` after a second factor), and so do Identity's `PasswordSignInAsync` and `TwoFactorSignInAsync`. Passkey, external, and email-code sign-in write nothing, so with `openid` on, this package wraps the sign-in completers and adds `amr` to the cookie they write. That covers the built-in `Cookie` and `IdentityBearer` completers, every `ISignInCompleter<TUser>` you register before `AddOAuthServer` under any name, and your own obsolete `IPasskeySignInCompleter`, `IEmailCodeSignInCompleter`, or `IExternalLoginCompleter`. The built-in obsolete completers are left as they are, because AuthEndpoints only routes to an obsolete completer that is not the built-in type. It also keeps `amr` when Identity's security stamp check rebuilds the cookie, which otherwise drops it.
 
-`amr` is left out when the cookie does not say: a session signed in before `openid` was turned on, a sign-in completer you registered yourself, an obsolete `IPasskeySignInCompleter` or `IExternalLoginCompleter`, or a plain `SignInManager.SignInAsync`. To supply one, add an `amr` claim to the cookie principal when you sign the user in.
+`amr` is left out when the cookie does not say: a session signed in before `openid` was turned on (it gets `amr` at its next sign-in), a completer registered after `AddOAuthServer`, or a plain `SignInManager.SignInAsync` outside a completer. `MapOAuthServer` logs a warning that names every completer registered too late. To supply `amr` yourself, add an `amr` claim to the cookie principal when you sign the user in.
 
 ## userinfo
 

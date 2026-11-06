@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 
@@ -78,6 +79,14 @@ public static class OAuthServerEndpointRouteBuilderExtensions
 
         if (settings.OpenIdConnectEnabled)
         {
+            if (endpoints.ServiceProvider.GetService<OAuthSignInMethodAudit>()?.Unwrapped() is { Count: > 0 } unwrapped)
+            {
+                endpoints.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("AuthEndpoints.OpenIddict").LogWarning(
+                    "These sign-in completers were registered after AddOAuthServer, so ID tokens from their sign-ins have no amr: {Completers}. "
+                    + "Register them before AddOAuthServer, or add an amr claim to the cookie yourself.",
+                    string.Join(", ", unwrapped));
+            }
+
             endpoints.MapMethods(OAuthServerConstants.UserInfoEndpointPath, [HttpMethods.Get, HttpMethods.Post], OAuthUserInfoEndpoint.HandleAsync)
                 .AllowAnonymous()
                 .DisableAntiforgery()

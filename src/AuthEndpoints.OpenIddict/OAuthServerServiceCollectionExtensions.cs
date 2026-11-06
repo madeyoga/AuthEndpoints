@@ -127,7 +127,7 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped<IOAuthUserProfiles, IdentityOAuthUserProfiles<TUser>>();
         // OpenID Connect amr: tell the sign-in cookie which method signed the user in. Inert without the openid scope.
-        OAuthSignInMethodCompleter<TUser>.Register(services);
+        OAuthSignInMethodRegistration<TUser>.Register(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SecurityStampValidatorOptions>, OAuthSignInMethodCookieEvents>());
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
