@@ -191,7 +191,12 @@ public static class OAuthServerServiceCollectionExtensions
             .AddValidation(options =>
             {
                 options.UseLocalServer();
-                options.UseAspNetCore();
+                // Only Authorization: Bearer by default. A token in the URL or a form ends up in logs, proxies,
+                // and browser history; QueryStringTokenPaths opts chosen prefixes (SignalR hubs) back in.
+                options.UseAspNetCore()
+                    .DisableAccessTokenExtractionFromQueryString()
+                    .DisableAccessTokenExtractionFromBodyForm();
+                options.AddEventHandler(ExtractAccessTokenFromAllowedQueryPaths.Descriptor);
                 options.EnableAuthorizationEntryValidation();
             });
 

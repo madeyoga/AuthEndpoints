@@ -146,6 +146,14 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        foreach (var path in options.QueryStringTokenPaths)
+        {
+            if (!IsPathPrefix(path))
+            {
+                failures.Add($"QueryStringTokenPaths entry '{path}' must be a path that starts with '/', such as '/hubs', with no trailing '/', query, or fragment.");
+            }
+        }
+
         if (options.DeveloperApps.MaxAppsPerUser < 1 || options.DeveloperApps.MaxRedirectUris < 1)
         {
             failures.Add("DeveloperApps.MaxAppsPerUser and MaxRedirectUris must be at least 1.");
@@ -230,6 +238,17 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
         return Uri.TryCreate(value, UriKind.Absolute, out var uri)
             && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp);
     }
+
+    // "/" alone matches nothing but the root with PathString.StartsWithSegments, and a trailing "/" would skip the
+    // prefix itself, so both are refused rather than silently doing something other than what they look like.
+    private static bool IsPathPrefix(string? value)
+        => !string.IsNullOrWhiteSpace(value)
+            && value.Length > 1
+            && value[0] == '/'
+            && value[1] != '/'
+            && !value.EndsWith('/')
+            && value.IndexOfAny(['?', '#', '\\']) < 0
+            && !value.Any(char.IsWhiteSpace);
 
     private static void Positive(List<string> failures, TimeSpan value, string name)
     {

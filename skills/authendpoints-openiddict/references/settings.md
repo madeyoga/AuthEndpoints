@@ -24,6 +24,7 @@
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
 | `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |
 | `IgnoreResourcePermissions` | `false` | Skips per-client `rsrc:` permissions. |
+| `QueryStringTokenPaths` | empty | Path prefixes that also accept `?access_token=`, for SignalR and WebSockets. Elsewhere only `Authorization: Bearer` is read. See [Where the token is read from](#where-the-token-is-read-from). |
 
 The fixed routes are in `OAuthServerConstants`. Anything else can be set on `OAuthServerBuilder.OpenIddict`.
 
@@ -53,6 +54,26 @@ app.MapGroup("/mcp").RequireAuthorization("mcp");
 ```
 
 A token for `/mcp` then gets `403` from `/api`, and the other way round. Protected resource metadata still describes `Audience` only.
+
+## Where the token is read from
+
+**Breaking change.** Earlier builds of this package also accepted the access token from the `access_token` query parameter and from an `access_token` form field, on every route. Now only `Authorization: Bearer` is read. A token in a URL ends up in server logs, proxy logs, and browser history, and a form field lets any HTML form send one.
+
+The form body is never read. To accept `?access_token=` on chosen paths, list their prefixes in `QueryStringTokenPaths`. This is what SignalR and raw WebSocket hosts need, because a browser cannot set headers on a WebSocket or `EventSource` request:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+{
+    // ...
+    options.QueryStringTokenPaths.Add("/hubs");
+});
+
+app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization("api");
+```
+
+Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/hubs/chat/negotiate`, but not `/hubsevil`. They are relative to `PathBase`, like routes. Each must start with `/` and must not end with one. On a listed path the `Authorization` header still wins when both are sent.
+
+**Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
 
 ## Certificates
 

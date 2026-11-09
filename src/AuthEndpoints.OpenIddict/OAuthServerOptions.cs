@@ -141,6 +141,16 @@ public sealed class OAuthServerOptions
     /// <summary>Skip the per-client <c>rsrc:</c> permission check. Default <see langword="false"/>.</summary>
     public bool IgnoreResourcePermissions { get; set; }
 
+    /// <summary>
+    /// Path prefixes, such as <c>/hubs</c>, where this host also reads an access token from the <c>access_token</c>
+    /// query parameter. Use it for SignalR and WebSockets, where a browser cannot set the <c>Authorization</c> header.
+    /// Prefixes match whole path segments (<c>/hubs</c> matches <c>/hubs/chat</c> but not <c>/hubsevil</c>) and are
+    /// relative to <c>PathBase</c>. Each must start with <c>/</c>. Empty (the default) reads tokens only from
+    /// <c>Authorization: Bearer</c>; the form body is never read. A token in a URL can end up in logs and proxies,
+    /// so list only the paths that need it.
+    /// </summary>
+    public IList<string> QueryStringTokenPaths { get; } = new List<string>();
+
     internal IEnumerable<string> AllResources()
         => (Audience is null ? [] : new[] { Audience }).Concat(AdditionalResources).Distinct(StringComparer.Ordinal);
 
