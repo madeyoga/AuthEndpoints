@@ -184,9 +184,12 @@ Access tokens are reference tokens, validated against this server's database. AP
 ```csharp
 options.DynamicRegistration.Enabled = true;
 options.DynamicRegistration.PermitsPerMinute = 10; // per client IP
+options.DynamicRegistration.AllowedScopes.Add("mcp"); // optional: scopes anyone may register for
 ```
 
 `POST /connect/register` accepts only public clients (`token_endpoint_auth_method` `none`, no `client_secret`), the `authorization_code` and `refresh_token` grants, the `code` response type, and configured scopes. Each redirect URI must be `https`, or `http` on `localhost`, `127.0.0.1`, or `[::1]`, with no fragment and no user info. The rate limit runs inside the endpoint, so it works without `UseRateLimiter`. Behind a proxy, configure forwarded headers so the client IP is right.
+
+By default a registered client may hold every configured scope. Anyone can register, so if a scope is meant only for your own clients (for example one that acts as the user's whole account), list the scopes registered clients may use in `AllowedScopes`. Each must be in `Scopes`; `offline_access` is always allowed, and `openid` must be listed for registered clients to use OpenID Connect. A registration asking for another scope is rejected with `invalid_client_metadata`, and `/connect/authorize` holds clients registered before the list was set to it too. Configured clients and developer apps are not affected.
 
 A registered client that no user approved within `UnusedClientLifetime` (24 hours) is deleted by the background cleanup. Seeded clients are never deleted.
 

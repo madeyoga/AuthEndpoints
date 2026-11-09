@@ -260,27 +260,6 @@ public sealed class OAuthFlowTests
         await host.Services.SeedOAuthClientsAsync();
     }
 
-    /// <summary>
-    /// The error from a rejected authorize request. OpenIddict renders it locally (400) when it rejects
-    /// before trusting the redirect URI, and redirects to the client otherwise. Neither path shows consent.
-    /// </summary>
-    private static async Task<string> AuthorizeErrorAsync(HttpResponseMessage response)
-    {
-        if (response.StatusCode == HttpStatusCode.Redirect)
-        {
-            var location = response.Headers.Location!.ToString();
-            Assert.DoesNotContain(ConsentUrl, location, StringComparison.Ordinal);
-            var query = Query(location);
-            Assert.Equal(Issuer, query["iss"]);
-            return query["error"];
-        }
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var text = await response.Content.ReadAsStringAsync();
-        var line = text.Split('\n').First(item => item.StartsWith("error:", StringComparison.Ordinal));
-        return line["error:".Length..].Trim();
-    }
-
     private static void AssertClientError(HttpResponseMessage response)
     {
         var location = response.Headers.Location?.ToString() ?? "";

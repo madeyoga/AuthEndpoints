@@ -228,6 +228,19 @@ public sealed class OAuthOptionsTests
     }
 
     [Fact]
+    public void Dynamic_registration_allowed_scopes_must_be_configured_scopes()
+    {
+        var options = Valid();
+        options.DynamicRegistration.AllowedScopes.Add("missing");
+        var failures = string.Join('\n', new OAuthServerOptionsValidator().Validate(null, options).Failures!);
+        Assert.Contains("DynamicRegistration.AllowedScopes entry 'missing'", failures, StringComparison.Ordinal);
+
+        options.DynamicRegistration.AllowedScopes.Clear();
+        options.DynamicRegistration.AllowedScopes.Add("offline_access");
+        Assert.True(new OAuthServerOptionsValidator().Validate(null, options).Succeeded);
+    }
+
+    [Fact]
     public void Only_one_certificate_source_is_allowed()
     {
         var options = Valid();

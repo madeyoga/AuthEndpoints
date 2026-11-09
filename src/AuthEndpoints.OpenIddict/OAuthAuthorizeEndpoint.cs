@@ -182,6 +182,10 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
         CancellationToken cancellationToken)
     {
         var known = settings.AllScopes().ToHashSet(StringComparer.Ordinal);
+        // Only dynamically registered clients carry this setting. Checked here as well as at registration,
+        // so clients registered before DynamicRegistration.AllowedScopes was narrowed are held to it.
+        var dynamic = settings.DynamicRegistration.AllowedScopes.Count > 0
+            && (await applications.GetSettingsAsync(application, cancellationToken)).ContainsKey(OAuthServerConstants.CreatedAtSetting);
         var requested = request.GetScopes();
         var granted = new List<string>();
         if (!requested.IsDefaultOrEmpty)
@@ -191,6 +195,11 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
                 if (!known.Contains(item))
                 {
                     return ([], $"The scope '{item}' is not supported.");
+                }
+
+                if (dynamic && !settings.AllowsDynamicRegistrationScope(item))
+                {
+                    return ([], $"This client may not request the scope '{item}'.");
                 }
 
                 // OpenIddict never checks a permission for openid. Do, so a client defined without it cannot use OpenID Connect.
@@ -209,7 +218,9 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
         {
             foreach (var item in settings.DefaultScopes)
             {
-                if (!granted.Contains(item) && await AllowedAsync(item))
+                if (!granted.Contains(item)
+                    && (!dynamic || settings.AllowsDynamicRegistrationScope(item))
+                    && await AllowedAsync(item))
                 {
                     granted.Add(item);
                 }
