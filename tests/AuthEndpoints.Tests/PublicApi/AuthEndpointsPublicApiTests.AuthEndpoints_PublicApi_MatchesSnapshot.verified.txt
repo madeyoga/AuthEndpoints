@@ -546,6 +546,13 @@ namespace AuthEndpoints.Identity
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder EnableAntiforgery(this Microsoft.AspNetCore.Routing.RouteGroupBuilder builder) { }
         public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder RequireAntiforgery(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder builder) { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder RequireAntiforgery(this Microsoft.AspNetCore.Routing.RouteGroupBuilder builder) { }
+        public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder RequireAntiforgery(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder builder, bool allowBearer) { }
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder RequireAntiforgery(this Microsoft.AspNetCore.Routing.RouteGroupBuilder builder, bool allowBearer) { }
+    }
+    public sealed class AuthEndpointsAntiforgeryOptions
+    {
+        public AuthEndpointsAntiforgeryOptions() { }
+        public System.Collections.Generic.IList<string> BearerSchemes { get; }
     }
     public static class AuthEndpointsAuthorizationExtensions
     {

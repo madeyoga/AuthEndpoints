@@ -103,7 +103,7 @@ Load only the file the task needs. Each one is self-contained.
 | --- | --- |
 | Every password facade route, its auth, CSRF, ReAuth, and rate limit | [references/routes.md](references/routes.md) |
 | JWT session, refresh rotation, refresh transport, signing keys | [references/jwt.md](references/jwt.md) |
-| Antiforgery token, header, and the bearer-header skip rule | [references/csrf.md](references/csrf.md) |
+| Antiforgery token, header, the bearer-header skip rule, `BearerSchemes`, and `allowBearer: false` | [references/csrf.md](references/csrf.md) |
 | Passkey routes, user ids, and completers | [references/passkeys.md](references/passkeys.md) |
 | ReAuth step-up, `reauthToken`, `.RequireReauth()` | [references/reauth.md](references/reauth.md) |
 | Email-code sign-in, magic link, email-code step-up | [references/email-code.md](references/email-code.md) |
