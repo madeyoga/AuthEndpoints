@@ -43,6 +43,10 @@
         public System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken) { }
         public System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken) { }
     }
+    public static class OAuthAuthorizationPolicyBuilderExtensions
+    {
+        public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthAudience(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, string audience) { }
+    }
     public sealed record OAuthCleanupResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthCleanupResult>
     {
         public OAuthCleanupResult(int UnusedClients, int ExpiredRequests, long Tokens, long Authorizations, int OrphanedDeveloperApps = 0) { }
@@ -353,6 +357,7 @@
     public sealed class OAuthServerOptions
     {
         public OAuthServerOptions() { }
+        public System.Collections.Generic.IList<string> AcceptedAudiences { get; }
         public System.TimeSpan AccessTokenLifetime { get; set; }
         public System.Collections.Generic.IList<string> AdditionalResources { get; }
         public bool AlwaysIssueRefreshToken { get; set; }

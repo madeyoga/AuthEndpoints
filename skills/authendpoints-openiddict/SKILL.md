@@ -108,7 +108,7 @@ To turn off the consent API or developer apps, move their prefixes, or call the 
 
 ## Protect your API with the issued tokens
 
-The package registers OpenIddict validation for this host. It accepts only tokens whose audience is `Audience`.
+The package registers OpenIddict validation for this host. By default it accepts only tokens whose audience is `Audience`.
 
 ```csharp
 builder.Services.AddAuthorization(options => options.AddPolicy("api", policy => policy
@@ -120,6 +120,8 @@ app.MapGet("/api/me", (ClaimsPrincipal user) => user.FindFirst("sub")?.Value)
 ```
 
 Access tokens are reference tokens, validated against this server's database. APIs in other processes are not supported yet (that needs introspection or JWT access tokens, see [Limitations](#limitations)).
+
+To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource).
 
 ## Read the reference for the task
 
