@@ -50,8 +50,11 @@ internal static class OAuthRegistrationEndpoint
             }
         }
 
-        // OpenID Connect RP-Initiated Logout metadata. Ignored, as unknown metadata is, without the openid scope.
-        var postLogout = settings.OpenIdConnectEnabled ? body.PostLogoutRedirectUris ?? [] : [];
+        var scopes = settings.DynamicRegistrationScopes();
+        var openId = scopes.Contains(OAuthServerConstants.OpenIdScope, StringComparer.Ordinal);
+
+        // OpenID Connect RP-Initiated Logout metadata. Ignored, as unknown metadata is, when the client may not use openid.
+        var postLogout = openId ? body.PostLogoutRedirectUris ?? [] : [];
         if (postLogout.Length > registration.MaxRedirectUris)
         {
             return Error("invalid_client_metadata", $"post_logout_redirect_uris is limited to {registration.MaxRedirectUris} entries.");
@@ -89,6 +92,11 @@ internal static class OAuthRegistrationEndpoint
             {
                 return Error("invalid_client_metadata", $"The scope '{item}' is not supported.");
             }
+
+            if (!settings.AllowsDynamicRegistrationScope(item))
+            {
+                return Error("invalid_client_metadata", $"The scope '{item}' is not available to dynamically registered clients.");
+            }
         }
 
         var clientName = string.IsNullOrWhiteSpace(body.ClientName)
@@ -117,7 +125,7 @@ internal static class OAuthRegistrationEndpoint
             descriptor.PostLogoutRedirectUris.Add(new Uri(redirect));
         }
 
-        OAuthClientPermissions.AddCodeFlow(descriptor, settings.Scopes, settings.AllResources());
+        OAuthClientPermissions.AddCodeFlow(descriptor, scopes, settings.AllResources());
         descriptor.Settings[OAuthServerConstants.CreatedAtSetting] = now.ToString("O", CultureInfo.InvariantCulture);
         await applications.CreateAsync(descriptor, cancellationToken);
 

@@ -129,6 +129,14 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             Positive(failures, registration.UnusedClientLifetime, "DynamicRegistration.UnusedClientLifetime");
         }
 
+        foreach (var scope in registration.AllowedScopes)
+        {
+            if (!all.Contains(scope))
+            {
+                failures.Add($"DynamicRegistration.AllowedScopes entry '{scope}' is not in OAuthServerOptions.Scopes.");
+            }
+        }
+
         if (options.DeveloperApps.MaxAppsPerUser < 1 || options.DeveloperApps.MaxRedirectUris < 1)
         {
             failures.Add("DeveloperApps.MaxAppsPerUser and MaxRedirectUris must be at least 1.");

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using OpenIddict.Abstractions;
 using static AuthEndpoints.OpenIddict.Tests.OAuthTestHost;
@@ -97,6 +98,61 @@ public sealed class OAuthRegistrationTests
         Assert.NotNull(await applications.FindByClientIdAsync(kept.ClientId));
         Assert.NotNull(await applications.FindByClientIdAsync(SeededClientId));
         Assert.Equal(HttpStatusCode.NotFound, (await user.GetAsync($"/oauth/requests/{consent}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Allowed_scopes_keep_first_party_scopes_from_registered_clients()
+    {
+        await using var host = await StartAsync(options =>
+        {
+            options.Scopes.Add("account");
+            options.DefaultScopes.Add("account");
+            options.DynamicRegistration.AllowedScopes.Add("api");
+            var desktop = new OAuthClientDefinition { ClientId = "desktop", DisplayName = "Desktop" };
+            desktop.RedirectUris.Add(Loopback);
+            desktop.Scopes.Add("api");
+            desktop.Scopes.Add("account");
+            options.Clients.Add(desktop);
+        });
+        using var anon = host.Client(cookies: false);
+        var (user, _) = await host.UserAsync("allowed");
+
+        var rejected = await Register(anon, new { redirect_uris = new[] { Loopback }, scope = "api account" });
+        await AssertProtocolAsync(rejected, "invalid_client_metadata");
+        Assert.Contains("account", await rejected.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        // offline_access is always available.
+        var client = await host.RegisterAsync("Third party", scope: "api offline_access");
+        // OpenIddict's own scope permission check rejects it, as invalid_request.
+        var asked = await user.GetAsync(AuthorizeUrl(client.ClientId, client.RedirectUri, Pkce.Create().Challenge, scope: "api account"));
+        Assert.Contains(await AuthorizeErrorAsync(asked), new[] { "invalid_request", "invalid_scope" });
+
+        // With no scope, default scopes the client may not hold are left out.
+        var pkce = Pkce.Create();
+        var id = await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, pkce.Challenge, scope: null);
+        var tokens = await ReadTokenAsync(await TokenAsync(anon, CodeGrant(client, (await ApproveAsync(user, id))["code"], pkce.Verifier)));
+        var me = await (await host.CallApiAsync(tokens.AccessToken)).Content.ReadFromJsonAsync<JsonElement>();
+        var scopes = me.GetProperty("scopes").EnumerateArray().Select(item => item.GetString()).ToArray();
+        Assert.Contains("api", scopes);
+        Assert.DoesNotContain("account", scopes);
+
+        // A configured first-party client still gets the scope.
+        await OAuthTestHost.StartAsync(user, "desktop", Loopback, Pkce.Create().Challenge, scope: "api account");
+    }
+
+    [Fact]
+    public async Task Allowed_scopes_also_hold_clients_registered_before_them()
+    {
+        await using var host = await StartAsync(options => options.Scopes.Add("account"));
+        var (user, _) = await host.UserAsync("earlier");
+        var client = await host.RegisterAsync("Earlier", scope: "api account");
+        await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge, scope: "api account");
+
+        host.Services.GetRequiredService<IOptions<OAuthServerOptions>>().Value.DynamicRegistration.AllowedScopes.Add("api");
+
+        var asked = await user.GetAsync(AuthorizeUrl(client.ClientId, client.RedirectUri, Pkce.Create().Challenge, scope: "api account"));
+        Assert.Equal("invalid_scope", await AuthorizeErrorAsync(asked));
+        await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge, scope: "api");
     }
 
     private static Task<HttpResponseMessage> Register(HttpClient anon, object body)

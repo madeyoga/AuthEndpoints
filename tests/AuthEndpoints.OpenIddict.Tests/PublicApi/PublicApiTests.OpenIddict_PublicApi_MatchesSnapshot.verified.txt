@@ -213,6 +213,7 @@
     public sealed class OAuthDynamicRegistrationOptions
     {
         public OAuthDynamicRegistrationOptions() { }
+        public System.Collections.Generic.IList<string> AllowedScopes { get; }
         public bool Enabled { get; set; }
         public int MaxClientNameLength { get; set; }
         public int MaxRedirectUris { get; set; }

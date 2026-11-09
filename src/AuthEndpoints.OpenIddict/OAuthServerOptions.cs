@@ -139,6 +139,18 @@ public sealed class OAuthServerOptions
 
     internal IEnumerable<string> AllScopes()
         => Scopes.Append(OAuthServerConstants.OfflineAccessScope).Distinct(StringComparer.Ordinal);
+
+    /// <summary>The scopes a dynamically registered client may hold: <see cref="OAuthDynamicRegistrationOptions.AllowedScopes"/>, or all of <see cref="Scopes"/>.</summary>
+    internal IReadOnlyList<string> DynamicRegistrationScopes()
+        => DynamicRegistration.AllowedScopes.Count == 0
+            ? Scopes.Distinct(StringComparer.Ordinal).ToList()
+            : DynamicRegistration.AllowedScopes.Where(scope => scope != OAuthServerConstants.OfflineAccessScope).Distinct(StringComparer.Ordinal).ToList();
+
+    /// <summary>Whether a dynamically registered client may request <paramref name="scope"/>.</summary>
+    internal bool AllowsDynamicRegistrationScope(string scope)
+        => scope == OAuthServerConstants.OfflineAccessScope
+            || DynamicRegistration.AllowedScopes.Count == 0
+            || DynamicRegistration.AllowedScopes.Contains(scope, StringComparer.Ordinal);
 }
 
 /// <summary>Where the server gets its signing and encryption keys.</summary>
@@ -180,6 +192,15 @@ public sealed class OAuthDynamicRegistrationOptions
 
     /// <summary>Most redirect URIs one registration may list. Default 10.</summary>
     public int MaxRedirectUris { get; set; } = 10;
+
+    /// <summary>
+    /// The scopes a dynamically registered client may request. Each must be in <see cref="OAuthServerOptions.Scopes"/>.
+    /// Empty (the default) allows all of them. List the third-party scopes here to keep first-party scopes,
+    /// such as one that acts as the user's whole account, to <see cref="OAuthServerOptions.Clients"/> and developer apps.
+    /// <c>offline_access</c> is always allowed. Clients registered earlier are held to this list too, at
+    /// <c>/connect/authorize</c>. Add <c>openid</c> to let them use OpenID Connect.
+    /// </summary>
+    public IList<string> AllowedScopes { get; } = new List<string>();
 }
 
 /// <summary>Limits for developer apps, the OAuth clients that signed-in users register and own.</summary>
