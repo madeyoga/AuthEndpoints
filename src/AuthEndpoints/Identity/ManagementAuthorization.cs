@@ -25,8 +25,6 @@ internal static class SignInSchemes
 
     public static string Application => Primary[0];
 
-    public static IEnumerable<string> Bearer => Primary.Skip(1);
-
     public static bool IsPrimaryIdentity(ClaimsIdentity identity)
     {
         if (!identity.IsAuthenticated || string.IsNullOrEmpty(identity.AuthenticationType))

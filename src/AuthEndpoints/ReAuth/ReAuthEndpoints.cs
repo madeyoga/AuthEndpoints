@@ -198,30 +198,14 @@ public static class ReAuthEndpoints<TUser>
 
     /// <summary>
     /// Cookie sign-ins receive the ReAuth cookie and <c>reauthToken</c>.
-    /// A caller authenticated with <c>Authorization: Bearer</c> receives the token only.
+    /// A caller authenticated with <c>Authorization: Bearer</c> and a scheme in
+    /// <see cref="AuthEndpointsAntiforgeryOptions.BearerSchemes"/> receives the token only,
+    /// the same rule that lets <c>RequireAntiforgery()</c> skip the CSRF check.
     /// Identity bearer principals use the application identity type, so this checks schemes.
     /// </summary>
     private static async Task<bool> ShouldIssueReAuthCookieAsync(HttpContext context)
     {
-        if (await SignInSchemes.IsAuthenticatedAsync(context, SignInSchemes.Application))
-        {
-            return true;
-        }
-
-        if (!SignInSchemes.HasBearerAuthorizationHeader(context.Request))
-        {
-            return true;
-        }
-
-        foreach (var scheme in SignInSchemes.Bearer)
-        {
-            if (await SignInSchemes.IsAuthenticatedAsync(context, scheme))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return !await BearerRequest.IsHeaderBearerOnlyAsync(context);
     }
 
     private static async Task<Claim[]> CreateProofClaimsAsync(

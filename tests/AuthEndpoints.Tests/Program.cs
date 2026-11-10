@@ -377,13 +377,22 @@ static void MapTestOnlyEndpoints(WebApplication app)
 
     app.MapGet("/test/reauth", () => Results.Ok()).RequireReauth();
 
+    var testAuthSchemes =
+        $"{JwtBearerDefaults.AuthenticationScheme},{IdentityConstants.BearerScheme},{IdentityConstants.ApplicationScheme}";
+
     app.MapPost("/test/csrf-auth", () => Results.Ok())
-        .RequireAuthorization(new AuthorizeAttribute
-        {
-            AuthenticationSchemes =
-                $"{JwtBearerDefaults.AuthenticationScheme},{IdentityConstants.BearerScheme},{IdentityConstants.ApplicationScheme}"
-        })
+        .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = testAuthSchemes })
         .RequireAntiforgery();
+
+    // Token always required, even for an Authorization: Bearer caller.
+    app.MapPost("/test/csrf-auth-strict", () => Results.Ok())
+        .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = testAuthSchemes })
+        .RequireAntiforgery(allowBearer: false);
+
+    var strictGroup = app.MapGroup("/test/csrf-strict-group")
+        .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = testAuthSchemes })
+        .RequireAntiforgery(allowBearer: false);
+    strictGroup.MapPost("/", () => Results.Ok());
 
     app.MapGet("/test/mailbox", (CapturingEmailSender mailbox) => Results.Ok(mailbox.Snapshot()));
 
