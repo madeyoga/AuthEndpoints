@@ -47,9 +47,7 @@ public static class AntiforgeryRouteBuilderExtensions
     {
         // Filter-only for the framework metadata: do not attach ValidationRequired, otherwise
         // UseAntiforgery rejects before the bearer-skip logic in the filter runs.
-        builder.WithMetadata(allowBearer
-            ? AuthEndpointsAntiforgeryMetadata.Instance
-            : AuthEndpointsAntiforgeryMetadata.TokenAlwaysRequired);
+        builder.WithMetadata(AuthEndpointsAntiforgeryMetadata.Instance);
         return allowBearer
             ? builder.AddEndpointFilter<EnforceAntiforgeryEndpointFilters>()
             : builder.AddEndpointFilter<TokenAlwaysRequiredAntiforgeryEndpointFilter>();
@@ -64,9 +62,7 @@ public static class AntiforgeryRouteBuilderExtensions
     /// <inheritdoc cref="RequireAntiforgery(RouteHandlerBuilder, bool)"/>
     public static RouteGroupBuilder RequireAntiforgery(this RouteGroupBuilder builder, bool allowBearer)
     {
-        builder.WithMetadata(allowBearer
-            ? AuthEndpointsAntiforgeryMetadata.Instance
-            : AuthEndpointsAntiforgeryMetadata.TokenAlwaysRequired);
+        builder.WithMetadata(AuthEndpointsAntiforgeryMetadata.Instance);
         return allowBearer
             ? builder.AddEndpointFilter<EnforceAntiforgeryEndpointFilters>()
             : builder.AddEndpointFilter<TokenAlwaysRequiredAntiforgeryEndpointFilter>();
@@ -76,16 +72,11 @@ public static class AntiforgeryRouteBuilderExtensions
 // Not IAntiforgeryMetadata: UseAntiforgery validates before the endpoint filter can skip bearer calls.
 internal sealed class AuthEndpointsAntiforgeryMetadata
 {
-    public static readonly AuthEndpointsAntiforgeryMetadata Instance = new(allowBearer: true);
+    public static readonly AuthEndpointsAntiforgeryMetadata Instance = new();
 
-    public static readonly AuthEndpointsAntiforgeryMetadata TokenAlwaysRequired = new(allowBearer: false);
-
-    private AuthEndpointsAntiforgeryMetadata(bool allowBearer)
+    private AuthEndpointsAntiforgeryMetadata()
     {
-        AllowBearer = allowBearer;
     }
-
-    public bool AllowBearer { get; }
 }
 
 public class EnforceAntiforgeryEndpointFilters : IEndpointFilter
