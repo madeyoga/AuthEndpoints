@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -158,6 +159,24 @@ public class AntiforgeryBearerSchemesTests : IClassFixture<TestWebApplicationFac
 
         var strict = await client.PostAsync(path, content: null);
         await AssertCsrfRejectedAsync(strict);
+    }
+
+    // The metadata records which mode a route was mapped with, so a route's strictness can be read without calling it.
+    [Theory]
+    [InlineData("/test/csrf-auth", true)]
+    [InlineData("/test/csrf-auth-strict", false)]
+    [InlineData("/test/csrf-strict-group/", false)]
+    public void RouteMetadata_RecordsAllowBearer(string path, bool allowBearer)
+    {
+        using var client = _factory.CreateClient();
+        var endpoint = _factory.Services.GetServices<EndpointDataSource>()
+            .SelectMany(source => source.Endpoints)
+            .OfType<RouteEndpoint>()
+            .Single(route => route.RoutePattern.RawText == path);
+
+        var metadata = endpoint.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>();
+        Assert.NotNull(metadata);
+        Assert.Equal(allowBearer, metadata.AllowBearer);
     }
 
     [Theory]
