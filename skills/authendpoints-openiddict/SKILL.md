@@ -123,6 +123,8 @@ Access tokens are reference tokens, validated against this server's database. AP
 
 To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource).
 
+Only `Authorization: Bearer` is read. The query string and form body are not (a breaking change from earlier builds). For SignalR or WebSocket hubs, add their prefix to `QueryStringTokenPaths`; see [references/settings.md](references/settings.md#where-the-token-is-read-from).
+
 ## Read the reference for the task
 
 Load only the file the task needs. Each one is self-contained.
@@ -134,7 +136,7 @@ Load only the file the task needs. Each one is self-contained.
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
 | Turn on OpenID Connect: ID tokens, the `email`, `email_verified`, and `amr` claims, `userinfo`, logout, and post-logout redirect URIs | [references/openid-connect.md](references/openid-connect.md) |
-| Every option, certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
+| Every option, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
 
 ## Limitations
 

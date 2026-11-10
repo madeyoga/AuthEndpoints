@@ -293,7 +293,7 @@ public sealed class OAuthOptionsTests
         }
     }
 
-    private static OAuthServerOptions Valid()
+    internal static OAuthServerOptions Valid()
     {
         var options = new OAuthServerOptions
         {

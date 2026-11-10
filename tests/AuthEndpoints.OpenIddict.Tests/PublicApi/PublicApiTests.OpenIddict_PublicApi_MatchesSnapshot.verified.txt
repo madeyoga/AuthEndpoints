@@ -382,6 +382,7 @@
         public string? LogoutUrl { get; set; }
         public AuthEndpoints.OpenIddict.OAuthProtectedResourceOptions ProtectedResource { get; }
         public System.TimeSpan PruneAfter { get; set; }
+        public System.Collections.Generic.IList<string> QueryStringTokenPaths { get; }
         public System.TimeSpan RefreshTokenLifetime { get; set; }
         public bool RevalidateUser { get; set; }
         public System.Collections.Generic.IList<string> Scopes { get; }
