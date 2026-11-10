@@ -19,16 +19,26 @@ public sealed class OAuthServerOptions
 
     /// <summary>
     /// The resource indicator (RFC 8707) stamped into access tokens as their audience when the client
-    /// does not send <c>resource</c>. This host's token validation accepts only this audience. Required.
+    /// does not send <c>resource</c>. This host's token validation always accepts this audience, and by default
+    /// only this one (see <see cref="AcceptedAudiences"/>). Required.
     /// Use an absolute URI, for example <c>https://api.example.com/</c>.
     /// </summary>
     public string? Audience { get; set; }
 
     /// <summary>
     /// Other resource indicators a client may request. Tokens for them are not accepted by this host's
-    /// own validation (only <see cref="Audience"/> is). Use this when other APIs validate the tokens.
+    /// own validation unless they are also in <see cref="AcceptedAudiences"/>. Use this when other APIs validate the tokens.
     /// </summary>
     public IList<string> AdditionalResources { get; } = new List<string>();
+
+    /// <summary>
+    /// Entries of <see cref="AdditionalResources"/> that this host's own token validation also accepts, for a host
+    /// that serves more than one resource itself. Each must be a configured resource. <see cref="Audience"/> is always
+    /// accepted. Empty (the default) accepts only <see cref="Audience"/>. Once this has entries, a token for any of them
+    /// passes <c>ValidationScheme</c>, so check the audience on each route, for example with
+    /// <c>RequireOAuthAudience</c>, or a token meant for one resource can call another.
+    /// </summary>
+    public IList<string> AcceptedAudiences { get; } = new List<string>();
 
     /// <summary>
     /// Scopes clients may request. <c>offline_access</c> is always registered. Add <c>openid</c> to turn on
@@ -133,6 +143,10 @@ public sealed class OAuthServerOptions
 
     internal IEnumerable<string> AllResources()
         => (Audience is null ? [] : new[] { Audience }).Concat(AdditionalResources).Distinct(StringComparer.Ordinal);
+
+    /// <summary>The audiences this host's token validation accepts: <see cref="Audience"/> and <see cref="AcceptedAudiences"/>.</summary>
+    internal IEnumerable<string> ValidationAudiences()
+        => (Audience is null ? [] : new[] { Audience }).Concat(AcceptedAudiences).Distinct(StringComparer.Ordinal);
 
     /// <summary>OpenID Connect is on when the host registers the <c>openid</c> scope.</summary>
     internal bool OpenIdConnectEnabled => Scopes.Contains(OAuthServerConstants.OpenIdScope, StringComparer.Ordinal);

@@ -5,8 +5,9 @@
 | Option | Default | |
 | --- | --- | --- |
 | `Issuer` | required | Absolute; `https` unless `DisableTransportSecurityRequirement`. Use the app root (`https://host/`), or the app's `PathBase`. |
-| `Audience` | required | Default resource and the only audience this host accepts. |
-| `AdditionalResources` | empty | Other resources clients may request (validated elsewhere). |
+| `Audience` | required | Default resource. This host always accepts it. |
+| `AdditionalResources` | empty | Other resources clients may request. Rejected by this host unless also in `AcceptedAudiences`. |
+| `AcceptedAudiences` | empty | Resources (`Audience` or `AdditionalResources` entries) this host's validation also accepts. Check `aud` per route, see [One host, more than one resource](#one-host-more-than-one-resource). |
 | `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. Add `openid` for [OpenID Connect](openid-connect.md), and `email` for the email claims. |
 | `AlwaysIssueRefreshToken` | `true` | Adds `offline_access` when the client has the refresh grant. |
 | `LoginUrl`, `LoginReturnUrlParameter` | required, `returnUrl` | |
@@ -25,6 +26,33 @@
 | `IgnoreResourcePermissions` | `false` | Skips per-client `rsrc:` permissions. |
 
 The fixed routes are in `OAuthServerConstants`. Anything else can be set on `OAuthServerBuilder.OpenIddict`.
+
+## One host, more than one resource
+
+A token's audience is the resource the client asked for at `/connect/authorize` (one per request), or `Audience` when it sent none. To let this host accept tokens for some of its `AdditionalResources` too, list them in `AcceptedAudiences`. Each entry must be `Audience` or in `AdditionalResources`, or startup fails. Resources left out of `AcceptedAudiences` stay rejected here, so keep resources that only other APIs serve in `AdditionalResources` alone.
+
+Once `AcceptedAudiences` has entries, `ValidationScheme` lets a token for any accepted audience through, and a policy that only requires an authenticated user no longer tells them apart. Check the audience on each route. `RequireOAuthAudience` authenticates with `ValidationScheme` and requires the token's `aud` to contain the given resource:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+{
+    options.Audience = "https://auth.example.com/api";
+    options.AdditionalResources.Add("https://auth.example.com/mcp");
+    options.AcceptedAudiences.Add("https://auth.example.com/mcp");
+    // ...
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("api", policy => policy.RequireOAuthAudience("https://auth.example.com/api"));
+    options.AddPolicy("mcp", policy => policy.RequireOAuthAudience("https://auth.example.com/mcp"));
+});
+
+app.MapGroup("/api").RequireAuthorization("api");
+app.MapGroup("/mcp").RequireAuthorization("mcp");
+```
+
+A token for `/mcp` then gets `403` from `/api`, and the other way round. Protected resource metadata still describes `Audience` only.
 
 ## Certificates
 

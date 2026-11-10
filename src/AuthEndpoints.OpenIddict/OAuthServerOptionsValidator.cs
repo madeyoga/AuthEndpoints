@@ -39,6 +39,15 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        var configuredResources = options.AllResources().ToHashSet(StringComparer.Ordinal);
+        foreach (var audience in options.AcceptedAudiences)
+        {
+            if (!configuredResources.Contains(audience))
+            {
+                failures.Add($"AcceptedAudiences entry '{audience}' is not Audience or in AdditionalResources.");
+            }
+        }
+
         foreach (var scope in options.Scopes)
         {
             if (string.IsNullOrWhiteSpace(scope) || scope.Any(char.IsWhiteSpace) || scope.Contains('"') || scope.Contains('\\'))

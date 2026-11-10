@@ -255,9 +255,12 @@ public static class OAuthServerServiceCollectionExtensions
             .Configure<IOptions<OAuthServerOptions>, IServiceProvider>((validation, oauth, provider) =>
             {
                 validation.TimeProvider = provider.GetRequiredService<TimeProvider>();
-                if (!string.IsNullOrEmpty(oauth.Value.Audience))
+                foreach (var audience in oauth.Value.ValidationAudiences())
                 {
-                    validation.Audiences.Add(oauth.Value.Audience);
+                    if (!string.IsNullOrEmpty(audience))
+                    {
+                        validation.Audiences.Add(audience);
+                    }
                 }
             })
             .PostConfigure(validation => validation.TokenValidationParameters.ClockSkew = TimeSpan.Zero);
