@@ -49,6 +49,7 @@ public static class EmailCodeEndpoints<TUser>
         var user = await userManager.FindByEmailAsync(email);
         string? userId = null;
         string? stamp = null;
+        string? storedEmail = null;
         var eligible = false;
         var purpose = EmailCodePurpose.SignIn;
         var rememberSignupEmail = false;
@@ -65,6 +66,12 @@ public static class EmailCodeEndpoints<TUser>
         {
             userId = await userManager.GetUserIdAsync(user);
             eligible = !await IsSendIneligibleAsync(userManager, user, options);
+            if (eligible)
+            {
+                storedEmail = await userManager.GetEmailAsync(user);
+                eligible = !string.IsNullOrEmpty(storedEmail);
+            }
+
             if (eligible)
             {
                 stamp = await userManager.GetSecurityStampAsync(user);
@@ -126,7 +133,7 @@ public static class EmailCodeEndpoints<TUser>
             var sender = services.GetRequiredService<IEmailCodeSender<TUser>>();
             await sender.SendSignInCodeAsync(new EmailCodeMessage<TUser>
             {
-                Email = email,
+                Email = user is null ? email : storedEmail!,
                 User = user,
                 Code = issued.Code,
                 LinkUrl = EmailCodeLinks.CreateUrl(options.MagicLink, issued.LinkToken),

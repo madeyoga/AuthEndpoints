@@ -343,8 +343,16 @@ public class IdentityApiEndpoints<TUser>
         var encoded = HtmlEncoder.Default.Encode(code);
         if (sendReset)
         {
-            var emailSender = sp.GetRequiredService<IEmailSender<TUser>>();
-            await emailSender.SendPasswordResetCodeAsync(user!, email!, encoded);
+            var storedEmail = await userManager.GetEmailAsync(user!);
+            if (!string.IsNullOrEmpty(storedEmail))
+            {
+                var emailSender = sp.GetRequiredService<IEmailSender<TUser>>();
+                await emailSender.SendPasswordResetCodeAsync(user!, storedEmail, encoded);
+            }
+            else
+            {
+                EnumerationPadding.Protect(dataProtection, "unknown");
+            }
         }
 
         // Don't reveal that the user does not exist or is not confirmed.
