@@ -1,6 +1,6 @@
 # Developer apps
 
-Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthServer()` maps a JSON API for your developer console page (or `MapOAuthDeveloperAppEndpoints()` without the recipe; `parts.DeveloperApps = false` turns it off). Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token for cookie callers, as the consent API does.
+Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthServer()` maps a JSON API for your developer console page (or `MapOAuthDeveloperAppEndpoints()` without the recipe; `parts.DeveloperApps = false` turns it off). Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token from every caller, as the consent API does.
 
 | Route | |
 | --- | --- |

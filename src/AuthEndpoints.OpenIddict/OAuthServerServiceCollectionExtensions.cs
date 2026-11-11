@@ -1,3 +1,4 @@
+using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -140,6 +141,15 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
         services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<,>).MakeGenericType(typeof(TContext), keyType));
         services.AddHostedService<OAuthServerCleanupService>();
+        // An OAuth access token arrives in Authorization: Bearer, so RequireAntiforgery() lets it skip the CSRF check
+        // like Identity bearer and JWT. Routes a token must never call use RequireAntiforgery(allowBearer: false).
+        services.Configure<AuthEndpointsAntiforgeryOptions>(antiforgery =>
+        {
+            if (!antiforgery.BearerSchemes.Contains(ValidationScheme))
+            {
+                antiforgery.BearerSchemes.Add(ValidationScheme);
+            }
+        });
 
         var openIddict = services.AddOpenIddict()
             .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<TContext>())

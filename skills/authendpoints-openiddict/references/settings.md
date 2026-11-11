@@ -75,6 +75,17 @@ Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/
 
 **Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
 
+### CSRF on routes that take a token
+
+`AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerServiceCollectionExtensions.ValidationScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
+
+Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call on its own, such as your own consent approval or account deletion. The package's consent and developer app writes already do. To check every OAuth caller again, take the scheme back out after registering the server:
+
+```csharp
+builder.Services.PostConfigure<AuthEndpointsAntiforgeryOptions>(options =>
+    options.BearerSchemes.Remove(OAuthServerServiceCollectionExtensions.ValidationScheme));
+```
+
 ## Certificates
 
 Set exactly one source in `options.Certificates`:

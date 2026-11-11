@@ -205,6 +205,17 @@ Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/
 
 **Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
 
+#### CSRF on routes that take a token
+
+`AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerServiceCollectionExtensions.ValidationScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
+
+Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call on its own, such as your own consent approval or account deletion. The package's consent and developer app writes already do. To check every OAuth caller again, take the scheme back out after registering the server:
+
+```csharp
+builder.Services.PostConfigure<AuthEndpointsAntiforgeryOptions>(options =>
+    options.BearerSchemes.Remove(OAuthServerServiceCollectionExtensions.ValidationScheme));
+```
+
 ## Clients
 
 ### Clients from configuration
@@ -242,7 +253,7 @@ A registered client that no user approved within `UnusedClientLifetime` (24 hour
 
 ### Developer apps
 
-Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthServer()` maps a JSON API for your developer console page (or `MapOAuthDeveloperAppEndpoints()` without the recipe; `parts.DeveloperApps = false` turns it off). Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token for cookie callers, as the consent API does.
+Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthServer()` maps a JSON API for your developer console page (or `MapOAuthDeveloperAppEndpoints()` without the recipe; `parts.DeveloperApps = false` turns it off). Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token from every caller, as the consent API does.
 
 | Route | |
 | --- | --- |
@@ -329,7 +340,7 @@ When the user is signed out, it redirects to:
 | `POST /oauth/requests/{id}/approve` | `{ redirectUrl }` with `code`, `state`, and `iss` |
 | `POST /oauth/requests/{id}/deny` | `{ redirectUrl }` with `error=access_denied` |
 
-The POSTs require a CSRF token for cookie callers (the same filter as other AuthEndpoints cookie routes). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
+The POSTs require a CSRF token from every caller, an OAuth access token included (`RequireAntiforgery(allowBearer: false)`). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
 
 The client is checked again when the user answers, because it can be deleted or edited, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, whose developer app is not `Active`, or whose redirect URI is no longer registered for the client (with the same loopback any-port rule as authorize), is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
 
@@ -396,7 +407,7 @@ app.MapPost("/api/oauth/requests/{id:guid}/approve", async (
     await db.SaveChangesAsync();
     await transaction.CommitAsync();
     return Results.Ok(new { redirectUrl = result.RedirectUrl });
-}).RequireAuthorization().RequireAntiforgery();
+}).RequireAuthorization().RequireAntiforgery(allowBearer: false);
 ```
 
 The service uses the scoped DbContext, so your transaction also covers the OpenIddict rows. Keep `RevokeAuthorizationAsync(authorizationId)` for a "disconnect app" button: it revokes the authorization and every token from it.
