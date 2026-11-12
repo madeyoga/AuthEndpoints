@@ -61,7 +61,7 @@ internal static class OAuthDeveloperAppEndpoints
             .Produces<OAuthDeveloperAppSecret>(StatusCodes.Status201Created)
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status409Conflict)
-            .RequireAntiforgery();
+            .RequireAntiforgery(allowBearer: false);
         group.MapGet("/{id:guid}", GetAsync)
             .WithName("GetOAuthDeveloperApp")
             .WithSummary("One of the signed-in user's OAuth apps")
@@ -73,20 +73,20 @@ internal static class OAuthDeveloperAppEndpoints
             .Produces<OAuthDeveloperAppInfo>()
             .ProducesValidationProblem()
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .RequireAntiforgery();
+            .RequireAntiforgery(allowBearer: false);
         group.MapDelete("/{id:guid}", DeleteAsync)
             .WithName("DeleteOAuthDeveloperApp")
             .WithSummary("Delete an OAuth app and revoke every token issued to it")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .RequireAntiforgery();
+            .RequireAntiforgery(allowBearer: false);
         group.MapPost("/{id:guid}/secret", RotateSecretAsync)
             .WithName("RotateOAuthDeveloperAppSecret")
             .WithSummary("Replace a confidential app's client secret. The new secret is returned once.")
             .Produces<OAuthDeveloperAppSecret>()
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .RequireAntiforgery();
+            .RequireAntiforgery(allowBearer: false);
         return group;
     }
 

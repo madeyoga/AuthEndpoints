@@ -58,13 +58,13 @@ internal static class OAuthConsentEndpoints
             .WithSummary("Approve the OAuth request and get the client redirect")
             .Produces<OAuthConsentRedirect>()
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .RequireAntiforgery();
+            .RequireAntiforgery(allowBearer: false);
         group.MapPost("/requests/{id:guid}/deny", DenyAsync)
             .WithName("DenyOAuthConsentRequest")
             .WithSummary("Deny the OAuth request and get the client redirect")
             .Produces<OAuthConsentRedirect>()
             .ProducesProblem(StatusCodes.Status404NotFound)
-            .RequireAntiforgery();
+            .RequireAntiforgery(allowBearer: false);
         return group;
     }
 
