@@ -12,6 +12,7 @@ minimumReleaseAgeExclude:
   - '@nuxt/vite-builder@4.5.2'
   - nuxt@4.5.2
   - '@nuxtjs/mcp-toolkit@0.21.0'
+  - '@nuxt/ui@4.12.2'
 overrides:
   '@babel/core@7': 7.29.7
   '@hono/node-server@1': 1.19.17
