@@ -20,7 +20,7 @@ Builds on [4.0.0-preview.2](/versions/openiddict-v4.0.0-preview.2). Work in prog
 
 ### Documentation
 
-- MCP server guide: pending.
+- **Guide: [Expose an MCP server with per-user OAuth](/guides/mcp-server-oauth).** One walk through the whole flow: protected resource metadata and the `401` challenge, client ID metadata documents or dynamic registration, the consent page with `clientHost` and `scopeDetails`, resource indicators, `AccessTokenClaims`, `RequireOAuthAudience`, the scope helpers, and disconnecting. The package README has a short version, and the skill has a new `references/mcp-server.md`.
 
 ### Packages
 
