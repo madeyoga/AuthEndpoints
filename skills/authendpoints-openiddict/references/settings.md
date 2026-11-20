@@ -80,7 +80,7 @@ builder.Services.AddAuthorization(options =>
 });
 ```
 
-`RequireOAuthScopeWhenDelegated` adds only the scope check. A caller without an OAuth access token (cookie, Identity bearer, JWT) passes it, and a token caller needs every listed scope, even when the same request also carries a valid cookie. It adds no scheme, so list `ValidationScheme` in the policy, or the token is never read. Both helpers add an `OAuthScopeRequirement`, which you can also add to a policy you build by hand.
+`RequireOAuthScopeWhenDelegated` adds only the scope check. A caller without an OAuth access token (cookie, Identity bearer, JWT) passes it, and a token caller needs every listed scope, even when the same request also carries a valid cookie. It adds no scheme, so list `ValidationScheme` in the policy, or the token is never read. Both helpers add an `OAuthScopeRequirement`, which you can also add to a policy you build by hand. A role check on a shared route sees a token caller's roles only with `AccessTokenClaims.Roles` on; see [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens).
 
 For code that authorizes inside a service instead of on the endpoint, such as an MCP tool handler, use the `ClaimsPrincipal` helpers:
 
