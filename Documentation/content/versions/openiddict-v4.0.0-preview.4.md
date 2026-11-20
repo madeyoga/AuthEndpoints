@@ -12,6 +12,8 @@ Builds on [4.0.0-preview.3](/versions/openiddict-v4.0.0-preview.3). Work in prog
 
 ### Documentation
 
+- **Guide: [Bind a host context to an OAuth grant](/guides/oauth-grant-context).** Bind an organization, workspace, or region chosen at consent to the grant with `ApproveAsync(…, createPrincipal)`, read it from the token instead of the person's current context, and re-check membership at every refresh with a validator that wraps `IdentityOAuthUserValidator<TUser>`. The package tests run the guide's code (#460).
+
 ### Packages
 
 - **AuthEndpoints.OpenIddict** `4.0.0-preview.4`

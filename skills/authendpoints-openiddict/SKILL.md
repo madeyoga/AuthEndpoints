@@ -138,7 +138,7 @@ Load only the file the task needs. Each one is self-contained.
 
 | Task | File |
 | --- | --- |
-| Build the consent page, use the JSON consent API, approve from your own endpoint, or change the token subject | [references/consent.md](references/consent.md) |
+| Build the consent page, use the JSON consent API, approve from your own endpoint, change the token subject, or bind an organization or workspace chosen at consent to the grant | [references/consent.md](references/consent.md) |
 | Seed clients from configuration, accept client ID metadata documents, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
 | Expose an MCP server (or API) that AI assistants connect to as the signed-in person: discovery, client identification, consent, resource-bound tokens, roles, and scopes, end to end | [references/mcp-server.md](references/mcp-server.md) |

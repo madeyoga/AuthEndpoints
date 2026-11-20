@@ -134,6 +134,16 @@ app.MapPost("/api/oauth/requests/{id:guid}/approve", async (
 
 The service uses the scoped DbContext, so your transaction also covers the OpenIddict rows. Keep `RevokeAuthorizationAsync(authorizationId)` for a "disconnect app" button: it revokes the authorization and every token from it.
 
+## Bind a host context to the grant
+
+To keep a client in the organization, workspace, or region the person chose at consent, do not read the person's stored current context on token calls. Instead:
+
+1. Post the choice to your own approve endpoint. Check membership, then call `ApproveAsync(id, userId, createPrincipal)` and add a claim such as `org_id` with `SetDestinations(OpenIddictConstants.Destinations.AccessToken)`. It is kept in the refresh token, so every access token from the grant carries it.
+2. In the API, read the claim when `User.IsOAuthDelegated()`.
+3. To re-check membership at refresh, replace `IOAuthUserValidator` with a wrapper around `IdentityOAuthUserValidator<TUser>`. The validator gets `(userId, stamp)`, not the grant's claims, but `GetStampAsync` runs once inside `ApproveAsync` (read the choice from `IHttpContextAccessor`), and its value comes back to `IsValidAsync` on every code exchange and refresh. Store `organization|stamp` and check both. Register it with `services.Replace(ServiceDescriptor.Scoped<IOAuthUserValidator, …>())` after `AddOAuthServer`.
+
+The full, tested code is in the guide [Bind a host context to an OAuth grant](https://authendpoints.harten.id/guides/oauth-grant-context).
+
 ## Who is the token subject
 
 By default `sub` is the Identity user id. Replace it for every approval:
