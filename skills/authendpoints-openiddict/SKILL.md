@@ -3,7 +3,7 @@ name: authendpoints-openiddict
 description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional client ID metadata documents, dynamic registration, and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
-  version: "4.0.0-preview.2"
+  version: "4.0.0-preview.3"
 ---
 # Run an OAuth server with AuthEndpoints.OpenIddict
 
@@ -130,6 +130,8 @@ To require scopes, use `RequireOAuthScope(...)` on routes only OAuth clients cal
 
 Only `Authorization: Bearer` is read. The query string and form body are not (a breaking change from earlier builds). For SignalR or WebSocket hubs, add their prefix to `QueryStringTokenPaths`; see [references/settings.md](references/settings.md#where-the-token-is-read-from).
 
+A request with `Authorization: Bearer` gets `401` or `403` instead of the sign-in cookie's login or access-denied redirect, so refused token callers on routes that also read the cookie get a status code (`BearerRequestsSkipCookieRedirects`, on by default); see [references/settings.md](references/settings.md#token-callers-and-cookie-redirects).
+
 The validation scheme is added to `AuthEndpointsAntiforgeryOptions.BearerSchemes`, so `RequireAntiforgery()` lets an OAuth token in the header skip the CSRF check. Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call; see [references/settings.md](references/settings.md#csrf-on-routes-that-take-a-token).
 
 ## Read the reference for the task
@@ -155,6 +157,7 @@ This is a preview. These are known gaps, not bugs. Do not promise these features
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](references/settings.md#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
+- **Client ID metadata documents are public clients only.** `private_key_jwt` with `jwks` or `jwks_uri` is not supported yet; a document that offers only that method is refused with `invalid_client`.
 - **Cookie sign-in only at the authorize step.** The user is read from `AuthenticationScheme` (the Identity cookie by default). Password, two-factor, passkey, and cookie-mode external sign-in all end with that cookie. A sign-in that is still waiting for a second factor, or an external sign-in that has not been completed, does not count.
 
 An OIDC client for AuthEndpoints (the other direction) is tracked separately in issue #380.

@@ -93,6 +93,16 @@ public sealed class OAuthServerOptions
     /// </summary>
     public string AuthenticationScheme { get; set; } = IdentityConstants.ApplicationScheme;
 
+    /// <summary>
+    /// When a request carries <c>Authorization: Bearer</c>, make the Identity application cookie (and
+    /// <see cref="AuthenticationScheme"/>) answer <c>401</c> instead of redirecting to the login page and <c>403</c> instead of
+    /// redirecting to the access-denied page. A token caller refused on a route that also reads the cookie then gets a status
+    /// code it can act on. Requests without the header, such as browser navigation, keep the cookie's own behavior, and the
+    /// host's cookie events are still called for them. An app that sets <c>EventsType</c> keeps it: its events are resolved
+    /// per request as before. Default <see langword="true"/>.
+    /// </summary>
+    public bool BearerRequestsSkipCookieRedirects { get; set; } = true;
+
     /// <summary>Claim on the signed-in principal that holds the user id. Default <see cref="ClaimTypes.NameIdentifier"/>.</summary>
     public string UserIdClaimType { get; set; } = ClaimTypes.NameIdentifier;
 
