@@ -16,7 +16,7 @@ Builds on [4.0.0-preview.2](/versions/openiddict-v4.0.0-preview.2). Work in prog
 
 - Client ID metadata documents: pending.
 
-- **Scope descriptions on the consent card.** `ScopeDefinitions` gives each scope a display name and description, optionally per culture (`DisplayNames`, `Descriptions`), in code or `appsettings`. `GET /oauth/requests/{id}` keeps `scopes` as a list of names and adds `scopeDetails: [{ name, displayName, description }]` in the same order, resolved for the request culture with parent-culture fallback. `OAuthPendingRequest.ScopeDetails` carries the same list (#448).
+- **Scope descriptions on the consent card.** `ScopeDefinitions` gives each scope a display name and description, optionally per culture (`DisplayNames`, `Descriptions`), in code or `appsettings`. `GET /oauth/requests/{id}` keeps `scopes` as a list of names and adds `scopeDetails: [{ name, displayName, description }]` in the same order, resolved for the request culture with parent-culture fallback. `OAuthPendingRequest.ScopeDetails` carries the same list. The text comes from a replaceable `IOAuthScopeDescriptions` (default: `ScopeDefinitions`; replace it with `AddScopeDescriptions<T>()`), so it can also come from a database or resource files. `scopes_supported` is unchanged (#448).
 
 ### Documentation
 

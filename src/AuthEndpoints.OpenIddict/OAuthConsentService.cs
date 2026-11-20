@@ -124,6 +124,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOptions<OAuthServerOptions> options,
     IOAuthDeveloperAppOwnerDisplay ownerDisplay,
     IOAuthUserProfiles profiles,
+    IOAuthScopeDescriptions scopeDescriptions,
     TimeProvider clock) : IOAuthConsentService
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -140,7 +141,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         var loaded = await LoadAsync(requestId, key, cancellationToken);
         return loaded is null || !await ClientUsableAsync(loaded.Request, cancellationToken)
             ? null
-            : WithScopeDetails(await ToPendingAsync(loaded, userId, cancellationToken));
+            : await WithScopeDetailsAsync(await ToPendingAsync(loaded, userId, cancellationToken), cancellationToken);
     }
 
     public Task<OAuthConsentResult> ApproveAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
@@ -174,7 +175,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         var http = httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("ApproveAsync must run inside an HTTP request.");
-        var pending = WithScopeDetails(await ToPendingAsync(loaded, userId, cancellationToken));
+        var pending = await WithScopeDetailsAsync(await ToPendingAsync(loaded, userId, cancellationToken), cancellationToken);
         var principal = await createPrincipal(new OAuthPrincipalContext(http, userId, pending));
         if (principal is null)
         {
@@ -377,11 +378,11 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         return false;
     }
 
-    /// <summary>Describes the scopes in the culture of the current request.</summary>
-    private OAuthPendingRequest WithScopeDetails(OAuthPendingRequest pending)
+    /// <summary>Describes the scopes in the culture of the current request, through <see cref="IOAuthScopeDescriptions"/>.</summary>
+    private async Task<OAuthPendingRequest> WithScopeDetailsAsync(OAuthPendingRequest pending, CancellationToken cancellationToken)
         => pending with
         {
-            ScopeDetails = OAuthScopeDescriptions.Describe(pending.Scopes, options.Value.ScopeDefinitions, CultureInfo.CurrentUICulture),
+            ScopeDetails = await scopeDescriptions.DescribeAsync(pending.Scopes, CultureInfo.CurrentUICulture, cancellationToken),
         };
 
     internal static string KeyToString(TKey key)

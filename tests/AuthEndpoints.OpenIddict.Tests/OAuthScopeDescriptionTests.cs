@@ -87,6 +87,38 @@ public sealed class OAuthScopeDescriptionTests
     }
 
     [Fact]
+    public async Task An_app_can_replace_where_the_descriptions_come_from()
+    {
+        await using var host = await StartAsync(Describe, map: Localize, server: builder => builder.AddScopeDescriptions<UpperCaseDescriptions>());
+        var (user, _) = await host.UserAsync("custom");
+        var client = await host.RegisterAsync();
+        var id = await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge);
+
+        var details = Details(await CardAsync(user, id, "fr"));
+        Assert.Equal([new Detail("api", "API", "fr"), new Detail("offline_access", "OFFLINE_ACCESS", "fr")], details);
+    }
+
+    [Fact]
+    public async Task A_service_registered_before_the_server_is_kept()
+    {
+        await using var host = await StartAsync(beforeServer: services => services.AddScoped<IOAuthScopeDescriptions, UpperCaseDescriptions>());
+        var (user, _) = await host.UserAsync("before");
+        var client = await host.RegisterAsync();
+        var id = await OAuthTestHost.StartAsync(user, client.ClientId, client.RedirectUri, Pkce.Create().Challenge);
+
+        Assert.Equal("API", Details(await user.GetFromJsonAsync<JsonElement>($"/oauth/requests/{id}"))[0].DisplayName);
+    }
+
+    /// <summary>Stands in for a database or resource-file source.</summary>
+    private sealed class UpperCaseDescriptions : IOAuthScopeDescriptions
+    {
+        public ValueTask<IReadOnlyList<OAuthScopeDetail>> DescribeAsync(
+            IReadOnlyList<string> scopes, CultureInfo culture, CancellationToken cancellationToken)
+            => ValueTask.FromResult<IReadOnlyList<OAuthScopeDetail>>(
+                scopes.Select(scope => new OAuthScopeDetail(scope, scope.ToUpperInvariant(), culture.TwoLetterISOLanguageName)).ToList());
+    }
+
+    [Fact]
     public void Definitions_bind_from_configuration()
     {
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
