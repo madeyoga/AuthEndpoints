@@ -18,6 +18,8 @@ Builds on 4.0.0-preview.2. Work in progress: each change adds its entry below.
 
 - Scope descriptions on the consent card: pending.
 
+- **No cookie redirects for token callers.** A request with `Authorization: Bearer` now gets `401` or `403` where the Identity application cookie would redirect to its login or access-denied page, so a token caller refused on a route that also reads the cookie gets a status code it can act on. The host's cookie events (and `EventsType`) still run for every other request. On by default; `BearerRequestsSkipCookieRedirects = false` turns it off.
+
 ### Documentation
 
 - MCP server guide: pending.

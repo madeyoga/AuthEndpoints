@@ -132,6 +132,8 @@ public static class OAuthServerServiceCollectionExtensions
         OAuthSignInMethodRegistration<TUser>.Register(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SecurityStampValidatorOptions>, OAuthSignInMethodCookieEvents>());
+        // A refused token caller gets 401 or 403 from the sign-in cookie, not a redirect. On unless BearerRequestsSkipCookieRedirects is off.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthBearerCookieRedirects>());
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
