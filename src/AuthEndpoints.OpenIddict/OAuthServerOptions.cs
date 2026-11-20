@@ -142,6 +142,12 @@ public sealed class OAuthServerOptions
     /// </summary>
     public OAuthAccessTokenClaimOptions AccessTokenClaims { get; } = new();
 
+    /// <summary>
+    /// Rate limit for <c>/connect/token</c> and <c>/connect/revoke</c>, per endpoint, client id, and IP address. A rejected
+    /// request gets <c>429</c> with the OAuth error <c>temporarily_unavailable</c> and <c>Retry-After</c>. Off by default.
+    /// </summary>
+    public OAuthTokenRateLimitOptions TokenRateLimit { get; } = new();
+
     /// <summary>Clients created or updated by <c>SeedOAuthClientsAsync</c>.</summary>
     public IList<OAuthClientDefinition> Clients { get; } = new List<OAuthClientDefinition>();
 

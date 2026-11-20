@@ -848,6 +848,41 @@ app.MapMcp("/mcp").RequireAuthorization("mcp"); // or your own MCP endpoint
 
 A scope never widens what the person may do: keep every route's existing role or policy check.
 
+## Rate limits
+
+OpenIddict serves `/connect/token` and `/connect/revoke` from its middleware, during `UseAuthentication`, so `RequireRateLimiting` cannot reach them. Turn on the built-in limit instead:
+
+```csharp
+options.TokenRateLimit.Enabled = true;       // default false
+options.TokenRateLimit.PermitLimit = 60;     // per endpoint, client id, and IP address
+options.TokenRateLimit.Window = TimeSpan.FromMinutes(1);
+```
+
+The check runs inside OpenIddict, after the request is parsed and before client authentication or any database read. A request over the limit gets an OAuth error with `429 Too Many Requests` and `Retry-After` (seconds):
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+
+{ "error": "temporarily_unavailable", "error_description": "Too many requests. Try again later." }
+```
+
+Requests without a `client_id` share one window per IP address. Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares the proxy's address. Many users behind one NAT who use the same configured client share a window too, so size `PermitLimit` for that: a client refreshes about once per `AccessTokenLifetime`.
+
+For another algorithm or partition, pass your own limiter. It replaces the built-in one and turns the limit on:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+    .AddTokenRateLimiter(_ => PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            $"{context.Endpoint}:{context.ClientId}",
+            _ => new TokenBucketRateLimiterOptions { TokenLimit = 20, TokensPerPeriod = 20, ReplenishmentPeriod = TimeSpan.FromMinutes(1) })));
+```
+
+`OAuthRateLimitContext` has the `HttpContext`, the `Endpoint` (`Token` or `Revocation`), and the `ClientId` as sent (not yet authenticated).
+
+Dynamic registration has its own limit (`DynamicRegistration.PermitsPerMinute`). `/connect/authorize` and the JSON APIs are endpoints, so `RequireRateLimiting` works on them: `MapOAuthServer` returns their groups (`oauth.Consent!.RequireRateLimiting("consent")`).
+
 ## Settings
 
 | Option | Default | |
@@ -874,6 +909,7 @@ A scope never widens what the person may do: keep every route's existing role or
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
 | `RecordLastUsed`, `LastUsedInterval` | off, 1 hour | Record when each grant was last used, at most once per interval. See [Last used](#last-used). |
+| `TokenRateLimit` | off; 60 per minute | Per endpoint, client id, and IP on `/connect/token` and `/connect/revoke`. `429` with `temporarily_unavailable` and `Retry-After`. See [Rate limits](#rate-limits). |
 | `AccessTokenClaims` | off | `Roles` and `UserId` add the approving user's Identity roles and user id to access tokens. See [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens). |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
 | `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |

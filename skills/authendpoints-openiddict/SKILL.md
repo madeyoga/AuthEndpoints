@@ -147,7 +147,7 @@ Load only the file the task needs. Each one is self-contained.
 | Expose an MCP server (or API) that AI assistants connect to as the signed-in person: discovery, client identification, consent, resource-bound tokens, roles, and scopes, end to end | [references/mcp-server.md](references/mcp-server.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
 | Turn on OpenID Connect: ID tokens, the `email`, `email_verified`, and `amr` claims, `userinfo`, logout, and post-logout redirect URIs | [references/openid-connect.md](references/openid-connect.md) |
-| Every option, audit events (`IOAuthServerEvents`) and the last-used time on grants, roles and the user id on access tokens, requiring scopes on routes and in services, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
+| Every option, audit events (`IOAuthServerEvents`) and the last-used time on grants, rate limits on the token and revocation endpoints (`TokenRateLimit`, `AddTokenRateLimiter`), roles and the user id on access tokens, requiring scopes on routes and in services, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
 
 ## Limitations
 

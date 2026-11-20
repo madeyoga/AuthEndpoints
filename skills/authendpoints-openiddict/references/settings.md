@@ -134,6 +134,41 @@ builder.Services.PostConfigure<AuthEndpointsAntiforgeryOptions>(options =>
     options.BearerSchemes.Remove(OAuthServerServiceCollectionExtensions.ValidationScheme));
 ```
 
+## Rate limits
+
+OpenIddict serves `/connect/token` and `/connect/revoke` from its middleware, during `UseAuthentication`, so `RequireRateLimiting` cannot reach them. Turn on the built-in limit instead:
+
+```csharp
+options.TokenRateLimit.Enabled = true;       // default false
+options.TokenRateLimit.PermitLimit = 60;     // per endpoint, client id, and IP address
+options.TokenRateLimit.Window = TimeSpan.FromMinutes(1);
+```
+
+The check runs inside OpenIddict, after the request is parsed and before client authentication or any database read. A request over the limit gets an OAuth error with `429 Too Many Requests` and `Retry-After` (seconds):
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+
+{ "error": "temporarily_unavailable", "error_description": "Too many requests. Try again later." }
+```
+
+Requests without a `client_id` share one window per IP address. Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares the proxy's address. Many users behind one NAT who use the same configured client share a window too, so size `PermitLimit` for that: a client refreshes about once per `AccessTokenLifetime`.
+
+For another algorithm or partition, pass your own limiter. It replaces the built-in one and turns the limit on:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+    .AddTokenRateLimiter(_ => PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            $"{context.Endpoint}:{context.ClientId}",
+            _ => new TokenBucketRateLimiterOptions { TokenLimit = 20, TokensPerPeriod = 20, ReplenishmentPeriod = TimeSpan.FromMinutes(1) })));
+```
+
+`OAuthRateLimitContext` has the `HttpContext`, the `Endpoint` (`Token` or `Revocation`), and the `ClientId` as sent (not yet authenticated).
+
+Dynamic registration has its own limit (`DynamicRegistration.PermitsPerMinute`). `/connect/authorize` and the JSON APIs are endpoints, so `RequireRateLimiting` works on them: `MapOAuthServer` returns their groups (`oauth.Consent!.RequireRateLimiting("consent")`).
+
 ## Certificates
 
 Set exactly one source in `options.Certificates`:

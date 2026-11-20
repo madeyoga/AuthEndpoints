@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -41,6 +42,20 @@ public sealed class OAuthServerBuilder
     {
         Services.RemoveAll<IOAuthPrincipalFactory>();
         Services.AddScoped<IOAuthPrincipalFactory, TFactory>();
+        return this;
+    }
+
+    /// <summary>
+    /// Limits <c>/connect/token</c> and <c>/connect/revoke</c> with the host's own limiter instead of the built-in fixed
+    /// window, and turns the limit on. <paramref name="create"/> runs once; any <c>System.Threading.RateLimiting</c> limiter
+    /// works (sliding window, token bucket, chained), partitioned on what <see cref="OAuthRateLimitContext"/> carries. The host
+    /// owns the limiter. A rejected request gets <c>429</c> with <c>temporarily_unavailable</c> and <c>Retry-After</c>.
+    /// </summary>
+    public OAuthServerBuilder AddTokenRateLimiter(Func<IServiceProvider, PartitionedRateLimiter<OAuthRateLimitContext>> create)
+    {
+        ArgumentNullException.ThrowIfNull(create);
+        Services.RemoveAll<OAuthTokenRateLimiterFactory>();
+        Services.AddSingleton(new OAuthTokenRateLimiterFactory(create));
         return this;
     }
 
@@ -181,6 +196,8 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped(typeof(IOAuthDeveloperAppGate), provider => provider.GetRequiredService(developerApps));
         services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<,>).MakeGenericType(typeof(TContext), keyType));
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
+        // Token and revocation endpoint limit. Inert unless TokenRateLimit.Enabled or AddTokenRateLimiter.
+        services.TryAddSingleton<OAuthTokenRateLimiter>();
         // Client ID metadata documents. Inert until ClientMetadataDocuments.Enabled is set.
         services.TryAddSingleton<IOAuthClientMetadataHostFilter, AllowAllClientMetadataHosts>();
         services.TryAddSingleton<IOAuthClientMetadataDnsResolver, SystemClientMetadataDnsResolver>();
@@ -255,6 +272,28 @@ public static class OAuthServerServiceCollectionExtensions
                     builder.UseScopedHandler<AttachAccessTokenUserClaims>();
                     // After OpenIddict copies the grant's claims into the access token principal, before it generates the token.
                     builder.SetOrder(OpenIddictServerHandlers.PrepareAccessTokenPrincipal.Descriptor.Order + 500);
+                });
+                // Before client authentication and any token lookup, so a flood costs no database work.
+                options.AddEventHandler<OpenIddictServerEvents.ValidateTokenRequestContext>(builder =>
+                {
+                    builder.UseSingletonHandler<LimitTokenEndpointRequests>();
+                    builder.SetOrder(int.MinValue + 100_000);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ValidateRevocationRequestContext>(builder =>
+                {
+                    builder.UseSingletonHandler<LimitTokenEndpointRequests>();
+                    builder.SetOrder(int.MinValue + 100_000);
+                });
+                // After OpenIddict picks the status code, before it writes the JSON error.
+                options.AddEventHandler<OpenIddictServerEvents.ApplyTokenResponseContext>(builder =>
+                {
+                    builder.UseSingletonHandler<AttachRateLimitResponse<OpenIddictServerEvents.ApplyTokenResponseContext>>();
+                    builder.SetOrder(OpenIddictServerAspNetCoreHandlers.AttachHttpResponseCode<OpenIddictServerEvents.ApplyTokenResponseContext>.Descriptor.Order + 1);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ApplyRevocationResponseContext>(builder =>
+                {
+                    builder.UseSingletonHandler<AttachRateLimitResponse<OpenIddictServerEvents.ApplyRevocationResponseContext>>();
+                    builder.SetOrder(OpenIddictServerAspNetCoreHandlers.AttachHttpResponseCode<OpenIddictServerEvents.ApplyRevocationResponseContext>.Descriptor.Order + 1);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
                 {
