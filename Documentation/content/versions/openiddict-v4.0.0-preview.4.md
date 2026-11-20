@@ -6,7 +6,7 @@ badge: Preview
 tag: openiddict-v4.0.0-preview.4
 ---
 
-Builds on [4.0.0-preview.3](/versions/openiddict-v4.0.0-preview.3). Work in progress: each change adds its entry below.
+Builds on 4.0.0-preview.3. Work in progress: each change adds its entry below.
 
 ### AuthEndpoints.OpenIddict
 
