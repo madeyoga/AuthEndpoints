@@ -34,6 +34,13 @@ public sealed record OAuthConsentCard(
     /// <summary>Who built the developer app, from the host's <see cref="IOAuthDeveloperAppOwnerDisplay"/>. <see langword="null"/> by default.</summary>
     [JsonPropertyName("owner")]
     public string? Owner { get; init; }
+
+    /// <summary>
+    /// The host of the client's metadata document URL (its <c>client_id</c>), for a client identified by a client ID
+    /// metadata document. <see langword="null"/> for other clients.
+    /// </summary>
+    [JsonPropertyName("clientHost")]
+    public string? ClientHost { get; init; }
 }
 
 /// <summary>Where the consent page sends the browser next.</summary>
@@ -82,6 +89,7 @@ internal static class OAuthConsentEndpoints
                 Description = request.Description,
                 Confidential = request.Confidential,
                 Owner = request.Owner,
+                ClientHost = request.ClientHost,
             });
     }
 

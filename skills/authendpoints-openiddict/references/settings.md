@@ -4,28 +4,9 @@
 
 | Option | Default | |
 | --- | --- | --- |
-| `Issuer` | required | Absolute; `https` unless `DisableTransportSecurityRequirement`. Use the app root (`https://host/`), or the app's `PathBase`. |
-| `Audience` | required | Default resource. This host always accepts it. |
-| `AdditionalResources` | empty | Other resources clients may request. Rejected by this host unless also in `AcceptedAudiences`. |
-| `AcceptedAudiences` | empty | Resources (`Audience` or `AdditionalResources` entries) this host's validation also accepts. Check `aud` per route, see [One host, more than one resource](#one-host-more-than-one-resource). |
-| `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. Add `openid` for [OpenID Connect](openid-connect.md), and `email` for the email claims. |
-| `AlwaysIssueRefreshToken` | `true` | Adds `offline_access` when the client has the refresh grant. |
-| `LoginUrl`, `LoginReturnUrlParameter` | required, `returnUrl` | |
-| `ConsentUrl`, `ConsentRequestParameter` | required, `request` | |
-| `LogoutUrl` | none | OpenID Connect only. The sign-out page for a [logout](openid-connect.md#logout) without a matching `id_token_hint`. Gets the logout URL in `LoginReturnUrlParameter`. |
-| `AuthenticationScheme`, `UserIdClaimType` | Identity cookie, `NameIdentifier` | |
-| `AccessTokenLifetime` | 15 minutes | |
-| `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
-| `AuthorizationCodeLifetime` | 5 minutes | |
-| `ConsentLifetime` | 10 minutes | |
-| `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](developer-apps.md). |
-| `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
-| `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
-| `AccessTokenClaims` | off | `Roles` and `UserId` add the approving user's Identity roles and user id to access tokens. See [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens). |
-| `DisableTransportSecurityRequirement` | `false` | Local development only. |
-| `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |
-| `IgnoreResourcePermissions` | `false` | Skips per-client `rsrc:` permissions. |
-| `QueryStringTokenPaths` | empty | Path prefixes that also accept `?access_token=`, for SignalR and WebSockets. Elsewhere only `Authorization: Bearer` is read. See [Where the token is read from](#where-the-token-is-read-from). |
+| `RequireApproval` | `false` | New apps start as `PendingApproval` and cannot sign anyone in until an admin approves them. |
+| `MaxAppsPerUser` | 10 | A user at the limit gets `409`. |
+| `MaxRedirectUris` | 10 | |
 
 The fixed routes are in `OAuthServerConstants`. Anything else can be set on `OAuthServerBuilder.OpenIddict`.
 
