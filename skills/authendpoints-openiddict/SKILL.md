@@ -30,6 +30,7 @@ The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 
 | `GET /.well-known/oauth-protected-resource`, `GET /.well-known/oauth-protected-resource/{path}` | this package | RFC 9728, one document per accepted resource. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
 | `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Developer console API. Mapped by `MapOAuthServer` unless turned off. |
+| `GET /oauth/authorizations`, `DELETE /oauth/authorizations/{id}` | this package | Connected apps: the signed-in user lists and disconnects their OAuth grants. Cookie only. Mapped by `MapOAuthServer` unless turned off. See [references/consent.md](references/consent.md#connected-apps). |
 
 Defaults:
 
@@ -101,7 +102,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, the developer app API under `/oauth/apps`, and the connected apps API under `/oauth/authorizations`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -138,7 +139,7 @@ Load only the file the task needs. Each one is self-contained.
 
 | Task | File |
 | --- | --- |
-| Build the consent page, use the JSON consent API, approve from your own endpoint, or change the token subject | [references/consent.md](references/consent.md) |
+| Build the consent page, use the JSON consent API, approve from your own endpoint, change the token subject, or list and disconnect a user's connected apps (also for admins) | [references/consent.md](references/consent.md) |
 | Seed clients from configuration, accept client ID metadata documents, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
 | Expose an MCP server (or API) that AI assistants connect to as the signed-in person: discovery, client identification, consent, resource-bound tokens, roles, and scopes, end to end | [references/mcp-server.md](references/mcp-server.md) |

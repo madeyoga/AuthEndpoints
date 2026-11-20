@@ -78,7 +78,7 @@ public sealed class OAuthServerRecipeTests
     }
 
     [Fact]
-    public async Task Consent_api_and_developer_apps_can_be_turned_off_while_the_server_keeps_working()
+    public async Task Consent_api_developer_apps_and_connected_apps_can_be_turned_off_while_the_server_keeps_working()
     {
         await using var host = await StartAsync(
             recipe: true,
@@ -86,6 +86,7 @@ public sealed class OAuthServerRecipeTests
             {
                 parts.ConsentApi = false;
                 parts.DeveloperApps = false;
+                parts.ConnectedApps = false;
             },
             map: app => app.MapPost("/host/approve/{id:guid}", async (Guid id, HttpContext http, IOAuthConsentService consent) =>
             {
@@ -122,6 +123,7 @@ public sealed class OAuthServerRecipeTests
             {
                 parts.ConsentPrefix = "/account/oauth";
                 parts.DeveloperAppsPrefix = "/developers/apps";
+                parts.ConnectedAppsPrefix = "/account/connected-apps";
             },
             server: oauth => oauth.AddPrincipalFactory<PrefixedSubjectFactory>());
         using var anon = host.Client(cookies: false);
@@ -131,6 +133,7 @@ public sealed class OAuthServerRecipeTests
         var routes = Routes(host);
         Assert.Contains("/account/oauth/requests/{id:guid}", routes);
         Assert.Contains("/developers/apps/", routes);
+        Assert.Contains("/account/connected-apps/{id}", routes);
         Assert.DoesNotContain(routes, route => route.StartsWith("/oauth/", StringComparison.Ordinal));
 
         var (user, userId) = await host.UserAsync("user");

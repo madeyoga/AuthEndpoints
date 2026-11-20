@@ -177,6 +177,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             app.MapAuthEndpointsOpenIddict();
             app.MapOAuthConsentEndpoints();
             app.MapOAuthDeveloperAppEndpoints();
+            app.MapOAuthConnectedAppEndpoints();
         }
 
         app.MapGet("/api/me", (HttpContext http) => Results.Ok(new
