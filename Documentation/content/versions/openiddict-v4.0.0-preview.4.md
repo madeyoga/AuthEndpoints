@@ -10,6 +10,7 @@ Builds on [4.0.0-preview.3](/versions/openiddict-v4.0.0-preview.3). Work in prog
 
 ### AuthEndpoints.OpenIddict
 
+- **Rate limits on the token and revocation endpoints (opt-in).** `TokenRateLimit` limits `/connect/token` and `/connect/revoke` per endpoint, client id, and IP address (default 60 per minute when enabled), inside OpenIddict before client authentication or any database read. A rejected request gets `429` with `{"error":"temporarily_unavailable"}` and `Retry-After`. `AddTokenRateLimiter(...)` takes any `PartitionedRateLimiter<OAuthRateLimitContext>` (endpoint, client id, `HttpContext`) instead (#458).
 ### Documentation
 
 ### Packages

@@ -306,6 +306,18 @@
         public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthProtectedResourceDefinition> Resources { get; }
         public System.Collections.Generic.IList<string> Scopes { get; }
     }
+    public sealed class OAuthRateLimitContext
+    {
+        public OAuthRateLimitContext(Microsoft.AspNetCore.Http.HttpContext httpContext, AuthEndpoints.OpenIddict.OAuthRateLimitedEndpoint endpoint, string? clientId) { }
+        public string? ClientId { get; }
+        public AuthEndpoints.OpenIddict.OAuthRateLimitedEndpoint Endpoint { get; }
+        public Microsoft.AspNetCore.Http.HttpContext HttpContext { get; }
+    }
+    public enum OAuthRateLimitedEndpoint
+    {
+        Token = 0,
+        Revocation = 1,
+    }
     public class OAuthRequest<TKey>
         where TKey : System.IEquatable<TKey>
     {
@@ -368,6 +380,7 @@
             where TDisplay :  class, AuthEndpoints.OpenIddict.IOAuthDeveloperAppOwnerDisplay { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddPrincipalFactory<TFactory>()
             where TFactory :  class, AuthEndpoints.OpenIddict.IOAuthPrincipalFactory { }
+        public AuthEndpoints.OpenIddict.OAuthServerBuilder AddTokenRateLimiter(System.Func<System.IServiceProvider, System.Threading.RateLimiting.PartitionedRateLimiter<AuthEndpoints.OpenIddict.OAuthRateLimitContext>> create) { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder BindConfiguration(string sectionPath) { }
     }
     public sealed class OAuthServerCertificateOptions
@@ -465,6 +478,7 @@
         public bool RevalidateUser { get; set; }
         public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthScopeDefinition> ScopeDefinitions { get; }
         public System.Collections.Generic.IList<string> Scopes { get; }
+        public AuthEndpoints.OpenIddict.OAuthTokenRateLimitOptions TokenRateLimit { get; }
         public string UserIdClaimType { get; set; }
     }
     public sealed class OAuthServerOptionsValidator : Microsoft.Extensions.Options.IValidateOptions<AuthEndpoints.OpenIddict.OAuthServerOptions>
@@ -481,6 +495,13 @@
         public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddOAuthServer<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
             where TUser :  class
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public sealed class OAuthTokenRateLimitOptions
+    {
+        public OAuthTokenRateLimitOptions() { }
+        public bool Enabled { get; set; }
+        public int PermitLimit { get; set; }
+        public System.TimeSpan Window { get; set; }
     }
     public sealed class UserIdOAuthPrincipalFactory : AuthEndpoints.OpenIddict.IOAuthPrincipalFactory
     {
