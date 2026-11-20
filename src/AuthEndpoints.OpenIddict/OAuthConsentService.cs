@@ -22,6 +22,12 @@ public sealed record OAuthPendingRequest(
     DateTimeOffset CreatedAt,
     DateTimeOffset ExpiresAt)
 {
+    /// <summary>
+    /// <see cref="Scopes"/> in the same order, with the display name and description from
+    /// <see cref="OAuthServerOptions.ScopeDefinitions"/> resolved for the request culture (<c>CultureInfo.CurrentUICulture</c>).
+    /// </summary>
+    public IReadOnlyList<OAuthScopeDetail> ScopeDetails { get; init; } = [];
+
     /// <summary>The developer app's homepage. <see langword="null"/> for seeded and dynamically registered clients.</summary>
     public string? HomepageUrl { get; init; }
 
@@ -125,6 +131,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOptions<OAuthServerOptions> options,
     IOAuthDeveloperAppOwnerDisplay ownerDisplay,
     IOAuthUserProfiles profiles,
+    IOAuthScopeDescriptions scopeDescriptions,
     TimeProvider clock) : IOAuthConsentService
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -141,7 +148,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         var loaded = await LoadAsync(requestId, key, cancellationToken);
         return loaded is null || !await ClientUsableAsync(loaded.Request, cancellationToken)
             ? null
-            : await ToPendingAsync(loaded, userId, cancellationToken);
+            : await WithScopeDetailsAsync(await ToPendingAsync(loaded, userId, cancellationToken), cancellationToken);
     }
 
     public Task<OAuthConsentResult> ApproveAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
@@ -175,7 +182,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         var http = httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("ApproveAsync must run inside an HTTP request.");
-        var pending = await ToPendingAsync(loaded, userId, cancellationToken);
+        var pending = await WithScopeDetailsAsync(await ToPendingAsync(loaded, userId, cancellationToken), cancellationToken);
         var principal = await createPrincipal(new OAuthPrincipalContext(http, userId, pending));
         if (principal is null)
         {
@@ -393,6 +400,13 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         return false;
     }
+
+    /// <summary>Describes the scopes in the culture of the current request, through <see cref="IOAuthScopeDescriptions"/>.</summary>
+    private async Task<OAuthPendingRequest> WithScopeDetailsAsync(OAuthPendingRequest pending, CancellationToken cancellationToken)
+        => pending with
+        {
+            ScopeDetails = await scopeDescriptions.DescribeAsync(pending.Scopes, CultureInfo.CurrentUICulture, cancellationToken),
+        };
 
     internal static string KeyToString(TKey key)
         => Convert.ToString(key, CultureInfo.InvariantCulture) ?? string.Empty;

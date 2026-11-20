@@ -46,6 +46,12 @@ public sealed class OAuthServerOptions
     /// </summary>
     public IList<string> Scopes { get; } = new List<string>();
 
+    /// <summary>
+    /// How the consent card describes scopes to a person: a display name and a description, optionally per culture.
+    /// Each entry names a scope in <see cref="Scopes"/>, or <c>offline_access</c>. A scope without an entry is shown by its name.
+    /// </summary>
+    public IList<OAuthScopeDefinition> ScopeDefinitions { get; } = new List<OAuthScopeDefinition>();
+
     /// <summary>Scopes granted when the authorize request has no <c>scope</c>. Must be in <see cref="Scopes"/>.</summary>
     public IList<string> DefaultScopes { get; } = new List<string>();
 
@@ -390,6 +396,30 @@ public sealed class OAuthProtectedResourceDefinition
     /// <c>/</c> and must not end with one, and no prefix may be listed twice across all resources.
     /// </summary>
     public IList<string> ChallengePaths { get; } = new List<string>();
+}
+
+/// <summary>
+/// The words a consent page shows for one scope. <see cref="DisplayName"/> and <see cref="Description"/> are the default
+/// text; <see cref="DisplayNames"/> and <see cref="Descriptions"/> override them per culture, keyed by culture name such as
+/// <c>fr</c> or <c>pt-BR</c>. The request culture is tried first, then its parents (<c>pt-BR</c>, then <c>pt</c>), then the
+/// default text.
+/// </summary>
+public sealed class OAuthScopeDefinition
+{
+    /// <summary>The scope, as in <see cref="OAuthServerOptions.Scopes"/>. Required.</summary>
+    public string? Name { get; set; }
+
+    /// <summary>A short label, such as "Read your reports". Defaults to <see cref="Name"/>.</summary>
+    public string? DisplayName { get; set; }
+
+    /// <summary>One or two sentences on what the client can do with this scope. Optional.</summary>
+    public string? Description { get; set; }
+
+    /// <summary>Display names per culture name.</summary>
+    public IDictionary<string, string> DisplayNames { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Descriptions per culture name.</summary>
+    public IDictionary<string, string> Descriptions { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>A client created by <c>SeedOAuthClientsAsync</c>.</summary>
