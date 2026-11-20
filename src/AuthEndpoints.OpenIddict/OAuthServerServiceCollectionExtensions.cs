@@ -45,18 +45,6 @@ public sealed class OAuthServerBuilder
     }
 
     /// <summary>
-    /// Replaces the default <see cref="IOAuthScopeDescriptions"/> (which reads <see cref="OAuthServerOptions.ScopeDefinitions"/>),
-    /// for example to load scope display names and descriptions from a database or resource files.
-    /// </summary>
-    public OAuthServerBuilder AddScopeDescriptions<TDescriptions>()
-        where TDescriptions : class, IOAuthScopeDescriptions
-    {
-        Services.RemoveAll<IOAuthScopeDescriptions>();
-        Services.AddScoped<IOAuthScopeDescriptions, TDescriptions>();
-        return this;
-    }
-
-    /// <summary>
     /// Shows who built a developer app on the consent card (<c>owner</c>). Without it, <c>owner</c> is always
     /// <see langword="null"/>: the package never reads the owner's email or user name itself.
     /// </summary>
@@ -65,6 +53,18 @@ public sealed class OAuthServerBuilder
     {
         Services.RemoveAll<IOAuthDeveloperAppOwnerDisplay>();
         Services.AddScoped<IOAuthDeveloperAppOwnerDisplay, TDisplay>();
+        return this;
+    }
+
+    /// <summary>
+    /// Replaces the default <see cref="IOAuthScopeDescriptions"/> (which reads <see cref="OAuthServerOptions.ScopeDefinitions"/>),
+    /// for example to load scope display names and descriptions from a database or resource files.
+    /// </summary>
+    public OAuthServerBuilder AddScopeDescriptions<TDescriptions>()
+        where TDescriptions : class, IOAuthScopeDescriptions
+    {
+        Services.RemoveAll<IOAuthScopeDescriptions>();
+        Services.AddScoped<IOAuthScopeDescriptions, TDescriptions>();
         return this;
     }
 }
