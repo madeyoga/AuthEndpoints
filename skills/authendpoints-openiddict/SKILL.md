@@ -129,6 +129,8 @@ To require scopes, use `RequireOAuthScope(...)` on routes only OAuth clients cal
 
 Only `Authorization: Bearer` is read. The query string and form body are not (a breaking change from earlier builds). For SignalR or WebSocket hubs, add their prefix to `QueryStringTokenPaths`; see [references/settings.md](references/settings.md#where-the-token-is-read-from).
 
+A request with `Authorization: Bearer` gets `401` or `403` instead of the sign-in cookie's login or access-denied redirect, so refused token callers on routes that also read the cookie get a status code (`BearerRequestsSkipCookieRedirects`, on by default); see [references/settings.md](references/settings.md#token-callers-and-cookie-redirects).
+
 The validation scheme is added to `AuthEndpointsAntiforgeryOptions.BearerSchemes`, so `RequireAntiforgery()` lets an OAuth token in the header skip the CSRF check. Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call; see [references/settings.md](references/settings.md#csrf-on-routes-that-take-a-token).
 
 ## Read the reference for the task

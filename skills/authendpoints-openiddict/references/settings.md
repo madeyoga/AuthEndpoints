@@ -4,28 +4,9 @@
 
 | Option | Default | |
 | --- | --- | --- |
-| `Issuer` | required | Absolute; `https` unless `DisableTransportSecurityRequirement`. Use the app root (`https://host/`), or the app's `PathBase`. |
-| `Audience` | required | Default resource. This host always accepts it. |
-| `AdditionalResources` | empty | Other resources clients may request. Rejected by this host unless also in `AcceptedAudiences`. |
-| `AcceptedAudiences` | empty | Resources (`Audience` or `AdditionalResources` entries) this host's validation also accepts. Check `aud` per route, see [One host, more than one resource](#one-host-more-than-one-resource). |
-| `Scopes` / `DefaultScopes` | empty | `offline_access` is always registered. Add `openid` for [OpenID Connect](openid-connect.md), and `email` for the email claims. |
-| `AlwaysIssueRefreshToken` | `true` | Adds `offline_access` when the client has the refresh grant. |
-| `LoginUrl`, `LoginReturnUrlParameter` | required, `returnUrl` | |
-| `ConsentUrl`, `ConsentRequestParameter` | required, `request` | |
-| `LogoutUrl` | none | OpenID Connect only. The sign-out page for a [logout](openid-connect.md#logout) without a matching `id_token_hint`. Gets the logout URL in `LoginReturnUrlParameter`. |
-| `AuthenticationScheme`, `UserIdClaimType` | Identity cookie, `NameIdentifier` | |
-| `AccessTokenLifetime` | 15 minutes | |
-| `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
-| `AuthorizationCodeLifetime` | 5 minutes | |
-| `ConsentLifetime` | 10 minutes | |
-| `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](developer-apps.md). |
-| `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
-| `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
-| `AccessTokenClaims` | off | `Roles` and `UserId` add the approving user's Identity roles and user id to access tokens. See [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens). |
-| `DisableTransportSecurityRequirement` | `false` | Local development only. |
-| `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |
-| `IgnoreResourcePermissions` | `false` | Skips per-client `rsrc:` permissions. |
-| `QueryStringTokenPaths` | empty | Path prefixes that also accept `?access_token=`, for SignalR and WebSockets. Elsewhere only `Authorization: Bearer` is read. See [Where the token is read from](#where-the-token-is-read-from). |
+| `RequireApproval` | `false` | New apps start as `PendingApproval` and cannot sign anyone in until an admin approves them. |
+| `MaxAppsPerUser` | 10 | A user at the limit gets `409`. |
+| `MaxRedirectUris` | 10 | |
 
 The fixed routes are in `OAuthServerConstants`. Anything else can be set on `OAuthServerBuilder.OpenIddict`.
 
@@ -131,6 +112,16 @@ app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization("api");
 Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/hubs/chat/negotiate`, but not `/hubsevil`. They are relative to `PathBase`, like routes. Each must start with `/` and must not end with one. On a listed path the `Authorization` header still wins when both are sent.
 
 **Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
+
+### Token callers and cookie redirects
+
+On a route that reads both the Identity cookie and an access token, a refused token caller used to get the cookie's answer. That meant a `302` to the login or access-denied page when the cookie challenged or forbade, for example from `Results.Forbid()` or `Results.Challenge()` with the default scheme, or a `403` that still carried the cookie's `Location` header. An OAuth client cannot follow either.
+
+By default (`BearerRequestsSkipCookieRedirects = true`), a request that carries `Authorization: Bearer` gets `401` where the cookie would redirect to its login page, and `403` where it would redirect to its access-denied page. This applies to the Identity application cookie and to `AuthenticationScheme`. Requests without the header, such as browser navigation, are unchanged. Your own `OnRedirectToLogin` and `OnRedirectToAccessDenied` still run for them, and an `EventsType` you set is kept. To keep the cookie's redirects for every request:
+
+```csharp
+options.BearerRequestsSkipCookieRedirects = false;
+```
 
 ### CSRF on routes that take a token
 

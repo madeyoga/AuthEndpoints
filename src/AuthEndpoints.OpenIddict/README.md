@@ -261,6 +261,16 @@ Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/
 
 **Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
 
+#### Token callers and cookie redirects
+
+On a route that reads both the Identity cookie and an access token, a refused token caller used to get the cookie's answer. That meant a `302` to the login or access-denied page when the cookie challenged or forbade, for example from `Results.Forbid()` or `Results.Challenge()` with the default scheme, or a `403` that still carried the cookie's `Location` header. An OAuth client cannot follow either.
+
+By default (`BearerRequestsSkipCookieRedirects = true`), a request that carries `Authorization: Bearer` gets `401` where the cookie would redirect to its login page, and `403` where it would redirect to its access-denied page. This applies to the Identity application cookie and to `AuthenticationScheme`. Requests without the header, such as browser navigation, are unchanged. Your own `OnRedirectToLogin` and `OnRedirectToAccessDenied` still run for them, and an `EventsType` you set is kept. To keep the cookie's redirects for every request:
+
+```csharp
+options.BearerRequestsSkipCookieRedirects = false;
+```
+
 #### CSRF on routes that take a token
 
 `AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerServiceCollectionExtensions.ValidationScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
@@ -694,6 +704,7 @@ A scope never widens what the person may do: keep every route's existing role or
 | `ConsentUrl`, `ConsentRequestParameter` | required, `request` | |
 | `LogoutUrl` | none | OpenID Connect only. The sign-out page for a [logout](#logout) without a matching `id_token_hint`. Gets the logout URL in `LoginReturnUrlParameter`. |
 | `AuthenticationScheme`, `UserIdClaimType` | Identity cookie, `NameIdentifier` | |
+| `BearerRequestsSkipCookieRedirects` | `true` | A request with `Authorization: Bearer` gets `401`/`403` instead of the sign-in cookie's redirects. See [Token callers and cookie redirects](#token-callers-and-cookie-redirects). |
 | `AccessTokenLifetime` | 15 minutes | |
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
 | `AuthorizationCodeLifetime` | 5 minutes | |
