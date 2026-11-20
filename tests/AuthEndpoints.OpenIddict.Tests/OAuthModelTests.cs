@@ -27,7 +27,7 @@ public sealed class OAuthModelTests
         {
             ["Id"] = (null, false),
             ["UserId"] = (null, false),
-            ["ClientId"] = (64, false),
+            ["ClientId"] = (255, false),
             ["ClientName"] = (200, false),
             ["RedirectUri"] = (2048, false),
             ["RedirectHost"] = (255, false),
@@ -113,6 +113,10 @@ public sealed class OAuthModelTests
         Assert.Equal("OpenIddictTokens", tokens.GetTableName());
         Assert.Equal(512, tokens.FindProperty(nameof(OpenIddictEntityFrameworkCoreToken.ReferenceId))!.GetMaxLength());
         Assert.Contains(tokens.GetIndexes(), index => index.GetDatabaseName() == "IX_OpenIddictTokens_ReferenceId");
+
+        // Wide enough for a client ID metadata document URL as the client id.
+        var applications = db.Model.FindEntityType(typeof(OpenIddictEntityFrameworkCoreApplication))!;
+        Assert.Equal(255, applications.FindProperty(nameof(OpenIddictEntityFrameworkCoreApplication.ClientId))!.GetMaxLength());
     }
 
     [Fact]

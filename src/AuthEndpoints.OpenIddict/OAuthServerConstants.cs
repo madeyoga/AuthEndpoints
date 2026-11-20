@@ -30,8 +30,17 @@ public static class OAuthServerConstants
     /// <summary>With <see cref="OpenIdScope"/>, releases <c>email</c> and <c>email_verified</c> in the ID token and userinfo.</summary>
     public const string EmailScope = "email";
 
-    /// <summary>Application setting that marks a dynamically registered client and holds its creation time.</summary>
+    /// <summary>
+    /// Application setting that marks a dynamically registered client, or a client from a client ID metadata document,
+    /// and holds its creation time.
+    /// </summary>
     public const string CreatedAtSetting = "created_at";
+
+    /// <summary>
+    /// Application setting that marks a client from a client ID metadata document and holds when its stored copy must be
+    /// fetched again. Such a client also carries <see cref="CreatedAtSetting"/>, so the same scope limits and cleanup apply.
+    /// </summary>
+    public const string ClientMetadataExpiresSetting = "ae_client_metadata_expires";
 
     /// <summary>Application setting that marks a developer app and holds its <c>OAuthDeveloperApps</c> row id.</summary>
     public const string DeveloperAppSetting = "ae_developer_app";
