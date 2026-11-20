@@ -127,6 +127,7 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped<IOAuthPrincipalFactory, UserIdOAuthPrincipalFactory>();
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped<IOAuthUserProfiles, IdentityOAuthUserProfiles<TUser>>();
+        services.TryAddScoped<IOAuthUserRoles, IdentityOAuthUserRoles<TUser>>();
         // OpenID Connect amr: tell the sign-in cookie which method signed the user in. Inert without the openid scope.
         OAuthSignInMethodRegistration<TUser>.Register(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
@@ -190,6 +191,12 @@ public static class OAuthServerServiceCollectionExtensions
                 {
                     builder.UseScopedHandler<RequireActiveDeveloperApp>();
                     builder.SetOrder(OpenIddictServerHandlers.ValidateSignInDemand.Descriptor.Order + 400);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
+                {
+                    builder.UseScopedHandler<AttachAccessTokenUserClaims>();
+                    // After OpenIddict copies the grant's claims into the access token principal, before it generates the token.
+                    builder.SetOrder(OpenIddictServerHandlers.PrepareAccessTokenPrincipal.Descriptor.Order + 500);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.HandleConfigurationRequestContext>(builder =>
                 {
