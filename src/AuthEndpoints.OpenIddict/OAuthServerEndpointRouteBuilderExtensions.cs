@@ -109,11 +109,23 @@ public static class OAuthServerEndpointRouteBuilderExtensions
 
         if (settings.ProtectedResource.Enabled)
         {
-            endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath, ProtectedResource)
+            var resources = OAuthProtectedResources.Create(settings);
+            var issuer = settings.Issuer!.AbsoluteUri;
+            endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath, () => Metadata(resources.Audience, issuer))
                 .AllowAnonymous()
                 .WithName("GetOAuthProtectedResource")
                 .WithSummary("Protected resource metadata (RFC 9728)")
                 .WithTags("OAuth");
+            if (resources.Suffixed.Count > 0)
+            {
+                // RFC 9728 §3.1: one document per accepted resource with a path. The literal root route above wins over this one.
+                endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath + "/{**resourcePath}", (HttpContext context)
+                        => resources.Find(context.Request.Path) is { } document ? Metadata(document, issuer) : Results.NotFound())
+                    .AllowAnonymous()
+                    .WithName("GetOAuthProtectedResourceForPath")
+                    .WithSummary("Protected resource metadata for one resource (RFC 9728)")
+                    .WithTags("OAuth");
+            }
         }
 
         return endpoints;
@@ -144,16 +156,13 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         return OAuthDeveloperAppEndpoints.Map(endpoints, prefix);
     }
 
-    private static IResult ProtectedResource(IOptions<OAuthServerOptions> options)
-    {
-        var settings = options.Value;
-        return Results.Json(new ProtectedResourceMetadata(
-            settings.Audience!,
-            [settings.Issuer!.AbsoluteUri],
+    private static IResult Metadata(ProtectedResourceDocument document, string issuer)
+        => Results.Json(new ProtectedResourceMetadata(
+            document.Resource,
+            [issuer],
             ["header"],
-            settings.AllScopes().ToArray(),
-            settings.ProtectedResource.ResourceName));
-    }
+            document.Scopes,
+            document.ResourceName));
 }
 
 /// <summary>Remembers the DbContext and key types so mapping does not need them again.</summary>
@@ -201,8 +210,10 @@ internal sealed record ProtectedResourceMetadata(
 public static class OAuthServerApplicationBuilderExtensions
 {
     /// <summary>
-    /// Adds <c>WWW-Authenticate: Bearer resource_metadata="…"</c> to 401 responses on
-    /// <see cref="OAuthProtectedResourceOptions.ChallengePaths"/>, so MCP-style clients can discover the server.
+    /// Adds <c>WWW-Authenticate: Bearer resource_metadata="…"</c> to 401 responses, so MCP-style clients can discover the
+    /// server. A path under an <see cref="OAuthProtectedResourceDefinition.ChallengePaths"/> entry points at that resource's
+    /// document; one under <see cref="OAuthProtectedResourceOptions.ChallengePaths"/>, or any other path when that list is
+    /// empty, points at the root document. The longest matching prefix wins.
     /// Does nothing unless protected resource metadata is enabled.
     /// </summary>
     public static IApplicationBuilder UseOAuthResourceChallenge(this IApplicationBuilder app)
@@ -214,13 +225,12 @@ public static class OAuthServerApplicationBuilderExtensions
             return app;
         }
 
-        var paths = settings.ProtectedResource.ChallengePaths.Select(path => new PathString(path)).ToArray();
-        var metadata = new Uri(settings.Issuer!, OAuthServerConstants.ProtectedResourceMetadataPath.TrimStart('/')).AbsoluteUri;
-        var parameter = $"resource_metadata=\"{metadata}\"";
+        var resources = OAuthProtectedResources.Create(settings);
         return app.Use(async (context, next) =>
         {
-            if (paths.Length == 0 || paths.Any(path => context.Request.Path.StartsWithSegments(path)))
+            if (resources.ChallengeFor(context.Request.Path) is { } metadata)
             {
+                var parameter = $"resource_metadata=\"{metadata}\"";
                 context.Response.OnStarting(() =>
                 {
                     if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
