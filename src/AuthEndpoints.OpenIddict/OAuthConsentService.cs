@@ -22,6 +22,12 @@ public sealed record OAuthPendingRequest(
     DateTimeOffset CreatedAt,
     DateTimeOffset ExpiresAt)
 {
+    /// <summary>
+    /// <see cref="Scopes"/> in the same order, with the display name and description from
+    /// <see cref="OAuthServerOptions.ScopeDefinitions"/> resolved for the request culture (<c>CultureInfo.CurrentUICulture</c>).
+    /// </summary>
+    public IReadOnlyList<OAuthScopeDetail> ScopeDetails { get; init; } = [];
+
     /// <summary>The developer app's homepage. <see langword="null"/> for seeded and dynamically registered clients.</summary>
     public string? HomepageUrl { get; init; }
 
@@ -141,7 +147,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         var loaded = await LoadAsync(requestId, key, cancellationToken);
         return loaded is null || !await ClientUsableAsync(loaded.Request, cancellationToken)
             ? null
-            : await ToPendingAsync(loaded, userId, cancellationToken);
+            : WithScopeDetails(await ToPendingAsync(loaded, userId, cancellationToken));
     }
 
     public Task<OAuthConsentResult> ApproveAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
@@ -175,7 +181,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         var http = httpContextAccessor.HttpContext
             ?? throw new InvalidOperationException("ApproveAsync must run inside an HTTP request.");
-        var pending = await ToPendingAsync(loaded, userId, cancellationToken);
+        var pending = WithScopeDetails(await ToPendingAsync(loaded, userId, cancellationToken));
         var principal = await createPrincipal(new OAuthPrincipalContext(http, userId, pending));
         if (principal is null)
         {
@@ -393,6 +399,13 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         return false;
     }
+
+    /// <summary>Describes the scopes in the culture of the current request.</summary>
+    private OAuthPendingRequest WithScopeDetails(OAuthPendingRequest pending)
+        => pending with
+        {
+            ScopeDetails = OAuthScopeDescriptions.Describe(pending.Scopes, options.Value.ScopeDefinitions, CultureInfo.CurrentUICulture),
+        };
 
     internal static string KeyToString(TKey key)
         => Convert.ToString(key, CultureInfo.InvariantCulture) ?? string.Empty;

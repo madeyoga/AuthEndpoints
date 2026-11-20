@@ -65,6 +65,34 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        var described = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var definition in options.ScopeDefinitions)
+        {
+            if (string.IsNullOrWhiteSpace(definition.Name))
+            {
+                failures.Add("Every ScopeDefinitions entry needs a Name.");
+                continue;
+            }
+
+            if (!all.Contains(definition.Name))
+            {
+                failures.Add($"ScopeDefinitions entry '{definition.Name}' is not in OAuthServerOptions.Scopes.");
+            }
+
+            if (!described.Add(definition.Name))
+            {
+                failures.Add($"ScopeDefinitions lists '{definition.Name}' twice.");
+            }
+
+            foreach (var culture in definition.DisplayNames.Keys.Concat(definition.Descriptions.Keys))
+            {
+                if (!OAuthScopeDescriptions.IsCultureName(culture))
+                {
+                    failures.Add($"ScopeDefinitions entry '{definition.Name}' has text for '{culture}', which is not a culture name such as 'fr' or 'pt-BR'.");
+                }
+            }
+        }
+
         if (!IsPage(options.LoginUrl))
         {
             failures.Add("OAuthServerOptions.LoginUrl must be an absolute URI or a path starting with '/'.");
