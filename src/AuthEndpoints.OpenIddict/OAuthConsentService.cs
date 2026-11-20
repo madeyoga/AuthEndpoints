@@ -351,13 +351,6 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         };
     }
 
-    /// <summary>Describes the scopes in the culture of the current request.</summary>
-    private OAuthPendingRequest WithScopeDetails(OAuthPendingRequest pending)
-        => pending with
-        {
-            ScopeDetails = OAuthScopeDescriptions.Describe(pending.Scopes, options.Value.ScopeDefinitions, CultureInfo.CurrentUICulture),
-        };
-
     private sealed record LoadedRequest(OAuthRequest<TKey> Request, OAuthDeveloperApp<TKey>? App);
 
     internal static bool TryKey(string? value, out TKey key)
@@ -383,6 +376,13 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         return false;
     }
+
+    /// <summary>Describes the scopes in the culture of the current request.</summary>
+    private OAuthPendingRequest WithScopeDetails(OAuthPendingRequest pending)
+        => pending with
+        {
+            ScopeDetails = OAuthScopeDescriptions.Describe(pending.Scopes, options.Value.ScopeDefinitions, CultureInfo.CurrentUICulture),
+        };
 
     internal static string KeyToString(TKey key)
         => Convert.ToString(key, CultureInfo.InvariantCulture) ?? string.Empty;
