@@ -60,6 +60,17 @@ public sealed class OAuthServerBuilder
     }
 
     /// <summary>
+    /// Adds a subscriber for <see cref="OAuthServerEvent"/>s, for example an audit log. Call it once per subscriber; each
+    /// one gets every event, in registration order. Subscribers are scoped. One that throws is logged and skipped.
+    /// </summary>
+    public OAuthServerBuilder AddServerEvents<TEvents>()
+        where TEvents : class, IOAuthServerEvents
+    {
+        Services.TryAddEnumerable(ServiceDescriptor.Scoped<IOAuthServerEvents, TEvents>());
+        return this;
+    }
+
+    /// <summary>
     /// Decides which hosts may serve client ID metadata documents, after <c>ClientMetadataDocuments.DeniedHosts</c> and
     /// <c>AllowedHosts</c>. Without it, every public host those lists allow is accepted.
     /// </summary>
@@ -80,6 +91,18 @@ public sealed class OAuthServerBuilder
     {
         Services.RemoveAll<IOAuthDeveloperAppOwnerDisplay>();
         Services.AddScoped<IOAuthDeveloperAppOwnerDisplay, TDisplay>();
+        return this;
+    }
+
+    /// <summary>
+    /// Replaces the default <see cref="IOAuthScopeDescriptions"/> (which reads <see cref="OAuthServerOptions.ScopeDefinitions"/>),
+    /// for example to load scope display names and descriptions from a database or resource files.
+    /// </summary>
+    public OAuthServerBuilder AddScopeDescriptions<TDescriptions>()
+        where TDescriptions : class, IOAuthScopeDescriptions
+    {
+        Services.RemoveAll<IOAuthScopeDescriptions>();
+        Services.AddScoped<IOAuthScopeDescriptions, TDescriptions>();
         return this;
     }
 }
@@ -155,12 +178,18 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped<IOAuthUserProfiles, IdentityOAuthUserProfiles<TUser>>();
         services.TryAddScoped<IOAuthUserRoles, IdentityOAuthUserRoles<TUser>>();
+        services.TryAddScoped<IOAuthScopeDescriptions, OptionsOAuthScopeDescriptions>();
         // OpenID Connect amr: tell the sign-in cookie which method signed the user in. Inert without the openid scope.
         OAuthSignInMethodRegistration<TUser>.Register(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SecurityStampValidatorOptions>, OAuthSignInMethodCookieEvents>());
+        // A refused token caller gets 401 or 403 from the sign-in cookie, not a redirect. On unless BearerRequestsSkipCookieRedirects is off.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthBearerCookieRedirects>());
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
+        // Audit events. Without an IOAuthServerEvents subscriber, nothing is raised.
+        services.TryAddScoped<OAuthServerEventDispatcher>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddScoped(typeof(IOAuthConnectedAppService), typeof(OAuthConnectedAppService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
         services.TryAddScoped(developerApps);
         services.TryAddScoped(typeof(IOAuthDeveloperAppService), provider => provider.GetRequiredService(developerApps));
@@ -265,6 +294,12 @@ public static class OAuthServerServiceCollectionExtensions
                 {
                     builder.UseSingletonHandler<AttachRateLimitResponse<OpenIddictServerEvents.ApplyRevocationResponseContext>>();
                     builder.SetOrder(OpenIddictServerAspNetCoreHandlers.AttachHttpResponseCode<OpenIddictServerEvents.ApplyRevocationResponseContext>.Descriptor.Order + 1);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
+                {
+                    builder.UseScopedHandler<RaiseTokenEvents>();
+                    // After the tokens are generated and stored, and their values attached to the response.
+                    builder.SetOrder(OpenIddictServerHandlers.AttachSignInParameters.Descriptor.Order + 1_000);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.HandleConfigurationRequestContext>(builder =>
                 {

@@ -53,4 +53,4 @@ The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`
 
 When an owner's account is deleted, the cascade removes the app's row. From then on, the authorize and token endpoints refuse its client, and the next cleanup pass deletes it. Developer apps are never treated as unused dynamic registrations.
 
-Developer apps and [dynamic registration](clients.md#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, `IOAuthConsentService.RevokeAuthorizationAsync` still disconnects one app from one account.
+Developer apps and [dynamic registration](clients.md#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, the [connected apps](consent.md#connected-apps) routes disconnect one app from one account.

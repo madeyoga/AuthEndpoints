@@ -118,12 +118,13 @@ oauth.DeveloperApps!.RequireRateLimiting("developer-apps"); // the mapped groups
 | OpenID Connect (`userinfo`, logout, discovery) | **off** | Add `openid` to `options.Scopes`. |
 | Consent API | on, `/oauth` | `parts.ConsentApi`, `parts.ConsentPrefix` |
 | Developer apps | on, `/oauth/apps` | `parts.DeveloperApps`, `parts.DeveloperAppsPrefix`. Approval and limits: `options.DeveloperApps`. |
+| Connected apps | on, `/oauth/authorizations` | `parts.ConnectedApps`, `parts.ConnectedAppsPrefix`. Cookie only, so OAuth tokens cannot call it. |
 | Anonymous registration (RFC 7591) | **off** | `options.DynamicRegistration.Enabled` |
 | Protected resource metadata (RFC 9728) | **off** | `options.ProtectedResource.Enabled` |
 
 Anonymous registration and protected resource metadata are server settings, not route switches, because they also change what the metadata advertises. With developer apps on, any signed-in user can register up to `DeveloperApps.MaxAppsPerUser` (10) clients. Set `options.DeveloperApps.RequireApproval = true` to review them first, or turn the part off.
 
-`MapOAuthServer` returns the consent and developer app groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](#option-b-your-own-approve-endpoint)).
+`MapOAuthServer` returns the consent, developer app, and connected apps groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](#option-b-your-own-approve-endpoint)).
 
 #### Without the recipe
 
@@ -137,6 +138,7 @@ builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { 
 app.MapAuthEndpointsOpenIddict();        // authorize, plus registration and resource metadata when enabled
 app.MapOAuthConsentEndpoints();          // optional JSON consent API
 app.MapOAuthDeveloperAppEndpoints();     // optional developer console API
+app.MapOAuthConnectedAppEndpoints();     // optional connected apps API
 await app.Services.SeedOAuthClientsAsync();
 ```
 
@@ -262,6 +264,16 @@ Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/
 
 **Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
 
+#### Token callers and cookie redirects
+
+On a route that reads both the Identity cookie and an access token, a refused token caller used to get the cookie's answer. That meant a `302` to the login or access-denied page when the cookie challenged or forbade, for example from `Results.Forbid()` or `Results.Challenge()` with the default scheme, or a `403` that still carried the cookie's `Location` header. An OAuth client cannot follow either.
+
+By default (`BearerRequestsSkipCookieRedirects = true`), a request that carries `Authorization: Bearer` gets `401` where the cookie would redirect to its login page, and `403` where it would redirect to its access-denied page. This applies to the Identity application cookie and to `AuthenticationScheme`. Requests without the header, such as browser navigation, are unchanged. Your own `OnRedirectToLogin` and `OnRedirectToAccessDenied` still run for them, and an `EventsType` you set is kept. To keep the cookie's redirects for every request:
+
+```csharp
+options.BearerRequestsSkipCookieRedirects = false;
+```
+
 #### CSRF on routes that take a token
 
 `AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerServiceCollectionExtensions.ValidationScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
@@ -332,11 +344,11 @@ With it on, the authorization server metadata has `client_id_metadata_document_s
 - **The URL** must be `https`, with a path other than `/`, and no query, fragment, user info, or `.`/`..` segments. It is compared as a string and never normalized. It may be up to 255 characters.
 - **The fetch** goes only to public addresses. The host name is resolved first and every address must be public: loopback, private (`10/8`, `172.16/12`, `192.168/16`, `fc00::/7`), link-local (`169.254/16`, `fe80::/10`, which covers cloud metadata endpoints), shared, documentation, and multicast addresses are refused, and the connection goes only to the addresses that were checked, so a second DNS answer cannot redirect it. Redirects are not followed; no cookies, credentials, or proxy are used; it times out after `FetchTimeout` (5 seconds) and reads at most `MaxDocumentBytes` (5 KB). `Accept: application/json` is sent and only `200` is accepted. Fetches are not logged.
 - **The document** must have `client_id` equal to the URL, and `redirect_uris` under the same rules as dynamic registration (`https`, or `http` on a loopback host, where `127.0.0.1` and `[::1]` may use any port). Only public clients are accepted: no `client_secret`, no shared-secret method, and `none` must be the client's `token_endpoint_auth_method` or one of its `token_endpoint_auth_methods_supported` (a document with neither means `none`). `grant_types`, when present, must include `authorization_code` (a refresh token is issued only if it also lists `refresh_token`), and `response_types` must include `code`. `client_name` is optional; without it, the card shows the host.
-- **Scopes** follow `DynamicRegistration.AllowedScopes`, as for registered clients. The document's own `scope` is ignored, because one document serves every server.
+- **Scopes** follow `DynamicRegistration.AllowedScopes`, as for registered clients. The document's own `scope` is ignored, because one document serves every server. Metadata document clients and registered clients are both self-asserted and unauthenticated, so they share `AllowedScopes`, `UnusedClientLifetime`, `MaxRedirectUris`, and `MaxClientNameLength`. Separate settings can be added later, falling back to these.
 - **Storage.** The client is stored in OpenIddict's application store, as a public client, so authorizations, refresh, revocation, and `RevokeAuthorizationAsync` work as for any client. It carries the same creation marker as a registered client, so the cleanup deletes one that no user approved within `DynamicRegistration.UnusedClientLifetime`; it is simply fetched again next time. A configured client, developer app, or registered client is never replaced by a fetched document, even if its id is a URL.
-- **Caching.** The stored copy is reused until its `Cache-Control: max-age` runs out, kept between `MinCacheDuration` (5 minutes, also used for `no-cache`, `no-store`, or no header) and `MaxCacheDuration` (24 hours). Then the next authorize request fetches it again and updates the stored client in place. If that fetch fails on the network (timeout, connection error, `5xx`, `429`), the stored copy is used and fetched again on the next request. If the new document is invalid, the request is refused. Errors are never cached.
+- **Caching.** The stored copy is reused until its `Cache-Control: max-age` runs out, kept between `MinCacheDuration` (5 minutes, also used for `no-cache`, `no-store`, or no header) and `MaxCacheDuration` (24 hours). Then the next authorize request fetches it again and updates the stored client in place. If that fetch fails on the network (timeout, connection error, `5xx`, `429`), the stored copy is used and fetched again on the next request. If the new document's `client_id` no longer matches its URL, the request is refused and every authorization and token the client holds is revoked, as the draft recommends. Any other invalid document refuses new authorizations only: grants the client already holds keep working. Errors are never cached.
 - **Errors.** A refused client gets `invalid_client` on this server's error page. The browser is never sent to the client's redirect URI.
-- **Limits.** Fetches are limited per caller IP address (`FetchesPerMinute`, 20); a stored copy is reused without counting. Behind a proxy, configure forwarded headers so the caller IP is right.
+- **Limits.** Fetches are limited per caller IP address with `ClientMetadataDocuments.FetchesPerMinute` (20 by default), because an anonymous authorize request can cause one; a stored copy is reused without counting. Behind a proxy, configure forwarded headers so the caller IP is right.
 - **Hosts.** `DeniedHosts` and `AllowedHosts` take host names, or `*.example.com` for subdomains. Empty `AllowedHosts` accepts any public host. For a decision the lists cannot express, register a filter; it runs before every fetch and before a stored client is reused:
 
 ```csharp
@@ -350,11 +362,11 @@ public sealed class TrustedClientHosts(AppDbContext db) : IOAuthClientMetadataHo
 }
 ```
 
-The consent card gets `clientHost`, the host of the `client_id` URL (with the port when it is not the default), so your page can show which domain published the client next to its name. Turning the option off stops stored metadata document clients at `/connect/authorize`. Grants they already hold keep working until they expire or you revoke them.
+The consent card gets `clientHost`, the host of the `client_id` URL (with the port when it is not the default), so your page can show which domain published the client next to its name. Turning the option off stops clients created from metadata documents everywhere: `/connect/authorize` refuses them, and so does `/connect/token`, for both code exchange and refresh (`invalid_client`). Access tokens they already hold work until they expire (`AccessTokenLifetime`, 15 minutes by default).
 
-`private_key_jwt` client authentication (with `jwks` or `jwks_uri`) is not supported yet. A document that offers it next to `none` is accepted as a public client; one that offers only `private_key_jwt` is refused.
+`private_key_jwt` client authentication (with `jwks` or `jwks_uri`) is not supported yet. A document that offers it next to `none` is accepted as a public client; one that offers only `private_key_jwt` is refused with `invalid_client` and the description "private_key_jwt is not supported for client ID metadata documents yet".
 
-The `client_id` columns of `OpenIddictApplications` and `OAuthRequests` are 255 characters wide, so a metadata URL fits. Add a migration after upgrading.
+The `client_id` columns of `OpenIddictApplications` and `OAuthRequests` are 255 characters wide, so a metadata URL fits. Add a migration after upgrading (`dotnet ef migrations add WidenOAuthClientId`, then apply it as you apply your other migrations).
 
 ### Developer apps
 
@@ -411,7 +423,7 @@ The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`
 
 When an owner's account is deleted, the cascade removes the app's row. From then on, the authorize and token endpoints refuse its client, and the next cleanup pass deletes it. Developer apps are never treated as unused dynamic registrations.
 
-Developer apps and [dynamic registration](#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, `IOAuthConsentService.RevokeAuthorizationAsync` still disconnects one app from one account.
+Developer apps and [dynamic registration](#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, the [connected apps](#connected-apps) routes disconnect one app from one account.
 
 ### Redirect URIs
 
@@ -486,6 +498,7 @@ The card then has `scopeDetails` next to `scopes`, in the same order:
 - Each `Name` must be in `Scopes`, or be `offline_access`, and appear once. Culture keys must be culture names. A wrong entry fails at startup.
 - `OAuthPendingRequest.ScopeDetails` has the same list for `IOAuthConsentService.FindAsync` and principal factories.
 - The text comes from your configuration, never from the client, so a client cannot change what the card says a scope does.
+- The text is resolved by `IOAuthScopeDescriptions`. The default reads `ScopeDefinitions`. To load it from a database or resource files instead, implement the interface and register it with `AddScopeDescriptions<T>()` on the server builder (or before `AddOAuthServer`, which only adds the default when none is registered). It is called on every card fetch and approval, so cache anything slow.
 
 #### Developer app details on the card
 
@@ -578,7 +591,75 @@ Identity changes the security stamp when the password changes or is reset, an au
 
 The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
 
-The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. With OpenID Connect, the user id is also kept on the authorization in the database, so `userinfo` and logout can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. The user id is also kept on the authorization in the database, so `userinfo`, logout, [audit events](#audit-events), and the connected apps list can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+
+## Connected apps
+
+A signed-in person can see which clients they connected and disconnect one. `MapOAuthServer` maps two JSON routes for that, at `/oauth/authorizations` (`parts.ConnectedApps`, `parts.ConnectedAppsPrefix`):
+
+| Route | Response |
+| --- | --- |
+| `GET /oauth/authorizations` | `[{ authorizationId, clientId, clientName, clientKind, clientHost, scopes, scopeDetails, resource, createdAt, lastUsedAt }]`, newest first |
+| `DELETE /oauth/authorizations/{authorizationId}` | `204`, or `404` when the grant is unknown, someone else's, or already revoked |
+
+- Only live grants are listed: not revoked, and still holding a valid token. A grant whose refresh token expired drops off.
+- A grant belongs to the user who approved it, even when a principal factory issued its tokens for another `sub`.
+- `clientKind` is `configured`, `dynamic`, `metadata_document`, or `developer_app` (`OAuthClientKinds`). `clientHost` is the host of a metadata document client's URL, or of a developer app's homepage, and `null` for other clients, whose names are self-asserted.
+- `lastUsedAt` is `null` unless [`RecordLastUsed`](#last-used) is on.
+- The routes authenticate with `AuthenticationScheme` (the Identity cookie), so an OAuth access token cannot list or revoke grants. The `DELETE` needs a CSRF token (`RequireAntiforgery(allowBearer: false)`).
+- Disconnecting revokes the grant and every token from it, and raises `AuthorizationRevoked` with `RevokedBy = User`.
+
+For your own page, or for an admin page about another user, call `IOAuthConnectedAppService`. The package does not decide who is an admin: check that first.
+
+```csharp
+app.MapDelete("/admin/users/{userId}/connected-apps/{authorizationId}", async (
+        string userId, string authorizationId, ClaimsPrincipal admin, IOAuthConnectedAppService apps) =>
+    await apps.RevokeAsync(userId, authorizationId, OAuthRevokedBy.Admin, admin.FindFirstValue(ClaimTypes.NameIdentifier))
+        ? Results.NoContent()
+        : Results.NotFound())
+    .RequireAuthorization("admin")
+    .RequireAntiforgery(allowBearer: false);
+```
+
+`ListAsync(userId)` returns the same items as the `GET` route.
+
+## Audit events
+
+Implement `IOAuthServerEvents` to keep an audit trail of what the OAuth server did, and register it with `AddServerEvents<T>()`. Register as many as you need; each gets every event, in registration order. With none registered (the default), nothing is raised.
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+    .AddServerEvents<OAuthAuditLog>();
+
+public sealed class OAuthAuditLog(AppDbContext db) : IOAuthServerEvents
+{
+    public async ValueTask OnEventAsync(OAuthServerEvent e, CancellationToken cancellationToken)
+    {
+        db.AuditEntries.Add(new AuditEntry(e.Type.ToString(), e.OccurredAt, e.UserId, e.ClientId, e.AuthorizationId));
+        await db.SaveChangesAsync(cancellationToken);
+    }
+}
+```
+
+| `Type` | Raised when |
+| --- | --- |
+| `ConsentApproved` | The user approved a consent request and a code was issued. |
+| `ConsentDenied` | The user denied a consent request. |
+| `CodeExchanged` | The client exchanged the code for tokens. |
+| `TokenRefreshed` | The client refreshed. |
+| `GrantRefused` | A code exchange or refresh was refused by [user revalidation](#when-the-user-changes). The grant was revoked. `GrantType` says which grant. |
+| `AuthorizationRevoked` | A grant was revoked. `RevokedBy` is `User`, `Admin` (also `IOAuthConsentService.RevokeAuthorizationAsync` and an admin turning a developer app off), `Cleanup` (a developer app whose owner is gone), or `ClientDeleted` (a developer app deleted by its owner). |
+| `ClientRegistered` | Dynamic registration, the first stored copy of a client ID metadata document, or a new developer app (`UserId` is its owner). |
+
+Each event has `UserId` (the approving user, even when a principal factory chose another `sub`), `ClientId`, `ClientKind` (`configured`, `dynamic`, `metadata_document`, or `developer_app`; see `OAuthClientKinds`), `AuthorizationId`, `Scopes`, and `Resource`, where they apply. Events never carry a token, an authorization code, a client secret, or the security stamp.
+
+Subscribers are scoped and run in the request, one after another, so keep them fast or hand the event to a queue. A subscriber that throws is logged (event type and subscriber type only) and skipped: the OAuth response does not change and the next subscriber still runs. Calls to your own API are not events; audit those in the API.
+
+### Last used
+
+Set `RecordLastUsed = true` to record when each grant was last used. The time is written to the authorization at the code exchange and at a refresh, at most once per `LastUsedInterval` (1 hour by default), so a client that refreshes every few minutes does not write on every refresh. A call to the API with an access token does not update it. A write that loses a race with another request is skipped; the next refresh records it.
+
+The package also stores the approving user's id and the approved resource on every authorization (properties `ae_user_id` and `ae_resource`, see `OAuthServerConstants`).
 
 ## OpenID Connect (optional)
 
@@ -762,8 +843,8 @@ app.MapMcp("/mcp").RequireAuthorization("mcp"); // or your own MCP endpoint
 - **Identification.** The assistant uses a client ID metadata document or registers. Both are public clients held to `DynamicRegistration.AllowedScopes`, so keep first-party scopes out of that list.
 - **Consent.** Your page shows `clientName` with `clientHost` (or `redirectHost`), and the scopes from `scopeDetails`. Describe them in `ScopeDefinitions`.
 - **Tokens.** The assistant asks for `resource=https://app.example.com/mcp`. `RequireOAuthAudience` keeps that token on `/mcp`, `RequireOAuthScope` checks the grant, and the role check is the one cookie users go through. Inside tool handlers, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`.
-- **Shared routes.** On routes that cookie users also call, use `RequireOAuthScopeWhenDelegated(...)` next to the existing role check, and check the audience only for token callers. Make the Identity cookie answer `403` instead of redirecting to its access-denied page.
-- **Disconnecting.** `IOAuthConsentService.RevokeAuthorizationAsync(authorizationId)` ends one grant. `UserManager.UpdateSecurityStampAsync(user)` ends every grant at its next refresh.
+- **Shared routes.** On routes that cookie users also call, use `RequireOAuthScopeWhenDelegated(...)` next to the existing role check, and check the audience only for token callers. A refused token caller gets `403`, not the cookie's redirect (`BearerRequestsSkipCookieRedirects`, on by default).
+- **Disconnecting.** The [connected apps](#connected-apps) routes (`GET /oauth/authorizations`, `DELETE /oauth/authorizations/{id}`) let the person see and disconnect each assistant; `IOAuthConnectedAppService` does the same for an admin page. `UserManager.UpdateSecurityStampAsync(user)` ends every grant at its next refresh.
 
 A scope never widens what the person may do: keep every route's existing role or policy check.
 
@@ -817,6 +898,7 @@ Dynamic registration has its own limit (`DynamicRegistration.PermitsPerMinute`).
 | `ConsentUrl`, `ConsentRequestParameter` | required, `request` | |
 | `LogoutUrl` | none | OpenID Connect only. The sign-out page for a [logout](#logout) without a matching `id_token_hint`. Gets the logout URL in `LoginReturnUrlParameter`. |
 | `AuthenticationScheme`, `UserIdClaimType` | Identity cookie, `NameIdentifier` | |
+| `BearerRequestsSkipCookieRedirects` | `true` | A request with `Authorization: Bearer` gets `401`/`403` instead of the sign-in cookie's redirects. See [Token callers and cookie redirects](#token-callers-and-cookie-redirects). |
 | `AccessTokenLifetime` | 15 minutes | |
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
 | `AuthorizationCodeLifetime` | 5 minutes | |
@@ -826,6 +908,7 @@ Dynamic registration has its own limit (`DynamicRegistration.PermitsPerMinute`).
 | `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](#developer-apps). |
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
+| `RecordLastUsed`, `LastUsedInterval` | off, 1 hour | Record when each grant was last used, at most once per interval. See [Last used](#last-used). |
 | `TokenRateLimit` | off; 60 per minute | Per endpoint, client id, and IP on `/connect/token` and `/connect/revoke`. `429` with `temporarily_unavailable` and `Retry-After`. See [Rate limits](#rate-limits). |
 | `AccessTokenClaims` | off | `Roles` and `UserId` add the approving user's Identity roles and user id to access tokens. See [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens). |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
@@ -848,6 +931,7 @@ This is a preview. These are known gaps, not bugs:
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
+- **Client ID metadata documents are public clients only.** `private_key_jwt` with `jwks` or `jwks_uri` is not supported yet; a document that offers only that method is refused with `invalid_client`.
 - **Cookie sign-in only at the authorize step.** The user is read from `AuthenticationScheme` (the Identity cookie by default). Password, two-factor, passkey, and cookie-mode external sign-in all end with that cookie. A sign-in that is still waiting for a second factor, or an external sign-in that has not been completed, does not count.
 
 An OIDC client for AuthEndpoints (the other direction) is tracked separately in issue #380.

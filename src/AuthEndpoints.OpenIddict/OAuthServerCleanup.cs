@@ -44,7 +44,8 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
         var now = clock.GetUtcNow();
 
         var clients = await DeleteUnusedClientsAsync(applications, authorizations, tokens, settings, now, cancellationToken);
-        var orphans = await DeleteOrphanedDeveloperAppsAsync(db, applications, authorizations, tokens, cancellationToken);
+        var events = services.GetRequiredService<OAuthServerEventDispatcher>();
+        var orphans = await DeleteOrphanedDeveloperAppsAsync(db, applications, authorizations, tokens, events, cancellationToken);
         var requests = await db.Set<OAuthRequest<TKey>>()
             .Where(request => request.ExpiresAt <= now)
             .ExecuteDeleteAsync(cancellationToken);
@@ -59,6 +60,7 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
         IOpenIddictApplicationManager applications,
         IOpenIddictAuthorizationManager authorizations,
         IOpenIddictTokenManager tokens,
+        OAuthServerEventDispatcher events,
         CancellationToken cancellationToken)
     {
         var marked = new List<(object Application, Guid Id)>();
@@ -91,7 +93,7 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
             }
 
             await OAuthDeveloperAppService<TContext, TKey>.DeleteApplicationAsync(
-                applications, tokens, authorizations, application, cancellationToken);
+                db, applications, tokens, authorizations, application, events, OAuthRevokedBy.Cleanup, cancellationToken);
             deleted++;
         }
 

@@ -69,6 +69,15 @@ public static class OAuthServerConstants
     /// </summary>
     public const string AuthorizationUserProperty = "ae_user_id";
 
+    /// <summary>OpenIddict authorization property with the resource the user approved, for events and the connected apps list.</summary>
+    public const string AuthorizationResourceProperty = "ae_resource";
+
+    /// <summary>
+    /// OpenIddict authorization property with the last time the grant was used at the token endpoint (ISO 8601), written
+    /// when <c>OAuthServerOptions.RecordLastUsed</c> is on.
+    /// </summary>
+    public const string AuthorizationLastUsedProperty = "ae_last_used";
+
     /// <summary>Fallback display name for a client without one.</summary>
     public const string FallbackClientName = "OAuth client";
 }

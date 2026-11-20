@@ -134,6 +134,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
     IOptions<OAuthServerOptions> options,
+    OAuthServerEventDispatcher events,
     TimeProvider clock) : IOAuthDeveloperAppService, IOAuthDeveloperAppGate
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -233,6 +234,13 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
             throw;
         }
 
+        await events.RaiseAsync(new OAuthServerEvent(OAuthServerEventType.ClientRegistered, now)
+        {
+            UserId = ownerId,
+            ClientId = row.ClientId,
+            ClientKind = OAuthClientKinds.DeveloperApp,
+            Scopes = settings.Scopes.Distinct(StringComparer.Ordinal).ToArray(),
+        }, cancellationToken);
         return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout), secret);
     }
 
@@ -313,7 +321,8 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         await Apps.Where(app => app.Id == row.Id).ExecuteDeleteAsync(cancellationToken);
         if (await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is { } application)
         {
-            await DeleteApplicationAsync(applications, tokens, authorizations, application, cancellationToken);
+            await DeleteApplicationAsync(
+                db, applications, tokens, authorizations, application, events, OAuthRevokedBy.ClientDeleted, cancellationToken);
         }
 
         return true;
@@ -368,8 +377,14 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
             && await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is { } application
             && await applications.GetIdAsync(application, cancellationToken) is { Length: > 0 } applicationId)
         {
+            var valid = await events.ValidAuthorizationsAsync(db, applicationId, cancellationToken);
             await tokens.RevokeByApplicationIdAsync(applicationId, cancellationToken);
             await authorizations.RevokeByApplicationIdAsync(applicationId, cancellationToken);
+            foreach (var authorization in valid)
+            {
+                // Admin review turned the app off.
+                await events.RevokedAsync(authorization, OAuthRevokedBy.Admin, null, cancellationToken);
+            }
         }
 
         return true;
@@ -404,17 +419,27 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
     }
 
     internal static async Task DeleteApplicationAsync(
+        TContext db,
         IOpenIddictApplicationManager applications,
         IOpenIddictTokenManager tokens,
         IOpenIddictAuthorizationManager authorizations,
         object application,
+        OAuthServerEventDispatcher events,
+        OAuthRevokedBy revokedBy,
         CancellationToken cancellationToken)
     {
         if (await applications.GetIdAsync(application, cancellationToken) is { Length: > 0 } applicationId)
         {
+            // Listed before the bulk revoke, so each grant it ends can be reported. Empty without subscribers.
+            var valid = await events.ValidAuthorizationsAsync(db, applicationId, cancellationToken);
+
             // Revoke first so issued tokens stop working even if a later step fails.
             await tokens.RevokeByApplicationIdAsync(applicationId, cancellationToken);
             await authorizations.RevokeByApplicationIdAsync(applicationId, cancellationToken);
+            foreach (var authorization in valid)
+            {
+                await events.RevokedAsync(authorization, revokedBy, null, cancellationToken);
+            }
         }
 
         await applications.DeleteAsync(application, cancellationToken);

@@ -54,14 +54,18 @@ public sealed class OAuthMcpGuideTests
         Assert.Equal(userId, (await me.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("userId").GetString());
         Assert.Equal(HttpStatusCode.OK, (await CallAsync(host, tokens.AccessToken, "/mcp/reports")).StatusCode);
         // An /mcp token cannot use the shared /api route, even with the scope.
-        Assert.Equal(HttpStatusCode.Forbidden, (await CallAsync(host, tokens.AccessToken, "/api/reports")).StatusCode);
+        var shared = await CallAsync(host, tokens.AccessToken, "/api/reports");
+        Assert.Equal(HttpStatusCode.Forbidden, shared.StatusCode);
+        Assert.Null(shared.Headers.Location);
         // The cookie user reaches the shared route as before.
         Assert.Equal(HttpStatusCode.OK, (await user.GetAsync("/api/reports")).StatusCode);
 
         // A grant without reports.read can use the server, but not the reports tool.
         var narrow = await ConnectAsync(host, user, client, "mcp", Mcp);
         Assert.Equal(HttpStatusCode.OK, (await CallAsync(host, narrow.AccessToken, "/mcp")).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await CallAsync(host, narrow.AccessToken, "/mcp/reports")).StatusCode);
+        var tool = await CallAsync(host, narrow.AccessToken, "/mcp/reports");
+        Assert.Equal(HttpStatusCode.Forbidden, tool.StatusCode);
+        Assert.Null(tool.Headers.Location);
 
         // A token for /api with the scope reaches the shared route, and not /mcp.
         var apiTokens = await ConnectAsync(host, user, client, "reports.read", Audience);
@@ -125,12 +129,6 @@ public sealed class OAuthMcpGuideTests
     /// <summary>Section 4 of the guide.</summary>
     private static void Policies(IServiceCollection services)
     {
-        // A token caller refused on a shared route gets 403, not a redirect to the cookie's access-denied page.
-        services.ConfigureApplicationCookie(cookie => cookie.Events.OnRedirectToAccessDenied = context =>
-        {
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
-        });
         services.AddAuthorization(options =>
         {
             options.AddPolicy("mcp", policy => policy
@@ -151,7 +149,7 @@ public sealed class OAuthMcpGuideTests
         mcp.MapGet("/", (ClaimsPrincipal user, UserManager<IdentityUser> users) => Results.Ok(new { userId = users.GetUserId(user) }));
         // A tool that needs more than the server scope checks it in the handler.
         mcp.MapGet("/reports", (ClaimsPrincipal user) => user.IsOAuthDelegated() && !user.HasOAuthScope("reports.read")
-            ? Results.Forbid(authenticationSchemes: [OAuthServerServiceCollectionExtensions.ValidationScheme])
+            ? Results.Forbid()
             : Results.Ok(new[] { "Q3" }));
         app.MapGet("/api/reports", () => Results.Ok(new[] { "Q3" })).RequireAuthorization("reports.read");
     }

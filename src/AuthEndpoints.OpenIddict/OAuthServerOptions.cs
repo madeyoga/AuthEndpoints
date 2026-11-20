@@ -93,6 +93,16 @@ public sealed class OAuthServerOptions
     /// </summary>
     public string AuthenticationScheme { get; set; } = IdentityConstants.ApplicationScheme;
 
+    /// <summary>
+    /// When a request carries <c>Authorization: Bearer</c>, make the Identity application cookie (and
+    /// <see cref="AuthenticationScheme"/>) answer <c>401</c> instead of redirecting to the login page and <c>403</c> instead of
+    /// redirecting to the access-denied page. A token caller refused on a route that also reads the cookie then gets a status
+    /// code it can act on. Requests without the header, such as browser navigation, keep the cookie's own behavior, and the
+    /// host's cookie events are still called for them. An app that sets <c>EventsType</c> keeps it: its events are resolved
+    /// per request as before. Default <see langword="true"/>.
+    /// </summary>
+    public bool BearerRequestsSkipCookieRedirects { get; set; } = true;
+
     /// <summary>Claim on the signed-in principal that holds the user id. Default <see cref="ClaimTypes.NameIdentifier"/>.</summary>
     public string UserIdClaimType { get; set; } = ClaimTypes.NameIdentifier;
 
@@ -152,6 +162,19 @@ public sealed class OAuthServerOptions
     /// and has the same security stamp. A failed check revokes the grant. Default <see langword="true"/>.
     /// </summary>
     public bool RevalidateUser { get; set; } = true;
+
+    /// <summary>
+    /// Record when each grant was last used: at the code exchange and at a refresh, the time is written to the OpenIddict
+    /// authorization (<see cref="OAuthServerConstants.AuthorizationLastUsedProperty"/>) when the stored time is older than
+    /// <see cref="LastUsedInterval"/>. The connected apps list shows it. Default <see langword="false"/>.
+    /// </summary>
+    public bool RecordLastUsed { get; set; }
+
+    /// <summary>
+    /// With <see cref="RecordLastUsed"/>, the least time between two writes of the same grant's last-used time, so a client
+    /// that refreshes often does not write on every refresh. Zero writes on every code exchange and refresh. Default 1 hour.
+    /// </summary>
+    public TimeSpan LastUsedInterval { get; set; } = TimeSpan.FromHours(1);
 
     /// <summary>Allow plain HTTP. Only for local development behind no proxy. Default <see langword="false"/>.</summary>
     public bool DisableTransportSecurityRequirement { get; set; }

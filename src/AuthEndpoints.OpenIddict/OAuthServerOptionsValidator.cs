@@ -136,6 +136,11 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        if (options.LastUsedInterval < TimeSpan.Zero)
+        {
+            failures.Add("OAuthServerOptions.LastUsedInterval must not be negative.");
+        }
+
         var certificates = options.Certificates;
         var sources = 0;
         if (!string.IsNullOrWhiteSpace(certificates.Path))
