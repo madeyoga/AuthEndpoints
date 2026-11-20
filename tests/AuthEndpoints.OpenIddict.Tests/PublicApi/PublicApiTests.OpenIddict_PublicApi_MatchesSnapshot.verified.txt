@@ -104,6 +104,8 @@
         public string RedirectHost { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("resource")]
         public string Resource { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("scopeDetails")]
+        public System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthScopeDetail> ScopeDetails { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("scopes")]
         public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
     }
@@ -253,6 +255,7 @@
         public string RedirectHost { get; init; }
         public string RedirectUri { get; init; }
         public string Resource { get; init; }
+        public System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthScopeDetail> ScopeDetails { get; init; }
         public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
         public string UserId { get; init; }
     }
@@ -303,6 +306,25 @@
         public required string Scope { get; set; }
         public string? State { get; set; }
         public TKey UserId { get; set; }
+    }
+    public sealed class OAuthScopeDefinition
+    {
+        public OAuthScopeDefinition() { }
+        public string? Description { get; set; }
+        public System.Collections.Generic.IDictionary<string, string> Descriptions { get; }
+        public string? DisplayName { get; set; }
+        public System.Collections.Generic.IDictionary<string, string> DisplayNames { get; }
+        public string? Name { get; set; }
+    }
+    public sealed record OAuthScopeDetail : System.IEquatable<AuthEndpoints.OpenIddict.OAuthScopeDetail>
+    {
+        public OAuthScopeDetail(string Name, string DisplayName, string? Description) { }
+        [System.Text.Json.Serialization.JsonPropertyName("description")]
+        public string? Description { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("displayName")]
+        public string DisplayName { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("name")]
+        public string Name { get; init; }
     }
     public sealed class OAuthScopeRequirement : Microsoft.AspNetCore.Authorization.AuthorizationHandler<AuthEndpoints.OpenIddict.OAuthScopeRequirement>, Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
     {
@@ -418,6 +440,7 @@
         public System.Collections.Generic.IList<string> QueryStringTokenPaths { get; }
         public System.TimeSpan RefreshTokenLifetime { get; set; }
         public bool RevalidateUser { get; set; }
+        public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthScopeDefinition> ScopeDefinitions { get; }
         public System.Collections.Generic.IList<string> Scopes { get; }
         public string UserIdClaimType { get; set; }
     }

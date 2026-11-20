@@ -20,13 +20,51 @@ When the user is signed out, it redirects to:
 
 | Route | Response |
 | --- | --- |
-| `GET /oauth/requests/{id}` | `{ id, clientId, clientName, redirectHost, scopes, resource, expiresAt, homepageUrl, description, confidential, owner }` |
+| `GET /oauth/requests/{id}` | `{ id, clientId, clientName, redirectHost, scopes, scopeDetails, resource, expiresAt, homepageUrl, description, confidential, owner }` |
 | `POST /oauth/requests/{id}/approve` | `{ redirectUrl }` with `code`, `state`, and `iss` |
 | `POST /oauth/requests/{id}/deny` | `{ redirectUrl }` with `error=access_denied` |
 
 The POSTs require a CSRF token from every caller, an OAuth access token included (`RequireAntiforgery(allowBearer: false)`). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
 
 The client is checked again when the user answers, because it can be deleted or edited, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, whose developer app is not `Active`, or whose redirect URI is no longer registered for the client (with the same loopback any-port rule as authorize), is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
+
+### Scope descriptions
+
+A person approving a client should read "Read your reports", not `reports.read`. Describe each scope once, in code or `appsettings`, optionally per culture:
+
+```json
+{
+  "OAuthServer": {
+    "Scopes": [ "reports.read" ],
+    "ScopeDefinitions": [
+      {
+        "Name": "reports.read",
+        "DisplayName": "Read your reports",
+        "Description": "See the reports you can open. It cannot change them.",
+        "DisplayNames": { "fr": "Lire vos rapports" },
+        "Descriptions": { "fr": "Voir les rapports que vous pouvez ouvrir. Il ne peut pas les modifier." }
+      },
+      { "Name": "offline_access", "DisplayName": "Stay connected", "Description": "Keep access when you are not using the app." }
+    ]
+  }
+}
+```
+
+The card then has `scopeDetails` next to `scopes`, in the same order:
+
+```json
+"scopes": [ "reports.read", "offline_access" ],
+"scopeDetails": [
+  { "name": "reports.read", "displayName": "Read your reports", "description": "See the reports you can open. It cannot change them." },
+  { "name": "offline_access", "displayName": "Stay connected", "description": "Keep access when you are not using the app." }
+]
+```
+
+- `scopes` stays a list of names, so existing consent pages keep working. Read `scopeDetails` for the words.
+- The text is resolved for the request culture (`CultureInfo.CurrentUICulture`, which `UseRequestLocalization` sets from `Accept-Language`, a cookie, or the query string): the culture (`pt-BR`), then its parents (`pt`), then `DisplayName` and `Description`. A scope without a definition gets its name as `displayName` and `null` as `description`.
+- Each `Name` must be in `Scopes`, or be `offline_access`, and appear once. Culture keys must be culture names. A wrong entry fails at startup.
+- `OAuthPendingRequest.ScopeDetails` has the same list for `IOAuthConsentService.FindAsync` and principal factories.
+- The text comes from your configuration, never from the client, so a client cannot change what the card says a scope does.
 
 ### Developer app details on the card
 

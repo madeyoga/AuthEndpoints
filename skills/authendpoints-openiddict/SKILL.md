@@ -137,7 +137,7 @@ Load only the file the task needs. Each one is self-contained.
 
 | Task | File |
 | --- | --- |
-| Build the consent page, use the JSON consent API, approve from your own endpoint, or change the token subject | [references/consent.md](references/consent.md) |
+| Build the consent page, use the JSON consent API, describe scopes in words (per culture), approve from your own endpoint, or change the token subject | [references/consent.md](references/consent.md) |
 | Seed clients from configuration, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
