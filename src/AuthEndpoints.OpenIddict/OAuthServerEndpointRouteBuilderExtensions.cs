@@ -15,8 +15,8 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     /// <summary>
     /// The default recipe's map call. Maps the authorization server (<see cref="MapAuthEndpointsOpenIddict"/>:
     /// authorize, plus registration and protected resource metadata when they are enabled in
-    /// <see cref="OAuthServerOptions"/>), the JSON consent API (<see cref="MapOAuthConsentEndpoints"/>), and the developer
-    /// app API (<see cref="MapOAuthDeveloperAppEndpoints"/>). Turn a part off or move it in <paramref name="configure"/>.
+    /// <see cref="OAuthServerOptions"/>), the JSON consent API (<see cref="MapOAuthConsentEndpoints"/>), the developer
+    /// app API (<see cref="MapOAuthDeveloperAppEndpoints"/>), and the connected apps API (<see cref="MapOAuthConnectedAppEndpoints"/>). Turn a part off or move it in <paramref name="configure"/>.
     /// Use it instead of those calls, not together with them.
     /// Fails at once when the server is not registered or <c>UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> is missing from the model.
     /// It does not seed <see cref="OAuthServerOptions.Clients"/>: call <c>SeedOAuthClientsAsync()</c> after migrations.
@@ -40,6 +40,11 @@ public static class OAuthServerEndpointRouteBuilderExtensions
             RequireRootedPrefix(parts.DeveloperAppsPrefix, nameof(OAuthServerEndpointOptions.DeveloperAppsPrefix));
         }
 
+        if (parts.ConnectedApps)
+        {
+            RequireRootedPrefix(parts.ConnectedAppsPrefix, nameof(OAuthServerEndpointOptions.ConnectedAppsPrefix));
+        }
+
         // Validates OAuthServerOptions now instead of on the first request.
         _ = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
         marker.EnsureModel(endpoints.ServiceProvider);
@@ -47,7 +52,8 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         endpoints.MapAuthEndpointsOpenIddict();
         return new OAuthServerEndpoints(
             parts.ConsentApi ? MapOAuthConsentEndpoints(endpoints, parts.ConsentPrefix) : null,
-            parts.DeveloperApps ? MapOAuthDeveloperAppEndpoints(endpoints, parts.DeveloperAppsPrefix) : null);
+            parts.DeveloperApps ? MapOAuthDeveloperAppEndpoints(endpoints, parts.DeveloperAppsPrefix) : null,
+            parts.ConnectedApps ? MapOAuthConnectedAppEndpoints(endpoints, parts.ConnectedAppsPrefix) : null);
     }
 
     private static void RequireRootedPrefix(string? prefix, string name)
@@ -164,6 +170,20 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         _ = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
             ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
         return OAuthDeveloperAppEndpoints.Map(endpoints, prefix);
+    }
+
+    /// <summary>
+    /// Maps a JSON API where the signed-in user sees the clients they connected and disconnects one:
+    /// <c>GET {prefix}</c> and <c>DELETE {prefix}/{id}</c>. The routes authenticate with
+    /// <see cref="OAuthServerOptions.AuthenticationScheme"/>, so an OAuth access token cannot call them, and the
+    /// <c>DELETE</c> requires a CSRF token. For an admin page, call <see cref="IOAuthConnectedAppService"/> with the user id.
+    /// </summary>
+    public static RouteGroupBuilder MapOAuthConnectedAppEndpoints(this IEndpointRouteBuilder endpoints, string prefix = "/oauth/authorizations")
+    {
+        ArgumentNullException.ThrowIfNull(endpoints);
+        _ = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
+        return OAuthConnectedAppEndpoints.Map(endpoints, prefix);
     }
 
     private static IResult Metadata(ProtectedResourceDocument document, string issuer)

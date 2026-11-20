@@ -113,6 +113,16 @@ Prefixes match whole path segments: `/hubs` covers `/hubs`, `/hubs/chat`, and `/
 
 **Upgrading a SignalR host:** if a hub's clients pass the token with `accessTokenFactory` (JavaScript) or `AccessTokenProvider` (.NET), add the hub's path prefix to `QueryStringTokenPaths`. Without it, the WebSocket and Server-Sent Events transports get `401` after upgrading. Clients that send `Authorization: Bearer` and form posts that put the token in the header need no change.
 
+### Token callers and cookie redirects
+
+On a route that reads both the Identity cookie and an access token, a refused token caller used to get the cookie's answer. That meant a `302` to the login or access-denied page when the cookie challenged or forbade, for example from `Results.Forbid()` or `Results.Challenge()` with the default scheme, or a `403` that still carried the cookie's `Location` header. An OAuth client cannot follow either.
+
+By default (`BearerRequestsSkipCookieRedirects = true`), a request that carries `Authorization: Bearer` gets `401` where the cookie would redirect to its login page, and `403` where it would redirect to its access-denied page. This applies to the Identity application cookie and to `AuthenticationScheme`. Requests without the header, such as browser navigation, are unchanged. Your own `OnRedirectToLogin` and `OnRedirectToAccessDenied` still run for them, and an `EventsType` you set is kept. To keep the cookie's redirects for every request:
+
+```csharp
+options.BearerRequestsSkipCookieRedirects = false;
+```
+
 ### CSRF on routes that take a token
 
 `AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerServiceCollectionExtensions.ValidationScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
@@ -123,6 +133,41 @@ Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call o
 builder.Services.PostConfigure<AuthEndpointsAntiforgeryOptions>(options =>
     options.BearerSchemes.Remove(OAuthServerServiceCollectionExtensions.ValidationScheme));
 ```
+
+## Rate limits
+
+OpenIddict serves `/connect/token` and `/connect/revoke` from its middleware, during `UseAuthentication`, so `RequireRateLimiting` cannot reach them. Turn on the built-in limit instead:
+
+```csharp
+options.TokenRateLimit.Enabled = true;       // default false
+options.TokenRateLimit.PermitLimit = 60;     // per endpoint, client id, and IP address
+options.TokenRateLimit.Window = TimeSpan.FromMinutes(1);
+```
+
+The check runs inside OpenIddict, after the request is parsed and before client authentication or any database read. A request over the limit gets an OAuth error with `429 Too Many Requests` and `Retry-After` (seconds):
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 42
+
+{ "error": "temporarily_unavailable", "error_description": "Too many requests. Try again later." }
+```
+
+Requests without a `client_id` share one window per IP address. Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares the proxy's address. Many users behind one NAT who use the same configured client share a window too, so size `PermitLimit` for that: a client refreshes about once per `AccessTokenLifetime`.
+
+For another algorithm or partition, pass your own limiter. It replaces the built-in one and turns the limit on:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+    .AddTokenRateLimiter(_ => PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context =>
+        RateLimitPartition.GetTokenBucketLimiter(
+            $"{context.Endpoint}:{context.ClientId}",
+            _ => new TokenBucketRateLimiterOptions { TokenLimit = 20, TokensPerPeriod = 20, ReplenishmentPeriod = TimeSpan.FromMinutes(1) })));
+```
+
+`OAuthRateLimitContext` has the `HttpContext`, the `Endpoint` (`Token` or `Revocation`), and the `ClientId` as sent (not yet authenticated).
+
+Dynamic registration has its own limit (`DynamicRegistration.PermitsPerMinute`). `/connect/authorize` and the JSON APIs are endpoints, so `RequireRateLimiting` works on them: `MapOAuthServer` returns their groups (`oauth.Consent!.RequireRateLimiting("consent")`).
 
 ## Certificates
 
@@ -144,7 +189,45 @@ Identity changes the security stamp when the password changes or is reset, an au
 
 The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
 
-The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. With OpenID Connect, the user id is also kept on the authorization in the database, so `userinfo` and logout can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. The user id is also kept on the authorization in the database, so `userinfo`, logout, [audit events](#audit-events), and the connected apps list can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+
+## Audit events
+
+Implement `IOAuthServerEvents` to keep an audit trail of what the OAuth server did, and register it with `AddServerEvents<T>()`. Register as many as you need; each gets every event, in registration order. With none registered (the default), nothing is raised.
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+    .AddServerEvents<OAuthAuditLog>();
+
+public sealed class OAuthAuditLog(AppDbContext db) : IOAuthServerEvents
+{
+    public async ValueTask OnEventAsync(OAuthServerEvent e, CancellationToken cancellationToken)
+    {
+        db.AuditEntries.Add(new AuditEntry(e.Type.ToString(), e.OccurredAt, e.UserId, e.ClientId, e.AuthorizationId));
+        await db.SaveChangesAsync(cancellationToken);
+    }
+}
+```
+
+| `Type` | Raised when |
+| --- | --- |
+| `ConsentApproved` | The user approved a consent request and a code was issued. |
+| `ConsentDenied` | The user denied a consent request. |
+| `CodeExchanged` | The client exchanged the code for tokens. |
+| `TokenRefreshed` | The client refreshed. |
+| `GrantRefused` | A code exchange or refresh was refused by [user revalidation](#when-the-user-changes). The grant was revoked. `GrantType` says which grant. |
+| `AuthorizationRevoked` | A grant was revoked. `RevokedBy` is `User`, `Admin` (also `IOAuthConsentService.RevokeAuthorizationAsync` and an admin turning a developer app off), `Cleanup` (a developer app whose owner is gone), or `ClientDeleted` (a developer app deleted by its owner). |
+| `ClientRegistered` | Dynamic registration, the first stored copy of a client ID metadata document, or a new developer app (`UserId` is its owner). |
+
+Each event has `UserId` (the approving user, even when a principal factory chose another `sub`), `ClientId`, `ClientKind` (`configured`, `dynamic`, `metadata_document`, or `developer_app`; see `OAuthClientKinds`), `AuthorizationId`, `Scopes`, and `Resource`, where they apply. Events never carry a token, an authorization code, a client secret, or the security stamp.
+
+Subscribers are scoped and run in the request, one after another, so keep them fast or hand the event to a queue. A subscriber that throws is logged (event type and subscriber type only) and skipped: the OAuth response does not change and the next subscriber still runs. Calls to your own API are not events; audit those in the API.
+
+### Last used
+
+Set `RecordLastUsed = true` to record when each grant was last used. The time is written to the authorization at the code exchange and at a refresh, at most once per `LastUsedInterval` (1 hour by default), so a client that refreshes every few minutes does not write on every refresh. A call to the API with an access token does not update it. A write that loses a race with another request is skipped; the next refresh records it.
+
+The package also stores the approving user's id and the approved resource on every authorization (properties `ae_user_id` and `ae_resource`, see `OAuthServerConstants`).
 
 ## Protected resource metadata (optional)
 

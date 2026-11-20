@@ -123,6 +123,23 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
         Positive(failures, options.RefreshTokenLifetime, nameof(options.RefreshTokenLifetime));
         Positive(failures, options.ConsentLifetime, nameof(options.ConsentLifetime));
         Positive(failures, options.PruneAfter, nameof(options.PruneAfter));
+        if (options.TokenRateLimit.Enabled)
+        {
+            if (options.TokenRateLimit.PermitLimit < 1)
+            {
+                failures.Add("OAuthServerOptions.TokenRateLimit.PermitLimit must be at least 1.");
+            }
+
+            if (options.TokenRateLimit.Window <= TimeSpan.Zero)
+            {
+                failures.Add("OAuthServerOptions.TokenRateLimit.Window must be positive.");
+            }
+        }
+
+        if (options.LastUsedInterval < TimeSpan.Zero)
+        {
+            failures.Add("OAuthServerOptions.LastUsedInterval must not be negative.");
+        }
 
         var certificates = options.Certificates;
         var sources = 0;
