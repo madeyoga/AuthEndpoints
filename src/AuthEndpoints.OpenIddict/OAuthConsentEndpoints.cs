@@ -19,6 +19,13 @@ public sealed record OAuthConsentCard(
     [property: JsonPropertyName("resource")] string Resource,
     [property: JsonPropertyName("expiresAt")] DateTimeOffset ExpiresAt)
 {
+    /// <summary>
+    /// <see cref="Scopes"/> in the same order, as <c>{ name, displayName, description }</c> resolved for the request culture.
+    /// <c>scopes</c> stays a list of names, so existing consent pages keep working.
+    /// </summary>
+    [JsonPropertyName("scopeDetails")]
+    public IReadOnlyList<OAuthScopeDetail> ScopeDetails { get; init; } = [];
+
     /// <summary>The developer app's homepage. <see langword="null"/> for seeded and dynamically registered clients.</summary>
     [JsonPropertyName("homepageUrl")]
     public string? HomepageUrl { get; init; }
@@ -34,6 +41,13 @@ public sealed record OAuthConsentCard(
     /// <summary>Who built the developer app, from the host's <see cref="IOAuthDeveloperAppOwnerDisplay"/>. <see langword="null"/> by default.</summary>
     [JsonPropertyName("owner")]
     public string? Owner { get; init; }
+
+    /// <summary>
+    /// The host of the client's metadata document URL (its <c>client_id</c>), for a client identified by a client ID
+    /// metadata document. <see langword="null"/> for other clients.
+    /// </summary>
+    [JsonPropertyName("clientHost")]
+    public string? ClientHost { get; init; }
 }
 
 /// <summary>Where the consent page sends the browser next.</summary>
@@ -78,10 +92,12 @@ internal static class OAuthConsentEndpoints
             : Results.Ok(new OAuthConsentCard(
                 request.Id, request.ClientId, request.ClientName, request.RedirectHost, request.Scopes, request.Resource, request.ExpiresAt)
             {
+                ScopeDetails = request.ScopeDetails,
                 HomepageUrl = request.HomepageUrl,
                 Description = request.Description,
                 Confidential = request.Confidential,
                 Owner = request.Owner,
+                ClientHost = request.ClientHost,
             });
     }
 

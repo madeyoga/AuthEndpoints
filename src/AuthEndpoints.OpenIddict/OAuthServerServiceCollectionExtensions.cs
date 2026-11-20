@@ -45,6 +45,18 @@ public sealed class OAuthServerBuilder
     }
 
     /// <summary>
+    /// Decides which hosts may serve client ID metadata documents, after <c>ClientMetadataDocuments.DeniedHosts</c> and
+    /// <c>AllowedHosts</c>. Without it, every public host those lists allow is accepted.
+    /// </summary>
+    public OAuthServerBuilder AddClientMetadataHostFilter<TFilter>()
+        where TFilter : class, IOAuthClientMetadataHostFilter
+    {
+        Services.RemoveAll<IOAuthClientMetadataHostFilter>();
+        Services.AddScoped<IOAuthClientMetadataHostFilter, TFilter>();
+        return this;
+    }
+
+    /// <summary>
     /// Shows who built a developer app on the consent card (<c>owner</c>). Without it, <c>owner</c> is always
     /// <see langword="null"/>: the package never reads the owner's email or user name itself.
     /// </summary>
@@ -53,6 +65,18 @@ public sealed class OAuthServerBuilder
     {
         Services.RemoveAll<IOAuthDeveloperAppOwnerDisplay>();
         Services.AddScoped<IOAuthDeveloperAppOwnerDisplay, TDisplay>();
+        return this;
+    }
+
+    /// <summary>
+    /// Replaces the default <see cref="IOAuthScopeDescriptions"/> (which reads <see cref="OAuthServerOptions.ScopeDefinitions"/>),
+    /// for example to load scope display names and descriptions from a database or resource files.
+    /// </summary>
+    public OAuthServerBuilder AddScopeDescriptions<TDescriptions>()
+        where TDescriptions : class, IOAuthScopeDescriptions
+    {
+        Services.RemoveAll<IOAuthScopeDescriptions>();
+        Services.AddScoped<IOAuthScopeDescriptions, TDescriptions>();
         return this;
     }
 }
@@ -128,6 +152,7 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped<IOAuthUserProfiles, IdentityOAuthUserProfiles<TUser>>();
         services.TryAddScoped<IOAuthUserRoles, IdentityOAuthUserRoles<TUser>>();
+        services.TryAddScoped<IOAuthScopeDescriptions, OptionsOAuthScopeDescriptions>();
         // OpenID Connect amr: tell the sign-in cookie which method signed the user in. Inert without the openid scope.
         OAuthSignInMethodRegistration<TUser>.Register(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
@@ -142,6 +167,17 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped(typeof(IOAuthDeveloperAppGate), provider => provider.GetRequiredService(developerApps));
         services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<,>).MakeGenericType(typeof(TContext), keyType));
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
+        // Client ID metadata documents. Inert until ClientMetadataDocuments.Enabled is set.
+        services.TryAddSingleton<IOAuthClientMetadataHostFilter, AllowAllClientMetadataHosts>();
+        services.TryAddSingleton<IOAuthClientMetadataDnsResolver, SystemClientMetadataDnsResolver>();
+        services.TryAddSingleton<OAuthClientMetadataFetcher>();
+        services.TryAddSingleton<OAuthClientMetadataRateLimiter>();
+        services.TryAddScoped<OAuthClientMetadataResolver>();
+        services.AddHttpClient(OAuthClientMetadataFetcher.HttpClientName)
+            .ConfigurePrimaryHttpMessageHandler(provider => OAuthClientMetadataFetcher.CreateHandler(
+                provider.GetRequiredService<IOptions<OAuthServerOptions>>().Value.ClientMetadataDocuments))
+            // The default HttpClient logging writes request URLs. Keep fetches out of the logs.
+            .RemoveAllLoggers();
         services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<,>).MakeGenericType(typeof(TContext), keyType));
         services.AddHostedService<OAuthServerCleanupService>();
         // An OAuth access token arrives in Authorization: Bearer, so RequireAntiforgery() lets it skip the CSRF check
@@ -188,6 +224,12 @@ public static class OAuthServerServiceCollectionExtensions
                     builder.AddFilter<OpenIddictServerHandlerFilters.RequireDegradedModeDisabled>();
                     builder.UseScopedHandler<ValidateClientRedirectUriWithLoopbackPorts>();
                     builder.SetOrder(OpenIddictServerHandlers.Authentication.ValidateClientRedirectUri.Descriptor.Order);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessAuthenticationContext>(builder =>
+                {
+                    builder.UseScopedHandler<ResolveClientMetadataDocument>();
+                    // Store or refresh a metadata document client just before OpenIddict looks the client up.
+                    builder.SetOrder(OpenIddictServerHandlers.ValidateClientId.Descriptor.Order - 1);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
                 {

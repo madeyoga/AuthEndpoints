@@ -65,6 +65,34 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        var described = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var definition in options.ScopeDefinitions)
+        {
+            if (string.IsNullOrWhiteSpace(definition.Name))
+            {
+                failures.Add("Every ScopeDefinitions entry needs a Name.");
+                continue;
+            }
+
+            if (!all.Contains(definition.Name))
+            {
+                failures.Add($"ScopeDefinitions entry '{definition.Name}' is not in OAuthServerOptions.Scopes.");
+            }
+
+            if (!described.Add(definition.Name))
+            {
+                failures.Add($"ScopeDefinitions lists '{definition.Name}' twice.");
+            }
+
+            foreach (var culture in definition.DisplayNames.Keys.Concat(definition.Descriptions.Keys))
+            {
+                if (!OAuthScopeDescriptions.IsCultureName(culture))
+                {
+                    failures.Add($"ScopeDefinitions entry '{definition.Name}' has text for '{culture}', which is not a culture name such as 'fr' or 'pt-BR'.");
+                }
+            }
+        }
+
         if (!IsPage(options.LoginUrl))
         {
             failures.Add("OAuthServerOptions.LoginUrl must be an absolute URI or a path starting with '/'.");
@@ -136,6 +164,41 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
 
             Positive(failures, registration.UnusedClientLifetime, "DynamicRegistration.UnusedClientLifetime");
+        }
+
+        var documents = options.ClientMetadataDocuments;
+        if (documents.Enabled)
+        {
+            Positive(failures, documents.FetchTimeout, "ClientMetadataDocuments.FetchTimeout");
+            Positive(failures, documents.MinCacheDuration, "ClientMetadataDocuments.MinCacheDuration");
+            Positive(failures, documents.MaxCacheDuration, "ClientMetadataDocuments.MaxCacheDuration");
+            if (documents.MaxCacheDuration < documents.MinCacheDuration)
+            {
+                failures.Add("ClientMetadataDocuments.MaxCacheDuration must not be shorter than MinCacheDuration.");
+            }
+
+            if (documents.MaxDocumentBytes is < 256 or > 64 * 1024)
+            {
+                failures.Add("ClientMetadataDocuments.MaxDocumentBytes must be between 256 and 65536.");
+            }
+
+            if (documents.FetchesPerMinute < 1)
+            {
+                failures.Add("ClientMetadataDocuments.FetchesPerMinute must be at least 1.");
+            }
+
+            if (registration.MaxClientNameLength < 1 || registration.MaxRedirectUris < 1)
+            {
+                failures.Add("DynamicRegistration.MaxClientNameLength and MaxRedirectUris must be at least 1; client metadata documents use them too.");
+            }
+        }
+
+        foreach (var host in documents.AllowedHosts.Concat(documents.DeniedHosts))
+        {
+            if (!OAuthClientMetadataHosts.IsValidPattern(host))
+            {
+                failures.Add($"ClientMetadataDocuments host '{host}' must be a host name, such as 'client.example.com', or '*.example.com'.");
+            }
         }
 
         foreach (var scope in registration.AllowedScopes)

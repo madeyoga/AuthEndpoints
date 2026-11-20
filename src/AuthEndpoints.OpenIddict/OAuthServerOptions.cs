@@ -46,6 +46,12 @@ public sealed class OAuthServerOptions
     /// </summary>
     public IList<string> Scopes { get; } = new List<string>();
 
+    /// <summary>
+    /// How the consent card describes scopes to a person: a display name and a description, optionally per culture.
+    /// Each entry names a scope in <see cref="Scopes"/>, or <c>offline_access</c>. A scope without an entry is shown by its name.
+    /// </summary>
+    public IList<OAuthScopeDefinition> ScopeDefinitions { get; } = new List<OAuthScopeDefinition>();
+
     /// <summary>Scopes granted when the authorize request has no <c>scope</c>. Must be in <see cref="Scopes"/>.</summary>
     public IList<string> DefaultScopes { get; } = new List<string>();
 
@@ -117,6 +123,12 @@ public sealed class OAuthServerOptions
 
     /// <summary>Anonymous client registration (RFC 7591). Off by default.</summary>
     public OAuthDynamicRegistrationOptions DynamicRegistration { get; } = new();
+
+    /// <summary>
+    /// Clients that identify themselves with an <c>https</c> URL as <c>client_id</c>, which this server fetches to read
+    /// their metadata (OAuth Client ID Metadata Document). Off by default.
+    /// </summary>
+    public OAuthClientMetadataDocumentOptions ClientMetadataDocuments { get; } = new();
 
     /// <summary>OAuth clients that signed-in users register and own (<c>MapOAuthDeveloperAppEndpoints</c>).</summary>
     public OAuthDeveloperAppOptions DeveloperApps { get; } = new();
@@ -243,6 +255,53 @@ public sealed class OAuthDynamicRegistrationOptions
     public IList<string> AllowedScopes { get; } = new List<string>();
 }
 
+/// <summary>
+/// Client ID metadata documents (draft-ietf-oauth-client-id-metadata-document), the client identification method the MCP
+/// authorization spec prefers. A client sends an <c>https</c> URL as its <c>client_id</c>; <c>/connect/authorize</c> fetches
+/// that URL, checks the JSON document it returns, and stores the client in OpenIddict's application store. Only public
+/// clients with PKCE are accepted, held to the same redirect URI rules and
+/// <see cref="OAuthDynamicRegistrationOptions.AllowedScopes"/> as dynamically registered clients.
+/// </summary>
+public sealed class OAuthClientMetadataDocumentOptions
+{
+    /// <summary>
+    /// Accept <c>https</c> URLs as client ids and advertise <c>client_id_metadata_document_supported</c> in the authorization
+    /// server metadata. Default <see langword="false"/>.
+    /// </summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>How long one fetch may take, connection included. Default 5 seconds.</summary>
+    public TimeSpan FetchTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>Largest document read, in bytes. A larger one is refused. Default 5120 (5 KB, as the draft recommends).</summary>
+    public int MaxDocumentBytes { get; set; } = 5 * 1024;
+
+    /// <summary>
+    /// Shortest time a fetched document is reused before it is fetched again. Used when the response has no
+    /// <c>Cache-Control: max-age</c>, or asks for less, including <c>no-cache</c> and <c>no-store</c>. Default 5 minutes.
+    /// </summary>
+    public TimeSpan MinCacheDuration { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>Longest time a fetched document is reused, whatever its <c>Cache-Control</c> says. Default 24 hours.</summary>
+    public TimeSpan MaxCacheDuration { get; set; } = TimeSpan.FromHours(24);
+
+    /// <summary>
+    /// Document fetches that authorize requests from one IP address may cause each minute. Reusing a stored document does
+    /// not count. Default 20.
+    /// </summary>
+    public int FetchesPerMinute { get; set; } = 20;
+
+    /// <summary>
+    /// Hosts whose documents are accepted, such as <c>client.example.com</c>, or <c>*.example.com</c> for any subdomain
+    /// (not <c>example.com</c> itself). Case-insensitive. Empty (the default) accepts any public host not in
+    /// <see cref="DeniedHosts"/>.
+    /// </summary>
+    public IList<string> AllowedHosts { get; } = new List<string>();
+
+    /// <summary>Hosts whose documents are refused, in the same form as <see cref="AllowedHosts"/>. Checked first.</summary>
+    public IList<string> DeniedHosts { get; } = new List<string>();
+}
+
 /// <summary>Limits for developer apps, the OAuth clients that signed-in users register and own.</summary>
 public sealed class OAuthDeveloperAppOptions
 {
@@ -337,6 +396,30 @@ public sealed class OAuthProtectedResourceDefinition
     /// <c>/</c> and must not end with one, and no prefix may be listed twice across all resources.
     /// </summary>
     public IList<string> ChallengePaths { get; } = new List<string>();
+}
+
+/// <summary>
+/// The words a consent page shows for one scope. <see cref="DisplayName"/> and <see cref="Description"/> are the default
+/// text; <see cref="DisplayNames"/> and <see cref="Descriptions"/> override them per culture, keyed by culture name such as
+/// <c>fr</c> or <c>pt-BR</c>. The request culture is tried first, then its parents (<c>pt-BR</c>, then <c>pt</c>), then the
+/// default text.
+/// </summary>
+public sealed class OAuthScopeDefinition
+{
+    /// <summary>The scope, as in <see cref="OAuthServerOptions.Scopes"/>. Required.</summary>
+    public string? Name { get; set; }
+
+    /// <summary>A short label, such as "Read your reports". Defaults to <see cref="Name"/>.</summary>
+    public string? DisplayName { get; set; }
+
+    /// <summary>One or two sentences on what the client can do with this scope. Optional.</summary>
+    public string? Description { get; set; }
+
+    /// <summary>Display names per culture name.</summary>
+    public IDictionary<string, string> DisplayNames { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Descriptions per culture name.</summary>
+    public IDictionary<string, string> Descriptions { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>A client created by <c>SeedOAuthClientsAsync</c>.</summary>
