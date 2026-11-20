@@ -43,9 +43,23 @@
         public System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken) { }
         public System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken) { }
     }
+    public sealed class OAuthAccessTokenClaimOptions
+    {
+        public OAuthAccessTokenClaimOptions() { }
+        public bool Roles { get; set; }
+        public bool UserId { get; set; }
+    }
     public static class OAuthAuthorizationPolicyBuilderExtensions
     {
         public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthAudience(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, string audience) { }
+        public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthScope(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, params string[] scopes) { }
+        public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthScopeWhenDelegated(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, params string[] scopes) { }
+    }
+    public static class OAuthClaimsPrincipalExtensions
+    {
+        public static System.Collections.Generic.IReadOnlyList<string> GetOAuthScopes(this System.Security.Claims.ClaimsPrincipal principal) { }
+        public static bool HasOAuthScope(this System.Security.Claims.ClaimsPrincipal principal, string scope) { }
+        public static bool IsOAuthDelegated(this System.Security.Claims.ClaimsPrincipal principal) { }
     }
     public sealed record OAuthCleanupResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthCleanupResult>
     {
@@ -290,6 +304,14 @@
         public string? State { get; set; }
         public TKey UserId { get; set; }
     }
+    public sealed class OAuthScopeRequirement : Microsoft.AspNetCore.Authorization.AuthorizationHandler<AuthEndpoints.OpenIddict.OAuthScopeRequirement>, Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
+    {
+        public OAuthScopeRequirement(System.Collections.Generic.IEnumerable<string> scopes, bool onlyWhenDelegated = false) { }
+        public bool OnlyWhenDelegated { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; }
+        protected override System.Threading.Tasks.Task HandleRequirementAsync(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext context, AuthEndpoints.OpenIddict.OAuthScopeRequirement requirement) { }
+        public override string ToString() { }
+    }
     public static class OAuthServerApplicationBuilderExtensions
     {
         public static System.Threading.Tasks.Task SeedOAuthClientsAsync(this System.IServiceProvider services, System.Threading.CancellationToken cancellationToken = default) { }
@@ -368,6 +390,7 @@
     {
         public OAuthServerOptions() { }
         public System.Collections.Generic.IList<string> AcceptedAudiences { get; }
+        public AuthEndpoints.OpenIddict.OAuthAccessTokenClaimOptions AccessTokenClaims { get; }
         public System.TimeSpan AccessTokenLifetime { get; set; }
         public System.Collections.Generic.IList<string> AdditionalResources { get; }
         public bool AlwaysIssueRefreshToken { get; set; }

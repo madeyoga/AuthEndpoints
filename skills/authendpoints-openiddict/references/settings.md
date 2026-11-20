@@ -21,6 +21,7 @@
 | `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](developer-apps.md). |
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
+| `AccessTokenClaims` | off | `Roles` and `UserId` add the approving user's Identity roles and user id to access tokens. See [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens). |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
 | `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |
 | `IgnoreResourcePermissions` | `false` | Skips per-client `rsrc:` permissions. |
@@ -54,6 +55,62 @@ app.MapGroup("/mcp").RequireAuthorization("mcp");
 ```
 
 A token for `/mcp` then gets `403` from `/api`, and the other way round. With protected resource metadata on, each accepted resource gets its own document; see [One document per resource](#one-document-per-resource).
+
+## Roles and the user id on tokens
+
+A validated access token has `sub` and the granted scopes, but no roles and no `ClaimTypes.NameIdentifier`, so `RequireRole` policies and `UserManager.GetUserId(User)` see a token caller as a user without either. Turn on `AccessTokenClaims` to add them:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+{
+    // ...
+    options.AccessTokenClaims.Roles = true;  // the approving user's Identity roles, as `role` claims
+    options.AccessTokenClaims.UserId = true; // ClaimTypes.NameIdentifier from sub
+});
+
+builder.Services.AddAuthorization(options => options.AddPolicy("reports", policy => policy
+    .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+    .RequireRole("Reports")));
+```
+
+- `Roles` adds the approving user's Identity roles as `role` claims. That is the role claim type of the identity `ValidationScheme` creates, so `IsInRole`, `RequireRole`, and `[Authorize(Roles = "…")]` work. Code that reads `ClaimTypes.Role` claims directly does not see them. It needs Identity roles (`AddRoles<TRole>()`); without them, mapping the server fails at startup.
+- `UserId` adds `ClaimTypes.NameIdentifier`, `UserIdClaimType`, and `IdentityOptions.ClaimsIdentity.UserIdClaimType`, each set to `sub`.
+- Both are read at every code exchange and refresh, and written to the access token only, never to the code, the refresh token, or the ID token. A role change reaches the client at its next refresh. An access token that was already issued keeps its roles until it expires (15 minutes by default).
+- Both apply only when `sub` is the approving user. A principal factory that issues tokens for another subject gets neither, because the user's roles would describe the wrong subject. A factory that keeps the user id as `sub` keeps its own claims, and the user's roles are added next to any role claims it sends to the access token.
+- The security stamp and the grant's internal claims are never copied. Both options are off by default.
+
+## Require scopes
+
+A scope is what the person allowed the client to do for them. It narrows what the user's account may do and never widens it, so keep the role or policy check a route already has and add the scope next to it. `RequireOAuthScope` authenticates with `ValidationScheme` and requires every listed scope; a token missing one gets `403`:
+
+```csharp
+builder.Services.AddAuthorization(options =>
+{
+    // A route only OAuth clients call.
+    options.AddPolicy("mcp", policy => policy
+        .RequireOAuthAudience("https://auth.example.com/mcp")
+        .RequireOAuthScope("mcp"));
+
+    // A route that cookie users and OAuth clients share.
+    options.AddPolicy("reports.read", policy => policy
+        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+        .RequireAuthenticatedUser() // and the route's existing role or policy check
+        .RequireOAuthScopeWhenDelegated("reports.read"));
+});
+```
+
+`RequireOAuthScopeWhenDelegated` adds only the scope check. A caller without an OAuth access token (cookie, Identity bearer, JWT) passes it, and a token caller needs every listed scope, even when the same request also carries a valid cookie. It adds no scheme, so list `ValidationScheme` in the policy, or the token is never read. Both helpers add an `OAuthScopeRequirement`, which you can also add to a policy you build by hand. A role check on a shared route sees a token caller's roles only with `AccessTokenClaims.Roles` on; see [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens).
+
+For code that authorizes inside a service instead of on the endpoint, such as an MCP tool handler, use the `ClaimsPrincipal` helpers:
+
+```csharp
+if (user.IsOAuthDelegated() && !user.HasOAuthScope("reports.read"))
+{
+    return Results.Forbid();
+}
+```
+
+`IsOAuthDelegated()`, `GetOAuthScopes()`, and `HasOAuthScope(scope)` read only the identity built from the access token, so a cookie identity never contributes scopes. `HasOAuthScope` is `false` for a caller with no token, so check `IsOAuthDelegated()` first in code that cookie users reach too. The granted scopes include `offline_access` when the client got a refresh token.
 
 ## Where the token is read from
 

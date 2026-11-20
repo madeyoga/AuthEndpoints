@@ -123,6 +123,10 @@ Access tokens are reference tokens, validated against this server's database. AP
 
 To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource). With protected resource metadata on, give each resource its own name, scopes, and challenge paths in `ProtectedResource.Resources`; see [references/settings.md](references/settings.md#one-document-per-resource).
 
+Token callers have `sub` and scopes but no roles and no `ClaimTypes.NameIdentifier`. To let existing `RequireRole` policies and `UserManager.GetUserId` work for them, turn on `AccessTokenClaims.Roles` and `AccessTokenClaims.UserId` (both off by default). They are added only when `sub` is the approving user, and roles are read again at every refresh; see [references/settings.md](references/settings.md#roles-and-the-user-id-on-tokens).
+
+To require scopes, use `RequireOAuthScope(...)` on routes only OAuth clients call, and `RequireOAuthScopeWhenDelegated(...)` next to the existing role check on routes cookie users share (list `ValidationScheme` in that policy). In services, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`. A scope never widens what the user may do; see [references/settings.md](references/settings.md#require-scopes).
+
 Only `Authorization: Bearer` is read. The query string and form body are not (a breaking change from earlier builds). For SignalR or WebSocket hubs, add their prefix to `QueryStringTokenPaths`; see [references/settings.md](references/settings.md#where-the-token-is-read-from).
 
 The validation scheme is added to `AuthEndpointsAntiforgeryOptions.BearerSchemes`, so `RequireAntiforgery()` lets an OAuth token in the header skip the CSRF check. Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call; see [references/settings.md](references/settings.md#csrf-on-routes-that-take-a-token).
@@ -138,7 +142,7 @@ Load only the file the task needs. Each one is self-contained.
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
 | Turn on OpenID Connect: ID tokens, the `email`, `email_verified`, and `amr` claims, `userinfo`, logout, and post-logout redirect URIs | [references/openid-connect.md](references/openid-connect.md) |
-| Every option, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
+| Every option, roles and the user id on access tokens, requiring scopes on routes and in services, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
 
 ## Limitations
 
