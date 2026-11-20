@@ -46,6 +46,14 @@
     public static class OAuthAuthorizationPolicyBuilderExtensions
     {
         public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthAudience(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, string audience) { }
+        public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthScope(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, params string[] scopes) { }
+        public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthScopeWhenDelegated(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, params string[] scopes) { }
+    }
+    public static class OAuthClaimsPrincipalExtensions
+    {
+        public static System.Collections.Generic.IReadOnlyList<string> GetOAuthScopes(this System.Security.Claims.ClaimsPrincipal principal) { }
+        public static bool HasOAuthScope(this System.Security.Claims.ClaimsPrincipal principal, string scope) { }
+        public static bool IsOAuthDelegated(this System.Security.Claims.ClaimsPrincipal principal) { }
     }
     public sealed record OAuthCleanupResult : System.IEquatable<AuthEndpoints.OpenIddict.OAuthCleanupResult>
     {
@@ -279,6 +287,14 @@
         public required string Scope { get; set; }
         public string? State { get; set; }
         public TKey UserId { get; set; }
+    }
+    public sealed class OAuthScopeRequirement : Microsoft.AspNetCore.Authorization.AuthorizationHandler<AuthEndpoints.OpenIddict.OAuthScopeRequirement>, Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
+    {
+        public OAuthScopeRequirement(System.Collections.Generic.IEnumerable<string> scopes, bool onlyWhenDelegated = false) { }
+        public bool OnlyWhenDelegated { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; }
+        protected override System.Threading.Tasks.Task HandleRequirementAsync(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext context, AuthEndpoints.OpenIddict.OAuthScopeRequirement requirement) { }
+        public override string ToString() { }
     }
     public static class OAuthServerApplicationBuilderExtensions
     {

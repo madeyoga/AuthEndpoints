@@ -185,6 +185,39 @@ app.MapGroup("/mcp").RequireAuthorization("mcp");
 
 A token for `/mcp` then gets `403` from `/api`, and the other way round. Protected resource metadata still describes `Audience` only.
 
+#### Require scopes
+
+A scope is what the person allowed the client to do for them. It narrows what the user's account may do and never widens it, so keep the role or policy check a route already has and add the scope next to it. `RequireOAuthScope` authenticates with `ValidationScheme` and requires every listed scope; a token missing one gets `403`:
+
+```csharp
+builder.Services.AddAuthorization(options =>
+{
+    // A route only OAuth clients call.
+    options.AddPolicy("mcp", policy => policy
+        .RequireOAuthAudience("https://auth.example.com/mcp")
+        .RequireOAuthScope("mcp"));
+
+    // A route that cookie users and OAuth clients share.
+    options.AddPolicy("reports.read", policy => policy
+        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+        .RequireAuthenticatedUser() // and the route's existing role or policy check
+        .RequireOAuthScopeWhenDelegated("reports.read"));
+});
+```
+
+`RequireOAuthScopeWhenDelegated` adds only the scope check. A caller without an OAuth access token (cookie, Identity bearer, JWT) passes it, and a token caller needs every listed scope, even when the same request also carries a valid cookie. It adds no scheme, so list `ValidationScheme` in the policy, or the token is never read. Both helpers add an `OAuthScopeRequirement`, which you can also add to a policy you build by hand.
+
+For code that authorizes inside a service instead of on the endpoint, such as an MCP tool handler, use the `ClaimsPrincipal` helpers:
+
+```csharp
+if (user.IsOAuthDelegated() && !user.HasOAuthScope("reports.read"))
+{
+    return Results.Forbid();
+}
+```
+
+`IsOAuthDelegated()`, `GetOAuthScopes()`, and `HasOAuthScope(scope)` read only the identity built from the access token, so a cookie identity never contributes scopes. `HasOAuthScope` is `false` for a caller with no token, so check `IsOAuthDelegated()` first in code that cookie users reach too. The granted scopes include `offline_access` when the client got a refresh token.
+
 #### Where the token is read from
 
 > **Breaking change.** Earlier builds of this package also accepted the access token from the `access_token` query parameter and from an `access_token` form field, on every route. Now only `Authorization: Bearer` is read. A token in a URL ends up in server logs, proxy logs, and browser history, and a form field lets any HTML form send one.
