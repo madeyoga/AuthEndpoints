@@ -331,6 +331,87 @@ public sealed class OAuthClientMetadataDocumentTests
     }
 
     [Fact]
+    public async Task A_changed_client_id_revokes_what_the_client_holds()
+    {
+        var clock = new FakeTimeProvider(TimeProvider.System.GetUtcNow());
+        var server = new FakeDocumentServer();
+        var document = Document(ClientUrl);
+        server.Serve(ClientUrl, _ => Json(document));
+        await using var host = await HostAsync(server, clock: clock);
+        var (user, _) = await host.UserAsync("mismatch");
+        var tokens = await IssueAsync(host, user);
+        Assert.Equal(HttpStatusCode.OK, (await host.CallApiAsync(tokens.AccessToken)).StatusCode);
+
+        // The document now claims another client id. The draft: invalidate what the client holds.
+        document = Document("https://client.example/someone-else.json");
+        clock.Advance(TimeSpan.FromMinutes(6));
+        Assert.Equal("invalid_client", await RefusedAsync(user, ClientUrl));
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.CallApiAsync(tokens.AccessToken)).StatusCode);
+        using var anon = host.Client(cookies: false);
+        Assert.Equal("invalid_grant", await ErrorAsync(await TokenAsync(anon, RefreshGrant(ClientUrl, tokens.RefreshToken))));
+    }
+
+    [Fact]
+    public async Task Any_other_invalid_document_refuses_new_authorizations_only()
+    {
+        var clock = new FakeTimeProvider(TimeProvider.System.GetUtcNow());
+        var server = new FakeDocumentServer();
+        var document = Document(ClientUrl);
+        server.Serve(ClientUrl, _ => Json(document));
+        await using var host = await HostAsync(server, clock: clock);
+        var (user, _) = await host.UserAsync("invalid");
+        var tokens = await IssueAsync(host, user);
+
+        document = Document(ClientUrl, redirect: "http://client.example/callback");
+        clock.Advance(TimeSpan.FromMinutes(6));
+        Assert.Equal("invalid_client", await RefusedAsync(user, ClientUrl));
+
+        Assert.Equal(HttpStatusCode.OK, (await host.CallApiAsync(tokens.AccessToken)).StatusCode);
+        using var anon = host.Client(cookies: false);
+        var refreshed = await ReadTokenAsync(await TokenAsync(anon, RefreshGrant(ClientUrl, tokens.RefreshToken)));
+        Assert.Equal(HttpStatusCode.OK, (await host.CallApiAsync(refreshed.AccessToken)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Turning_the_feature_off_also_stops_code_exchange_and_refresh()
+    {
+        var server = new FakeDocumentServer();
+        server.Serve(ClientUrl, Document(ClientUrl));
+        await using var host = await HostAsync(server);
+        var (user, _) = await host.UserAsync("off-tokens");
+        var tokens = await IssueAsync(host, user);
+        var pkce = Pkce.Create();
+        var approved = await ApproveAsync(user, await StartAsync(user, ClientUrl, Loopback, pkce.Challenge));
+
+        host.Services.GetRequiredService<IOptions<OAuthServerOptions>>().Value.ClientMetadataDocuments.Enabled = false;
+
+        using var anon = host.Client(cookies: false);
+        Assert.Equal("invalid_client", await TokenErrorAsync(await TokenAsync(anon, CodeGrant(ClientUrl, Loopback, approved["code"], pkce.Verifier))));
+        Assert.Equal("invalid_client", await TokenErrorAsync(await TokenAsync(anon, RefreshGrant(ClientUrl, tokens.RefreshToken))));
+        // An access token already issued works until it expires.
+        Assert.Equal(HttpStatusCode.OK, (await host.CallApiAsync(tokens.AccessToken)).StatusCode);
+
+        // Other clients are not affected.
+        var (_, registered) = await host.IssueAsync(user);
+        Assert.Equal(HttpStatusCode.OK, (await host.CallApiAsync(registered.AccessToken)).StatusCode);
+    }
+
+    [Fact]
+    public async Task A_private_key_jwt_only_document_is_refused_with_a_clear_description()
+    {
+        var server = new FakeDocumentServer();
+        server.Serve(ClientUrl, Document(ClientUrl, extra: new() { ["token_endpoint_auth_method"] = "private_key_jwt", ["jwks_uri"] = "https://client.example/jwks" }));
+        await using var host = await HostAsync(server);
+        var (user, _) = await host.UserAsync("pkjwt");
+
+        var response = await user.GetAsync(AuthorizeUrl(ClientUrl, Loopback, Pkce.Create().Challenge));
+        var text = await response.Content.ReadAsStringAsync();
+        Assert.Contains("invalid_client", text, StringComparison.Ordinal);
+        Assert.Contains("private_key_jwt is not supported", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Hosts_are_filtered_by_the_lists_and_the_hook()
     {
         var server = new FakeDocumentServer();
@@ -526,6 +607,22 @@ public sealed class OAuthClientMetadataDocumentTests
         };
         options.Certificates.UseEphemeralKeys = true;
         return options;
+    }
+
+    private static async Task<TokenPair> IssueAsync(OAuthTestHost host, HttpClient user)
+    {
+        var pkce = Pkce.Create();
+        var approved = await ApproveAsync(user, await StartAsync(user, ClientUrl, Loopback, pkce.Challenge));
+        using var anon = host.Client(cookies: false);
+        return await ReadTokenAsync(await TokenAsync(anon, CodeGrant(ClientUrl, Loopback, approved["code"], pkce.Verifier)));
+    }
+
+    /// <summary>The error of a refused token request: 400, or 401 for invalid_client.</summary>
+    private static async Task<string> TokenErrorAsync(HttpResponseMessage response)
+    {
+        var text = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized, $"{(int)response.StatusCode} {text}");
+        return JsonSerializer.Deserialize<JsonElement>(text).GetProperty("error").GetString()!;
     }
 
     private static async Task<string?> CardNameAsync(HttpClient user)

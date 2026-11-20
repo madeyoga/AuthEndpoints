@@ -31,6 +31,10 @@
     {
         System.Threading.Tasks.ValueTask<System.Security.Claims.ClaimsPrincipal?> CreateAsync(AuthEndpoints.OpenIddict.OAuthPrincipalContext context, System.Threading.CancellationToken cancellationToken);
     }
+    public interface IOAuthScopeDescriptions
+    {
+        System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthScopeDetail>> DescribeAsync(System.Collections.Generic.IReadOnlyList<string> scopes, System.Globalization.CultureInfo culture, System.Threading.CancellationToken cancellationToken);
+    }
     public interface IOAuthServerCleanup
     {
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthCleanupResult> SweepAsync(System.Threading.CancellationToken cancellationToken = default);
@@ -386,6 +390,8 @@
             where TDisplay :  class, AuthEndpoints.OpenIddict.IOAuthDeveloperAppOwnerDisplay { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddPrincipalFactory<TFactory>()
             where TFactory :  class, AuthEndpoints.OpenIddict.IOAuthPrincipalFactory { }
+        public AuthEndpoints.OpenIddict.OAuthServerBuilder AddScopeDescriptions<TDescriptions>()
+            where TDescriptions :  class, AuthEndpoints.OpenIddict.IOAuthScopeDescriptions { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddServerEvents<TEvents>()
             where TEvents :  class, AuthEndpoints.OpenIddict.IOAuthServerEvents { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder BindConfiguration(string sectionPath) { }
@@ -488,6 +494,7 @@
         public string? Audience { get; set; }
         public string AuthenticationScheme { get; set; }
         public System.TimeSpan AuthorizationCodeLifetime { get; set; }
+        public bool BearerRequestsSkipCookieRedirects { get; set; }
         public AuthEndpoints.OpenIddict.OAuthServerCertificateOptions Certificates { get; }
         public System.TimeSpan CleanupInterval { get; set; }
         public AuthEndpoints.OpenIddict.OAuthClientMetadataDocumentOptions ClientMetadataDocuments { get; }
@@ -530,6 +537,11 @@
         public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddOAuthServer<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
             where TUser :  class
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public sealed class OptionsOAuthScopeDescriptions : AuthEndpoints.OpenIddict.IOAuthScopeDescriptions
+    {
+        public OptionsOAuthScopeDescriptions(Microsoft.Extensions.Options.IOptions<AuthEndpoints.OpenIddict.OAuthServerOptions> options) { }
+        public System.Threading.Tasks.ValueTask<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthScopeDetail>> DescribeAsync(System.Collections.Generic.IReadOnlyList<string> scopes, System.Globalization.CultureInfo culture, System.Threading.CancellationToken cancellationToken) { }
     }
     public sealed class UserIdOAuthPrincipalFactory : AuthEndpoints.OpenIddict.IOAuthPrincipalFactory
     {

@@ -78,6 +78,18 @@ public sealed class OAuthServerBuilder
         Services.AddScoped<IOAuthDeveloperAppOwnerDisplay, TDisplay>();
         return this;
     }
+
+    /// <summary>
+    /// Replaces the default <see cref="IOAuthScopeDescriptions"/> (which reads <see cref="OAuthServerOptions.ScopeDefinitions"/>),
+    /// for example to load scope display names and descriptions from a database or resource files.
+    /// </summary>
+    public OAuthServerBuilder AddScopeDescriptions<TDescriptions>()
+        where TDescriptions : class, IOAuthScopeDescriptions
+    {
+        Services.RemoveAll<IOAuthScopeDescriptions>();
+        Services.AddScoped<IOAuthScopeDescriptions, TDescriptions>();
+        return this;
+    }
 }
 
 public static class OAuthServerServiceCollectionExtensions
@@ -151,10 +163,13 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped<IOAuthUserValidator, IdentityOAuthUserValidator<TUser>>();
         services.TryAddScoped<IOAuthUserProfiles, IdentityOAuthUserProfiles<TUser>>();
         services.TryAddScoped<IOAuthUserRoles, IdentityOAuthUserRoles<TUser>>();
+        services.TryAddScoped<IOAuthScopeDescriptions, OptionsOAuthScopeDescriptions>();
         // OpenID Connect amr: tell the sign-in cookie which method signed the user in. Inert without the openid scope.
         OAuthSignInMethodRegistration<TUser>.Register(services);
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthSignInMethodCookieEvents>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<SecurityStampValidatorOptions>, OAuthSignInMethodCookieEvents>());
+        // A refused token caller gets 401 or 403 from the sign-in cookie, not a redirect. On unless BearerRequestsSkipCookieRedirects is off.
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthBearerCookieRedirects>());
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
         // Audit events. Without an IOAuthServerEvents subscriber, nothing is raised.
         services.TryAddScoped<OAuthServerEventDispatcher>();
