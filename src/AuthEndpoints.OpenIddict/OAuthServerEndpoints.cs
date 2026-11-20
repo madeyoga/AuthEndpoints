@@ -27,15 +27,26 @@ public sealed class OAuthServerEndpointOptions
 
     /// <summary>Prefix of the developer app API. Default <c>/oauth/apps</c>.</summary>
     public string DeveloperAppsPrefix { get; set; } = "/oauth/apps";
+
+    /// <summary>
+    /// Map the connected apps API (<c>MapOAuthConnectedAppEndpoints</c>), where the signed-in user lists the clients they
+    /// connected and disconnects one. Default <see langword="true"/>. Turn it off when the host builds its own page on
+    /// <see cref="IOAuthConnectedAppService"/>.
+    /// </summary>
+    public bool ConnectedApps { get; set; } = true;
+
+    /// <summary>Prefix of the connected apps API. Default <c>/oauth/authorizations</c>.</summary>
+    public string ConnectedAppsPrefix { get; set; } = "/oauth/authorizations";
 }
 
 /// <summary>The route groups <c>MapOAuthServer</c> mapped, for conventions such as rate limiting or CORS.</summary>
 public sealed class OAuthServerEndpoints
 {
-    internal OAuthServerEndpoints(RouteGroupBuilder? consent, RouteGroupBuilder? developerApps)
+    internal OAuthServerEndpoints(RouteGroupBuilder? consent, RouteGroupBuilder? developerApps, RouteGroupBuilder? connectedApps = null)
     {
         Consent = consent;
         DeveloperApps = developerApps;
+        ConnectedApps = connectedApps;
     }
 
     /// <summary>The consent API group, or <see langword="null"/> when <see cref="OAuthServerEndpointOptions.ConsentApi"/> is off.</summary>
@@ -43,4 +54,7 @@ public sealed class OAuthServerEndpoints
 
     /// <summary>The developer app API group, or <see langword="null"/> when <see cref="OAuthServerEndpointOptions.DeveloperApps"/> is off.</summary>
     public RouteGroupBuilder? DeveloperApps { get; }
+
+    /// <summary>The connected apps API group, or <see langword="null"/> when <see cref="OAuthServerEndpointOptions.ConnectedApps"/> is off.</summary>
+    public RouteGroupBuilder? ConnectedApps { get; }
 }

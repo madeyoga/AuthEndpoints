@@ -118,12 +118,13 @@ oauth.DeveloperApps!.RequireRateLimiting("developer-apps"); // the mapped groups
 | OpenID Connect (`userinfo`, logout, discovery) | **off** | Add `openid` to `options.Scopes`. |
 | Consent API | on, `/oauth` | `parts.ConsentApi`, `parts.ConsentPrefix` |
 | Developer apps | on, `/oauth/apps` | `parts.DeveloperApps`, `parts.DeveloperAppsPrefix`. Approval and limits: `options.DeveloperApps`. |
+| Connected apps | on, `/oauth/authorizations` | `parts.ConnectedApps`, `parts.ConnectedAppsPrefix`. Cookie only, so OAuth tokens cannot call it. |
 | Anonymous registration (RFC 7591) | **off** | `options.DynamicRegistration.Enabled` |
 | Protected resource metadata (RFC 9728) | **off** | `options.ProtectedResource.Enabled` |
 
 Anonymous registration and protected resource metadata are server settings, not route switches, because they also change what the metadata advertises. With developer apps on, any signed-in user can register up to `DeveloperApps.MaxAppsPerUser` (10) clients. Set `options.DeveloperApps.RequireApproval = true` to review them first, or turn the part off.
 
-`MapOAuthServer` returns the consent and developer app groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](#option-b-your-own-approve-endpoint)).
+`MapOAuthServer` returns the consent, developer app, and connected apps groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](#option-b-your-own-approve-endpoint)).
 
 #### Without the recipe
 
@@ -137,6 +138,7 @@ builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { 
 app.MapAuthEndpointsOpenIddict();        // authorize, plus registration and resource metadata when enabled
 app.MapOAuthConsentEndpoints();          // optional JSON consent API
 app.MapOAuthDeveloperAppEndpoints();     // optional developer console API
+app.MapOAuthConnectedAppEndpoints();     // optional connected apps API
 await app.Services.SeedOAuthClientsAsync();
 ```
 
@@ -421,7 +423,7 @@ The owner methods of the same service (`ListAsync`, `CreateAsync`, `UpdateAsync`
 
 When an owner's account is deleted, the cascade removes the app's row. From then on, the authorize and token endpoints refuse its client, and the next cleanup pass deletes it. Developer apps are never treated as unused dynamic registrations.
 
-Developer apps and [dynamic registration](#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, `IOAuthConsentService.RevokeAuthorizationAsync` still disconnects one app from one account.
+Developer apps and [dynamic registration](#dynamic-registration-optional) are separate. Anonymous registration stays the path for native apps and CLIs that register themselves. Developer apps are for people building an integration with your service. On the user side, the [connected apps](#connected-apps) routes disconnect one app from one account.
 
 ### Redirect URIs
 
@@ -590,6 +592,36 @@ Identity changes the security stamp when the password changes or is reset, an au
 The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
 
 The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. The user id is also kept on the authorization in the database, so `userinfo`, logout, [audit events](#audit-events), and the connected apps list can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+
+## Connected apps
+
+A signed-in person can see which clients they connected and disconnect one. `MapOAuthServer` maps two JSON routes for that, at `/oauth/authorizations` (`parts.ConnectedApps`, `parts.ConnectedAppsPrefix`):
+
+| Route | Response |
+| --- | --- |
+| `GET /oauth/authorizations` | `[{ authorizationId, clientId, clientName, clientKind, clientHost, scopes, scopeDetails, resource, createdAt, lastUsedAt }]`, newest first |
+| `DELETE /oauth/authorizations/{authorizationId}` | `204`, or `404` when the grant is unknown, someone else's, or already revoked |
+
+- Only live grants are listed: not revoked, and still holding a valid token. A grant whose refresh token expired drops off.
+- A grant belongs to the user who approved it, even when a principal factory issued its tokens for another `sub`.
+- `clientKind` is `configured`, `dynamic`, `metadata_document`, or `developer_app` (`OAuthClientKinds`). `clientHost` is the host of a metadata document client's URL, or of a developer app's homepage, and `null` for other clients, whose names are self-asserted.
+- `lastUsedAt` is `null` unless [`RecordLastUsed`](#last-used) is on.
+- The routes authenticate with `AuthenticationScheme` (the Identity cookie), so an OAuth access token cannot list or revoke grants. The `DELETE` needs a CSRF token (`RequireAntiforgery(allowBearer: false)`).
+- Disconnecting revokes the grant and every token from it, and raises `AuthorizationRevoked` with `RevokedBy = User`.
+
+For your own page, or for an admin page about another user, call `IOAuthConnectedAppService`. The package does not decide who is an admin: check that first.
+
+```csharp
+app.MapDelete("/admin/users/{userId}/connected-apps/{authorizationId}", async (
+        string userId, string authorizationId, ClaimsPrincipal admin, IOAuthConnectedAppService apps) =>
+    await apps.RevokeAsync(userId, authorizationId, OAuthRevokedBy.Admin, admin.FindFirstValue(ClaimTypes.NameIdentifier))
+        ? Results.NoContent()
+        : Results.NotFound())
+    .RequireAuthorization("admin")
+    .RequireAntiforgery(allowBearer: false);
+```
+
+`ListAsync(userId)` returns the same items as the `GET` route.
 
 ## Audit events
 
@@ -812,7 +844,7 @@ app.MapMcp("/mcp").RequireAuthorization("mcp"); // or your own MCP endpoint
 - **Consent.** Your page shows `clientName` with `clientHost` (or `redirectHost`), and the scopes from `scopeDetails`. Describe them in `ScopeDefinitions`.
 - **Tokens.** The assistant asks for `resource=https://app.example.com/mcp`. `RequireOAuthAudience` keeps that token on `/mcp`, `RequireOAuthScope` checks the grant, and the role check is the one cookie users go through. Inside tool handlers, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`.
 - **Shared routes.** On routes that cookie users also call, use `RequireOAuthScopeWhenDelegated(...)` next to the existing role check, and check the audience only for token callers. A refused token caller gets `403`, not the cookie's redirect (`BearerRequestsSkipCookieRedirects`, on by default).
-- **Disconnecting.** `IOAuthConsentService.RevokeAuthorizationAsync(authorizationId)` ends one grant. `UserManager.UpdateSecurityStampAsync(user)` ends every grant at its next refresh.
+- **Disconnecting.** The [connected apps](#connected-apps) routes (`GET /oauth/authorizations`, `DELETE /oauth/authorizations/{id}`) let the person see and disconnect each assistant; `IOAuthConnectedAppService` does the same for an admin page. `UserManager.UpdateSecurityStampAsync(user)` ends every grant at its next refresh.
 
 A scope never widens what the person may do: keep every route's existing role or policy check.
 

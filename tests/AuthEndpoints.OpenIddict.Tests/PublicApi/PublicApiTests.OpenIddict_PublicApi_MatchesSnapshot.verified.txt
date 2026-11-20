@@ -4,6 +4,12 @@
     {
         System.Threading.Tasks.ValueTask<bool> IsAllowedAsync(System.Uri clientId, System.Threading.CancellationToken cancellationToken);
     }
+    public interface IOAuthConnectedAppService
+    {
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthConnectedApp>> ListAsync(string userId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool> RevokeAsync(string userId, string authorizationId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<bool> RevokeAsync(string userId, string authorizationId, AuthEndpoints.OpenIddict.OAuthRevokedBy revokedBy, string? actorId, System.Threading.CancellationToken cancellationToken = default);
+    }
     public interface IOAuthConsentService
     {
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthConsentResult> ApproveAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
@@ -111,6 +117,30 @@
         public System.TimeSpan MaxCacheDuration { get; set; }
         public int MaxDocumentBytes { get; set; }
         public System.TimeSpan MinCacheDuration { get; set; }
+    }
+    public sealed record OAuthConnectedApp : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConnectedApp>
+    {
+        public OAuthConnectedApp(string AuthorizationId, string ClientId, string ClientName, string ClientKind, System.Collections.Generic.IReadOnlyList<string> Scopes) { }
+        [System.Text.Json.Serialization.JsonPropertyName("authorizationId")]
+        public string AuthorizationId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("clientHost")]
+        public string? ClientHost { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("clientId")]
+        public string ClientId { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("clientKind")]
+        public string ClientKind { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("clientName")]
+        public string ClientName { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
+        public System.DateTimeOffset? CreatedAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("lastUsedAt")]
+        public System.DateTimeOffset? LastUsedAt { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("resource")]
+        public string? Resource { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("scopeDetails")]
+        public System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthScopeDetail> ScopeDetails { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("scopes")]
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
     }
     public sealed record OAuthConsentCard : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConsentCard>
     {
@@ -436,6 +466,8 @@
     public sealed class OAuthServerEndpointOptions
     {
         public OAuthServerEndpointOptions() { }
+        public bool ConnectedApps { get; set; }
+        public string ConnectedAppsPrefix { get; set; }
         public bool ConsentApi { get; set; }
         public string ConsentPrefix { get; set; }
         public bool DeveloperApps { get; set; }
@@ -444,12 +476,14 @@
     public static class OAuthServerEndpointRouteBuilderExtensions
     {
         public static Microsoft.AspNetCore.Routing.IEndpointRouteBuilder MapAuthEndpointsOpenIddict(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints) { }
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthConnectedAppEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth/authorizations") { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthConsentEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth") { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapOAuthDeveloperAppEndpoints(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string prefix = "/oauth/apps") { }
         public static AuthEndpoints.OpenIddict.OAuthServerEndpoints MapOAuthServer(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, System.Action<AuthEndpoints.OpenIddict.OAuthServerEndpointOptions>? configure = null) { }
     }
     public sealed class OAuthServerEndpoints
     {
+        public Microsoft.AspNetCore.Routing.RouteGroupBuilder? ConnectedApps { get; }
         public Microsoft.AspNetCore.Routing.RouteGroupBuilder? Consent { get; }
         public Microsoft.AspNetCore.Routing.RouteGroupBuilder? DeveloperApps { get; }
     }

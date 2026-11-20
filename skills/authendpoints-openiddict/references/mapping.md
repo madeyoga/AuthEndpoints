@@ -18,12 +18,13 @@ oauth.DeveloperApps!.RequireRateLimiting("developer-apps"); // the mapped groups
 | OpenID Connect (`userinfo`, logout, discovery) | **off** | Add `openid` to `options.Scopes`. |
 | Consent API | on, `/oauth` | `parts.ConsentApi`, `parts.ConsentPrefix` |
 | Developer apps | on, `/oauth/apps` | `parts.DeveloperApps`, `parts.DeveloperAppsPrefix`. Approval and limits: `options.DeveloperApps`. |
+| Connected apps | on, `/oauth/authorizations` | `parts.ConnectedApps`, `parts.ConnectedAppsPrefix`. Cookie only, so OAuth tokens cannot call it. |
 | Anonymous registration (RFC 7591) | **off** | `options.DynamicRegistration.Enabled` |
 | Protected resource metadata (RFC 9728) | **off** | `options.ProtectedResource.Enabled` |
 
 Anonymous registration and protected resource metadata are server settings, not route switches, because they also change what the metadata advertises. With developer apps on, any signed-in user can register up to `DeveloperApps.MaxAppsPerUser` (10) clients. Set `options.DeveloperApps.RequireApproval = true` to review them first, or turn the part off.
 
-`MapOAuthServer` returns the consent and developer app groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](consent.md#option-b-your-own-approve-endpoint)).
+`MapOAuthServer` returns the consent, developer app, and connected apps groups (`null` when off). Turning off the consent API does not turn off consent: `/connect/authorize` still sends users to `ConsentUrl`, and your page approves through `IOAuthConsentService` ([option B](consent.md#option-b-your-own-approve-endpoint)).
 
 ## Without the recipe
 
@@ -37,6 +38,7 @@ builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { 
 app.MapAuthEndpointsOpenIddict();        // authorize, plus registration and resource metadata when enabled
 app.MapOAuthConsentEndpoints();          // optional JSON consent API
 app.MapOAuthDeveloperAppEndpoints();     // optional developer console API
+app.MapOAuthConnectedAppEndpoints();     // optional connected apps API
 await app.Services.SeedOAuthClientsAsync();
 ```
 

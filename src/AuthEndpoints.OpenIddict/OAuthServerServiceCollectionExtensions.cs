@@ -174,6 +174,7 @@ public static class OAuthServerServiceCollectionExtensions
         // Audit events. Without an IOAuthServerEvents subscriber, nothing is raised.
         services.TryAddScoped<OAuthServerEventDispatcher>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddScoped(typeof(IOAuthConnectedAppService), typeof(OAuthConnectedAppService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
         services.TryAddScoped(developerApps);
         services.TryAddScoped(typeof(IOAuthDeveloperAppService), provider => provider.GetRequiredService(developerApps));

@@ -149,3 +149,33 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
 With OpenID Connect, the ID token `sub` is the same `sub`, so a custom factory changes both. See [Claims](openid-connect.md#claims).
 
 With `AccessTokenClaims` on, the user's roles and id are added only while `sub` is the approving user's id. See [Roles and the user id on tokens](settings.md#roles-and-the-user-id-on-tokens).
+
+## Connected apps
+
+A signed-in person can see which clients they connected and disconnect one. `MapOAuthServer` maps two JSON routes for that, at `/oauth/authorizations` (`parts.ConnectedApps`, `parts.ConnectedAppsPrefix`):
+
+| Route | Response |
+| --- | --- |
+| `GET /oauth/authorizations` | `[{ authorizationId, clientId, clientName, clientKind, clientHost, scopes, scopeDetails, resource, createdAt, lastUsedAt }]`, newest first |
+| `DELETE /oauth/authorizations/{authorizationId}` | `204`, or `404` when the grant is unknown, someone else's, or already revoked |
+
+- Only live grants are listed: not revoked, and still holding a valid token. A grant whose refresh token expired drops off.
+- A grant belongs to the user who approved it, even when a principal factory issued its tokens for another `sub`.
+- `clientKind` is `configured`, `dynamic`, `metadata_document`, or `developer_app` (`OAuthClientKinds`). `clientHost` is the host of a metadata document client's URL, or of a developer app's homepage, and `null` for other clients, whose names are self-asserted.
+- `lastUsedAt` is `null` unless [`RecordLastUsed`](settings.md#last-used) is on.
+- The routes authenticate with `AuthenticationScheme` (the Identity cookie), so an OAuth access token cannot list or revoke grants. The `DELETE` needs a CSRF token (`RequireAntiforgery(allowBearer: false)`).
+- Disconnecting revokes the grant and every token from it, and raises `AuthorizationRevoked` with `RevokedBy = User`.
+
+For your own page, or for an admin page about another user, call `IOAuthConnectedAppService`. The package does not decide who is an admin: check that first.
+
+```csharp
+app.MapDelete("/admin/users/{userId}/connected-apps/{authorizationId}", async (
+        string userId, string authorizationId, ClaimsPrincipal admin, IOAuthConnectedAppService apps) =>
+    await apps.RevokeAsync(userId, authorizationId, OAuthRevokedBy.Admin, admin.FindFirstValue(ClaimTypes.NameIdentifier))
+        ? Results.NoContent()
+        : Results.NotFound())
+    .RequireAuthorization("admin")
+    .RequireAntiforgery(allowBearer: false);
+```
+
+`ListAsync(userId)` returns the same items as the `GET` route.
