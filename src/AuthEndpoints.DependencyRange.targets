@@ -2,14 +2,19 @@
   <!--
     Pack reads each ProjectReference version from the referenced project.
     That value is a minimum (4.0.0 means >= 4.0.0). These packages must refuse AuthEndpoints 5.
+    A package that calls core API added after 4.0.0 sets AuthEndpointsMinimumVersion to the first
+    core version that has it, so restore refuses an older core instead of failing at runtime.
   -->
+  <PropertyGroup>
+    <AuthEndpointsMinimumVersion Condition="'$(AuthEndpointsMinimumVersion)' == ''">4.0.0</AuthEndpointsMinimumVersion>
+  </PropertyGroup>
   <Target Name="PinAuthEndpointsDependencyRange"
           AfterTargets="_GetProjectReferenceVersions"
           BeforeTargets="GenerateNuspec">
     <ItemGroup>
       <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)"
                                       Condition="$([System.String]::Copy('%(Identity)').EndsWith('AuthEndpoints.csproj'))">
-        <ProjectVersion>[4.0.0, 5.0.0)</ProjectVersion>
+        <ProjectVersion>[$(AuthEndpointsMinimumVersion), 5.0.0)</ProjectVersion>
       </_ProjectReferencesWithVersions>
     </ItemGroup>
   </Target>
