@@ -32,18 +32,32 @@ internal sealed class AllowAllClientMetadataHosts : IOAuthClientMetadataHostFilt
 }
 
 /// <summary>
-/// Runs at <c>/connect/authorize</c> just before OpenIddict looks the client up. When <c>client_id</c> is an <c>https</c> URL,
+/// Runs just before OpenIddict looks the client up. At <c>/connect/authorize</c>, when <c>client_id</c> is an <c>https</c> URL,
 /// it makes sure a current copy of that client's metadata document is in the application store, or rejects the request with
-/// <c>invalid_client</c>. The error is returned to the browser, never to the client's redirect URI.
+/// <c>invalid_client</c>. The error is returned to the browser, never to the client's redirect URI. At <c>/connect/token</c>,
+/// it refuses clients created from metadata documents while the feature is turned off, so code exchange and refresh stop too.
 /// </summary>
 internal sealed class ResolveClientMetadataDocument(OAuthClientMetadataResolver resolver)
     : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessAuthenticationContext>
 {
     public async ValueTask HandleAsync(OpenIddictServerEvents.ProcessAuthenticationContext context)
     {
-        if (context.EndpointType != OpenIddictServerEndpointType.Authorization
-            || context.Request?.ClientId is not { } clientId
-            || !OAuthClientMetadataUrl.LooksLikeOne(clientId))
+        if (context.Request?.ClientId is not { } clientId || !OAuthClientMetadataUrl.LooksLikeOne(clientId))
+        {
+            return;
+        }
+
+        if (context.EndpointType == OpenIddictServerEndpointType.Token)
+        {
+            if (await resolver.RefusedWhileDisabledAsync(clientId, context.CancellationToken) is { } refused)
+            {
+                context.Reject(OpenIddictConstants.Errors.InvalidClient, refused);
+            }
+
+            return;
+        }
+
+        if (context.EndpointType != OpenIddictServerEndpointType.Authorization)
         {
             return;
         }
@@ -59,12 +73,33 @@ internal sealed class ResolveClientMetadataDocument(OAuthClientMetadataResolver 
 /// <summary>Fetches, checks, and stores client ID metadata documents.</summary>
 internal sealed class OAuthClientMetadataResolver(
     IOpenIddictApplicationManager applications,
+    IOpenIddictAuthorizationManager authorizations,
+    IOpenIddictTokenManager tokens,
     OAuthClientMetadataFetcher fetcher,
     OAuthClientMetadataRateLimiter limiter,
     IOAuthClientMetadataHostFilter hostFilter,
     IOptions<OAuthServerOptions> options,
     TimeProvider clock)
 {
+    /// <summary>
+    /// The <c>error_description</c> for a token request from a client created from a metadata document while
+    /// <see cref="OAuthClientMetadataDocumentOptions.Enabled"/> is off, or <see langword="null"/> to let it through.
+    /// </summary>
+    public async Task<string?> RefusedWhileDisabledAsync(string clientId, CancellationToken cancellationToken)
+    {
+        if (options.Value.ClientMetadataDocuments.Enabled
+            || await applications.FindByClientIdAsync(clientId, cancellationToken) is not { } application)
+        {
+            return null;
+        }
+
+        return OAuthClientMetadataUrl.IsMetadataClient(await applications.GetSettingsAsync(application, cancellationToken))
+            ? DisabledError
+            : null;
+    }
+
+    private const string DisabledError = "Client ID metadata documents are not accepted.";
+
     /// <summary>
     /// Returns <see langword="null"/> when the request may go on (the client is stored and current, or it is a configured
     /// client that happens to use a URL as its id), or the <c>error_description</c> to reject it with.
@@ -84,7 +119,7 @@ internal sealed class OAuthClientMetadataResolver(
         if (!documents.Enabled)
         {
             // Unknown clients are refused by OpenIddict. Stored ones stop working at authorize when the feature is turned off.
-            return application is null ? null : "Client ID metadata documents are not accepted.";
+            return application is null ? null : DisabledError;
         }
 
         if (!OAuthClientMetadataUrl.TryParse(clientId, out var url, out var invalid))
@@ -122,6 +157,20 @@ internal sealed class OAuthClientMetadataResolver(
 
         using (var document = fetched.Document!)
         {
+            if (application is not null && !OAuthClientMetadataDocument.ClientIdMatches(document.RootElement, clientId))
+            {
+                // The draft: a client_id mismatch should invalidate what the client already holds. Revoke every grant
+                // and token of the stored client. Other invalid documents only refuse new authorizations.
+                var applicationId = await applications.GetIdAsync(application, cancellationToken);
+                if (!string.IsNullOrEmpty(applicationId))
+                {
+                    await tokens.RevokeByApplicationIdAsync(applicationId, cancellationToken);
+                    await authorizations.RevokeByApplicationIdAsync(applicationId, cancellationToken);
+                }
+
+                return OAuthClientMetadataDocument.MismatchError;
+            }
+
             if (!OAuthClientMetadataDocument.TryCreateDescriptor(clientId, url, document.RootElement, settings, out var parsed, out var rejected))
             {
                 return rejected;
@@ -278,6 +327,14 @@ internal static class OAuthClientMetadataDocument
         OpenIddictConstants.ClientAuthenticationMethods.ClientSecretJwt,
     ];
 
+    public const string MismatchError = "The client metadata document's client_id does not match its URL.";
+
+    /// <summary>Whether the document's <c>client_id</c> is exactly <paramref name="clientId"/>, compared as a string.</summary>
+    public static bool ClientIdMatches(JsonElement document, string clientId)
+        => document.ValueKind == JsonValueKind.Object
+            && TryString(document, "client_id", out var value)
+            && string.Equals(value, clientId, StringComparison.Ordinal);
+
     public static bool TryCreateDescriptor(
         string clientId,
         Uri url,
@@ -295,9 +352,9 @@ internal static class OAuthClientMetadataDocument
         }
 
         // Simple string comparison, as the draft requires: no normalization.
-        if (!TryString(document, "client_id", out var documentClientId) || !string.Equals(documentClientId, clientId, StringComparison.Ordinal))
+        if (!ClientIdMatches(document, clientId))
         {
-            error = "The client metadata document's client_id does not match its URL.";
+            error = MismatchError;
             return false;
         }
 
@@ -326,7 +383,9 @@ internal static class OAuthClientMetadataDocument
 
         if (!methods.Contains(OpenIddictConstants.ClientAuthenticationMethods.None, StringComparer.Ordinal))
         {
-            error = "This server accepts only public clients from metadata documents (token_endpoint_auth_method none).";
+            error = methods.Contains(OpenIddictConstants.ClientAuthenticationMethods.PrivateKeyJwt, StringComparer.Ordinal)
+                ? "private_key_jwt is not supported for client ID metadata documents yet. Offer token_endpoint_auth_method none."
+                : "This server accepts only public clients from metadata documents (token_endpoint_auth_method none).";
             return false;
         }
 

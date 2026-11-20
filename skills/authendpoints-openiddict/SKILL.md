@@ -154,6 +154,7 @@ This is a preview. These are known gaps, not bugs. Do not promise these features
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](references/settings.md#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
+- **Client ID metadata documents are public clients only.** `private_key_jwt` with `jwks` or `jwks_uri` is not supported yet; a document that offers only that method is refused with `invalid_client`.
 - **Cookie sign-in only at the authorize step.** The user is read from `AuthenticationScheme` (the Identity cookie by default). Password, two-factor, passkey, and cookie-mode external sign-in all end with that cookie. A sign-in that is still waiting for a second factor, or an external sign-in that has not been completed, does not count.
 
 An OIDC client for AuthEndpoints (the other direction) is tracked separately in issue #380.

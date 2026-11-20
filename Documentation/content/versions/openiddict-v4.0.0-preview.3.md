@@ -10,11 +10,16 @@ Builds on [4.0.0-preview.2](/versions/openiddict-v4.0.0-preview.2). Work in prog
 
 ### Breaking changes
 
-- `OpenIddictApplications.ClientId` and `OAuthRequests.ClientId` are now 255 characters wide (were 100 and 64), so a client ID metadata document URL fits. Add a migration after upgrading.
+- `OpenIddictApplications.ClientId` and `OAuthRequests.ClientId` are now 255 characters wide (were 100 and 64), so a client ID metadata document URL fits. Add a migration after upgrading, then apply it as you apply your other migrations:
+
+  ```bash
+  dotnet ef migrations add WidenOAuthClientId
+  dotnet ef database update
+  ```
 
 ### AuthEndpoints.OpenIddict
 
-- **Client ID metadata documents (opt-in).** With `ClientMetadataDocuments.Enabled`, a client can use an `https` URL as its `client_id`, as the MCP authorization spec prefers. `/connect/authorize` fetches the document with SSRF protection (public addresses only, checked after DNS resolution and pinned for the connection; no redirects; a timeout; a 5 KB limit), caches it within `MinCacheDuration` and `MaxCacheDuration`, accepts only public clients under the dynamic registration redirect URI rules and `DynamicRegistration.AllowedScopes`, and stores the client in OpenIddict's application store. `AllowedHosts`, `DeniedHosts`, and `AddClientMetadataHostFilter<T>()` control which hosts are accepted. The metadata advertises `client_id_metadata_document_supported`, and the consent card has `clientHost` (#428).
+- **Client ID metadata documents (opt-in).** With `ClientMetadataDocuments.Enabled`, a client can use an `https` URL as its `client_id`, as the MCP authorization spec prefers. `/connect/authorize` fetches the document with SSRF protection (public addresses only, checked after DNS resolution and pinned for the connection; no redirects; a timeout; a 5 KB limit), caches it within `MinCacheDuration` and `MaxCacheDuration`, accepts only public clients under the dynamic registration redirect URI rules and `DynamicRegistration.AllowedScopes`, and stores the client in OpenIddict's application store. `AllowedHosts`, `DeniedHosts`, and `AddClientMetadataHostFilter<T>()` control which hosts are accepted. A re-fetched document whose `client_id` no longer matches revokes the client's authorizations and tokens; turning the option off also refuses code exchange and refresh for these clients. `FetchesPerMinute` (20 per caller IP) limits fetches. `private_key_jwt` is not supported yet. The metadata advertises `client_id_metadata_document_supported`, and the consent card has `clientHost` (#428).
 
 - Scope descriptions on the consent card: pending.
 
