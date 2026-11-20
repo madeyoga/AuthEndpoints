@@ -56,6 +56,11 @@ internal sealed class AttachRegistrationMetadata(IOptions<OAuthServerOptions> op
             context.Metadata["registration_endpoint"] = authority + pathBase + OAuthServerConstants.RegistrationEndpointPath;
         }
 
+        if (settings.ClientMetadataDocuments.Enabled)
+        {
+            context.Metadata["client_id_metadata_document_supported"] = true;
+        }
+
         // Public clients authenticate with PKCE alone.
         context.TokenEndpointAuthenticationMethods.Add(OpenIddictConstants.ClientAuthenticationMethods.None);
         context.RevocationEndpointAuthenticationMethods.Add(OpenIddictConstants.ClientAuthenticationMethods.None);

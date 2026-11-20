@@ -45,6 +45,13 @@ public sealed record OAuthPendingRequest(
     /// <see langword="null"/> when no display is registered (the default), when it returns nothing, and for other clients.
     /// </summary>
     public string? Owner { get; init; }
+
+    /// <summary>
+    /// For a client identified by a client ID metadata document: the host of its <c>client_id</c> URL, plus the port when
+    /// it is not the default. That domain published the client's name and redirect URIs, so show it next to the name.
+    /// <see langword="null"/> for other clients.
+    /// </summary>
+    public string? ClientHost { get; init; }
 }
 
 public enum OAuthConsentStatus
@@ -335,7 +342,10 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             OAuthScopes.Split(row.Scope),
             row.Resource,
             row.CreatedAt,
-            row.ExpiresAt);
+            row.ExpiresAt)
+        {
+            ClientHost = await MetadataDocumentHostAsync(row.ClientId, cancellationToken),
+        };
         if (loaded.App is not { } app)
         {
             return pending;
@@ -350,6 +360,19 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             Confidential = app.Confidential,
             Owner = string.IsNullOrWhiteSpace(owner) ? null : owner.Trim(),
         };
+    }
+
+    private async Task<string?> MetadataDocumentHostAsync(string clientId, CancellationToken cancellationToken)
+    {
+        if (!OAuthClientMetadataUrl.LooksLikeOne(clientId)
+            || await applications.FindByClientIdAsync(clientId, cancellationToken) is not { } application)
+        {
+            return null;
+        }
+
+        return OAuthClientMetadataUrl.IsMetadataClient(await applications.GetSettingsAsync(application, cancellationToken))
+            ? OAuthClientMetadataUrl.Host(clientId)
+            : null;
     }
 
     private sealed record LoadedRequest(OAuthRequest<TKey> Request, OAuthDeveloperApp<TKey>? App);
