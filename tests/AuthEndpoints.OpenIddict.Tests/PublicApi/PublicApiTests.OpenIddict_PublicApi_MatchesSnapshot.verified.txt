@@ -1,5 +1,9 @@
 ﻿namespace AuthEndpoints.OpenIddict
 {
+    public interface IOAuthClientMetadataHostFilter
+    {
+        System.Threading.Tasks.ValueTask<bool> IsAllowedAsync(System.Uri clientId, System.Threading.CancellationToken cancellationToken);
+    }
     public interface IOAuthConsentService
     {
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthConsentResult> ApproveAsync(System.Guid requestId, string userId, System.Threading.CancellationToken cancellationToken = default);
@@ -81,9 +85,23 @@
         public System.Collections.Generic.IList<string> Resources { get; }
         public System.Collections.Generic.IList<string> Scopes { get; }
     }
+    public sealed class OAuthClientMetadataDocumentOptions
+    {
+        public OAuthClientMetadataDocumentOptions() { }
+        public System.Collections.Generic.IList<string> AllowedHosts { get; }
+        public System.Collections.Generic.IList<string> DeniedHosts { get; }
+        public bool Enabled { get; set; }
+        public System.TimeSpan FetchTimeout { get; set; }
+        public int FetchesPerMinute { get; set; }
+        public System.TimeSpan MaxCacheDuration { get; set; }
+        public int MaxDocumentBytes { get; set; }
+        public System.TimeSpan MinCacheDuration { get; set; }
+    }
     public sealed record OAuthConsentCard : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConsentCard>
     {
         public OAuthConsentCard(System.Guid Id, string ClientId, string ClientName, string RedirectHost, System.Collections.Generic.IReadOnlyList<string> Scopes, string Resource, System.DateTimeOffset ExpiresAt) { }
+        [System.Text.Json.Serialization.JsonPropertyName("clientHost")]
+        public string? ClientHost { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("clientId")]
         public string ClientId { get; init; }
         [System.Text.Json.Serialization.JsonPropertyName("clientName")]
@@ -241,6 +259,7 @@
     public sealed record OAuthPendingRequest : System.IEquatable<AuthEndpoints.OpenIddict.OAuthPendingRequest>
     {
         public OAuthPendingRequest(System.Guid Id, string UserId, string ClientId, string ClientName, string RedirectUri, string RedirectHost, System.Collections.Generic.IReadOnlyList<string> Scopes, string Resource, System.DateTimeOffset CreatedAt, System.DateTimeOffset ExpiresAt) { }
+        public string? ClientHost { get; init; }
         public string ClientId { get; init; }
         public string ClientName { get; init; }
         public bool? Confidential { get; init; }
@@ -321,6 +340,8 @@
     {
         public Microsoft.Extensions.DependencyInjection.OpenIddictBuilder OpenIddict { get; }
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public AuthEndpoints.OpenIddict.OAuthServerBuilder AddClientMetadataHostFilter<TFilter>()
+            where TFilter :  class, AuthEndpoints.OpenIddict.IOAuthClientMetadataHostFilter { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddDeveloperAppOwnerDisplay<TDisplay>()
             where TDisplay :  class, AuthEndpoints.OpenIddict.IOAuthDeveloperAppOwnerDisplay { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddPrincipalFactory<TFactory>()
@@ -341,6 +362,7 @@
         public const string AuthorizationEndpointPath = "/connect/authorize";
         public const string AuthorizationServerMetadataPath = "/.well-known/oauth-authorization-server";
         public const string AuthorizationUserProperty = "ae_user_id";
+        public const string ClientMetadataExpiresSetting = "ae_client_metadata_expires";
         public const string CreatedAtSetting = "created_at";
         public const string DeveloperAppSetting = "ae_developer_app";
         public const string DeveloperAppTable = "OAuthDeveloperApps";
@@ -400,6 +422,7 @@
         public bool BearerRequestsSkipCookieRedirects { get; set; }
         public AuthEndpoints.OpenIddict.OAuthServerCertificateOptions Certificates { get; }
         public System.TimeSpan CleanupInterval { get; set; }
+        public AuthEndpoints.OpenIddict.OAuthClientMetadataDocumentOptions ClientMetadataDocuments { get; }
         public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthClientDefinition> Clients { get; }
         public System.TimeSpan ConsentLifetime { get; set; }
         public string ConsentRequestParameter { get; set; }
