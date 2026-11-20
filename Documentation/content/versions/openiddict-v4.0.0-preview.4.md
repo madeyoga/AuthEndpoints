@@ -16,6 +16,8 @@ Builds on 4.0.0-preview.3. Work in progress: each change adds its entry below.
 - **Rate limits on the token and revocation endpoints (opt-in).** `TokenRateLimit` limits `/connect/token` and `/connect/revoke` per endpoint, client id, and IP address (default 60 per minute when enabled), inside OpenIddict before client authentication or any database read. A rejected request gets `429` with `{"error":"temporarily_unavailable"}` and `Retry-After`. `AddTokenRateLimiter(...)` takes any `PartitionedRateLimiter<OAuthRateLimitContext>` (endpoint, client id, `HttpContext`) instead (#458).
 ### Documentation
 
+- **Guide: [Bind a host context to an OAuth grant](/guides/oauth-grant-context).** Bind an organization, workspace, or region chosen at consent to the grant with `ApproveAsync(…, createPrincipal)`, read it from the token instead of the person's current context, and re-check membership at every refresh with a validator that wraps `IdentityOAuthUserValidator<TUser>`. The package tests run the guide's code (#460).
+
 ### Packages
 
 - **AuthEndpoints.OpenIddict** `4.0.0-preview.4`
