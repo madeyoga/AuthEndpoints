@@ -114,6 +114,12 @@ public sealed class OAuthServerOptions
     /// <summary>Protected resource metadata (RFC 9728) and the matching <c>WWW-Authenticate</c> challenge. Off by default.</summary>
     public OAuthProtectedResourceOptions ProtectedResource { get; } = new();
 
+    /// <summary>
+    /// Claims about the approving user that access tokens can carry, so existing role checks and user id lookups work for
+    /// token callers. Off by default.
+    /// </summary>
+    public OAuthAccessTokenClaimOptions AccessTokenClaims { get; } = new();
+
     /// <summary>Clients created or updated by <c>SeedOAuthClientsAsync</c>.</summary>
     public IList<OAuthClientDefinition> Clients { get; } = new List<OAuthClientDefinition>();
 
@@ -241,6 +247,30 @@ public sealed class OAuthDeveloperAppOptions
 
     /// <summary>Most redirect URIs one app may list. Default 10.</summary>
     public int MaxRedirectUris { get; set; } = 10;
+}
+
+/// <summary>
+/// Claims about the approving user added to each access token at the token endpoint (code exchange and refresh).
+/// They go to the access token only, never to the authorization code, the refresh token, or the ID token, so every
+/// new access token reads them again. They are added only when the token's <c>sub</c> is the approving user: a principal
+/// factory that issues tokens for another subject gets neither.
+/// </summary>
+public sealed class OAuthAccessTokenClaimOptions
+{
+    /// <summary>
+    /// Add the approving user's Identity roles as <c>role</c> claims, the role claim type of identities that
+    /// <c>ValidationScheme</c> creates, so <c>IsInRole</c> and <c>RequireRole</c> work for token callers. Roles are read
+    /// again at every refresh: a role change reaches the client within one access token lifetime. Needs Identity roles
+    /// (<c>AddRoles&lt;TRole&gt;()</c>). Default <see langword="false"/>.
+    /// </summary>
+    public bool Roles { get; set; }
+
+    /// <summary>
+    /// Add <see cref="ClaimTypes.NameIdentifier"/>, <see cref="OAuthServerOptions.UserIdClaimType"/>, and
+    /// <c>IdentityOptions.ClaimsIdentity.UserIdClaimType</c>, each set to <c>sub</c>, so <c>UserManager.GetUserId</c> and code
+    /// written for cookie users find the user id. Default <see langword="false"/>.
+    /// </summary>
+    public bool UserId { get; set; }
 }
 
 /// <summary>RFC 9728 protected resource metadata for <see cref="OAuthServerOptions.Audience"/>.</summary>
