@@ -10,6 +10,8 @@ Builds on [4.0.0-preview.3](/versions/openiddict-v4.0.0-preview.3). Work in prog
 
 ### AuthEndpoints.OpenIddict
 
+- **Audit events.** `IOAuthServerEvents` subscribers, registered with `AddServerEvents<T>()`, hear about consent approved or denied, code exchanged, token refreshed, a grant refused by user revalidation, a grant revoked (`RevokedBy`: user, admin, cleanup, or a deleted client), and a client registered (dynamic registration, metadata document, or developer app). Each `OAuthServerEvent` has the user id, client id, client kind (`OAuthClientKinds`), authorization id, scopes and resource, and never a token or secret. A subscriber that throws is logged and skipped. The approving user's id and the resource are now stored on every authorization, not only with OpenID Connect (#451).
+- **Last used (opt-in).** `RecordLastUsed` writes when each grant was last used, at the code exchange and at a refresh, at most once per `LastUsedInterval` (default 1 hour) (#451).
 ### Documentation
 
 ### Packages

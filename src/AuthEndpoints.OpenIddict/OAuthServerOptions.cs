@@ -147,6 +147,19 @@ public sealed class OAuthServerOptions
     /// </summary>
     public bool RevalidateUser { get; set; } = true;
 
+    /// <summary>
+    /// Record when each grant was last used: at the code exchange and at a refresh, the time is written to the OpenIddict
+    /// authorization (<see cref="OAuthServerConstants.AuthorizationLastUsedProperty"/>) when the stored time is older than
+    /// <see cref="LastUsedInterval"/>. The connected apps list shows it. Default <see langword="false"/>.
+    /// </summary>
+    public bool RecordLastUsed { get; set; }
+
+    /// <summary>
+    /// With <see cref="RecordLastUsed"/>, the least time between two writes of the same grant's last-used time, so a client
+    /// that refreshes often does not write on every refresh. Zero writes on every code exchange and refresh. Default 1 hour.
+    /// </summary>
+    public TimeSpan LastUsedInterval { get; set; } = TimeSpan.FromHours(1);
+
     /// <summary>Allow plain HTTP. Only for local development behind no proxy. Default <see langword="false"/>.</summary>
     public bool DisableTransportSecurityRequirement { get; set; }
 

@@ -578,7 +578,45 @@ Identity changes the security stamp when the password changes or is reset, an au
 
 The check happens at the token endpoint, so an access token that was already issued keeps working until it expires (15 minutes by default) or until the client next refreshes. To stop it sooner, call `IOAuthConsentService.RevokeAuthorizationAsync`.
 
-The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. With OpenID Connect, the user id is also kept on the authorization in the database, so `userinfo` and logout can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+The approving user's id and stamp are stored in the code and refresh token only. They are never copied into access tokens or ID tokens, even when a principal factory sends every claim to the access token. The user id is also kept on the authorization in the database, so `userinfo`, logout, [audit events](#audit-events), and the connected apps list can find the user. Replace `IOAuthUserValidator` to apply your own rules, or set `RevalidateUser = false` to turn the check off.
+
+## Audit events
+
+Implement `IOAuthServerEvents` to keep an audit trail of what the OAuth server did, and register it with `AddServerEvents<T>()`. Register as many as you need; each gets every event, in registration order. With none registered (the default), nothing is raised.
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+    .AddServerEvents<OAuthAuditLog>();
+
+public sealed class OAuthAuditLog(AppDbContext db) : IOAuthServerEvents
+{
+    public async ValueTask OnEventAsync(OAuthServerEvent e, CancellationToken cancellationToken)
+    {
+        db.AuditEntries.Add(new AuditEntry(e.Type.ToString(), e.OccurredAt, e.UserId, e.ClientId, e.AuthorizationId));
+        await db.SaveChangesAsync(cancellationToken);
+    }
+}
+```
+
+| `Type` | Raised when |
+| --- | --- |
+| `ConsentApproved` | The user approved a consent request and a code was issued. |
+| `ConsentDenied` | The user denied a consent request. |
+| `CodeExchanged` | The client exchanged the code for tokens. |
+| `TokenRefreshed` | The client refreshed. |
+| `GrantRefused` | A code exchange or refresh was refused by [user revalidation](#when-the-user-changes). The grant was revoked. `GrantType` says which grant. |
+| `AuthorizationRevoked` | A grant was revoked. `RevokedBy` is `User`, `Admin` (also `IOAuthConsentService.RevokeAuthorizationAsync` and an admin turning a developer app off), `Cleanup` (a developer app whose owner is gone), or `ClientDeleted` (a developer app deleted by its owner). |
+| `ClientRegistered` | Dynamic registration, the first stored copy of a client ID metadata document, or a new developer app (`UserId` is its owner). |
+
+Each event has `UserId` (the approving user, even when a principal factory chose another `sub`), `ClientId`, `ClientKind` (`configured`, `dynamic`, `metadata_document`, or `developer_app`; see `OAuthClientKinds`), `AuthorizationId`, `Scopes`, and `Resource`, where they apply. Events never carry a token, an authorization code, a client secret, or the security stamp.
+
+Subscribers are scoped and run in the request, one after another, so keep them fast or hand the event to a queue. A subscriber that throws is logged (event type and subscriber type only) and skipped: the OAuth response does not change and the next subscriber still runs. Calls to your own API are not events; audit those in the API.
+
+### Last used
+
+Set `RecordLastUsed = true` to record when each grant was last used. The time is written to the authorization at the code exchange and at a refresh, at most once per `LastUsedInterval` (1 hour by default), so a client that refreshes every few minutes does not write on every refresh. A call to the API with an access token does not update it. A write that loses a race with another request is skipped; the next refresh records it.
+
+The package also stores the approving user's id and the approved resource on every authorization (properties `ae_user_id` and `ae_resource`, see `OAuthServerConstants`).
 
 ## OpenID Connect (optional)
 
@@ -791,6 +829,7 @@ A scope never widens what the person may do: keep every route's existing role or
 | `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](#developer-apps). |
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
+| `RecordLastUsed`, `LastUsedInterval` | off, 1 hour | Record when each grant was last used, at most once per interval. See [Last used](#last-used). |
 | `AccessTokenClaims` | off | `Roles` and `UserId` add the approving user's Identity roles and user id to access tokens. See [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens). |
 | `DisableTransportSecurityRequirement` | `false` | Local development only. |
 | `DisableResourceValidation` | `false` | Token endpoint only. Authorize still accepts configured resources only. |

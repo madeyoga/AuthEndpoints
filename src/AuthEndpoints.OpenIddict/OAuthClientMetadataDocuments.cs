@@ -63,6 +63,7 @@ internal sealed class OAuthClientMetadataResolver(
     OAuthClientMetadataRateLimiter limiter,
     IOAuthClientMetadataHostFilter hostFilter,
     IOptions<OAuthServerOptions> options,
+    OAuthServerEventDispatcher events,
     TimeProvider clock)
 {
     /// <summary>
@@ -155,8 +156,19 @@ internal sealed class OAuthClientMetadataResolver(
             {
                 throw;
             }
+
+            return null;
         }
 
+        await events.RaiseAsync(new OAuthServerEvent(OAuthServerEventType.ClientRegistered, now)
+        {
+            ClientId = clientId,
+            ClientKind = OAuthClientKinds.MetadataDocument,
+            Scopes = descriptor.Permissions
+                .Where(permission => permission.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope, StringComparison.Ordinal))
+                .Select(permission => permission[OpenIddictConstants.Permissions.Prefixes.Scope.Length..])
+                .ToArray(),
+        }, cancellationToken);
         return null;
     }
 }
