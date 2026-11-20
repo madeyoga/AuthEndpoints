@@ -138,6 +138,41 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             Positive(failures, registration.UnusedClientLifetime, "DynamicRegistration.UnusedClientLifetime");
         }
 
+        var documents = options.ClientMetadataDocuments;
+        if (documents.Enabled)
+        {
+            Positive(failures, documents.FetchTimeout, "ClientMetadataDocuments.FetchTimeout");
+            Positive(failures, documents.MinCacheDuration, "ClientMetadataDocuments.MinCacheDuration");
+            Positive(failures, documents.MaxCacheDuration, "ClientMetadataDocuments.MaxCacheDuration");
+            if (documents.MaxCacheDuration < documents.MinCacheDuration)
+            {
+                failures.Add("ClientMetadataDocuments.MaxCacheDuration must not be shorter than MinCacheDuration.");
+            }
+
+            if (documents.MaxDocumentBytes is < 256 or > 64 * 1024)
+            {
+                failures.Add("ClientMetadataDocuments.MaxDocumentBytes must be between 256 and 65536.");
+            }
+
+            if (documents.FetchesPerMinute < 1)
+            {
+                failures.Add("ClientMetadataDocuments.FetchesPerMinute must be at least 1.");
+            }
+
+            if (registration.MaxClientNameLength < 1 || registration.MaxRedirectUris < 1)
+            {
+                failures.Add("DynamicRegistration.MaxClientNameLength and MaxRedirectUris must be at least 1; client metadata documents use them too.");
+            }
+        }
+
+        foreach (var host in documents.AllowedHosts.Concat(documents.DeniedHosts))
+        {
+            if (!OAuthClientMetadataHosts.IsValidPattern(host))
+            {
+                failures.Add($"ClientMetadataDocuments host '{host}' must be a host name, such as 'client.example.com', or '*.example.com'.");
+            }
+        }
+
         foreach (var scope in registration.AllowedScopes)
         {
             if (!all.Contains(scope))

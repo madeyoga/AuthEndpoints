@@ -45,6 +45,18 @@ public sealed class OAuthServerBuilder
     }
 
     /// <summary>
+    /// Decides which hosts may serve client ID metadata documents, after <c>ClientMetadataDocuments.DeniedHosts</c> and
+    /// <c>AllowedHosts</c>. Without it, every public host those lists allow is accepted.
+    /// </summary>
+    public OAuthServerBuilder AddClientMetadataHostFilter<TFilter>()
+        where TFilter : class, IOAuthClientMetadataHostFilter
+    {
+        Services.RemoveAll<IOAuthClientMetadataHostFilter>();
+        Services.AddScoped<IOAuthClientMetadataHostFilter, TFilter>();
+        return this;
+    }
+
+    /// <summary>
     /// Shows who built a developer app on the consent card (<c>owner</c>). Without it, <c>owner</c> is always
     /// <see langword="null"/>: the package never reads the owner's email or user name itself.
     /// </summary>
@@ -140,6 +152,17 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddScoped(typeof(IOAuthDeveloperAppGate), provider => provider.GetRequiredService(developerApps));
         services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<,>).MakeGenericType(typeof(TContext), keyType));
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
+        // Client ID metadata documents. Inert until ClientMetadataDocuments.Enabled is set.
+        services.TryAddSingleton<IOAuthClientMetadataHostFilter, AllowAllClientMetadataHosts>();
+        services.TryAddSingleton<IOAuthClientMetadataDnsResolver, SystemClientMetadataDnsResolver>();
+        services.TryAddSingleton<OAuthClientMetadataFetcher>();
+        services.TryAddSingleton<OAuthClientMetadataRateLimiter>();
+        services.TryAddScoped<OAuthClientMetadataResolver>();
+        services.AddHttpClient(OAuthClientMetadataFetcher.HttpClientName)
+            .ConfigurePrimaryHttpMessageHandler(provider => OAuthClientMetadataFetcher.CreateHandler(
+                provider.GetRequiredService<IOptions<OAuthServerOptions>>().Value.ClientMetadataDocuments))
+            // The default HttpClient logging writes request URLs. Keep fetches out of the logs.
+            .RemoveAllLoggers();
         services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<,>).MakeGenericType(typeof(TContext), keyType));
         services.AddHostedService<OAuthServerCleanupService>();
         // An OAuth access token arrives in Authorization: Bearer, so RequireAntiforgery() lets it skip the CSRF check
@@ -186,6 +209,12 @@ public static class OAuthServerServiceCollectionExtensions
                     builder.AddFilter<OpenIddictServerHandlerFilters.RequireDegradedModeDisabled>();
                     builder.UseScopedHandler<ValidateClientRedirectUriWithLoopbackPorts>();
                     builder.SetOrder(OpenIddictServerHandlers.Authentication.ValidateClientRedirectUri.Descriptor.Order);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessAuthenticationContext>(builder =>
+                {
+                    builder.UseScopedHandler<ResolveClientMetadataDocument>();
+                    // Store or refresh a metadata document client just before OpenIddict looks the client up.
+                    builder.SetOrder(OpenIddictServerHandlers.ValidateClientId.Descriptor.Order - 1);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
                 {

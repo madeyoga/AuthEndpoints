@@ -17,6 +17,7 @@ The core `AuthEndpoints` package does not change and has no OpenIddict dependenc
 | `GET /.well-known/jwks` | OpenIddict | The public signing keys. |
 | `GET /.well-known/openid-configuration`, `GET\|POST /connect/userinfo`, `GET\|POST /connect/logout` | OpenIddict, this package | OpenID Connect. **Only with the `openid` scope.** See [OpenID Connect](#openid-connect-optional). |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
+| `client_id` as an `https` URL at `/connect/authorize` | this package | Client ID metadata documents. **Off by default.** |
 | `GET /.well-known/oauth-protected-resource`, `GET /.well-known/oauth-protected-resource/{path}` | this package | RFC 9728, one document per accepted resource. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
 | `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Developer console API. Mapped by `MapOAuthServer` unless turned off. |
@@ -307,6 +308,54 @@ By default a registered client may hold every configured scope. Anyone can regis
 
 A registered client that no user approved within `UnusedClientLifetime` (24 hours) is deleted by the background cleanup. Seeded clients are never deleted.
 
+### Client ID metadata documents (optional)
+
+The MCP authorization spec prefers this over dynamic registration. A client uses an `https` URL as its `client_id`, and serves a JSON document there that describes it ([draft-ietf-oauth-client-id-metadata-document](https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/)):
+
+```json
+{
+  "client_id": "https://assistant.example.com/oauth/client.json",
+  "client_name": "Example Assistant",
+  "redirect_uris": [ "https://assistant.example.com/oauth/callback" ],
+  "grant_types": [ "authorization_code", "refresh_token" ],
+  "token_endpoint_auth_method": "none"
+}
+```
+
+```csharp
+options.ClientMetadataDocuments.Enabled = true;
+options.DynamicRegistration.AllowedScopes.Add("mcp"); // also limits these clients
+```
+
+With it on, the authorization server metadata has `client_id_metadata_document_supported: true`, and `/connect/authorize` resolves a `client_id` that is an `https` URL before OpenIddict looks the client up:
+
+- **The URL** must be `https`, with a path other than `/`, and no query, fragment, user info, or `.`/`..` segments. It is compared as a string and never normalized. It may be up to 255 characters.
+- **The fetch** goes only to public addresses. The host name is resolved first and every address must be public: loopback, private (`10/8`, `172.16/12`, `192.168/16`, `fc00::/7`), link-local (`169.254/16`, `fe80::/10`, which covers cloud metadata endpoints), shared, documentation, and multicast addresses are refused, and the connection goes only to the addresses that were checked, so a second DNS answer cannot redirect it. Redirects are not followed; no cookies, credentials, or proxy are used; it times out after `FetchTimeout` (5 seconds) and reads at most `MaxDocumentBytes` (5 KB). `Accept: application/json` is sent and only `200` is accepted. Fetches are not logged.
+- **The document** must have `client_id` equal to the URL, and `redirect_uris` under the same rules as dynamic registration (`https`, or `http` on a loopback host, where `127.0.0.1` and `[::1]` may use any port). Only public clients are accepted: no `client_secret`, no shared-secret method, and `none` must be the client's `token_endpoint_auth_method` or one of its `token_endpoint_auth_methods_supported` (a document with neither means `none`). `grant_types`, when present, must include `authorization_code` (a refresh token is issued only if it also lists `refresh_token`), and `response_types` must include `code`. `client_name` is optional; without it, the card shows the host.
+- **Scopes** follow `DynamicRegistration.AllowedScopes`, as for registered clients. The document's own `scope` is ignored, because one document serves every server.
+- **Storage.** The client is stored in OpenIddict's application store, as a public client, so authorizations, refresh, revocation, and `RevokeAuthorizationAsync` work as for any client. It carries the same creation marker as a registered client, so the cleanup deletes one that no user approved within `DynamicRegistration.UnusedClientLifetime`; it is simply fetched again next time. A configured client, developer app, or registered client is never replaced by a fetched document, even if its id is a URL.
+- **Caching.** The stored copy is reused until its `Cache-Control: max-age` runs out, kept between `MinCacheDuration` (5 minutes, also used for `no-cache`, `no-store`, or no header) and `MaxCacheDuration` (24 hours). Then the next authorize request fetches it again and updates the stored client in place. If that fetch fails on the network (timeout, connection error, `5xx`, `429`), the stored copy is used and fetched again on the next request. If the new document is invalid, the request is refused. Errors are never cached.
+- **Errors.** A refused client gets `invalid_client` on this server's error page. The browser is never sent to the client's redirect URI.
+- **Limits.** Fetches are limited per caller IP address (`FetchesPerMinute`, 20); a stored copy is reused without counting. Behind a proxy, configure forwarded headers so the caller IP is right.
+- **Hosts.** `DeniedHosts` and `AllowedHosts` take host names, or `*.example.com` for subdomains. Empty `AllowedHosts` accepts any public host. For a decision the lists cannot express, register a filter; it runs before every fetch and before a stored client is reused:
+
+```csharp
+builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { … })
+    .AddClientMetadataHostFilter<TrustedClientHosts>();
+
+public sealed class TrustedClientHosts(AppDbContext db) : IOAuthClientMetadataHostFilter
+{
+    public async ValueTask<bool> IsAllowedAsync(Uri clientId, CancellationToken ct)
+        => await db.TrustedClientHosts.AnyAsync(host => host.Name == clientId.IdnHost, ct);
+}
+```
+
+The consent card gets `clientHost`, the host of the `client_id` URL (with the port when it is not the default), so your page can show which domain published the client next to its name. Turning the option off stops stored metadata document clients at `/connect/authorize`. Grants they already hold keep working until they expire or you revoke them.
+
+`private_key_jwt` client authentication (with `jwks` or `jwks_uri`) is not supported yet. A document that offers it next to `none` is accepted as a public client; one that offers only `private_key_jwt` is refused.
+
+The `client_id` columns of `OpenIddictApplications` and `OAuthRequests` are 255 characters wide, so a metadata URL fits. Add a migration after upgrading.
+
 ### Developer apps
 
 Signed-in users register OAuth apps they own and get a client id (and, for a confidential app, a client secret), the way the GitHub and Google developer consoles work. `MapOAuthServer()` maps a JSON API for your developer console page (or `MapOAuthDeveloperAppEndpoints()` without the recipe; `parts.DeveloperApps = false` turns it off). Every route requires the signed-in user (`AuthenticationScheme`), and the writes require a CSRF token from every caller, as the consent API does.
@@ -392,11 +441,11 @@ When the user is signed out, it redirects to:
 
 | Route | Response |
 | --- | --- |
-| `GET /oauth/requests/{id}` | `{ id, clientId, clientName, redirectHost, scopes, resource, expiresAt, homepageUrl, description, confidential, owner }` |
+| `GET /oauth/requests/{id}` | `{ id, clientId, clientName, redirectHost, scopes, resource, expiresAt, homepageUrl, description, confidential, owner, clientHost }` |
 | `POST /oauth/requests/{id}/approve` | `{ redirectUrl }` with `code`, `state`, and `iss` |
 | `POST /oauth/requests/{id}/deny` | `{ redirectUrl }` with `error=access_denied` |
 
-The POSTs require a CSRF token from every caller, an OAuth access token included (`RequireAntiforgery(allowBearer: false)`). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
+The POSTs require a CSRF token from every caller, an OAuth access token included (`RequireAntiforgery(allowBearer: false)`). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`. For a client identified by a client ID metadata document, `clientHost` is the host of its `client_id` URL; show it next to the name, because that domain published the name. It is `null` for other clients. See [Client ID metadata documents](#client-id-metadata-documents-optional).
 
 The client is checked again when the user answers, because it can be deleted or edited, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, whose developer app is not `Active`, or whose redirect URI is no longer registered for the client (with the same loopback any-port rule as authorize), is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
 
@@ -643,6 +692,8 @@ The document URL takes its host from the resource identifier, and the endpoint n
 | `RefreshTokenLifetime` | 30 days | Rotating, no reuse leeway. |
 | `AuthorizationCodeLifetime` | 5 minutes | |
 | `ConsentLifetime` | 10 minutes | |
+| `DynamicRegistration` | off | See [Dynamic registration](#dynamic-registration-optional). `AllowedScopes`, `MaxRedirectUris`, `MaxClientNameLength`, and `UnusedClientLifetime` also apply to metadata document clients. |
+| `ClientMetadataDocuments` | off; 5 s, 5 KB, cache 5 min to 24 h, 20 fetches per minute | See [Client ID metadata documents](#client-id-metadata-documents-optional). |
 | `DeveloperApps` | approval off, 10 apps, 10 redirects | See [Developer apps](#developer-apps). |
 | `CleanupInterval`, `PruneAfter` | 1 hour, 14 days | Background sweep of unused clients, developer apps without an owner, expired consents, old tokens. Zero turns it off; `IOAuthServerCleanup.SweepAsync` runs it on demand. |
 | `RevalidateUser` | `true` | Re-check the approving user on every code exchange and refresh. |
