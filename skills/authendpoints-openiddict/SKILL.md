@@ -143,6 +143,7 @@ Load only the file the task needs. Each one is self-contained.
 | Build the consent page, use the JSON consent API, approve from your own endpoint, or change the token subject | [references/consent.md](references/consent.md) |
 | Seed clients from configuration, accept client ID metadata documents, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
+| Expose an MCP server (or API) that AI assistants connect to as the signed-in person: discovery, client identification, consent, resource-bound tokens, roles, and scopes, end to end | [references/mcp-server.md](references/mcp-server.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
 | Turn on OpenID Connect: ID tokens, the `email`, `email_verified`, and `amr` claims, `userinfo`, logout, and post-logout redirect URIs | [references/openid-connect.md](references/openid-connect.md) |
 | Every option, roles and the user id on access tokens, requiring scopes on routes and in services, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
