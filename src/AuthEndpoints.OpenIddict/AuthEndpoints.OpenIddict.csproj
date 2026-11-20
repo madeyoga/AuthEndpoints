@@ -6,7 +6,9 @@
     <Nullable>enable</Nullable>
     <PackageId>AuthEndpoints.OpenIddict</PackageId>
     <Description>Opt-in OAuth 2.0 and OpenID Connect authorization server for AuthEndpoints apps, built on OpenIddict. Authorization code + PKCE (S256), rotating refresh tokens, a host-rendered consent step, opt-in ID tokens, userinfo, and logout, and optional dynamic client registration.</Description>
-    <Version>4.0.0-preview.1</Version>
+    <Version>4.0.0-preview.2</Version>
+    <!-- Uses AuthEndpointsAntiforgeryOptions.BearerSchemes and RequireAntiforgery(allowBearer:), added in core 4.2.0. -->
+    <AuthEndpointsMinimumVersion>4.2.0</AuthEndpointsMinimumVersion>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
