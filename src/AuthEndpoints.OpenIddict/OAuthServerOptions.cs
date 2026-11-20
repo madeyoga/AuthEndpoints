@@ -273,18 +273,58 @@ public sealed class OAuthAccessTokenClaimOptions
     public bool UserId { get; set; }
 }
 
-/// <summary>RFC 9728 protected resource metadata for <see cref="OAuthServerOptions.Audience"/>.</summary>
+/// <summary>
+/// RFC 9728 protected resource metadata. The root document describes <see cref="OAuthServerOptions.Audience"/>.
+/// Each resource this host accepts (<see cref="OAuthServerOptions.Audience"/> and
+/// <see cref="OAuthServerOptions.AcceptedAudiences"/>) whose identifier has a path also gets a path-suffixed document,
+/// for example <c>https://host/mcp</c> at <c>https://host/.well-known/oauth-protected-resource/mcp</c>.
+/// </summary>
 public sealed class OAuthProtectedResourceOptions
 {
-    /// <summary>Map <c>GET /.well-known/oauth-protected-resource</c>. Default <see langword="false"/>.</summary>
+    /// <summary>Map <c>GET /.well-known/oauth-protected-resource</c> and the per-resource documents. Default <see langword="false"/>.</summary>
     public bool Enabled { get; set; }
+
+    /// <summary>Human-readable <c>resource_name</c> of the <see cref="OAuthServerOptions.Audience"/> documents. Optional.</summary>
+    public string? ResourceName { get; set; }
+
+    /// <summary>
+    /// <c>scopes_supported</c> of the <see cref="OAuthServerOptions.Audience"/> documents. Each must be a configured scope.
+    /// Empty (the default) lists every scope.
+    /// </summary>
+    public IList<string> Scopes { get; } = new List<string>();
+
+    /// <summary>
+    /// Path prefixes whose 401 responses get <c>WWW-Authenticate: Bearer resource_metadata="…"</c> pointing at the root
+    /// document, from <c>UseOAuthResourceChallenge</c>. Empty means every path that no entry of <see cref="Resources"/> claims.
+    /// </summary>
+    public IList<string> ChallengePaths { get; } = new List<string>();
+
+    /// <summary>
+    /// Settings for the documents of <see cref="OAuthServerOptions.AcceptedAudiences"/> entries other than
+    /// <see cref="OAuthServerOptions.Audience"/>: name, scopes, and the paths whose 401 responses point at them.
+    /// An accepted resource without an entry still gets a document, with no name and every scope.
+    /// </summary>
+    public IList<OAuthProtectedResourceDefinition> Resources { get; } = new List<OAuthProtectedResourceDefinition>();
+}
+
+/// <summary>The protected resource metadata of one resource in <see cref="OAuthServerOptions.AcceptedAudiences"/>.</summary>
+public sealed class OAuthProtectedResourceDefinition
+{
+    /// <summary>
+    /// The resource indicator, exactly as in <see cref="OAuthServerOptions.AcceptedAudiences"/>, for example
+    /// <c>https://host/mcp</c>. It needs a path and no query. Required.
+    /// </summary>
+    public string? Resource { get; set; }
 
     /// <summary>Human-readable <c>resource_name</c>. Optional.</summary>
     public string? ResourceName { get; set; }
 
+    /// <summary><c>scopes_supported</c>. Each must be a configured scope. Empty (the default) lists every scope.</summary>
+    public IList<string> Scopes { get; } = new List<string>();
+
     /// <summary>
-    /// Path prefixes whose 401 responses get <c>WWW-Authenticate: Bearer resource_metadata="…"</c>
-    /// from <c>UseOAuthResourceChallenge</c>. Empty means every path.
+    /// Path prefixes, such as <c>/mcp</c>, whose 401 responses point at this resource's document. Each must start with
+    /// <c>/</c> and must not end with one, and no prefix may be listed twice across all resources.
     /// </summary>
     public IList<string> ChallengePaths { get; } = new List<string>();
 }

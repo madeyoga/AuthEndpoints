@@ -26,7 +26,7 @@ The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 
 | `GET /.well-known/jwks` | OpenIddict | The public signing keys. |
 | `GET /.well-known/openid-configuration`, `GET\|POST /connect/userinfo`, `GET\|POST /connect/logout` | OpenIddict, this package | OpenID Connect. **Only with the `openid` scope.** See [references/openid-connect.md](references/openid-connect.md). |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
-| `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
+| `GET /.well-known/oauth-protected-resource`, `GET /.well-known/oauth-protected-resource/{path}` | this package | RFC 9728, one document per accepted resource. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
 | `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Developer console API. Mapped by `MapOAuthServer` unless turned off. |
 
@@ -100,7 +100,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -121,7 +121,7 @@ app.MapGet("/api/me", (ClaimsPrincipal user) => user.FindFirst("sub")?.Value)
 
 Access tokens are reference tokens, validated against this server's database. APIs in other processes are not supported yet (that needs introspection or JWT access tokens, see [Limitations](#limitations)).
 
-To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource).
+To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource). With protected resource metadata on, give each resource its own name, scopes, and challenge paths in `ProtectedResource.Resources`; see [references/settings.md](references/settings.md#one-document-per-resource).
 
 Token callers have `sub` and scopes but no roles and no `ClaimTypes.NameIdentifier`. To let existing `RequireRole` policies and `UserManager.GetUserId` work for them, turn on `AccessTokenClaims.Roles` and `AccessTokenClaims.UserId` (both off by default). They are added only when `sub` is the approving user, and roles are read again at every refresh; see [references/settings.md](references/settings.md#roles-and-the-user-id-on-tokens).
 

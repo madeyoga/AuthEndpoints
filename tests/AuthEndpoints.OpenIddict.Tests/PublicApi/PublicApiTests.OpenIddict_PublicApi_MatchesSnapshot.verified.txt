@@ -267,12 +267,22 @@
     {
         public static System.Security.Claims.ClaimsPrincipal ForSubject(string subject) { }
     }
+    public sealed class OAuthProtectedResourceDefinition
+    {
+        public OAuthProtectedResourceDefinition() { }
+        public System.Collections.Generic.IList<string> ChallengePaths { get; }
+        public string? Resource { get; set; }
+        public string? ResourceName { get; set; }
+        public System.Collections.Generic.IList<string> Scopes { get; }
+    }
     public sealed class OAuthProtectedResourceOptions
     {
         public OAuthProtectedResourceOptions() { }
         public System.Collections.Generic.IList<string> ChallengePaths { get; }
         public bool Enabled { get; set; }
         public string? ResourceName { get; set; }
+        public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthProtectedResourceDefinition> Resources { get; }
+        public System.Collections.Generic.IList<string> Scopes { get; }
     }
     public class OAuthRequest<TKey>
         where TKey : System.IEquatable<TKey>

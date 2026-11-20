@@ -17,7 +17,7 @@ The core `AuthEndpoints` package does not change and has no OpenIddict dependenc
 | `GET /.well-known/jwks` | OpenIddict | The public signing keys. |
 | `GET /.well-known/openid-configuration`, `GET\|POST /connect/userinfo`, `GET\|POST /connect/logout` | OpenIddict, this package | OpenID Connect. **Only with the `openid` scope.** See [OpenID Connect](#openid-connect-optional). |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
-| `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
+| `GET /.well-known/oauth-protected-resource`, `GET /.well-known/oauth-protected-resource/{path}` | this package | RFC 9728, one document per accepted resource. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
 | `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Developer console API. Mapped by `MapOAuthServer` unless turned off. |
 
@@ -95,7 +95,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -183,7 +183,7 @@ app.MapGroup("/api").RequireAuthorization("api");
 app.MapGroup("/mcp").RequireAuthorization("mcp");
 ```
 
-A token for `/mcp` then gets `403` from `/api`, and the other way round. Protected resource metadata still describes `Audience` only.
+A token for `/mcp` then gets `403` from `/api`, and the other way round. With protected resource metadata on, each accepted resource gets its own document; see [One document per resource](#one-document-per-resource).
 
 #### Roles and the user id on tokens
 
@@ -598,7 +598,32 @@ options.ProtectedResource.ChallengePaths.Add("/mcp");
 app.UseOAuthResourceChallenge(); // before UseAuthentication
 ```
 
-`GET /.well-known/oauth-protected-resource` returns `Audience`, the issuer, and the scopes. A `401` on a challenge path gets `WWW-Authenticate: Bearer resource_metadata="…/.well-known/oauth-protected-resource"`. Existing `Bearer` parameters are kept.
+`GET /.well-known/oauth-protected-resource` returns `Audience`, the issuer, and the scopes (`ProtectedResource.Scopes`, or every scope when it is empty). A `401` on a challenge path gets `WWW-Authenticate: Bearer resource_metadata="…/.well-known/oauth-protected-resource"`. Existing `Bearer` parameters are kept.
+
+### One document per resource
+
+When this host serves more than one resource (see [One host, more than one resource](#one-host-more-than-one-resource)), each needs its own document, because a client checks that the document's `resource` is the URL it called. `Audience` and every `AcceptedAudiences` entry whose identifier has a path get a document at the RFC 9728 path-suffixed URL: `https://auth.example.com/mcp` is described at `https://auth.example.com/.well-known/oauth-protected-resource/mcp`. Name a resource, list its scopes, and send its `401` responses there with an entry in `ProtectedResource.Resources`:
+
+```csharp
+options.Audience = "https://auth.example.com/api";
+options.AdditionalResources.Add("https://auth.example.com/mcp");
+options.AcceptedAudiences.Add("https://auth.example.com/mcp");
+
+options.ProtectedResource.Enabled = true;
+options.ProtectedResource.ResourceName = "My API";
+options.ProtectedResource.ChallengePaths.Add("/api");
+options.ProtectedResource.Resources.Add(new OAuthProtectedResourceDefinition
+{
+    Resource = "https://auth.example.com/mcp",
+    ResourceName = "My MCP server",
+    Scopes = { "mcp" },
+    ChallengePaths = { "/mcp" },
+});
+```
+
+A `401` on `/mcp` then points at `…/.well-known/oauth-protected-resource/mcp`, and one on `/api` at the root document. The longest matching challenge path wins. When `ProtectedResource.ChallengePaths` is empty, every path that no resource claims points at the root document. An accepted resource without an entry still gets a document, with no name and every scope. `Scopes` is the document's `scopes_supported`: it tells clients what to ask for and does not limit what a token may hold.
+
+The document URL takes its host from the resource identifier, and the endpoint never reads the request `Host` header. Clients fetch it from the resource's host, so that host has to route `/.well-known/oauth-protected-resource/…` to this app. Two accepted resources with the same path on different hosts (`https://a.example/mcp` and `https://b.example/mcp`) cannot be told apart: neither gets a path-suffixed document, and startup fails when a `Resources` entry names one of them. Startup also fails when an entry names a resource that is not in `AcceptedAudiences`, names `Audience` (use the top-level `ResourceName`, `Scopes`, and `ChallengePaths`), has no path or has a query, lists a scope that is not configured, or repeats a challenge path.
 
 ## Settings
 
