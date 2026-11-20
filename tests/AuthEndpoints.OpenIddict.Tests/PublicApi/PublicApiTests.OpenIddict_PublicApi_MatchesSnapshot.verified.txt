@@ -397,6 +397,7 @@
         public string? Audience { get; set; }
         public string AuthenticationScheme { get; set; }
         public System.TimeSpan AuthorizationCodeLifetime { get; set; }
+        public bool BearerRequestsSkipCookieRedirects { get; set; }
         public AuthEndpoints.OpenIddict.OAuthServerCertificateOptions Certificates { get; }
         public System.TimeSpan CleanupInterval { get; set; }
         public System.Collections.Generic.IList<AuthEndpoints.OpenIddict.OAuthClientDefinition> Clients { get; }
