@@ -146,6 +146,11 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        if (options.ProtectedResource.Enabled)
+        {
+            ValidateProtectedResources(failures, options, all);
+        }
+
         foreach (var path in options.QueryStringTokenPaths)
         {
             if (!IsPathPrefix(path))
@@ -218,6 +223,78 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
         }
 
         return failures.Count == 0 ? ValidateOptionsResult.Success : ValidateOptionsResult.Fail(failures);
+    }
+
+    private static void ValidateProtectedResources(List<string> failures, OAuthServerOptions options, HashSet<string> scopes)
+    {
+        var settings = options.ProtectedResource;
+        foreach (var scope in settings.Scopes)
+        {
+            if (!scopes.Contains(scope))
+            {
+                failures.Add($"ProtectedResource.Scopes entry '{scope}' is not in OAuthServerOptions.Scopes.");
+            }
+        }
+
+        var accepted = options.ValidationAudiences().ToHashSet(StringComparer.Ordinal);
+        var sharedPath = OAuthProtectedResources.SuffixedResources(options)
+            .GroupBy(item => item.Path.Value, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .SelectMany(group => group.Select(item => item.Resource))
+            .ToHashSet(StringComparer.Ordinal);
+        var described = new HashSet<string>(StringComparer.Ordinal);
+        var challengePaths = new HashSet<string>(settings.ChallengePaths, StringComparer.Ordinal);
+        foreach (var definition in settings.Resources)
+        {
+            if (string.IsNullOrWhiteSpace(definition.Resource))
+            {
+                failures.Add("Every ProtectedResource.Resources entry needs a Resource.");
+                continue;
+            }
+
+            var resource = definition.Resource;
+            if (!described.Add(resource))
+            {
+                failures.Add($"ProtectedResource.Resources lists '{resource}' twice.");
+            }
+
+            if (resource == options.Audience)
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' is Audience. Describe it with ProtectedResource.ResourceName, Scopes, and ChallengePaths.");
+            }
+            else if (!accepted.Contains(resource))
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' is not in AcceptedAudiences.");
+            }
+            else if (OAuthProtectedResources.ResourcePath(resource) is null)
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' needs a path and no query, for example 'https://host/mcp'.");
+            }
+            else if (sharedPath.Contains(resource))
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' has the same path as another accepted resource, so its metadata cannot be served. Give each resource its own path.");
+            }
+
+            foreach (var scope in definition.Scopes)
+            {
+                if (!scopes.Contains(scope))
+                {
+                    failures.Add($"ProtectedResource.Resources entry '{resource}' scope '{scope}' is not in OAuthServerOptions.Scopes.");
+                }
+            }
+
+            foreach (var path in definition.ChallengePaths)
+            {
+                if (!IsPathPrefix(path))
+                {
+                    failures.Add($"ProtectedResource.Resources entry '{resource}' challenge path '{path}' must start with '/', such as '/mcp', with no trailing '/', query, or fragment.");
+                }
+                else if (!challengePaths.Add(path))
+                {
+                    failures.Add($"Challenge path '{path}' is listed more than once in ProtectedResource.");
+                }
+            }
+        }
     }
 
     internal static bool IsResourceIndicator(string? value)
