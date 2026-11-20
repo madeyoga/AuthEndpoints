@@ -132,6 +132,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOAuthDeveloperAppOwnerDisplay ownerDisplay,
     IOAuthUserProfiles profiles,
     IOAuthScopeDescriptions scopeDescriptions,
+    OAuthServerEventDispatcher events,
     TimeProvider clock) : IOAuthConsentService
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -235,11 +236,10 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
             throw;
         }
-        if (openId)
-        {
-            // Userinfo and logout find the user through the authorization, since no token carries the user id.
-            await OAuthAuthorizationUser.SetAsync(authorizations, issued.AuthorizationId, userId, cancellationToken);
-        }
+        // Userinfo, logout, events and the connected apps list find the user through the authorization, since no token a
+        // client reads carries the user id, and a principal factory may have chosen another sub.
+        await OAuthAuthorizationProperties.SetApprovalAsync(authorizations, issued.AuthorizationId, userId, row.Resource, cancellationToken);
+        await RaiseAsync(OAuthServerEventType.ConsentApproved, row, userId, issued.AuthorizationId, cancellationToken);
 
         var redirect = OAuthRedirects.Authorization(row.RedirectUri, issued.Code, row.State, issuer.AbsoluteUri, null, null);
         return new OAuthConsentResult(OAuthConsentStatus.Approved, redirect, row.ClientId, issued.AuthorizationId);
@@ -271,6 +271,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             options.Value.Issuer!.AbsoluteUri,
             OpenIddictConstants.Errors.AccessDenied,
             "The request was denied.");
+        await RaiseAsync(OAuthServerEventType.ConsentDenied, row, userId, null, cancellationToken);
         return new OAuthConsentResult(OAuthConsentStatus.Denied, redirect, row.ClientId);
     }
 
@@ -285,7 +286,29 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
         await tokens.RevokeByAuthorizationIdAsync(authorizationId, cancellationToken);
         await authorizations.TryRevokeAsync(authorization, cancellationToken);
+        // No ownership check here, so the caller acts for someone else.
+        await events.RevokedAsync(authorizations, applications, authorization, OAuthRevokedBy.Admin, null, cancellationToken);
         return true;
+    }
+
+    private async Task RaiseAsync(
+        OAuthServerEventType type, OAuthRequest<TKey> row, string userId, string? authorizationId, CancellationToken cancellationToken)
+    {
+        if (!events.HasSubscribers)
+        {
+            return;
+        }
+
+        var application = await applications.FindByClientIdAsync(row.ClientId, cancellationToken);
+        await events.RaiseAsync(new OAuthServerEvent(type, events.Now)
+        {
+            UserId = userId,
+            ClientId = row.ClientId,
+            ClientKind = application is null ? null : OAuthClientKinds.From(await applications.GetSettingsAsync(application, cancellationToken)),
+            AuthorizationId = authorizationId,
+            Scopes = OAuthScopes.Split(row.Scope),
+            Resource = string.IsNullOrEmpty(row.Resource) ? null : row.Resource,
+        }, cancellationToken);
     }
 
     /// <summary>

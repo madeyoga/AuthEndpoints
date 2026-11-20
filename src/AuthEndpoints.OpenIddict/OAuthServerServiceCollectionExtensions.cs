@@ -45,6 +45,17 @@ public sealed class OAuthServerBuilder
     }
 
     /// <summary>
+    /// Adds a subscriber for <see cref="OAuthServerEvent"/>s, for example an audit log. Call it once per subscriber; each
+    /// one gets every event, in registration order. Subscribers are scoped. One that throws is logged and skipped.
+    /// </summary>
+    public OAuthServerBuilder AddServerEvents<TEvents>()
+        where TEvents : class, IOAuthServerEvents
+    {
+        Services.TryAddEnumerable(ServiceDescriptor.Scoped<IOAuthServerEvents, TEvents>());
+        return this;
+    }
+
+    /// <summary>
     /// Decides which hosts may serve client ID metadata documents, after <c>ClientMetadataDocuments.DeniedHosts</c> and
     /// <c>AllowedHosts</c>. Without it, every public host those lists allow is accepted.
     /// </summary>
@@ -160,6 +171,8 @@ public static class OAuthServerServiceCollectionExtensions
         // A refused token caller gets 401 or 403 from the sign-in cookie, not a redirect. On unless BearerRequestsSkipCookieRedirects is off.
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, OAuthBearerCookieRedirects>());
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
+        // Audit events. Without an IOAuthServerEvents subscriber, nothing is raised.
+        services.TryAddScoped<OAuthServerEventDispatcher>();
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
         services.TryAddScoped(developerApps);
@@ -241,6 +254,12 @@ public static class OAuthServerServiceCollectionExtensions
                     builder.UseScopedHandler<AttachAccessTokenUserClaims>();
                     // After OpenIddict copies the grant's claims into the access token principal, before it generates the token.
                     builder.SetOrder(OpenIddictServerHandlers.PrepareAccessTokenPrincipal.Descriptor.Order + 500);
+                });
+                options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
+                {
+                    builder.UseScopedHandler<RaiseTokenEvents>();
+                    // After the tokens are generated and stored, and their values attached to the response.
+                    builder.SetOrder(OpenIddictServerHandlers.AttachSignInParameters.Descriptor.Order + 1_000);
                 });
                 options.AddEventHandler<OpenIddictServerEvents.HandleConfigurationRequestContext>(builder =>
                 {

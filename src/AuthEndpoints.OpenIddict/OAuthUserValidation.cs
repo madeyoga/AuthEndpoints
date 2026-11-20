@@ -111,6 +111,8 @@ internal sealed class RevalidateGrantUser(
     IOAuthUserValidator validator,
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
+    IOpenIddictApplicationManager applications,
+    OAuthServerEventDispatcher events,
     IOptions<OAuthServerOptions> options) : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessSignInContext>
 {
     public async ValueTask HandleAsync(OpenIddictServerEvents.ProcessSignInContext context)
@@ -136,13 +138,35 @@ internal sealed class RevalidateGrantUser(
             return;
         }
 
-        if (context.Principal!.GetAuthorizationId() is { Length: > 0 } authorizationId)
+        var authorizationId = context.Principal!.GetAuthorizationId();
+        if (authorizationId is { Length: > 0 })
         {
             await tokens.RevokeByAuthorizationIdAsync(authorizationId, context.CancellationToken);
             if (await authorizations.FindByIdAsync(authorizationId, context.CancellationToken) is { } authorization)
             {
                 await authorizations.TryRevokeAsync(authorization, context.CancellationToken);
             }
+        }
+
+        if (events.HasSubscribers)
+        {
+            string? kind = null;
+            if (request.ClientId is { Length: > 0 } clientId
+                && await applications.FindByClientIdAsync(clientId, context.CancellationToken) is { } application)
+            {
+                kind = OAuthClientKinds.From(await applications.GetSettingsAsync(application, context.CancellationToken));
+            }
+
+            await events.RaiseAsync(new OAuthServerEvent(OAuthServerEventType.GrantRefused, events.Now)
+            {
+                UserId = userId,
+                ClientId = request.ClientId,
+                ClientKind = kind,
+                AuthorizationId = authorizationId,
+                Scopes = context.Principal.GetScopes().ToArray(),
+                Resource = context.Principal.GetResources().FirstOrDefault(),
+                GrantType = request.GrantType,
+            }, context.CancellationToken);
         }
 
         context.Reject(OpenIddictConstants.Errors.InvalidGrant, "The user can no longer use this grant.");
