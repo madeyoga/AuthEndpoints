@@ -108,3 +108,5 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
 `IOAuthPrincipalFactory.CreateAsync` gets the signed-in user id and the pending request, and returns the principal (or `null` to decline without consuming the request). The principal needs a `sub` claim. Other claims reach the access token only when you call `SetDestinations` on them.
 
 With OpenID Connect, the ID token `sub` is the same `sub`, so a custom factory changes both. See [Claims](openid-connect.md#claims).
+
+With `AccessTokenClaims` on, the user's roles and id are added only while `sub` is the approving user's id. See [Roles and the user id on tokens](settings.md#roles-and-the-user-id-on-tokens).

@@ -73,6 +73,16 @@ public static class OAuthServerEndpointRouteBuilderExtensions
             ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
         var settings = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
 
+        if (settings.AccessTokenClaims.Roles)
+        {
+            using var scope = endpoints.ServiceProvider.CreateScope();
+            if (!scope.ServiceProvider.GetRequiredService<IOAuthUserRoles>().Supported)
+            {
+                throw new InvalidOperationException(
+                    "OAuthServerOptions.AccessTokenClaims.Roles needs Identity roles. Call AddRoles<TRole>() on the Identity builder, or turn Roles off.");
+            }
+        }
+
         marker.MapAuthorize(endpoints)
             .AllowAnonymous()
             .ExcludeFromDescription();
