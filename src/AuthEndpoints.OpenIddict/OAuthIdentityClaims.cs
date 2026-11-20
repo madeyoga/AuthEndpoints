@@ -108,23 +108,13 @@ internal static class OAuthIdentityClaims
 }
 
 /// <summary>
-/// Stores the approving user's id on the OpenIddict authorization, so userinfo and logout can find the user
-/// from an access token or an <c>id_token_hint</c>. The id never goes into a token a client can read.
+/// Reads the approving user's id from the OpenIddict authorization (written at approval by
+/// <see cref="OAuthAuthorizationProperties.SetApprovalAsync"/>), so userinfo and logout can find the user from an access
+/// token or an <c>id_token_hint</c>. The id never goes into a token a client can read.
 /// </summary>
 internal static class OAuthAuthorizationUser
 {
-    public static async Task SetAsync(
-        IOpenIddictAuthorizationManager authorizations, string authorizationId, string userId, CancellationToken cancellationToken)
-    {
-        var authorization = await authorizations.FindByIdAsync(authorizationId, cancellationToken)
-            ?? throw new InvalidOperationException("The authorization was not stored.");
-        var descriptor = new OpenIddictAuthorizationDescriptor();
-        await authorizations.PopulateAsync(descriptor, authorization, cancellationToken);
-        descriptor.Properties[OAuthServerConstants.AuthorizationUserProperty] = JsonSerializer.SerializeToElement(userId);
-        await authorizations.UpdateAsync(authorization, descriptor, cancellationToken);
-    }
-
-    /// <summary>The approving user's id, or <see langword="null"/> for an unknown authorization or one stored before OpenID Connect was on.</summary>
+    /// <summary>The approving user's id, or <see langword="null"/> for an unknown authorization or one stored before the id was recorded.</summary>
     public static async Task<string?> FindAsync(
         IOpenIddictAuthorizationManager authorizations, string? authorizationId, CancellationToken cancellationToken)
     {

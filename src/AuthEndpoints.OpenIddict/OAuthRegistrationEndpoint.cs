@@ -20,6 +20,7 @@ internal static class OAuthRegistrationEndpoint
         IOpenIddictApplicationManager applications,
         IOptions<OAuthServerOptions> options,
         TimeProvider clock,
+        OAuthServerEventDispatcher events,
         CancellationToken cancellationToken)
     {
         using var lease = limiter.Acquire(http);
@@ -128,6 +129,12 @@ internal static class OAuthRegistrationEndpoint
         OAuthClientPermissions.AddCodeFlow(descriptor, scopes, settings.AllResources());
         descriptor.Settings[OAuthServerConstants.CreatedAtSetting] = now.ToString("O", CultureInfo.InvariantCulture);
         await applications.CreateAsync(descriptor, cancellationToken);
+        await events.RaiseAsync(new OAuthServerEvent(OAuthServerEventType.ClientRegistered, now)
+        {
+            ClientId = descriptor.ClientId,
+            ClientKind = OAuthClientKinds.Dynamic,
+            Scopes = scopes.ToArray(),
+        }, cancellationToken);
 
         return Results.Json(
             new RegisterClientResponse(

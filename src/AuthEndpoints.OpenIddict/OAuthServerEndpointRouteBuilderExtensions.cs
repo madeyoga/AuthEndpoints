@@ -15,8 +15,8 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     /// <summary>
     /// The default recipe's map call. Maps the authorization server (<see cref="MapAuthEndpointsOpenIddict"/>:
     /// authorize, plus registration and protected resource metadata when they are enabled in
-    /// <see cref="OAuthServerOptions"/>), the JSON consent API (<see cref="MapOAuthConsentEndpoints"/>), and the developer
-    /// app API (<see cref="MapOAuthDeveloperAppEndpoints"/>). Turn a part off or move it in <paramref name="configure"/>.
+    /// <see cref="OAuthServerOptions"/>), the JSON consent API (<see cref="MapOAuthConsentEndpoints"/>), the developer
+    /// app API (<see cref="MapOAuthDeveloperAppEndpoints"/>), and the connected apps API (<see cref="MapOAuthConnectedAppEndpoints"/>). Turn a part off or move it in <paramref name="configure"/>.
     /// Use it instead of those calls, not together with them.
     /// Fails at once when the server is not registered or <c>UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> is missing from the model.
     /// It does not seed <see cref="OAuthServerOptions.Clients"/>: call <c>SeedOAuthClientsAsync()</c> after migrations.
@@ -40,6 +40,11 @@ public static class OAuthServerEndpointRouteBuilderExtensions
             RequireRootedPrefix(parts.DeveloperAppsPrefix, nameof(OAuthServerEndpointOptions.DeveloperAppsPrefix));
         }
 
+        if (parts.ConnectedApps)
+        {
+            RequireRootedPrefix(parts.ConnectedAppsPrefix, nameof(OAuthServerEndpointOptions.ConnectedAppsPrefix));
+        }
+
         // Validates OAuthServerOptions now instead of on the first request.
         _ = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
         marker.EnsureModel(endpoints.ServiceProvider);
@@ -47,7 +52,8 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         endpoints.MapAuthEndpointsOpenIddict();
         return new OAuthServerEndpoints(
             parts.ConsentApi ? MapOAuthConsentEndpoints(endpoints, parts.ConsentPrefix) : null,
-            parts.DeveloperApps ? MapOAuthDeveloperAppEndpoints(endpoints, parts.DeveloperAppsPrefix) : null);
+            parts.DeveloperApps ? MapOAuthDeveloperAppEndpoints(endpoints, parts.DeveloperAppsPrefix) : null,
+            parts.ConnectedApps ? MapOAuthConnectedAppEndpoints(endpoints, parts.ConnectedAppsPrefix) : null);
     }
 
     private static void RequireRootedPrefix(string? prefix, string name)
@@ -72,6 +78,16 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         var marker = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
             ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
         var settings = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
+
+        if (settings.AccessTokenClaims.Roles)
+        {
+            using var scope = endpoints.ServiceProvider.CreateScope();
+            if (!scope.ServiceProvider.GetRequiredService<IOAuthUserRoles>().Supported)
+            {
+                throw new InvalidOperationException(
+                    "OAuthServerOptions.AccessTokenClaims.Roles needs Identity roles. Call AddRoles<TRole>() on the Identity builder, or turn Roles off.");
+            }
+        }
 
         marker.MapAuthorize(endpoints)
             .AllowAnonymous()
@@ -109,11 +125,23 @@ public static class OAuthServerEndpointRouteBuilderExtensions
 
         if (settings.ProtectedResource.Enabled)
         {
-            endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath, ProtectedResource)
+            var resources = OAuthProtectedResources.Create(settings);
+            var issuer = settings.Issuer!.AbsoluteUri;
+            endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath, () => Metadata(resources.Audience, issuer))
                 .AllowAnonymous()
                 .WithName("GetOAuthProtectedResource")
                 .WithSummary("Protected resource metadata (RFC 9728)")
                 .WithTags("OAuth");
+            if (resources.Suffixed.Count > 0)
+            {
+                // RFC 9728 §3.1: one document per accepted resource with a path. The literal root route above wins over this one.
+                endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath + "/{**resourcePath}", (HttpContext context)
+                        => resources.Find(context.Request.Path) is { } document ? Metadata(document, issuer) : Results.NotFound())
+                    .AllowAnonymous()
+                    .WithName("GetOAuthProtectedResourceForPath")
+                    .WithSummary("Protected resource metadata for one resource (RFC 9728)")
+                    .WithTags("OAuth");
+            }
         }
 
         return endpoints;
@@ -144,16 +172,27 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         return OAuthDeveloperAppEndpoints.Map(endpoints, prefix);
     }
 
-    private static IResult ProtectedResource(IOptions<OAuthServerOptions> options)
+    /// <summary>
+    /// Maps a JSON API where the signed-in user sees the clients they connected and disconnects one:
+    /// <c>GET {prefix}</c> and <c>DELETE {prefix}/{id}</c>. The routes authenticate with
+    /// <see cref="OAuthServerOptions.AuthenticationScheme"/>, so an OAuth access token cannot call them, and the
+    /// <c>DELETE</c> requires a CSRF token. For an admin page, call <see cref="IOAuthConnectedAppService"/> with the user id.
+    /// </summary>
+    public static RouteGroupBuilder MapOAuthConnectedAppEndpoints(this IEndpointRouteBuilder endpoints, string prefix = "/oauth/authorizations")
     {
-        var settings = options.Value;
-        return Results.Json(new ProtectedResourceMetadata(
-            settings.Audience!,
-            [settings.Issuer!.AbsoluteUri],
-            ["header"],
-            settings.AllScopes().ToArray(),
-            settings.ProtectedResource.ResourceName));
+        ArgumentNullException.ThrowIfNull(endpoints);
+        _ = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
+        return OAuthConnectedAppEndpoints.Map(endpoints, prefix);
     }
+
+    private static IResult Metadata(ProtectedResourceDocument document, string issuer)
+        => Results.Json(new ProtectedResourceMetadata(
+            document.Resource,
+            [issuer],
+            ["header"],
+            document.Scopes,
+            document.ResourceName));
 }
 
 /// <summary>Remembers the DbContext and key types so mapping does not need them again.</summary>
@@ -201,8 +240,10 @@ internal sealed record ProtectedResourceMetadata(
 public static class OAuthServerApplicationBuilderExtensions
 {
     /// <summary>
-    /// Adds <c>WWW-Authenticate: Bearer resource_metadata="…"</c> to 401 responses on
-    /// <see cref="OAuthProtectedResourceOptions.ChallengePaths"/>, so MCP-style clients can discover the server.
+    /// Adds <c>WWW-Authenticate: Bearer resource_metadata="…"</c> to 401 responses, so MCP-style clients can discover the
+    /// server. A path under an <see cref="OAuthProtectedResourceDefinition.ChallengePaths"/> entry points at that resource's
+    /// document; one under <see cref="OAuthProtectedResourceOptions.ChallengePaths"/>, or any other path when that list is
+    /// empty, points at the root document. The longest matching prefix wins.
     /// Does nothing unless protected resource metadata is enabled.
     /// </summary>
     public static IApplicationBuilder UseOAuthResourceChallenge(this IApplicationBuilder app)
@@ -214,13 +255,12 @@ public static class OAuthServerApplicationBuilderExtensions
             return app;
         }
 
-        var paths = settings.ProtectedResource.ChallengePaths.Select(path => new PathString(path)).ToArray();
-        var metadata = new Uri(settings.Issuer!, OAuthServerConstants.ProtectedResourceMetadataPath.TrimStart('/')).AbsoluteUri;
-        var parameter = $"resource_metadata=\"{metadata}\"";
+        var resources = OAuthProtectedResources.Create(settings);
         return app.Use(async (context, next) =>
         {
-            if (paths.Length == 0 || paths.Any(path => context.Request.Path.StartsWithSegments(path)))
+            if (resources.ChallengeFor(context.Request.Path) is { } metadata)
             {
+                var parameter = $"resource_metadata=\"{metadata}\"";
                 context.Response.OnStarting(() =>
                 {
                     if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)

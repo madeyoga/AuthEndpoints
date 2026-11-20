@@ -1,9 +1,9 @@
 ---
 name: authendpoints-openiddict
-description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional dynamic registration and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
+description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional client ID metadata documents, dynamic registration, and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
-  version: "4.0.0-preview.1"
+  version: "4.0.0-preview.4"
 ---
 # Run an OAuth server with AuthEndpoints.OpenIddict
 
@@ -26,9 +26,11 @@ The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 
 | `GET /.well-known/jwks` | OpenIddict | The public signing keys. |
 | `GET /.well-known/openid-configuration`, `GET\|POST /connect/userinfo`, `GET\|POST /connect/logout` | OpenIddict, this package | OpenID Connect. **Only with the `openid` scope.** See [references/openid-connect.md](references/openid-connect.md). |
 | `POST /connect/register` | this package | RFC 7591. **Off by default.** |
-| `GET /.well-known/oauth-protected-resource` | this package | RFC 9728. **Off by default.** |
+| `client_id` as an `https` URL at `/connect/authorize` | this package | Client ID metadata documents, preferred by the MCP spec. **Off by default.** See [references/clients.md](references/clients.md#client-id-metadata-documents-optional). |
+| `GET /.well-known/oauth-protected-resource`, `GET /.well-known/oauth-protected-resource/{path}` | this package | RFC 9728, one document per accepted resource. **Off by default.** |
 | `GET /oauth/requests/{id}`, `POST …/approve`, `POST …/deny` | this package | JSON consent API. Mapped by `MapOAuthServer` unless turned off. |
 | `GET\|POST /oauth/apps`, `GET\|PUT\|DELETE /oauth/apps/{id}`, `POST …/secret` | this package | Developer console API. Mapped by `MapOAuthServer` unless turned off. |
+| `GET /oauth/authorizations`, `DELETE /oauth/authorizations/{id}` | this package | Connected apps: the signed-in user lists and disconnects their OAuth grants. Cookie only. Mapped by `MapOAuthServer` unless turned off. See [references/consent.md](references/consent.md#connected-apps). |
 
 Defaults:
 
@@ -100,7 +102,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, the developer app API under `/oauth/apps`, and the connected apps API under `/oauth/authorizations`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -121,9 +123,15 @@ app.MapGet("/api/me", (ClaimsPrincipal user) => user.FindFirst("sub")?.Value)
 
 Access tokens are reference tokens, validated against this server's database. APIs in other processes are not supported yet (that needs introspection or JWT access tokens, see [Limitations](#limitations)).
 
-To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource).
+To accept tokens for more than one of this host's resources (for example `/api` and `/mcp`), and to keep each token on its own routes with `RequireOAuthAudience`, read [references/settings.md](references/settings.md#one-host-more-than-one-resource). With protected resource metadata on, give each resource its own name, scopes, and challenge paths in `ProtectedResource.Resources`; see [references/settings.md](references/settings.md#one-document-per-resource).
+
+Token callers have `sub` and scopes but no roles and no `ClaimTypes.NameIdentifier`. To let existing `RequireRole` policies and `UserManager.GetUserId` work for them, turn on `AccessTokenClaims.Roles` and `AccessTokenClaims.UserId` (both off by default). They are added only when `sub` is the approving user, and roles are read again at every refresh; see [references/settings.md](references/settings.md#roles-and-the-user-id-on-tokens).
+
+To require scopes, use `RequireOAuthScope(...)` on routes only OAuth clients call, and `RequireOAuthScopeWhenDelegated(...)` next to the existing role check on routes cookie users share (list `ValidationScheme` in that policy). In services, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`. A scope never widens what the user may do; see [references/settings.md](references/settings.md#require-scopes).
 
 Only `Authorization: Bearer` is read. The query string and form body are not (a breaking change from earlier builds). For SignalR or WebSocket hubs, add their prefix to `QueryStringTokenPaths`; see [references/settings.md](references/settings.md#where-the-token-is-read-from).
+
+A request with `Authorization: Bearer` gets `401` or `403` instead of the sign-in cookie's login or access-denied redirect, so refused token callers on routes that also read the cookie get a status code (`BearerRequestsSkipCookieRedirects`, on by default); see [references/settings.md](references/settings.md#token-callers-and-cookie-redirects).
 
 The validation scheme is added to `AuthEndpointsAntiforgeryOptions.BearerSchemes`, so `RequireAntiforgery()` lets an OAuth token in the header skip the CSRF check. Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call; see [references/settings.md](references/settings.md#csrf-on-routes-that-take-a-token).
 
@@ -133,12 +141,13 @@ Load only the file the task needs. Each one is self-contained.
 
 | Task | File |
 | --- | --- |
-| Build the consent page, use the JSON consent API, approve from your own endpoint, or change the token subject | [references/consent.md](references/consent.md) |
-| Seed clients from configuration, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
+| Build the consent page, use the JSON consent API, approve from your own endpoint, change the token subject, bind an organization or workspace chosen at consent to the grant, or list and disconnect a user's connected apps (also for admins) | [references/consent.md](references/consent.md) |
+| Seed clients from configuration, accept client ID metadata documents, turn on dynamic registration, or match redirect URIs | [references/clients.md](references/clients.md) |
 | Let signed-in users register their own OAuth apps, and review them | [references/developer-apps.md](references/developer-apps.md) |
+| Expose an MCP server (or API) that AI assistants connect to as the signed-in person: discovery, client identification, consent, resource-bound tokens, roles, and scopes, end to end | [references/mcp-server.md](references/mcp-server.md) |
 | Turn mapped parts off, move prefixes, or skip the recipe | [references/mapping.md](references/mapping.md) |
 | Turn on OpenID Connect: ID tokens, the `email`, `email_verified`, and `amr` claims, `userinfo`, logout, and post-logout redirect URIs | [references/openid-connect.md](references/openid-connect.md) |
-| Every option, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
+| Every option, audit events (`IOAuthServerEvents`) and the last-used time on grants, rate limits on the token and revocation endpoints (`TokenRateLimit`, `AddTokenRateLimiter`), roles and the user id on access tokens, requiring scopes on routes and in services, where access tokens are read from (SignalR hubs), certificates and key rotation, user revalidation, and protected resource metadata for MCP clients | [references/settings.md](references/settings.md) |
 
 ## Limitations
 
@@ -149,6 +158,7 @@ This is a preview. These are known gaps, not bugs. Do not promise these features
 - **Only this server validates tokens.** Access tokens are reference tokens, so an API in another process cannot validate them. There is no introspection endpoint and no JWT access token option yet.
 - **Issued access tokens outlive a user change.** A locked-out user or a changed password stops the grant at the next code exchange or refresh. An access token that was already issued works until it expires. See [When the user changes](references/settings.md#when-the-user-changes).
 - **Fixed routes.** The endpoints are always under `/connect` and `/.well-known` (see `OAuthServerConstants`), relative to the app's `PathBase`.
+- **Client ID metadata documents are public clients only.** `private_key_jwt` with `jwks` or `jwks_uri` is not supported yet; a document that offers only that method is refused with `invalid_client`.
 - **Cookie sign-in only at the authorize step.** The user is read from `AuthenticationScheme` (the Identity cookie by default). Password, two-factor, passkey, and cookie-mode external sign-in all end with that cookie. A sign-in that is still waiting for a second factor, or an external sign-in that has not been completed, does not count.
 
 An OIDC client for AuthEndpoints (the other direction) is tracked separately in issue #380.

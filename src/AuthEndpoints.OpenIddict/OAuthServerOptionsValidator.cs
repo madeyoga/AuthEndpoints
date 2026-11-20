@@ -65,6 +65,34 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             }
         }
 
+        var described = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var definition in options.ScopeDefinitions)
+        {
+            if (string.IsNullOrWhiteSpace(definition.Name))
+            {
+                failures.Add("Every ScopeDefinitions entry needs a Name.");
+                continue;
+            }
+
+            if (!all.Contains(definition.Name))
+            {
+                failures.Add($"ScopeDefinitions entry '{definition.Name}' is not in OAuthServerOptions.Scopes.");
+            }
+
+            if (!described.Add(definition.Name))
+            {
+                failures.Add($"ScopeDefinitions lists '{definition.Name}' twice.");
+            }
+
+            foreach (var culture in definition.DisplayNames.Keys.Concat(definition.Descriptions.Keys))
+            {
+                if (!OAuthScopeDescriptions.IsCultureName(culture))
+                {
+                    failures.Add($"ScopeDefinitions entry '{definition.Name}' has text for '{culture}', which is not a culture name such as 'fr' or 'pt-BR'.");
+                }
+            }
+        }
+
         if (!IsPage(options.LoginUrl))
         {
             failures.Add("OAuthServerOptions.LoginUrl must be an absolute URI or a path starting with '/'.");
@@ -95,6 +123,23 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
         Positive(failures, options.RefreshTokenLifetime, nameof(options.RefreshTokenLifetime));
         Positive(failures, options.ConsentLifetime, nameof(options.ConsentLifetime));
         Positive(failures, options.PruneAfter, nameof(options.PruneAfter));
+        if (options.TokenRateLimit.Enabled)
+        {
+            if (options.TokenRateLimit.PermitLimit < 1)
+            {
+                failures.Add("OAuthServerOptions.TokenRateLimit.PermitLimit must be at least 1.");
+            }
+
+            if (options.TokenRateLimit.Window <= TimeSpan.Zero)
+            {
+                failures.Add("OAuthServerOptions.TokenRateLimit.Window must be positive.");
+            }
+        }
+
+        if (options.LastUsedInterval < TimeSpan.Zero)
+        {
+            failures.Add("OAuthServerOptions.LastUsedInterval must not be negative.");
+        }
 
         var certificates = options.Certificates;
         var sources = 0;
@@ -138,12 +183,52 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
             Positive(failures, registration.UnusedClientLifetime, "DynamicRegistration.UnusedClientLifetime");
         }
 
+        var documents = options.ClientMetadataDocuments;
+        if (documents.Enabled)
+        {
+            Positive(failures, documents.FetchTimeout, "ClientMetadataDocuments.FetchTimeout");
+            Positive(failures, documents.MinCacheDuration, "ClientMetadataDocuments.MinCacheDuration");
+            Positive(failures, documents.MaxCacheDuration, "ClientMetadataDocuments.MaxCacheDuration");
+            if (documents.MaxCacheDuration < documents.MinCacheDuration)
+            {
+                failures.Add("ClientMetadataDocuments.MaxCacheDuration must not be shorter than MinCacheDuration.");
+            }
+
+            if (documents.MaxDocumentBytes is < 256 or > 64 * 1024)
+            {
+                failures.Add("ClientMetadataDocuments.MaxDocumentBytes must be between 256 and 65536.");
+            }
+
+            if (documents.FetchesPerMinute < 1)
+            {
+                failures.Add("ClientMetadataDocuments.FetchesPerMinute must be at least 1.");
+            }
+
+            if (registration.MaxClientNameLength < 1 || registration.MaxRedirectUris < 1)
+            {
+                failures.Add("DynamicRegistration.MaxClientNameLength and MaxRedirectUris must be at least 1; client metadata documents use them too.");
+            }
+        }
+
+        foreach (var host in documents.AllowedHosts.Concat(documents.DeniedHosts))
+        {
+            if (!OAuthClientMetadataHosts.IsValidPattern(host))
+            {
+                failures.Add($"ClientMetadataDocuments host '{host}' must be a host name, such as 'client.example.com', or '*.example.com'.");
+            }
+        }
+
         foreach (var scope in registration.AllowedScopes)
         {
             if (!all.Contains(scope))
             {
                 failures.Add($"DynamicRegistration.AllowedScopes entry '{scope}' is not in OAuthServerOptions.Scopes.");
             }
+        }
+
+        if (options.ProtectedResource.Enabled)
+        {
+            ValidateProtectedResources(failures, options, all);
         }
 
         foreach (var path in options.QueryStringTokenPaths)
@@ -218,6 +303,78 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
         }
 
         return failures.Count == 0 ? ValidateOptionsResult.Success : ValidateOptionsResult.Fail(failures);
+    }
+
+    private static void ValidateProtectedResources(List<string> failures, OAuthServerOptions options, HashSet<string> scopes)
+    {
+        var settings = options.ProtectedResource;
+        foreach (var scope in settings.Scopes)
+        {
+            if (!scopes.Contains(scope))
+            {
+                failures.Add($"ProtectedResource.Scopes entry '{scope}' is not in OAuthServerOptions.Scopes.");
+            }
+        }
+
+        var accepted = options.ValidationAudiences().ToHashSet(StringComparer.Ordinal);
+        var sharedPath = OAuthProtectedResources.SuffixedResources(options)
+            .GroupBy(item => item.Path.Value, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .SelectMany(group => group.Select(item => item.Resource))
+            .ToHashSet(StringComparer.Ordinal);
+        var described = new HashSet<string>(StringComparer.Ordinal);
+        var challengePaths = new HashSet<string>(settings.ChallengePaths, StringComparer.Ordinal);
+        foreach (var definition in settings.Resources)
+        {
+            if (string.IsNullOrWhiteSpace(definition.Resource))
+            {
+                failures.Add("Every ProtectedResource.Resources entry needs a Resource.");
+                continue;
+            }
+
+            var resource = definition.Resource;
+            if (!described.Add(resource))
+            {
+                failures.Add($"ProtectedResource.Resources lists '{resource}' twice.");
+            }
+
+            if (resource == options.Audience)
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' is Audience. Describe it with ProtectedResource.ResourceName, Scopes, and ChallengePaths.");
+            }
+            else if (!accepted.Contains(resource))
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' is not in AcceptedAudiences.");
+            }
+            else if (OAuthProtectedResources.ResourcePath(resource) is null)
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' needs a path and no query, for example 'https://host/mcp'.");
+            }
+            else if (sharedPath.Contains(resource))
+            {
+                failures.Add($"ProtectedResource.Resources entry '{resource}' has the same path as another accepted resource, so its metadata cannot be served. Give each resource its own path.");
+            }
+
+            foreach (var scope in definition.Scopes)
+            {
+                if (!scopes.Contains(scope))
+                {
+                    failures.Add($"ProtectedResource.Resources entry '{resource}' scope '{scope}' is not in OAuthServerOptions.Scopes.");
+                }
+            }
+
+            foreach (var path in definition.ChallengePaths)
+            {
+                if (!IsPathPrefix(path))
+                {
+                    failures.Add($"ProtectedResource.Resources entry '{resource}' challenge path '{path}' must start with '/', such as '/mcp', with no trailing '/', query, or fragment.");
+                }
+                else if (!challengePaths.Add(path))
+                {
+                    failures.Add($"Challenge path '{path}' is listed more than once in ProtectedResource.");
+                }
+            }
+        }
     }
 
     internal static bool IsResourceIndicator(string? value)

@@ -46,6 +46,12 @@ public sealed class OAuthServerOptions
     /// </summary>
     public IList<string> Scopes { get; } = new List<string>();
 
+    /// <summary>
+    /// How the consent card describes scopes to a person: a display name and a description, optionally per culture.
+    /// Each entry names a scope in <see cref="Scopes"/>, or <c>offline_access</c>. A scope without an entry is shown by its name.
+    /// </summary>
+    public IList<OAuthScopeDefinition> ScopeDefinitions { get; } = new List<OAuthScopeDefinition>();
+
     /// <summary>Scopes granted when the authorize request has no <c>scope</c>. Must be in <see cref="Scopes"/>.</summary>
     public IList<string> DefaultScopes { get; } = new List<string>();
 
@@ -87,6 +93,16 @@ public sealed class OAuthServerOptions
     /// </summary>
     public string AuthenticationScheme { get; set; } = IdentityConstants.ApplicationScheme;
 
+    /// <summary>
+    /// When a request carries <c>Authorization: Bearer</c>, make the Identity application cookie (and
+    /// <see cref="AuthenticationScheme"/>) answer <c>401</c> instead of redirecting to the login page and <c>403</c> instead of
+    /// redirecting to the access-denied page. A token caller refused on a route that also reads the cookie then gets a status
+    /// code it can act on. Requests without the header, such as browser navigation, keep the cookie's own behavior, and the
+    /// host's cookie events are still called for them. An app that sets <c>EventsType</c> keeps it: its events are resolved
+    /// per request as before. Default <see langword="true"/>.
+    /// </summary>
+    public bool BearerRequestsSkipCookieRedirects { get; set; } = true;
+
     /// <summary>Claim on the signed-in principal that holds the user id. Default <see cref="ClaimTypes.NameIdentifier"/>.</summary>
     public string UserIdClaimType { get; set; } = ClaimTypes.NameIdentifier;
 
@@ -108,11 +124,29 @@ public sealed class OAuthServerOptions
     /// <summary>Anonymous client registration (RFC 7591). Off by default.</summary>
     public OAuthDynamicRegistrationOptions DynamicRegistration { get; } = new();
 
+    /// <summary>
+    /// Clients that identify themselves with an <c>https</c> URL as <c>client_id</c>, which this server fetches to read
+    /// their metadata (OAuth Client ID Metadata Document). Off by default.
+    /// </summary>
+    public OAuthClientMetadataDocumentOptions ClientMetadataDocuments { get; } = new();
+
     /// <summary>OAuth clients that signed-in users register and own (<c>MapOAuthDeveloperAppEndpoints</c>).</summary>
     public OAuthDeveloperAppOptions DeveloperApps { get; } = new();
 
     /// <summary>Protected resource metadata (RFC 9728) and the matching <c>WWW-Authenticate</c> challenge. Off by default.</summary>
     public OAuthProtectedResourceOptions ProtectedResource { get; } = new();
+
+    /// <summary>
+    /// Claims about the approving user that access tokens can carry, so existing role checks and user id lookups work for
+    /// token callers. Off by default.
+    /// </summary>
+    public OAuthAccessTokenClaimOptions AccessTokenClaims { get; } = new();
+
+    /// <summary>
+    /// Rate limit for <c>/connect/token</c> and <c>/connect/revoke</c>, per endpoint, client id, and IP address. A rejected
+    /// request gets <c>429</c> with the OAuth error <c>temporarily_unavailable</c> and <c>Retry-After</c>. Off by default.
+    /// </summary>
+    public OAuthTokenRateLimitOptions TokenRateLimit { get; } = new();
 
     /// <summary>Clients created or updated by <c>SeedOAuthClientsAsync</c>.</summary>
     public IList<OAuthClientDefinition> Clients { get; } = new List<OAuthClientDefinition>();
@@ -128,6 +162,19 @@ public sealed class OAuthServerOptions
     /// and has the same security stamp. A failed check revokes the grant. Default <see langword="true"/>.
     /// </summary>
     public bool RevalidateUser { get; set; } = true;
+
+    /// <summary>
+    /// Record when each grant was last used: at the code exchange and at a refresh, the time is written to the OpenIddict
+    /// authorization (<see cref="OAuthServerConstants.AuthorizationLastUsedProperty"/>) when the stored time is older than
+    /// <see cref="LastUsedInterval"/>. The connected apps list shows it. Default <see langword="false"/>.
+    /// </summary>
+    public bool RecordLastUsed { get; set; }
+
+    /// <summary>
+    /// With <see cref="RecordLastUsed"/>, the least time between two writes of the same grant's last-used time, so a client
+    /// that refreshes often does not write on every refresh. Zero writes on every code exchange and refresh. Default 1 hour.
+    /// </summary>
+    public TimeSpan LastUsedInterval { get; set; } = TimeSpan.FromHours(1);
 
     /// <summary>Allow plain HTTP. Only for local development behind no proxy. Default <see langword="false"/>.</summary>
     public bool DisableTransportSecurityRequirement { get; set; }
@@ -227,6 +274,53 @@ public sealed class OAuthDynamicRegistrationOptions
     public IList<string> AllowedScopes { get; } = new List<string>();
 }
 
+/// <summary>
+/// Client ID metadata documents (draft-ietf-oauth-client-id-metadata-document), the client identification method the MCP
+/// authorization spec prefers. A client sends an <c>https</c> URL as its <c>client_id</c>; <c>/connect/authorize</c> fetches
+/// that URL, checks the JSON document it returns, and stores the client in OpenIddict's application store. Only public
+/// clients with PKCE are accepted, held to the same redirect URI rules and
+/// <see cref="OAuthDynamicRegistrationOptions.AllowedScopes"/> as dynamically registered clients.
+/// </summary>
+public sealed class OAuthClientMetadataDocumentOptions
+{
+    /// <summary>
+    /// Accept <c>https</c> URLs as client ids and advertise <c>client_id_metadata_document_supported</c> in the authorization
+    /// server metadata. Default <see langword="false"/>.
+    /// </summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>How long one fetch may take, connection included. Default 5 seconds.</summary>
+    public TimeSpan FetchTimeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>Largest document read, in bytes. A larger one is refused. Default 5120 (5 KB, as the draft recommends).</summary>
+    public int MaxDocumentBytes { get; set; } = 5 * 1024;
+
+    /// <summary>
+    /// Shortest time a fetched document is reused before it is fetched again. Used when the response has no
+    /// <c>Cache-Control: max-age</c>, or asks for less, including <c>no-cache</c> and <c>no-store</c>. Default 5 minutes.
+    /// </summary>
+    public TimeSpan MinCacheDuration { get; set; } = TimeSpan.FromMinutes(5);
+
+    /// <summary>Longest time a fetched document is reused, whatever its <c>Cache-Control</c> says. Default 24 hours.</summary>
+    public TimeSpan MaxCacheDuration { get; set; } = TimeSpan.FromHours(24);
+
+    /// <summary>
+    /// Document fetches that authorize requests from one IP address may cause each minute. Reusing a stored document does
+    /// not count. Default 20.
+    /// </summary>
+    public int FetchesPerMinute { get; set; } = 20;
+
+    /// <summary>
+    /// Hosts whose documents are accepted, such as <c>client.example.com</c>, or <c>*.example.com</c> for any subdomain
+    /// (not <c>example.com</c> itself). Case-insensitive. Empty (the default) accepts any public host not in
+    /// <see cref="DeniedHosts"/>.
+    /// </summary>
+    public IList<string> AllowedHosts { get; } = new List<string>();
+
+    /// <summary>Hosts whose documents are refused, in the same form as <see cref="AllowedHosts"/>. Checked first.</summary>
+    public IList<string> DeniedHosts { get; } = new List<string>();
+}
+
 /// <summary>Limits for developer apps, the OAuth clients that signed-in users register and own.</summary>
 public sealed class OAuthDeveloperAppOptions
 {
@@ -243,20 +337,108 @@ public sealed class OAuthDeveloperAppOptions
     public int MaxRedirectUris { get; set; } = 10;
 }
 
-/// <summary>RFC 9728 protected resource metadata for <see cref="OAuthServerOptions.Audience"/>.</summary>
+/// <summary>
+/// Claims about the approving user added to each access token at the token endpoint (code exchange and refresh).
+/// They go to the access token only, never to the authorization code, the refresh token, or the ID token, so every
+/// new access token reads them again. They are added only when the token's <c>sub</c> is the approving user: a principal
+/// factory that issues tokens for another subject gets neither.
+/// </summary>
+public sealed class OAuthAccessTokenClaimOptions
+{
+    /// <summary>
+    /// Add the approving user's Identity roles as <c>role</c> claims, the role claim type of identities that
+    /// <c>ValidationScheme</c> creates, so <c>IsInRole</c> and <c>RequireRole</c> work for token callers. Roles are read
+    /// again at every refresh: a role change reaches the client within one access token lifetime. Needs Identity roles
+    /// (<c>AddRoles&lt;TRole&gt;()</c>). Default <see langword="false"/>.
+    /// </summary>
+    public bool Roles { get; set; }
+
+    /// <summary>
+    /// Add <see cref="ClaimTypes.NameIdentifier"/>, <see cref="OAuthServerOptions.UserIdClaimType"/>, and
+    /// <c>IdentityOptions.ClaimsIdentity.UserIdClaimType</c>, each set to <c>sub</c>, so <c>UserManager.GetUserId</c> and code
+    /// written for cookie users find the user id. Default <see langword="false"/>.
+    /// </summary>
+    public bool UserId { get; set; }
+}
+
+/// <summary>
+/// RFC 9728 protected resource metadata. The root document describes <see cref="OAuthServerOptions.Audience"/>.
+/// Each resource this host accepts (<see cref="OAuthServerOptions.Audience"/> and
+/// <see cref="OAuthServerOptions.AcceptedAudiences"/>) whose identifier has a path also gets a path-suffixed document,
+/// for example <c>https://host/mcp</c> at <c>https://host/.well-known/oauth-protected-resource/mcp</c>.
+/// </summary>
 public sealed class OAuthProtectedResourceOptions
 {
-    /// <summary>Map <c>GET /.well-known/oauth-protected-resource</c>. Default <see langword="false"/>.</summary>
+    /// <summary>Map <c>GET /.well-known/oauth-protected-resource</c> and the per-resource documents. Default <see langword="false"/>.</summary>
     public bool Enabled { get; set; }
+
+    /// <summary>Human-readable <c>resource_name</c> of the <see cref="OAuthServerOptions.Audience"/> documents. Optional.</summary>
+    public string? ResourceName { get; set; }
+
+    /// <summary>
+    /// <c>scopes_supported</c> of the <see cref="OAuthServerOptions.Audience"/> documents. Each must be a configured scope.
+    /// Empty (the default) lists every scope.
+    /// </summary>
+    public IList<string> Scopes { get; } = new List<string>();
+
+    /// <summary>
+    /// Path prefixes whose 401 responses get <c>WWW-Authenticate: Bearer resource_metadata="…"</c> pointing at the root
+    /// document, from <c>UseOAuthResourceChallenge</c>. Empty means every path that no entry of <see cref="Resources"/> claims.
+    /// </summary>
+    public IList<string> ChallengePaths { get; } = new List<string>();
+
+    /// <summary>
+    /// Settings for the documents of <see cref="OAuthServerOptions.AcceptedAudiences"/> entries other than
+    /// <see cref="OAuthServerOptions.Audience"/>: name, scopes, and the paths whose 401 responses point at them.
+    /// An accepted resource without an entry still gets a document, with no name and every scope.
+    /// </summary>
+    public IList<OAuthProtectedResourceDefinition> Resources { get; } = new List<OAuthProtectedResourceDefinition>();
+}
+
+/// <summary>The protected resource metadata of one resource in <see cref="OAuthServerOptions.AcceptedAudiences"/>.</summary>
+public sealed class OAuthProtectedResourceDefinition
+{
+    /// <summary>
+    /// The resource indicator, exactly as in <see cref="OAuthServerOptions.AcceptedAudiences"/>, for example
+    /// <c>https://host/mcp</c>. It needs a path and no query. Required.
+    /// </summary>
+    public string? Resource { get; set; }
 
     /// <summary>Human-readable <c>resource_name</c>. Optional.</summary>
     public string? ResourceName { get; set; }
 
+    /// <summary><c>scopes_supported</c>. Each must be a configured scope. Empty (the default) lists every scope.</summary>
+    public IList<string> Scopes { get; } = new List<string>();
+
     /// <summary>
-    /// Path prefixes whose 401 responses get <c>WWW-Authenticate: Bearer resource_metadata="…"</c>
-    /// from <c>UseOAuthResourceChallenge</c>. Empty means every path.
+    /// Path prefixes, such as <c>/mcp</c>, whose 401 responses point at this resource's document. Each must start with
+    /// <c>/</c> and must not end with one, and no prefix may be listed twice across all resources.
     /// </summary>
     public IList<string> ChallengePaths { get; } = new List<string>();
+}
+
+/// <summary>
+/// The words a consent page shows for one scope. <see cref="DisplayName"/> and <see cref="Description"/> are the default
+/// text; <see cref="DisplayNames"/> and <see cref="Descriptions"/> override them per culture, keyed by culture name such as
+/// <c>fr</c> or <c>pt-BR</c>. The request culture is tried first, then its parents (<c>pt-BR</c>, then <c>pt</c>), then the
+/// default text.
+/// </summary>
+public sealed class OAuthScopeDefinition
+{
+    /// <summary>The scope, as in <see cref="OAuthServerOptions.Scopes"/>. Required.</summary>
+    public string? Name { get; set; }
+
+    /// <summary>A short label, such as "Read your reports". Defaults to <see cref="Name"/>.</summary>
+    public string? DisplayName { get; set; }
+
+    /// <summary>One or two sentences on what the client can do with this scope. Optional.</summary>
+    public string? Description { get; set; }
+
+    /// <summary>Display names per culture name.</summary>
+    public IDictionary<string, string> DisplayNames { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Descriptions per culture name.</summary>
+    public IDictionary<string, string> Descriptions { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>A client created by <c>SeedOAuthClientsAsync</c>.</summary>

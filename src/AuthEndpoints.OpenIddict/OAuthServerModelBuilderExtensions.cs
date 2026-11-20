@@ -10,6 +10,12 @@ internal static class OAuthRequestLimits
 {
     public const int NonceLength = 512;
     public const int AuthenticationMethodsLength = 128;
+
+    /// <summary>
+    /// Longest client id, so a client ID metadata document URL fits. OpenIddict's own model allows 100, and
+    /// <c>OAuthRequests</c> allowed 64.
+    /// </summary>
+    public const int ClientIdLength = 255;
 }
 
 public static class OAuthServerModelBuilderExtensions
@@ -44,6 +50,9 @@ public static class OAuthServerModelBuilderExtensions
         builder.Entity<OpenIddictEntityFrameworkCoreToken>()
             .Property(token => token.ReferenceId)
             .HasMaxLength(OAuthServerConstants.ReferenceTokenLength);
+        builder.Entity<OpenIddictEntityFrameworkCoreApplication>()
+            .Property(application => application.ClientId)
+            .HasMaxLength(OAuthRequestLimits.ClientIdLength);
         Configure(builder.Entity<OAuthRequest<TKey>>());
         Configure(builder.Entity<OAuthDeveloperApp<TKey>>());
         if (userForeignKey)
@@ -85,7 +94,7 @@ public static class OAuthServerModelBuilderExtensions
         builder.ToTable(OAuthServerConstants.RequestTable);
         builder.HasKey(row => row.Id);
         builder.Property(row => row.Id).ValueGeneratedNever();
-        builder.Property(row => row.ClientId).HasMaxLength(64);
+        builder.Property(row => row.ClientId).HasMaxLength(OAuthRequestLimits.ClientIdLength);
         builder.Property(row => row.ClientName).HasMaxLength(200);
         builder.Property(row => row.RedirectUri).HasMaxLength(2048);
         builder.Property(row => row.RedirectHost).HasMaxLength(255);

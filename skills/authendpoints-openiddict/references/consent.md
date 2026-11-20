@@ -20,13 +20,52 @@ When the user is signed out, it redirects to:
 
 | Route | Response |
 | --- | --- |
-| `GET /oauth/requests/{id}` | `{ id, clientId, clientName, redirectHost, scopes, resource, expiresAt, homepageUrl, description, confidential, owner }` |
+| `GET /oauth/requests/{id}` | `{ id, clientId, clientName, redirectHost, scopes, scopeDetails, resource, expiresAt, homepageUrl, description, confidential, owner, clientHost }` |
 | `POST /oauth/requests/{id}/approve` | `{ redirectUrl }` with `code`, `state`, and `iss` |
 | `POST /oauth/requests/{id}/deny` | `{ redirectUrl }` with `error=access_denied` |
 
-The POSTs require a CSRF token from every caller, an OAuth access token included (`RequireAntiforgery(allowBearer: false)`). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`.
+The POSTs require a CSRF token from every caller, an OAuth access token included (`RequireAntiforgery(allowBearer: false)`). Unknown, expired, used, and other users' requests are all `404`. Your consent page shows `clientName` and `redirectHost`, then sends the browser to `redirectUrl`. For a client identified by a client ID metadata document, `clientHost` is the host of its `client_id` URL; show it next to the name, because that domain published the name. It is `null` for other clients. See [Client ID metadata documents](clients.md#client-id-metadata-documents-optional).
 
 The client is checked again when the user answers, because it can be deleted or edited, or a developer app disabled or sent back to review, after `/connect/authorize` stored the request. A request whose client no longer exists, whose developer app is not `Active`, or whose redirect URI is no longer registered for the client (with the same loopback any-port rule as authorize), is also `404` on all three routes (`OAuthConsentStatus.NotFound` from `IOAuthConsentService`). No code is issued, and deny does not redirect to that client. Approve and deny consume the request, so re-enabling the app does not revive it; the user starts a new authorize request. The card fetch does not consume it.
+
+### Scope descriptions
+
+A person approving a client should read "Read your reports", not `reports.read`. Describe each scope once, in code or `appsettings`, optionally per culture:
+
+```json
+{
+  "OAuthServer": {
+    "Scopes": [ "reports.read" ],
+    "ScopeDefinitions": [
+      {
+        "Name": "reports.read",
+        "DisplayName": "Read your reports",
+        "Description": "See the reports you can open. It cannot change them.",
+        "DisplayNames": { "fr": "Lire vos rapports" },
+        "Descriptions": { "fr": "Voir les rapports que vous pouvez ouvrir. Il ne peut pas les modifier." }
+      },
+      { "Name": "offline_access", "DisplayName": "Stay connected", "Description": "Keep access when you are not using the app." }
+    ]
+  }
+}
+```
+
+The card then has `scopeDetails` next to `scopes`, in the same order:
+
+```json
+"scopes": [ "reports.read", "offline_access" ],
+"scopeDetails": [
+  { "name": "reports.read", "displayName": "Read your reports", "description": "See the reports you can open. It cannot change them." },
+  { "name": "offline_access", "displayName": "Stay connected", "description": "Keep access when you are not using the app." }
+]
+```
+
+- `scopes` stays a list of names, so existing consent pages keep working. Read `scopeDetails` for the words.
+- The text is resolved for the request culture (`CultureInfo.CurrentUICulture`, which `UseRequestLocalization` sets from `Accept-Language`, a cookie, or the query string): the culture (`pt-BR`), then its parents (`pt`), then `DisplayName` and `Description`. A scope without a definition gets its name as `displayName` and `null` as `description`.
+- Each `Name` must be in `Scopes`, or be `offline_access`, and appear once. Culture keys must be culture names. A wrong entry fails at startup.
+- `OAuthPendingRequest.ScopeDetails` has the same list for `IOAuthConsentService.FindAsync` and principal factories.
+- The text comes from your configuration, never from the client, so a client cannot change what the card says a scope does.
+- The text is resolved by `IOAuthScopeDescriptions`. The default reads `ScopeDefinitions`. To load it from a database or resource files instead, implement the interface and register it with `AddScopeDescriptions<T>()` on the server builder (or before `AddOAuthServer`, which only adds the default when none is registered). It is called on every card fetch and approval, so cache anything slow.
 
 ### Developer app details on the card
 
@@ -96,6 +135,16 @@ app.MapPost("/api/oauth/requests/{id:guid}/approve", async (
 
 The service uses the scoped DbContext, so your transaction also covers the OpenIddict rows. Keep `RevokeAuthorizationAsync(authorizationId)` for a "disconnect app" button: it revokes the authorization and every token from it.
 
+## Bind a host context to the grant
+
+To keep a client in the organization, workspace, or region the person chose at consent, do not read the person's stored current context on token calls. Instead:
+
+1. Post the choice to your own approve endpoint. Check membership, then call `ApproveAsync(id, userId, createPrincipal)` and add a claim such as `org_id` with `SetDestinations(OpenIddictConstants.Destinations.AccessToken)`. It is kept in the refresh token, so every access token from the grant carries it.
+2. In the API, read the claim when `User.IsOAuthDelegated()`.
+3. To re-check membership at refresh, replace `IOAuthUserValidator` with a wrapper around `IdentityOAuthUserValidator<TUser>`. The validator gets `(userId, stamp)`, not the grant's claims, but `GetStampAsync` runs once inside `ApproveAsync` (read the choice from `IHttpContextAccessor`), and its value comes back to `IsValidAsync` on every code exchange and refresh. Store `organization|stamp` and check both. Register it with `services.Replace(ServiceDescriptor.Scoped<IOAuthUserValidator, …>())` after `AddOAuthServer`.
+
+The full, tested code is in the guide [Bind a host context to an OAuth grant](https://authendpoints.harten.id/guides/oauth-grant-context).
+
 ## Who is the token subject
 
 By default `sub` is the Identity user id. Replace it for every approval:
@@ -108,3 +157,35 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
 `IOAuthPrincipalFactory.CreateAsync` gets the signed-in user id and the pending request, and returns the principal (or `null` to decline without consuming the request). The principal needs a `sub` claim. Other claims reach the access token only when you call `SetDestinations` on them.
 
 With OpenID Connect, the ID token `sub` is the same `sub`, so a custom factory changes both. See [Claims](openid-connect.md#claims).
+
+With `AccessTokenClaims` on, the user's roles and id are added only while `sub` is the approving user's id. See [Roles and the user id on tokens](settings.md#roles-and-the-user-id-on-tokens).
+
+## Connected apps
+
+A signed-in person can see which clients they connected and disconnect one. `MapOAuthServer` maps two JSON routes for that, at `/oauth/authorizations` (`parts.ConnectedApps`, `parts.ConnectedAppsPrefix`):
+
+| Route | Response |
+| --- | --- |
+| `GET /oauth/authorizations` | `[{ authorizationId, clientId, clientName, clientKind, clientHost, scopes, scopeDetails, resource, createdAt, lastUsedAt }]`, newest first |
+| `DELETE /oauth/authorizations/{authorizationId}` | `204`, or `404` when the grant is unknown, someone else's, or already revoked |
+
+- Only live grants are listed: not revoked, and still holding a valid token. A grant whose refresh token expired drops off.
+- A grant belongs to the user who approved it, even when a principal factory issued its tokens for another `sub`.
+- `clientKind` is `configured`, `dynamic`, `metadata_document`, or `developer_app` (`OAuthClientKinds`). `clientHost` is the host of a metadata document client's URL, or of a developer app's homepage, and `null` for other clients, whose names are self-asserted.
+- `lastUsedAt` is `null` unless [`RecordLastUsed`](settings.md#last-used) is on.
+- The routes authenticate with `AuthenticationScheme` (the Identity cookie), so an OAuth access token cannot list or revoke grants. The `DELETE` needs a CSRF token (`RequireAntiforgery(allowBearer: false)`).
+- Disconnecting revokes the grant and every token from it, and raises `AuthorizationRevoked` with `RevokedBy = User`.
+
+For your own page, or for an admin page about another user, call `IOAuthConnectedAppService`. The package does not decide who is an admin: check that first.
+
+```csharp
+app.MapDelete("/admin/users/{userId}/connected-apps/{authorizationId}", async (
+        string userId, string authorizationId, ClaimsPrincipal admin, IOAuthConnectedAppService apps) =>
+    await apps.RevokeAsync(userId, authorizationId, OAuthRevokedBy.Admin, admin.FindFirstValue(ClaimTypes.NameIdentifier))
+        ? Results.NoContent()
+        : Results.NotFound())
+    .RequireAuthorization("admin")
+    .RequireAntiforgery(allowBearer: false);
+```
+
+`ListAsync(userId)` returns the same items as the `GET` route.
