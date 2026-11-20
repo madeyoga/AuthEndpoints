@@ -48,7 +48,7 @@ app.MapMcp("/mcp").RequireAuthorization("mcp"); // or your own MCP endpoint
 - **Identification.** The assistant uses a client ID metadata document or registers. Both are public clients held to `DynamicRegistration.AllowedScopes`, so keep first-party scopes out of that list.
 - **Consent.** Your page shows `clientName` with `clientHost` (or `redirectHost`), and the scopes from `scopeDetails`. Describe them in `ScopeDefinitions`.
 - **Tokens.** The assistant asks for `resource=https://app.example.com/mcp`. `RequireOAuthAudience` keeps that token on `/mcp`, `RequireOAuthScope` checks the grant, and the role check is the one cookie users go through. Inside tool handlers, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`.
-- **Shared routes.** On routes that cookie users also call, use `RequireOAuthScopeWhenDelegated(...)` next to the existing role check, and check the audience only for token callers. Make the Identity cookie answer `403` instead of redirecting to its access-denied page.
+- **Shared routes.** On routes that cookie users also call, use `RequireOAuthScopeWhenDelegated(...)` next to the existing role check, and check the audience only for token callers. A refused token caller gets `403`, not the cookie's redirect (`BearerRequestsSkipCookieRedirects`, on by default).
 - **Disconnecting.** The [connected apps](consent.md#connected-apps) routes (`GET /oauth/authorizations`, `DELETE /oauth/authorizations/{id}`) let the person see and disconnect each assistant; `IOAuthConnectedAppService` does the same for an admin page. `UserManager.UpdateSecurityStampAsync(user)` ends every grant at its next refresh.
 
 A scope never widens what the person may do: keep every route's existing role or policy check.

@@ -65,6 +65,7 @@ The card then has `scopeDetails` next to `scopes`, in the same order:
 - Each `Name` must be in `Scopes`, or be `offline_access`, and appear once. Culture keys must be culture names. A wrong entry fails at startup.
 - `OAuthPendingRequest.ScopeDetails` has the same list for `IOAuthConsentService.FindAsync` and principal factories.
 - The text comes from your configuration, never from the client, so a client cannot change what the card says a scope does.
+- The text is resolved by `IOAuthScopeDescriptions`. The default reads `ScopeDefinitions`. To load it from a database or resource files instead, implement the interface and register it with `AddScopeDescriptions<T>()` on the server builder (or before `AddOAuthServer`, which only adds the default when none is registered). It is called on every card fetch and approval, so cache anything slow.
 
 ### Developer app details on the card
 

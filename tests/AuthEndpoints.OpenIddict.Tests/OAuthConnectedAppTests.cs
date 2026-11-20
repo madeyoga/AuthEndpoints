@@ -184,6 +184,20 @@ public sealed class OAuthConnectedAppTests
     }
 
     [Fact]
+    public async Task The_list_uses_the_registered_scope_descriptions()
+    {
+        await using var host = await StartAsync(
+            options => options.ScopeDefinitions.Add(new OAuthScopeDefinition { Name = "api", DisplayName = "From options" }),
+            server: server => server.AddScopeDescriptions<StoredScopeDescriptions>());
+        var (user, _) = await host.UserAsync("described");
+        await host.IssueAsync(user);
+
+        var item = Assert.Single((await ListAsync(user)).EnumerateArray());
+        var detail = item.GetProperty("scopeDetails").EnumerateArray().First(scope => scope.GetProperty("name").GetString() == "api");
+        Assert.Equal("From the store: api", detail.GetProperty("displayName").GetString());
+    }
+
+    [Fact]
     public async Task Grants_issued_for_another_subject_belong_to_the_approving_user()
     {
         await using var host = await StartAsync(server: server => server.AddPrincipalFactory<SharedSubject>());
@@ -290,6 +304,14 @@ public sealed class OAuthConnectedAppTests
         using var request = new HttpRequestMessage(HttpMethod.Delete, $"{Route}/{id}");
         request.Headers.Add(CsrfHeader, csrf.GetProperty("token").GetString());
         return await user.SendAsync(request);
+    }
+
+    private sealed class StoredScopeDescriptions : IOAuthScopeDescriptions
+    {
+        public ValueTask<IReadOnlyList<OAuthScopeDetail>> DescribeAsync(
+            IReadOnlyList<string> scopes, System.Globalization.CultureInfo culture, CancellationToken cancellationToken)
+            => ValueTask.FromResult<IReadOnlyList<OAuthScopeDetail>>(
+                scopes.Select(scope => new OAuthScopeDetail(scope, $"From the store: {scope}", null)).ToList());
     }
 
     private sealed class SharedSubject : IOAuthPrincipalFactory

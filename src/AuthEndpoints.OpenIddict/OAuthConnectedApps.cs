@@ -87,7 +87,7 @@ internal sealed class OAuthConnectedAppService<TContext, TKey>(
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
     OAuthServerEventDispatcher events,
-    IOptions<OAuthServerOptions> options,
+    IOAuthScopeDescriptions scopeDescriptions,
     TimeProvider clock) : IOAuthConnectedAppService
     where TContext : DbContext
     where TKey : IEquatable<TKey>
@@ -115,7 +115,18 @@ internal sealed class OAuthConnectedAppService<TContext, TKey>(
                 .Where(app => developerClientIds.Contains(app.ClientId))
                 .ToDictionaryAsync(app => app.ClientId, app => app.HomepageUrl, StringComparer.Ordinal, cancellationToken);
 
-        var definitions = options.Value.ScopeDefinitions;
+        // Through IOAuthScopeDescriptions, so the list shows the same text as the consent card, including descriptions
+        // an app loads from its own store.
+        var details = new Dictionary<string, IReadOnlyList<OAuthScopeDetail>>(StringComparer.Ordinal);
+        foreach (var grant in grants)
+        {
+            var key = string.Join(' ', grant.Scopes);
+            if (!details.ContainsKey(key))
+            {
+                details[key] = await scopeDescriptions.DescribeAsync(grant.Scopes, CultureInfo.CurrentUICulture, cancellationToken);
+            }
+        }
+
         return grants
             .OrderByDescending(grant => grant.CreatedAt)
             .Select(grant => new OAuthConnectedApp(
@@ -132,7 +143,7 @@ internal sealed class OAuthConnectedAppService<TContext, TKey>(
                         && Uri.TryCreate(homepage, UriKind.Absolute, out var url) => url.Authority,
                     _ => null,
                 },
-                ScopeDetails = OAuthScopeDescriptions.Describe(grant.Scopes, definitions, CultureInfo.CurrentUICulture),
+                ScopeDetails = details[string.Join(' ', grant.Scopes)],
                 Resource = grant.Resource,
                 CreatedAt = grant.CreatedAt,
                 LastUsedAt = grant.LastUsedAt,
