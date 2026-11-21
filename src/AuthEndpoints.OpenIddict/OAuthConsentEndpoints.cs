@@ -60,7 +60,8 @@ internal static class OAuthConsentEndpoints
         var settings = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
         var group = endpoints.MapGroup(prefix)
             .WithTags("OAuth")
-            .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = settings.AuthenticationScheme });
+            .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = settings.AuthenticationScheme })
+            .RefuseDelegatedCallers("OAuth access tokens and API keys cannot approve or deny consent.");
 
         group.MapGet("/requests/{id:guid}", GetAsync)
             .WithName("GetOAuthConsentRequest")

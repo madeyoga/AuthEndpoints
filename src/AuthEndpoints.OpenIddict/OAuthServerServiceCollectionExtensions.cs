@@ -320,6 +320,8 @@ public static class OAuthServerServiceCollectionExtensions
                     .DisableAccessTokenExtractionFromQueryString()
                     .DisableAccessTokenExtractionFromBodyForm();
                 options.AddEventHandler(ExtractAccessTokenFromAllowedQueryPaths.Descriptor);
+                // ae:caller = delegated and act = {"client_id": …} on every validated access token.
+                options.AddEventHandler(AttachDelegatedCallerClaims.Descriptor);
                 options.EnableAuthorizationEntryValidation();
             });
 

@@ -244,6 +244,18 @@ if (user.IsOAuthDelegated() && !user.HasOAuthScope("reports.read"))
 
 `IsOAuthDelegated()`, `GetOAuthScopes()`, and `HasOAuthScope(scope)` read only the identity built from the access token, so a cookie identity never contributes scopes. `HasOAuthScope` is `false` for a caller with no token, so check `IsOAuthDelegated()` first in code that cookie users reach too. The granted scopes include `offline_access` when the client got a refresh token.
 
+#### People and agents
+
+Every validated access token is a delegated caller: OAuth validation adds `ae:caller = delegated` (`CallerKinds.ClaimType`) and the RFC 8693 `act` claim, `{"client_id":"…"}`, naming the client that acts for `sub`. Core's `User.GetCallerKind()` returns `delegated` for it and `person` for the cookie, Identity bearer, and JWT, and `User.GetActingClientId()` returns the client. To keep a route for people only, add `RequireDirectPerson()`; a token caller gets `403`, even when the same request also carries the person's cookie:
+
+```csharp
+app.MapPost("/billing/close-account", CloseAccount)
+    .RequireAuthorization("reports.read") // a policy that also reads ValidationScheme
+    .RequireDirectPerson();
+```
+
+The consent API, the connected apps API, and the developer app API refuse access tokens and API keys with `403`, even when `AuthenticationScheme` is a host scheme that forwards tokens. Core's `AddAnyCallerScheme` reads each request with exactly one handler; set its `BearerScheme` to `ValidationScheme` when assistants call with OAuth tokens. See [People and agents](https://authendpoints.harten.id/modules/callers).
+
 #### Where the token is read from
 
 > **Breaking change.** Earlier builds of this package also accepted the access token from the `access_token` query parameter and from an `access_token` form field, on every route. Now only `Authorization: Bearer` is read. A token in a URL ends up in server logs, proxy logs, and browser history, and a form field lets any HTML form send one.

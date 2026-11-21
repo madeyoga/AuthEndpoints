@@ -49,7 +49,8 @@ internal static class OAuthDeveloperAppEndpoints
         var settings = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
         var group = endpoints.MapGroup(prefix)
             .WithTags("OAuth developer apps")
-            .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = settings.AuthenticationScheme });
+            .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = settings.AuthenticationScheme })
+            .RefuseDelegatedCallers("OAuth access tokens and API keys cannot manage developer apps.");
 
         group.MapGet("/", ListAsync)
             .WithName("ListOAuthDeveloperApps")
