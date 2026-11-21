@@ -3,7 +3,7 @@ name: authendpoints-openiddict
 description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional client ID metadata documents, dynamic registration, and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
-  version: "4.0.0-preview.4"
+  version: "4.0.0-preview.5"
 ---
 # Run an OAuth server with AuthEndpoints.OpenIddict
 
@@ -13,7 +13,7 @@ Use the symbols, routes, and option names on this page and in `references/`. Do 
 
 This skill ships inside the `AuthEndpoints.OpenIddict` package, so the copy under `~/.nuget/packages/authendpoints.openiddict/<version>/skills/authendpoints-openiddict/` matches the API of that version.
 
-The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 4.x. The core `AuthEndpoints` package has no OpenIddict dependency. Install this package only in the app that issues tokens.
+The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 4.3.0 or later. The core `AuthEndpoints` package has no OpenIddict dependency. Install this package only in the app that issues tokens.
 
 ## Know the routes
 

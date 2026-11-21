@@ -425,7 +425,7 @@
       "authendpoints.openiddict": {
         "type": "Project",
         "dependencies": {
-          "AuthEndpoints": "[4.2.0, )",
+          "AuthEndpoints": "[4.3.0, )",
           "OpenIddict.EntityFrameworkCore": "[7.7.2, )",
           "OpenIddict.Server.AspNetCore": "[7.7.2, )",
           "OpenIddict.Validation.AspNetCore": "[7.7.2, )",

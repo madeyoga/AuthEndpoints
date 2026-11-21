@@ -6,10 +6,10 @@ namespace AuthEndpoints.OpenIddict.Tests;
 
 public class OAuthPackageDependencyTests
 {
-    // The package calls AuthEndpointsAntiforgeryOptions.BearerSchemes and RequireAntiforgery(allowBearer:),
-    // which first shipped in AuthEndpoints 4.2.0. An older core must be refused at restore.
+    // The package calls CallerKinds and GetCallerKind, which first shipped in AuthEndpoints 4.3.0
+    // (and the antiforgery options from 4.2.0). An older core must be refused at restore.
     [Fact]
-    public void Packed_package_requires_AuthEndpoints_4_2_or_later()
+    public void Packed_package_requires_AuthEndpoints_4_3_or_later()
     {
         var root = FindRepoRoot();
         var output = Path.Combine(Path.GetTempPath(), "ae-oidc-pack-" + Guid.NewGuid().ToString("N"));
@@ -29,7 +29,7 @@ public class OAuthPackageDependencyTests
             var dependency = document
                 .Descendants(ns + "dependency")
                 .Single(element => element.Attribute("id")?.Value == "AuthEndpoints");
-            Assert.Equal("[4.2.0, 5.0.0)", dependency.Attribute("version")?.Value);
+            Assert.Equal("[4.3.0, 5.0.0)", dependency.Attribute("version")?.Value);
         }
         finally
         {
