@@ -551,6 +551,7 @@ namespace AuthEndpoints.Identity
     }
     public static class AnyCallerAuthenticationBuilderExtensions
     {
+        [System.Obsolete("Use AuthEndpointsConstants.AnyCallerScheme. Removed in 5.0.")]
         public const string SchemeName = "AuthEndpoints.AnyCaller";
         public static Microsoft.AspNetCore.Authentication.AuthenticationBuilder AddAnyCallerScheme(this Microsoft.AspNetCore.Authentication.AuthenticationBuilder builder, System.Action<AuthEndpoints.Identity.AnyCallerSchemeOptions>? configure = null, string scheme = "AuthEndpoints.AnyCaller") { }
     }
@@ -575,6 +576,7 @@ namespace AuthEndpoints.Identity
     public class AuthEndpointsConstants
     {
         public const string AccountAbusePolicy = "AuthEndpoints.AccountAbuse";
+        public const string AnyCallerScheme = "AuthEndpoints.AnyCaller";
         public const string ConfirmIdentityEmailCodePolicy = "AuthEndpoints.ConfirmIdentity.EmailCode";
         public const string ConfirmIdentityPolicy = "AuthEndpoints.ConfirmIdentity";
         public const string EmailCodeSendPolicy = "AuthEndpoints.EmailCode.Send";

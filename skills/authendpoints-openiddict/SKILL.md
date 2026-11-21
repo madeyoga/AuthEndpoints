@@ -114,7 +114,7 @@ The package registers OpenIddict validation for this host. By default it accepts
 
 ```csharp
 builder.Services.AddAuthorization(options => options.AddPolicy("api", policy => policy
-    .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+    .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
     .RequireAuthenticatedUser()));
 
 app.MapGet("/api/me", (ClaimsPrincipal user) => user.FindFirst("sub")?.Value)
@@ -127,7 +127,7 @@ To accept tokens for more than one of this host's resources (for example `/api` 
 
 Token callers have `sub` and scopes but no roles and no `ClaimTypes.NameIdentifier`. To let existing `RequireRole` policies and `UserManager.GetUserId` work for them, turn on `AccessTokenClaims.Roles` and `AccessTokenClaims.UserId` (both off by default). They are added only when `sub` is the approving user, and roles are read again at every refresh; see [references/settings.md](references/settings.md#roles-and-the-user-id-on-tokens).
 
-To require scopes, use `RequireOAuthScope(...)` on routes only OAuth clients call, and `RequireOAuthScopeWhenDelegated(...)` next to the existing role check on routes cookie users share (list `ValidationScheme` in that policy). In services, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`. A scope never widens what the user may do; see [references/settings.md](references/settings.md#require-scopes).
+To require scopes, use `RequireOAuthScope(...)` on routes only OAuth clients call, and `RequireOAuthScopeWhenDelegated(...)` next to the existing role check on routes cookie users share (list `AccessTokenScheme` in that policy). In services, use `User.IsOAuthDelegated()` and `User.HasOAuthScope(...)`. A scope never widens what the user may do; see [references/settings.md](references/settings.md#require-scopes).
 
 Only `Authorization: Bearer` is read. The query string and form body are not (a breaking change from earlier builds). For SignalR or WebSocket hubs, add their prefix to `QueryStringTokenPaths`; see [references/settings.md](references/settings.md#where-the-token-is-read-from).
 

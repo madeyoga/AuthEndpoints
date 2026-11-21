@@ -7,14 +7,14 @@ namespace AuthEndpoints.OpenIddict;
 /// <summary>
 /// Scope checks for code that authorizes inside services instead of on endpoints, such as MCP tool handlers.
 /// They read only identities created from an access token by
-/// <see cref="OAuthServerServiceCollectionExtensions.ValidationScheme"/>, so a cookie, Identity bearer, or JWT identity
+/// <see cref="OAuthServerConstants.AccessTokenScheme"/>, so a cookie, Identity bearer, or JWT identity
 /// never contributes scopes.
 /// </summary>
 public static class OAuthClaimsPrincipalExtensions
 {
     /// <summary>
     /// Whether the principal has an identity from an OAuth access token issued by this server, that is, a client calling
-    /// for the user. The request has to be authenticated with <c>ValidationScheme</c> for this to be <see langword="true"/>:
+    /// for the user. The request has to be authenticated with <c>AccessTokenScheme</c> for this to be <see langword="true"/>:
     /// a policy or endpoint that only reads the cookie never sees the token.
     /// </summary>
     public static bool IsOAuthDelegated(this ClaimsPrincipal principal)

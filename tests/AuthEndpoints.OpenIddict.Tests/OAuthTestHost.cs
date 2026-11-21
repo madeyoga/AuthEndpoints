@@ -115,7 +115,7 @@ internal sealed class OAuthTestHost : IAsyncDisposable
             };
         });
         Action<AuthorizationOptions> policies = options => options.AddPolicy("api", policy => policy
-            .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+            .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
             .RequireAuthenticatedUser());
         if (recipe)
         {

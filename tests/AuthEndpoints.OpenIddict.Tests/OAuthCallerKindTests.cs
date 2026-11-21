@@ -121,7 +121,7 @@ public sealed class OAuthCallerKindTests
     public async Task Consent_and_connected_apps_refuse_a_token_that_a_host_scheme_forwards()
     {
         // The host points the OAuth server's AuthenticationScheme at the any-caller scheme, so a token reaches these routes.
-        await using var host = await StartCallerHostAsync(options => options.AuthenticationScheme = AnyCallerAuthenticationBuilderExtensions.SchemeName);
+        await using var host = await StartCallerHostAsync(options => options.AuthenticationScheme = AuthEndpointsConstants.AnyCallerScheme);
         var (user, _) = await host.UserAsync("forwarded");
         var (_, tokens) = await host.IssueAsync(user);
 
@@ -153,23 +153,23 @@ public sealed class OAuthCallerKindTests
                     .AddScheme<AuthenticationSchemeOptions, TestApiKeyHandler>(ApiKeyScheme, null)
                     .AddAnyCallerScheme(options =>
                     {
-                        options.BearerScheme = OAuthServerServiceCollectionExtensions.ValidationScheme;
+                        options.BearerScheme = OAuthServerConstants.AccessTokenScheme;
                         options.ApiKeyScheme = ApiKeyScheme;
                         options.ApiKeyPrefix = ApiKeyPrefix;
                     });
                 services.AddAuthorization(options =>
                 {
                     options.AddPolicy("token", policy => policy
-                        .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+                        .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
                         .RequireAuthenticatedUser());
                     options.AddPolicy("cookie", policy => policy
                         .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme)
                         .RequireAuthenticatedUser());
                     options.AddPolicy("any", policy => policy
-                        .AddAuthenticationSchemes(AnyCallerAuthenticationBuilderExtensions.SchemeName)
+                        .AddAuthenticationSchemes(AuthEndpointsConstants.AnyCallerScheme)
                         .RequireAuthenticatedUser());
                     options.AddPolicy("person", policy => policy
-                        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+                        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
                         .RequireDirectPerson());
                 });
             },
