@@ -53,6 +53,7 @@
     {
         System.Threading.Tasks.ValueTask<string?> GetStampAsync(string userId, System.Threading.CancellationToken cancellationToken);
         System.Threading.Tasks.ValueTask<bool> IsValidAsync(string userId, string? stamp, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.ValueTask<bool> ValidateAsync(AuthEndpoints.OpenIddict.OAuthUserValidationContext context, System.Threading.CancellationToken cancellationToken);
     }
     public sealed class IdentityOAuthUserValidator<TUser> : AuthEndpoints.OpenIddict.IOAuthUserValidator
         where TUser :  class
@@ -591,7 +592,19 @@
         public OAuthTokenRateLimitOptions() { }
         public bool Enabled { get; set; }
         public int PermitLimit { get; set; }
+        public int? PermitLimitPerAddress { get; set; }
         public System.TimeSpan Window { get; set; }
+    }
+    public sealed class OAuthUserValidationContext
+    {
+        public OAuthUserValidationContext() { }
+        public string? AuthorizationId { get; init; }
+        public string? ClientId { get; init; }
+        public required System.Security.Claims.ClaimsPrincipal Grant { get; init; }
+        public required string GrantType { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
+        public string? SecurityStamp { get; init; }
+        public required string UserId { get; init; }
     }
     public sealed class OptionsOAuthScopeDescriptions : AuthEndpoints.OpenIddict.IOAuthScopeDescriptions
     {
