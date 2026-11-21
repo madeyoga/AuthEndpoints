@@ -122,7 +122,7 @@ public sealed class OAuthConnectedAppTests
             options => options.AuthenticationScheme = smart,
             services => services.AddAuthentication().AddPolicyScheme(smart, smart, policy => policy.ForwardDefaultSelector = http =>
                 http.Request.Headers.Authorization.ToString().StartsWith("Bearer ", StringComparison.Ordinal)
-                    ? OAuthServerServiceCollectionExtensions.ValidationScheme
+                    ? OAuthServerConstants.AccessTokenScheme
                     : IdentityConstants.ApplicationScheme));
         var (user, _) = await host.UserAsync("smart");
         var (_, tokens) = await host.IssueAsync(user);

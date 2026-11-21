@@ -35,7 +35,7 @@ public sealed class OAuthServerOptions
     /// Entries of <see cref="AdditionalResources"/> that this host's own token validation also accepts, for a host
     /// that serves more than one resource itself. Each must be a configured resource. <see cref="Audience"/> is always
     /// accepted. Empty (the default) accepts only <see cref="Audience"/>. Once this has entries, a token for any of them
-    /// passes <c>ValidationScheme</c>, so check the audience on each route, for example with
+    /// passes <c>AccessTokenScheme</c>, so check the audience on each route, for example with
     /// <c>RequireOAuthAudience</c>, or a token meant for one resource can call another.
     /// </summary>
     public IList<string> AcceptedAudiences { get; } = new List<string>();
@@ -347,7 +347,7 @@ public sealed class OAuthAccessTokenClaimOptions
 {
     /// <summary>
     /// Add the approving user's Identity roles as <c>role</c> claims, the role claim type of identities that
-    /// <c>ValidationScheme</c> creates, so <c>IsInRole</c> and <c>RequireRole</c> work for token callers. Roles are read
+    /// <c>AccessTokenScheme</c> creates, so <c>IsInRole</c> and <c>RequireRole</c> work for token callers. Roles are read
     /// again at every refresh: a role change reaches the client within one access token lifetime. Needs Identity roles
     /// (<c>AddRoles&lt;TRole&gt;()</c>). Default <see langword="false"/>.
     /// </summary>

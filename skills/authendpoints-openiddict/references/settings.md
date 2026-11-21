@@ -14,7 +14,7 @@ The fixed routes are in `OAuthServerConstants`. Anything else can be set on `OAu
 
 A token's audience is the resource the client asked for at `/connect/authorize` (one per request), or `Audience` when it sent none. To let this host accept tokens for some of its `AdditionalResources` too, list them in `AcceptedAudiences`. Each entry must be `Audience` or in `AdditionalResources`, or startup fails. Resources left out of `AcceptedAudiences` stay rejected here, so keep resources that only other APIs serve in `AdditionalResources` alone.
 
-Once `AcceptedAudiences` has entries, `ValidationScheme` lets a token for any accepted audience through, and a policy that only requires an authenticated user no longer tells them apart. Check the audience on each route. `RequireOAuthAudience` authenticates with `ValidationScheme` and requires the token's `aud` to contain the given resource:
+Once `AcceptedAudiences` has entries, `AccessTokenScheme` lets a token for any accepted audience through, and a policy that only requires an authenticated user no longer tells them apart. Check the audience on each route. `RequireOAuthAudience` authenticates with `AccessTokenScheme` and requires the token's `aud` to contain the given resource:
 
 ```csharp
 builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
@@ -50,11 +50,11 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 });
 
 builder.Services.AddAuthorization(options => options.AddPolicy("reports", policy => policy
-    .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+    .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
     .RequireRole("Reports")));
 ```
 
-- `Roles` adds the approving user's Identity roles as `role` claims. That is the role claim type of the identity `ValidationScheme` creates, so `IsInRole`, `RequireRole`, and `[Authorize(Roles = "…")]` work. Code that reads `ClaimTypes.Role` claims directly does not see them. It needs Identity roles (`AddRoles<TRole>()`); without them, mapping the server fails at startup.
+- `Roles` adds the approving user's Identity roles as `role` claims. That is the role claim type of the identity `AccessTokenScheme` creates, so `IsInRole`, `RequireRole`, and `[Authorize(Roles = "…")]` work. Code that reads `ClaimTypes.Role` claims directly does not see them. It needs Identity roles (`AddRoles<TRole>()`); without them, mapping the server fails at startup.
 - `UserId` adds `ClaimTypes.NameIdentifier`, `UserIdClaimType`, and `IdentityOptions.ClaimsIdentity.UserIdClaimType`, each set to `sub`.
 - Both are read at every code exchange and refresh, and written to the access token only, never to the code, the refresh token, or the ID token. A role change reaches the client at its next refresh. An access token that was already issued keeps its roles until it expires (15 minutes by default).
 - Both apply only when `sub` is the approving user. A principal factory that issues tokens for another subject gets neither, because the user's roles would describe the wrong subject. A factory that keeps the user id as `sub` keeps its own claims, and the user's roles are added next to any role claims it sends to the access token.
@@ -62,7 +62,7 @@ builder.Services.AddAuthorization(options => options.AddPolicy("reports", policy
 
 ## Require scopes
 
-A scope is what the person allowed the client to do for them. It narrows what the user's account may do and never widens it, so keep the role or policy check a route already has and add the scope next to it. `RequireOAuthScope` authenticates with `ValidationScheme` and requires every listed scope; a token missing one gets `403`:
+A scope is what the person allowed the client to do for them. It narrows what the user's account may do and never widens it, so keep the role or policy check a route already has and add the scope next to it. `RequireOAuthScope` authenticates with `AccessTokenScheme` and requires every listed scope; a token missing one gets `403`:
 
 ```csharp
 builder.Services.AddAuthorization(options =>
@@ -74,13 +74,13 @@ builder.Services.AddAuthorization(options =>
 
     // A route that cookie users and OAuth clients share.
     options.AddPolicy("reports.read", policy => policy
-        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+        .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
         .RequireAuthenticatedUser() // and the route's existing role or policy check
         .RequireOAuthScopeWhenDelegated("reports.read"));
 });
 ```
 
-`RequireOAuthScopeWhenDelegated` adds only the scope check. A caller without an OAuth access token (cookie, Identity bearer, JWT) passes it, and a token caller needs every listed scope, even when the same request also carries a valid cookie. It adds no scheme, so list `ValidationScheme` in the policy, or the token is never read. Both helpers add an `OAuthScopeRequirement`, which you can also add to a policy you build by hand. A role check on a shared route sees a token caller's roles only with `AccessTokenClaims.Roles` on; see [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens).
+`RequireOAuthScopeWhenDelegated` adds only the scope check. A caller without an OAuth access token (cookie, Identity bearer, JWT) passes it, and a token caller needs every listed scope, even when the same request also carries a valid cookie. It adds no scheme, so list `AccessTokenScheme` in the policy, or the token is never read. Both helpers add an `OAuthScopeRequirement`, which you can also add to a policy you build by hand. A role check on a shared route sees a token caller's roles only with `AccessTokenClaims.Roles` on; see [Roles and the user id on tokens](#roles-and-the-user-id-on-tokens).
 
 For code that authorizes inside a service instead of on the endpoint, such as an MCP tool handler, use the `ClaimsPrincipal` helpers:
 
@@ -125,13 +125,13 @@ options.BearerRequestsSkipCookieRedirects = false;
 
 ### CSRF on routes that take a token
 
-`AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerServiceCollectionExtensions.ValidationScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
+`AddAuthEndpointsOpenIddict` (and so `AddOAuthServer`) adds the validation scheme (`OAuthServerConstants.AccessTokenScheme`) to `AuthEndpointsAntiforgeryOptions.BearerSchemes`. A route that accepts both the cookie and an OAuth access token, mapped with `RequireAntiforgery()`, no longer asks the token caller for a CSRF token. A cross-site request cannot set `Authorization: Bearer`, and a request the application cookie authenticates is still checked. A token read from the query string on a `QueryStringTokenPaths` prefix does not skip the check, because it is not in the header.
 
 Use `RequireAntiforgery(allowBearer: false)` on routes a token must never call on its own, such as your own consent approval or account deletion. The package's consent and developer app writes already do. To check every OAuth caller again, take the scheme back out after registering the server:
 
 ```csharp
 builder.Services.PostConfigure<AuthEndpointsAntiforgeryOptions>(options =>
-    options.BearerSchemes.Remove(OAuthServerServiceCollectionExtensions.ValidationScheme));
+    options.BearerSchemes.Remove(OAuthServerConstants.AccessTokenScheme));
 ```
 
 ## Rate limits

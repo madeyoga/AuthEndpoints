@@ -16,7 +16,7 @@ public sealed class AnyCallerSchemeOptions
     /// <summary>
     /// For every other request with an <c>Authorization</c> header, such as <c>Bearer</c> tokens. Default
     /// <see langword="null"/>: the JWT bearer scheme when it is registered, else Identity bearer. Set it to the OAuth
-    /// validation scheme (<c>OAuthServerServiceCollectionExtensions.ValidationScheme</c>) when assistants call with OAuth
+    /// validation scheme (<c>OAuthServerConstants.AccessTokenScheme</c>) when assistants call with OAuth
     /// access tokens.
     /// </summary>
     public string? BearerScheme { get; set; }
@@ -33,21 +33,22 @@ public sealed class AnyCallerSchemeOptions
 
 public static class AnyCallerAuthenticationBuilderExtensions
 {
-    /// <summary>The scheme name <see cref="AddAnyCallerScheme"/> registers by default: <c>AuthEndpoints.AnyCaller</c>.</summary>
-    public const string SchemeName = "AuthEndpoints.AnyCaller";
+    /// <summary>Use <see cref="AuthEndpointsConstants.AnyCallerScheme"/>.</summary>
+    [Obsolete("Use AuthEndpointsConstants.AnyCallerScheme. Removed in 5.0.")]
+    public const string SchemeName = AuthEndpointsConstants.AnyCallerScheme;
 
     /// <summary>
     /// Adds an opt-in policy scheme that picks exactly one handler from the request's credential: an API key (by
     /// <see cref="AnyCallerSchemeOptions.ApiKeyPrefix"/>) goes to the API key scheme, any other <c>Authorization</c>
     /// header to the bearer scheme, and a request without one to the application cookie. A request with a bad token is
     /// never signed in by a cookie it also sends: it gets <c>401</c>. It does not change the default scheme. Use it in
-    /// a policy (<c>AddAuthenticationSchemes(AnyCallerAuthenticationBuilderExtensions.SchemeName)</c>), or make it the
+    /// a policy (<c>AddAuthenticationSchemes(AuthEndpointsConstants.AnyCallerScheme)</c>), or make it the
     /// default yourself. Pair a route with <c>RequireDirectPerson()</c> to refuse delegated tokens and API keys.
     /// </summary>
     public static AuthenticationBuilder AddAnyCallerScheme(
         this AuthenticationBuilder builder,
         Action<AnyCallerSchemeOptions>? configure = null,
-        string scheme = SchemeName)
+        string scheme = AuthEndpointsConstants.AnyCallerScheme)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(scheme);

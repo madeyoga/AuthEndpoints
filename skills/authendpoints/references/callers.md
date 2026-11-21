@@ -21,10 +21,10 @@ app.MapPost("/billing/close-account", CloseAccount)
 ```csharp
 builder.Services.AddAuthentication().AddAnyCallerScheme(options =>
 {
-    options.BearerScheme = OAuthServerServiceCollectionExtensions.ValidationScheme; // default: JWT if registered, else Identity bearer
+    options.BearerScheme = OAuthServerConstants.AccessTokenScheme; // default: JWT if registered, else Identity bearer
     options.ApiKeyScheme = "ApiKey";
     options.ApiKeyPrefix = "ak_";
 });
 ```
 
-Scheme name: `AnyCallerAuthenticationBuilderExtensions.SchemeName` (`AuthEndpoints.AnyCaller`). An `Authorization` credential starting with `ApiKeyPrefix` goes to `ApiKeyScheme`, any other `Authorization` header to `BearerScheme`, and no header to `CookieScheme`. An invalid token with a valid cookie is `401`. Opt-in; the default scheme is unchanged. Set `ApiKeyScheme` and `ApiKeyPrefix` together or not at all.
+Scheme name: `AuthEndpointsConstants.AnyCallerScheme` (`AuthEndpoints.AnyCaller`). An `Authorization` credential starting with `ApiKeyPrefix` goes to `ApiKeyScheme`, any other `Authorization` header to `BearerScheme`, and no header to `CookieScheme`. An invalid token with a valid cookie is `401`. Opt-in; the default scheme is unchanged. Set `ApiKeyScheme` and `ApiKeyPrefix` together or not at all.

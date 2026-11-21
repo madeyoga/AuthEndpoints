@@ -136,7 +136,7 @@ public sealed class OAuthMcpGuideTests
                 .RequireOAuthScope("mcp")
                 .RequireRole("Member"));
             options.AddPolicy("reports.read", policy => policy
-                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
                 .RequireAuthenticatedUser()
                 .RequireOAuthScopeWhenDelegated("reports.read")
                 .RequireAssertion(context => !context.User.IsOAuthDelegated() || context.User.HasAudience(Audience)));

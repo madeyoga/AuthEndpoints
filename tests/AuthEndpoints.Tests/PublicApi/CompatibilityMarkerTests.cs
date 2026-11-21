@@ -27,6 +27,11 @@ public class CompatibilityMarkerTests
         "MapPasswordAuth",
     ];
 
+    private static readonly string[] RenamedConstants =
+    [
+        "AnyCallerAuthenticationBuilderExtensions.SchemeName",
+    ];
+
     [Fact]
     public void ObsoleteMarkers_NameTheSignInCompleterReplacement()
     {
@@ -38,6 +43,12 @@ public class CompatibilityMarkerTests
             var message = obsolete.Message ?? "";
             if (message.StartsWith("Constructors of types with required members", StringComparison.Ordinal))
             {
+                continue;
+            }
+
+            if (RenamedConstants.Contains(Display(member)))
+            {
+                Assert.Contains("Removed in 5.0", message, StringComparison.Ordinal);
                 continue;
             }
 
@@ -63,6 +74,15 @@ public class CompatibilityMarkerTests
         Assert.Contains(markers, pair => pair.Member == typeof(PasskeySignInCompletionContext));
         Assert.Contains(markers, pair => pair.Member == typeof(IdentityPasskeySignInCompleter<>));
         Assert.Contains(markers, pair => pair.Member == typeof(JwtPasskeySignInCompleter<>));
+    }
+
+    [Fact]
+    public void RenamedSchemeConstant_KeepsItsValue()
+    {
+#pragma warning disable CS0618
+        Assert.Equal(AuthEndpointsConstants.AnyCallerScheme, AnyCallerAuthenticationBuilderExtensions.SchemeName);
+#pragma warning restore CS0618
+        Assert.Equal("AuthEndpoints.AnyCaller", AuthEndpointsConstants.AnyCallerScheme);
     }
 
     [Fact]

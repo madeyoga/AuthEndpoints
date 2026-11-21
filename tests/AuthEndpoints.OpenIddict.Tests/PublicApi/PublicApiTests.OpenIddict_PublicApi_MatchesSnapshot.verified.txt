@@ -451,6 +451,7 @@
     }
     public static class OAuthServerConstants
     {
+        public const string AccessTokenScheme = "OpenIddict.Validation.AspNetCore";
         public const string AuthorizationEndpointPath = "/connect/authorize";
         public const string AuthorizationLastUsedProperty = "ae_last_used";
         public const string AuthorizationResourceProperty = "ae_resource";
@@ -579,6 +580,7 @@
     }
     public static class OAuthServerServiceCollectionExtensions
     {
+        [System.Obsolete("Use OAuthServerConstants.AccessTokenScheme.")]
         public const string ValidationScheme = "OpenIddict.Validation.AspNetCore";
         public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
             where TUser :  class
