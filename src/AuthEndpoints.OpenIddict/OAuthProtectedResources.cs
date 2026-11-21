@@ -4,14 +4,25 @@ namespace AuthEndpoints.OpenIddict;
 
 /// <summary>One protected resource metadata document (RFC 9728) and the URL clients fetch it from.</summary>
 /// <param name="Resource">The resource indicator, as configured.</param>
-/// <param name="Path">Where this app serves it, relative to <c>PathBase</c>: the root path, or the root path plus the resource's path.</param>
+/// <param name="ResourceName">The <c>resource_name</c>, if any.</param>
+/// <param name="Scopes">The <c>scopes_supported</c>.</param>
+/// <param name="Path">
+/// The RFC 9728 §3.1 path from the host root: the root path, or the root path plus the resource's whole path, such as
+/// <c>/.well-known/oauth-protected-resource/app/mcp</c>. A proxy that forwards that URL unchanged to the app reaches it.
+/// </param>
 /// <param name="MetadataUrl">The absolute URL that challenges point at.</param>
+/// <param name="AppPath">
+/// The same document relative to the app's <c>PathBase</c>, taken as the <see cref="OAuthServerOptions.Issuer"/> path:
+/// for an issuer <c>https://host/app/</c> and a resource <c>https://host/app/mcp</c>, <c>/.well-known/oauth-protected-resource/mcp</c>.
+/// Equal to <paramref name="Path"/> when the issuer has no path, or the resource is not under it.
+/// </param>
 internal sealed record ProtectedResourceDocument(
     string Resource,
     string? ResourceName,
     string[] Scopes,
     PathString Path,
-    string MetadataUrl);
+    string MetadataUrl,
+    PathString AppPath);
 
 /// <summary>
 /// Builds the protected resource metadata documents and challenge targets from <see cref="OAuthServerOptions"/>.
@@ -59,9 +70,17 @@ internal sealed class OAuthProtectedResources
         return ChallengeEveryOtherPath ? Audience.MetadataUrl : null;
     }
 
-    /// <summary>The document served at <paramref name="path"/>, or <see langword="null"/>.</summary>
-    public ProtectedResourceDocument? Find(PathString path)
-        => Suffixed.FirstOrDefault(document => document.Path.Equals(path, StringComparison.Ordinal));
+    /// <summary>
+    /// The document for a request, or <see langword="null"/>. A request matches when <paramref name="pathBase"/> plus
+    /// <paramref name="path"/> is the RFC 9728 location (a proxy forwarded it unchanged), or when <paramref name="path"/>
+    /// alone is the location relative to the app (<c>{PathBase}/.well-known/oauth-protected-resource/{rest}</c>).
+    /// </summary>
+    public ProtectedResourceDocument? Find(PathString pathBase, PathString path)
+    {
+        var full = pathBase.Add(path);
+        return Suffixed.FirstOrDefault(document => document.Path.Equals(full, StringComparison.Ordinal))
+            ?? Suffixed.FirstOrDefault(document => document.AppPath.Equals(path, StringComparison.Ordinal));
+    }
 
     public static OAuthProtectedResources Create(OAuthServerOptions options)
     {
@@ -72,7 +91,8 @@ internal sealed class OAuthProtectedResources
             settings.ResourceName,
             settings.Scopes.Count > 0 ? settings.Scopes.Distinct(StringComparer.Ordinal).ToArray() : allScopes,
             Root,
-            new Uri(options.Issuer!, OAuthServerConstants.ProtectedResourceMetadataPath.TrimStart('/')).AbsoluteUri);
+            new Uri(options.Issuer!, OAuthServerConstants.ProtectedResourceMetadataPath.TrimStart('/')).AbsoluteUri,
+            Root);
 
         var suffixed = new List<ProtectedResourceDocument>();
         foreach (var group in SuffixedResources(options).GroupBy(item => item.Path.Value, StringComparer.Ordinal))
@@ -85,15 +105,17 @@ internal sealed class OAuthProtectedResources
             }
 
             var (resource, path, url) = group.Single();
+            var appPath = AppRelativePath(options, resource) is { } relative ? Root.Add(new PathString(relative)) : path;
             var definition = Definition(options, resource);
             suffixed.Add(resource == options.Audience
-                ? audience with { Path = path, MetadataUrl = url }
+                ? audience with { Path = path, MetadataUrl = url, AppPath = appPath }
                 : new ProtectedResourceDocument(
                     resource,
                     definition?.ResourceName,
                     definition is { Scopes.Count: > 0 } ? definition.Scopes.Distinct(StringComparer.Ordinal).ToArray() : allScopes,
                     path,
-                    url));
+                    url,
+                    appPath));
         }
 
         var challenges = settings.ChallengePaths
@@ -133,6 +155,56 @@ internal sealed class OAuthProtectedResources
             && uri.AbsolutePath is { Length: > 1 } path
                 ? path
                 : null;
+
+    /// <summary>
+    /// The unescaped path of <paramref name="resource"/> relative to the <see cref="OAuthServerOptions.Issuer"/> path, such as
+    /// <c>/mcp</c> for <c>https://host/app/mcp</c> under <c>https://host/app/</c>, or <see langword="null"/> when the issuer
+    /// has no path, the resource is on another origin, or its path is not under the issuer path.
+    /// </summary>
+    internal static string? AppRelativePath(OAuthServerOptions options, string resource)
+    {
+        if (options.Issuer is not { } issuer || IssuerPath(issuer) is not { } prefix || ResourcePath(resource) is not { } path)
+        {
+            return null;
+        }
+
+        var uri = new Uri(resource);
+        if (!string.Equals(uri.GetLeftPart(UriPartial.Authority), issuer.GetLeftPart(UriPartial.Authority), StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var unescaped = Uri.UnescapeDataString(path);
+        return unescaped.Length > prefix.Length && unescaped.StartsWith(prefix + "/", StringComparison.Ordinal)
+            ? unescaped[prefix.Length..]
+            : null;
+    }
+
+    /// <summary>
+    /// Accepted resources on the issuer's origin whose path is outside the issuer path, while the issuer has one. Their
+    /// documents are reachable only through a proxy that forwards the RFC 9728 URL to this app unchanged.
+    /// </summary>
+    internal static IEnumerable<string> OutsideIssuerPath(OAuthServerOptions options)
+    {
+        if (options.Issuer is not { } issuer || IssuerPath(issuer) is null)
+        {
+            yield break;
+        }
+
+        var authority = issuer.GetLeftPart(UriPartial.Authority);
+        foreach (var (resource, _, _) in SuffixedResources(options))
+        {
+            if (string.Equals(new Uri(resource).GetLeftPart(UriPartial.Authority), authority, StringComparison.OrdinalIgnoreCase)
+                && AppRelativePath(options, resource) is null)
+            {
+                yield return resource;
+            }
+        }
+    }
+
+    /// <summary>The unescaped issuer path without its trailing <c>/</c>, such as <c>/app</c>, or <see langword="null"/> for the root.</summary>
+    private static string? IssuerPath(Uri issuer)
+        => Uri.UnescapeDataString(issuer.AbsolutePath).TrimEnd('/') is { Length: > 0 } path ? path : null;
 
     private static OAuthProtectedResourceDefinition? Definition(OAuthServerOptions options, string resource)
         => options.ProtectedResource.Resources.FirstOrDefault(definition => definition.Resource == resource);

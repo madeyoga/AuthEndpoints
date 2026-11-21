@@ -130,6 +130,11 @@ public sealed class OAuthServerOptionsValidator : IValidateOptions<OAuthServerOp
                 failures.Add("OAuthServerOptions.TokenRateLimit.PermitLimit must be at least 1.");
             }
 
+            if (options.TokenRateLimit.PermitLimitPerAddress is < 1)
+            {
+                failures.Add("OAuthServerOptions.TokenRateLimit.PermitLimitPerAddress must be at least 1, or null for 4 × PermitLimit.");
+            }
+
             if (options.TokenRateLimit.Window <= TimeSpan.Zero)
             {
                 failures.Add("OAuthServerOptions.TokenRateLimit.Window must be positive.");

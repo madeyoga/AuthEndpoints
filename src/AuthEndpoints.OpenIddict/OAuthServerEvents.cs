@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
@@ -404,6 +405,7 @@ internal sealed partial class RaiseTokenEvents(
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictApplicationManager applications,
     IOptions<OAuthServerOptions> options,
+    IServiceProvider services,
     ILogger<RaiseTokenEvents> logger) : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessSignInContext>
 {
     public async ValueTask HandleAsync(OpenIddictServerEvents.ProcessSignInContext context)
@@ -454,30 +456,62 @@ internal sealed partial class RaiseTokenEvents(
 
     private async Task RecordLastUsedAsync(string authorizationId, TimeSpan interval, DateTimeOffset now, CancellationToken cancellationToken)
     {
+        if (await authorizations.FindByIdAsync(authorizationId, cancellationToken) is not { } authorization)
+        {
+            return;
+        }
+
+        var properties = await authorizations.GetPropertiesAsync(authorization, cancellationToken);
+        if (OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty) is { } last
+            && now - last < interval)
+        {
+            return;
+        }
+
+        var descriptor = new OpenIddictAuthorizationDescriptor();
+        await authorizations.PopulateAsync(descriptor, authorization, cancellationToken);
+        descriptor.Properties[OAuthServerConstants.AuthorizationLastUsedProperty]
+            = JsonSerializer.SerializeToElement(now.ToString("O", CultureInfo.InvariantCulture));
         try
         {
-            if (await authorizations.FindByIdAsync(authorizationId, cancellationToken) is not { } authorization)
-            {
-                return;
-            }
-
-            var properties = await authorizations.GetPropertiesAsync(authorization, cancellationToken);
-            if (OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty) is { } last
-                && now - last < interval)
-            {
-                return;
-            }
-
-            var descriptor = new OpenIddictAuthorizationDescriptor();
-            await authorizations.PopulateAsync(descriptor, authorization, cancellationToken);
-            descriptor.Properties[OAuthServerConstants.AuthorizationLastUsedProperty]
-                = JsonSerializer.SerializeToElement(now.ToString("O", CultureInfo.InvariantCulture));
             await authorizations.UpdateAsync(authorization, descriptor, cancellationToken);
         }
-        catch (Exception ex) when (ex is OpenIddictExceptions.ConcurrencyException or OpenIddictExceptions.ValidationException)
+        catch (OpenIddictExceptions.ConcurrencyException ex)
         {
-            // Another request updated the grant first. The time is a hint; the next refresh records it.
+            // Another request updated or deleted the grant first. The time is a hint; the next refresh records it.
             LogLastUsedSkipped(ex);
+            await ResetAsync(authorization, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// The store marks the failed entry unchanged, but the request's DbContext still tracks the values this write set,
+    /// with a concurrency token the database never stored. Reload it so a later update of the same grant in this request
+    /// (another handler, or host code) starts from the stored row instead of failing again.
+    /// </summary>
+    private async Task ResetAsync(object authorization, CancellationToken cancellationToken)
+    {
+        if (services.GetService<OAuthServerMarker>()?.Context(services) is not { } db)
+        {
+            return;
+        }
+
+        var entry = db.Entry(authorization);
+        if (entry.State == EntityState.Detached)
+        {
+            return;
+        }
+
+        if (await entry.GetDatabaseValuesAsync(cancellationToken) is { } stored)
+        {
+            entry.OriginalValues.SetValues(stored);
+            entry.CurrentValues.SetValues(stored);
+            entry.State = EntityState.Unchanged;
+        }
+        else
+        {
+            // Deleted meanwhile.
+            entry.State = EntityState.Detached;
         }
     }
 

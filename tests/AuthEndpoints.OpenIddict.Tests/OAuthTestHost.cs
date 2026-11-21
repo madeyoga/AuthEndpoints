@@ -88,7 +88,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         bool recipe = false,
         Action<OAuthServerEndpointOptions>? endpoints = null,
         bool signInCompleters = false,
-        Action<IServiceCollection>? beforeServer = null)
+        Action<IServiceCollection>? beforeServer = null,
+        string? pathBase = null)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-openiddict-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
@@ -164,6 +165,11 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         services?.Invoke(builder.Services);
 
         var app = builder.Build();
+        if (pathBase is not null)
+        {
+            app.UsePathBase(pathBase);
+        }
+
         app.UseOAuthResourceChallenge();
         app.UseAuthentication();
         app.UseAuthorization();
