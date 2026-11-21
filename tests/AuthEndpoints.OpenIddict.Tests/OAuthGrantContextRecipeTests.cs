@@ -20,10 +20,12 @@ namespace AuthEndpoints.OpenIddict.Tests;
 /// </summary>
 public sealed class OAuthGrantContextRecipeTests
 {
-    [Fact]
-    public async Task The_chosen_organization_stays_on_the_grant_and_is_rechecked_at_refresh()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task The_chosen_organization_stays_on_the_grant_and_is_rechecked_at_refresh(bool legacy)
     {
-        await using var host = await StartRecipeAsync();
+        await using var host = await StartRecipeAsync(legacy);
         var members = host.Services.GetRequiredService<OrganizationMembers>();
         var (user, userId) = await host.UserAsync("member");
         members.Add(userId, "org-a");
@@ -44,10 +46,12 @@ public sealed class OAuthGrantContextRecipeTests
         Assert.Equal("invalid_grant", await ErrorAsync(await TokenAsync(anon, RefreshGrant(client.ClientId, refreshed.RefreshToken))));
     }
 
-    [Fact]
-    public async Task A_security_stamp_change_still_ends_the_grant()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task A_security_stamp_change_still_ends_the_grant(bool legacy)
     {
-        await using var host = await StartRecipeAsync();
+        await using var host = await StartRecipeAsync(legacy);
         var members = host.Services.GetRequiredService<OrganizationMembers>();
         var (user, userId) = await host.UserAsync("stamp");
         members.Add(userId, "org-a");
@@ -90,13 +94,45 @@ public sealed class OAuthGrantContextRecipeTests
         await ReadTokenAsync(await TokenAsync(anon, RefreshGrant(client.ClientId, tokens.RefreshToken)));
     }
 
-    private static Task<OAuthTestHost> StartRecipeAsync()
+    [Fact]
+    public async Task The_validator_sees_the_grant_claims_at_code_exchange_and_refresh_without_internal_claims()
+    {
+        await using var host = await StartRecipeAsync();
+        var members = host.Services.GetRequiredService<OrganizationMembers>();
+        var seen = host.Services.GetRequiredService<SeenValidations>();
+        var (user, userId) = await host.UserAsync("seen");
+        members.Add(userId, "org-a");
+        var (client, tokens) = await ConnectAsync(host, user, "org-a");
+        using var anon = host.Client(cookies: false);
+        await ReadTokenAsync(await TokenAsync(anon, RefreshGrant(client.ClientId, tokens.RefreshToken)));
+
+        var contexts = seen.All;
+        Assert.Equal(["authorization_code", "refresh_token"], contexts.Select(context => context.GrantType).ToArray());
+        foreach (var context in contexts)
+        {
+            Assert.Equal(userId, context.UserId);
+            Assert.Equal(client.ClientId, context.ClientId);
+            Assert.False(string.IsNullOrEmpty(context.SecurityStamp));
+            Assert.False(string.IsNullOrEmpty(context.AuthorizationId));
+            Assert.Contains("api", context.Scopes);
+            Assert.Equal("org-a", context.Grant.FindFirst(OrganizationGrantValidator.OrganizationClaim)?.Value);
+            Assert.Equal(userId, context.Grant.FindFirst(OpenIddictConstants.Claims.Subject)?.Value);
+            Assert.DoesNotContain(context.Grant.Claims, claim =>
+                claim.Type is OAuthServerConstants.UserIdClaim or OAuthServerConstants.UserStampClaim
+                || claim.Type.StartsWith("oi_", StringComparison.Ordinal));
+        }
+    }
+
+    private static Task<OAuthTestHost> StartRecipeAsync(bool legacy = false)
         => StartAsync(
             services: services =>
             {
                 services.AddSingleton<OrganizationMembers>();
+                services.AddSingleton<SeenValidations>();
                 services.AddScoped<IdentityOAuthUserValidator<IdentityUser>>();
-                services.Replace(ServiceDescriptor.Scoped<IOAuthUserValidator, OrganizationGrantValidator>());
+                services.Replace(legacy
+                    ? ServiceDescriptor.Scoped<IOAuthUserValidator, LegacyOrganizationGrantValidator>()
+                    : ServiceDescriptor.Scoped<IOAuthUserValidator, OrganizationGrantValidator>());
             },
             map: app =>
             {
@@ -110,8 +146,8 @@ public sealed class OAuthGrantContextRecipeTests
                             return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Not a member of this organization");
                         }
 
-                        // Read by OrganizationGrantValidator.GetStampAsync, which runs inside ApproveAsync.
-                        http.Items[OrganizationGrantValidator.OrganizationItem] = body.OrganizationId;
+                        // Only the legacy validator needs this: its GetStampAsync, run inside ApproveAsync, reads it.
+                        http.Items[LegacyOrganizationGrantValidator.OrganizationItem] = body.OrganizationId;
                         var result = await consent.ApproveAsync(id, userId, context =>
                         {
                             var principal = OAuthPrincipals.ForSubject(context.UserId);
@@ -187,13 +223,56 @@ public sealed class OAuthGrantContextRecipeTests
             => ValueTask.FromResult(_members.ContainsKey((userId, organization)));
     }
 
-    /// <summary>The guide's validator: the default Identity checks, plus membership of the organization bound at consent.</summary>
+    internal sealed class SeenValidations
+    {
+        private readonly ConcurrentQueue<OAuthUserValidationContext> _contexts = new();
+
+        public IReadOnlyList<OAuthUserValidationContext> All => _contexts.ToArray();
+
+        public void Add(OAuthUserValidationContext context) => _contexts.Enqueue(context);
+    }
+
+    /// <summary>
+    /// The guide's validator: the default Identity checks, plus membership of the organization bound at consent, read
+    /// from the grant's own claims.
+    /// </summary>
     internal sealed class OrganizationGrantValidator(
+        IdentityOAuthUserValidator<IdentityUser> identity,
+        OrganizationMembers members,
+        SeenValidations seen) : IOAuthUserValidator
+    {
+        public const string OrganizationClaim = "org_id";
+
+        public ValueTask<string?> GetStampAsync(string userId, CancellationToken cancellationToken)
+            => identity.GetStampAsync(userId, cancellationToken);
+
+        public ValueTask<bool> IsValidAsync(string userId, string? stamp, CancellationToken cancellationToken)
+            => identity.IsValidAsync(userId, stamp, cancellationToken);
+
+        // Runs at every code exchange and refresh.
+        public async ValueTask<bool> ValidateAsync(OAuthUserValidationContext context, CancellationToken cancellationToken)
+        {
+            seen.Add(context);
+            if (!await identity.IsValidAsync(context.UserId, context.SecurityStamp, cancellationToken))
+            {
+                return false;
+            }
+
+            // Grants approved without an organization (the built-in consent API) have no claim to check.
+            return context.Grant.FindFirst(OrganizationClaim)?.Value is not { } organization
+                || await members.IsMemberAsync(context.UserId, organization, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// The guide's earlier validator, written before <see cref="IOAuthUserValidator.ValidateAsync"/>: it carries the
+    /// organization inside the stored stamp. It must keep working.
+    /// </summary>
+    internal sealed class LegacyOrganizationGrantValidator(
         IdentityOAuthUserValidator<IdentityUser> identity,
         IHttpContextAccessor http,
         OrganizationMembers members) : IOAuthUserValidator
     {
-        public const string OrganizationClaim = "org_id";
         public const string OrganizationItem = "oauth:organization";
 
         // Runs once, inside ApproveAsync. The value is stored in the grant and handed back to IsValidAsync.

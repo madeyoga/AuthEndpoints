@@ -224,7 +224,8 @@ internal static class OAuthConnectedAppEndpoints
             .WithTags("OAuth connected apps")
             // The sign-in scheme (the Identity cookie by default), never the OAuth validation scheme: an access token must
             // not be able to list or end the grants it came from.
-            .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = settings.AuthenticationScheme });
+            .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = settings.AuthenticationScheme })
+            .RefuseDelegatedCallers("OAuth access tokens cannot manage connected apps.");
 
         group.MapGet("/", ListAsync)
             .WithName("ListOAuthConnectedApps")
@@ -244,11 +245,6 @@ internal static class OAuthConnectedAppEndpoints
     private static async Task<IResult> ListAsync(
         HttpContext http, IOAuthConnectedAppService apps, IOptions<OAuthServerOptions> options, CancellationToken ct)
     {
-        if (Refused(http))
-        {
-            return Forbidden();
-        }
-
         return UserId(http, options.Value) is { } userId
             ? Results.Ok(await apps.ListAsync(userId, ct))
             : Results.Ok(Array.Empty<OAuthConnectedApp>());
@@ -257,11 +253,6 @@ internal static class OAuthConnectedAppEndpoints
     private static async Task<IResult> RevokeAsync(
         string id, HttpContext http, IOAuthConnectedAppService apps, IOptions<OAuthServerOptions> options, CancellationToken ct)
     {
-        if (Refused(http))
-        {
-            return Forbidden();
-        }
-
         return UserId(http, options.Value) is { } userId && await apps.RevokeAsync(userId, id, ct)
             ? Results.NoContent()
             : Results.Problem(
@@ -269,15 +260,6 @@ internal static class OAuthConnectedAppEndpoints
                 title: "Not found",
                 detail: "This connected app is unknown or already disconnected.");
     }
-
-    /// <summary>A host that forwards schemes could still let a token through. Grants are managed by the person only.</summary>
-    private static bool Refused(HttpContext http) => http.User.IsOAuthDelegated();
-
-    private static IResult Forbidden()
-        => Results.Problem(
-            statusCode: StatusCodes.Status403Forbidden,
-            title: "Forbidden",
-            detail: "OAuth access tokens cannot manage connected apps.");
 
     private static string? UserId(HttpContext http, OAuthServerOptions options)
         => http.User.FindFirst(options.UserIdClaimType)?.Value;

@@ -244,6 +244,18 @@ if (user.IsOAuthDelegated() && !user.HasOAuthScope("reports.read"))
 
 `IsOAuthDelegated()`, `GetOAuthScopes()`, and `HasOAuthScope(scope)` read only the identity built from the access token, so a cookie identity never contributes scopes. `HasOAuthScope` is `false` for a caller with no token, so check `IsOAuthDelegated()` first in code that cookie users reach too. The granted scopes include `offline_access` when the client got a refresh token.
 
+#### People and agents
+
+Every validated access token is a delegated caller: OAuth validation adds `ae:caller = delegated` (`CallerKinds.ClaimType`) and the RFC 8693 `act` claim, `{"client_id":"…"}`, naming the client that acts for `sub`. Core's `User.GetCallerKind()` returns `delegated` for it and `person` for the cookie, Identity bearer, and JWT, and `User.GetActingClientId()` returns the client. To keep a route for people only, add `RequireDirectPerson()`; a token caller gets `403`, even when the same request also carries the person's cookie:
+
+```csharp
+app.MapPost("/billing/close-account", CloseAccount)
+    .RequireAuthorization("reports.read") // a policy that also reads ValidationScheme
+    .RequireDirectPerson();
+```
+
+The consent API, the connected apps API, and the developer app API refuse access tokens and API keys with `403`, even when `AuthenticationScheme` is a host scheme that forwards tokens. Core's `AddAnyCallerScheme` reads each request with exactly one handler; set its `BearerScheme` to `ValidationScheme` when assistants call with OAuth tokens. See [People and agents](https://authendpoints.harten.id/modules/callers).
+
 #### Where the token is read from
 
 > **Breaking change.** Earlier builds of this package also accepted the access token from the `access_token` query parameter and from an `access_token` form field, on every route. Now only `Authorization: Bearer` is read. A token in a URL ends up in server logs, proxy logs, and browser history, and a form field lets any HTML form send one.
@@ -574,7 +586,7 @@ To keep a client in the organization, workspace, or region the person chose at c
 
 1. Post the choice to your own approve endpoint. Check membership, then call `ApproveAsync(id, userId, createPrincipal)` and add a claim such as `org_id` with `SetDestinations(OpenIddictConstants.Destinations.AccessToken)`. It is kept in the refresh token, so every access token from the grant carries it.
 2. In the API, read the claim when `User.IsOAuthDelegated()`.
-3. To re-check membership at refresh, replace `IOAuthUserValidator` with a wrapper around `IdentityOAuthUserValidator<TUser>`. The validator gets `(userId, stamp)`, not the grant's claims, but `GetStampAsync` runs once inside `ApproveAsync` (read the choice from `IHttpContextAccessor`), and its value comes back to `IsValidAsync` on every code exchange and refresh. Store `organization|stamp` and check both. Register it with `services.Replace(ServiceDescriptor.Scoped<IOAuthUserValidator, …>())` after `AddOAuthServer`.
+3. To re-check membership at refresh, replace `IOAuthUserValidator` with a wrapper around `IdentityOAuthUserValidator<TUser>` and override `ValidateAsync(OAuthUserValidationContext context, …)`. It runs at every code exchange and refresh, and `context.Grant` holds the claims of the code or refresh token, such as `org_id`, with the package's internal claims and OpenIddict's `oi_*` claims removed. Call the Identity checks with `context.UserId` and `context.SecurityStamp`, then check membership. Register it with `services.Replace(ServiceDescriptor.Scoped<IOAuthUserValidator, …>())` after `AddOAuthServer`. `ValidateAsync` defaults to `IsValidAsync(userId, stamp)`, so older validators keep working.
 
 The full, tested code is in the guide [Bind a host context to an OAuth grant](https://authendpoints.harten.id/guides/oauth-grant-context).
 
@@ -680,9 +692,11 @@ Each event has `UserId` (the approving user, even when a principal factory chose
 
 Subscribers are scoped and run in the request, one after another, so keep them fast or hand the event to a queue. A subscriber that throws is logged (event type and subscriber type only) and skipped: the OAuth response does not change and the next subscriber still runs. Calls to your own API are not events; audit those in the API.
 
+Events follow your transaction. When you call `IOAuthConsentService` or `IOAuthConnectedAppService` while a transaction is open on the server's DbContext (`db.Database.BeginTransactionAsync()`, as in [your own approve endpoint](#option-b-your-own-approve-endpoint)), the events wait: subscribers get them once the transaction commits, and never if it rolls back, so an audit log does not record a grant that was rolled back. Commit or roll back through the `IDbContextTransaction` EF Core returned. A transaction EF Core cannot see (`TransactionScope`, or a `DbTransaction` you commit yourself) does not hold events back. Without a transaction, events are raised at once.
+
 ### Last used
 
-Set `RecordLastUsed = true` to record when each grant was last used. The time is written to the authorization at the code exchange and at a refresh, at most once per `LastUsedInterval` (1 hour by default), so a client that refreshes every few minutes does not write on every refresh. A call to the API with an access token does not update it. A write that loses a race with another request is skipped; the next refresh records it.
+Set `RecordLastUsed = true` to record when each grant was last used. The time is written to the authorization at the code exchange and at a refresh, at most once per `LastUsedInterval` (1 hour by default), so a client that refreshes every few minutes does not write on every refresh. A call to the API with an access token does not update it. A write that loses a race with another request is skipped, and the grant is reloaded so later writes in the same token request still succeed; the next refresh records the time.
 
 The package also stores the approving user's id and the approved resource on every authorization (properties `ae_user_id` and `ae_resource`, see `OAuthServerConstants`).
 
@@ -818,6 +832,15 @@ A `401` on `/mcp` then points at `…/.well-known/oauth-protected-resource/mcp`,
 
 The document URL takes its host from the resource identifier, and the endpoint never reads the request `Host` header. Clients fetch it from the resource's host, so that host has to route `/.well-known/oauth-protected-resource/…` to this app. Two accepted resources with the same path on different hosts (`https://a.example/mcp` and `https://b.example/mcp`) cannot be told apart: neither gets a path-suffixed document, and startup fails when a `Resources` entry names one of them. Startup also fails when an entry names a resource that is not in `AcceptedAudiences`, names `Audience` (use the top-level `ResourceName`, `Scopes`, and `ChallengePaths`), has no path or has a query, lists a scope that is not configured, or repeats a challenge path.
 
+#### Under a `PathBase`
+
+RFC 9728 puts the well-known segment between the host and the resource's path, so for an app mounted at `/app` (`Issuer` `https://host/app/`, resource `https://host/app/mcp`) the `401` points at `https://host/.well-known/oauth-protected-resource/app/mcp`, outside `/app`. Route that path to the app at the reverse proxy (or from an app at the root). The app answers it both ways:
+
+- forwarded unchanged, as `/.well-known/oauth-protected-resource/app/mcp`;
+- under its `PathBase`, as `/app/.well-known/oauth-protected-resource/mcp`, the location relative to the app, for clients that look there.
+
+The app takes its `PathBase` from the `Issuer` path. At startup, a warning lists accepted resources on the issuer's host whose path is outside it: their documents are reachable only when the proxy forwards the RFC 9728 URL to this app unchanged. The root document is served at `{Issuer}.well-known/oauth-protected-resource` (`/app/.well-known/oauth-protected-resource`) and describes `Audience`.
+
 ## Expose an MCP server with per-user OAuth
 
 An AI assistant or other MCP client connects to an MCP server your app hosts, and each person signs in as themselves. The assistant's token carries that person's roles and only the scopes they approved. The [full guide](https://authendpoints.harten.id/guides/mcp-server-oauth) walks through every step. In short, for an app that serves `/api` to cookie users and `/mcp` to assistants:
@@ -880,6 +903,7 @@ OpenIddict serves `/connect/token` and `/connect/revoke` from its middleware, du
 ```csharp
 options.TokenRateLimit.Enabled = true;       // default false
 options.TokenRateLimit.PermitLimit = 60;     // per endpoint, client id, and IP address
+options.TokenRateLimit.PermitLimitPerAddress = null; // per endpoint and IP address; null means 4 × PermitLimit
 options.TokenRateLimit.Window = TimeSpan.FromMinutes(1);
 ```
 
@@ -892,7 +916,9 @@ Retry-After: 42
 { "error": "temporarily_unavailable", "error_description": "Too many requests. Try again later." }
 ```
 
-Requests without a `client_id` share one window per IP address. Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares the proxy's address. Many users behind one NAT who use the same configured client share a window too, so size `PermitLimit` for that: a client refreshes about once per `AccessTokenLifetime`.
+A request needs a permit from two limits. The first counts every request from one IP address to the endpoint, whatever `client_id` it sends (`PermitLimitPerAddress`, 4 × `PermitLimit` by default). The `client_id` is read before the client is authenticated, so without it a caller could send a new made-up value on each request and get a fresh window every time. The second counts per IP address and `client_id` (`PermitLimit`), so one noisy client behind a shared address does not use up the others' budget. Requests without a `client_id` share one window per IP address.
+
+Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares the proxy's address. Many users behind one NAT share the per-address limit, and those who use the same configured client share the per-client one too, so size both for that: a client refreshes about once per `AccessTokenLifetime`.
 
 For another algorithm or partition, pass your own limiter. It replaces the built-in one and turns the limit on:
 

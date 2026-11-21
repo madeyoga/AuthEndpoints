@@ -549,6 +549,19 @@ namespace AuthEndpoints.Identity
         public static Microsoft.AspNetCore.Builder.RouteHandlerBuilder RequireAntiforgery(this Microsoft.AspNetCore.Builder.RouteHandlerBuilder builder, bool allowBearer) { }
         public static Microsoft.AspNetCore.Routing.RouteGroupBuilder RequireAntiforgery(this Microsoft.AspNetCore.Routing.RouteGroupBuilder builder, bool allowBearer) { }
     }
+    public static class AnyCallerAuthenticationBuilderExtensions
+    {
+        public const string SchemeName = "AuthEndpoints.AnyCaller";
+        public static Microsoft.AspNetCore.Authentication.AuthenticationBuilder AddAnyCallerScheme(this Microsoft.AspNetCore.Authentication.AuthenticationBuilder builder, System.Action<AuthEndpoints.Identity.AnyCallerSchemeOptions>? configure = null, string scheme = "AuthEndpoints.AnyCaller") { }
+    }
+    public sealed class AnyCallerSchemeOptions
+    {
+        public AnyCallerSchemeOptions() { }
+        public string? ApiKeyPrefix { get; set; }
+        public string? ApiKeyScheme { get; set; }
+        public string? BearerScheme { get; set; }
+        public string CookieScheme { get; set; }
+    }
     public sealed class AuthEndpointsAntiforgeryOptions
     {
         public AuthEndpointsAntiforgeryOptions() { }
@@ -584,10 +597,35 @@ namespace AuthEndpoints.Identity
             where TUser :  class, new ()
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
     }
+    public static class CallerKindClaimsPrincipalExtensions
+    {
+        public static string? GetActingClientId(this System.Security.Claims.ClaimsPrincipal principal) { }
+        public static string? GetCallerKind(this System.Security.Claims.ClaimsPrincipal principal) { }
+        public static bool IsDirectPerson(this System.Security.Claims.ClaimsPrincipal principal) { }
+    }
+    public static class CallerKinds
+    {
+        public const string ActorClaimType = "act";
+        public const string ApiKey = "api_key";
+        public const string ClaimType = "ae:caller";
+        public const string Delegated = "delegated";
+        public const string Person = "person";
+    }
     public static class ConfirmEmailEndpointRouteBuilderExtensions
     {
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapConfirmEmailEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string? confirmEmailEndpointName = null)
             where TUser :  class, new () { }
+    }
+    public static class DirectPersonAuthorizationExtensions
+    {
+        public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireDirectPerson(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder builder) { }
+        public static TBuilder RequireDirectPerson<TBuilder>(this TBuilder builder)
+            where TBuilder : Microsoft.AspNetCore.Builder.IEndpointConventionBuilder { }
+    }
+    public sealed class DirectPersonRequirement : Microsoft.AspNetCore.Authorization.AuthorizationHandler<AuthEndpoints.Identity.DirectPersonRequirement>, Microsoft.AspNetCore.Authorization.IAuthorizationRequirement
+    {
+        public DirectPersonRequirement() { }
+        protected override System.Threading.Tasks.Task HandleRequirementAsync(Microsoft.AspNetCore.Authorization.AuthorizationHandlerContext context, AuthEndpoints.Identity.DirectPersonRequirement requirement) { }
     }
     public class EnforceAntiforgeryEndpointFilters : Microsoft.AspNetCore.Http.IEndpointFilter
     {

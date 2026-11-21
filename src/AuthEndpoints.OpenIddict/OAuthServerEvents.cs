@@ -1,8 +1,13 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
@@ -130,6 +135,13 @@ public sealed record OAuthServerEvent(OAuthServerEventType Type, DateTimeOffset 
 /// <c>AddServerEvents&lt;T&gt;()</c>; with none (the default) nothing is raised. Subscribers are scoped and run in the
 /// request, one after another, so keep them fast or hand the event to a queue. One that throws is logged and skipped:
 /// the OAuth flow and the other subscribers carry on.
+/// <para>
+/// When the change behind an event happens while the host has a transaction open on the server's DbContext
+/// (<c>db.Database.BeginTransactionAsync()</c>, for example around <see cref="IOAuthConsentService.ApproveAsync(Guid, string, CancellationToken)"/>), the
+/// event is held back: subscribers get it after that transaction commits, and never if it rolls back. Commit or roll back
+/// through the <c>IDbContextTransaction</c> EF Core returned; a transaction EF Core cannot see (<c>TransactionScope</c>,
+/// or a <c>DbTransaction</c> committed directly) does not defer events.
+/// </para>
 /// </summary>
 public interface IOAuthServerEvents
 {
@@ -140,6 +152,7 @@ public interface IOAuthServerEvents
 internal sealed partial class OAuthServerEventDispatcher(
     IEnumerable<IOAuthServerEvents> subscribers,
     TimeProvider clock,
+    IServiceProvider services,
     ILogger<OAuthServerEventDispatcher> logger)
 {
     private readonly IOAuthServerEvents[] _subscribers = subscribers.ToArray();
@@ -148,7 +161,28 @@ internal sealed partial class OAuthServerEventDispatcher(
 
     public DateTimeOffset Now => clock.GetUtcNow();
 
-    public async ValueTask RaiseAsync(OAuthServerEvent serverEvent, CancellationToken cancellationToken)
+    /// <summary>
+    /// Raises the event now, or, while the scoped DbContext has a transaction open, once that transaction commits
+    /// (dropped on rollback).
+    /// </summary>
+    public ValueTask RaiseAsync(OAuthServerEvent serverEvent, CancellationToken cancellationToken)
+    {
+        if (!HasSubscribers)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        if (services.GetService<OAuthEventTransactions>() is { } transactions
+            && services.GetService<OAuthServerMarker>()?.Context(services) is { Database.CurrentTransaction: { } transaction })
+        {
+            transactions.Defer(transaction.GetDbTransaction(), token => PublishAsync(serverEvent, token));
+            return ValueTask.CompletedTask;
+        }
+
+        return PublishAsync(serverEvent, cancellationToken);
+    }
+
+    private async ValueTask PublishAsync(OAuthServerEvent serverEvent, CancellationToken cancellationToken)
     {
         foreach (var subscriber in _subscribers)
         {
@@ -404,6 +438,7 @@ internal sealed partial class RaiseTokenEvents(
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictApplicationManager applications,
     IOptions<OAuthServerOptions> options,
+    IServiceProvider services,
     ILogger<RaiseTokenEvents> logger) : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessSignInContext>
 {
     public async ValueTask HandleAsync(OpenIddictServerEvents.ProcessSignInContext context)
@@ -454,33 +489,148 @@ internal sealed partial class RaiseTokenEvents(
 
     private async Task RecordLastUsedAsync(string authorizationId, TimeSpan interval, DateTimeOffset now, CancellationToken cancellationToken)
     {
+        if (await authorizations.FindByIdAsync(authorizationId, cancellationToken) is not { } authorization)
+        {
+            return;
+        }
+
+        var properties = await authorizations.GetPropertiesAsync(authorization, cancellationToken);
+        if (OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty) is { } last
+            && now - last < interval)
+        {
+            return;
+        }
+
+        var descriptor = new OpenIddictAuthorizationDescriptor();
+        await authorizations.PopulateAsync(descriptor, authorization, cancellationToken);
+        descriptor.Properties[OAuthServerConstants.AuthorizationLastUsedProperty]
+            = JsonSerializer.SerializeToElement(now.ToString("O", CultureInfo.InvariantCulture));
         try
         {
-            if (await authorizations.FindByIdAsync(authorizationId, cancellationToken) is not { } authorization)
-            {
-                return;
-            }
-
-            var properties = await authorizations.GetPropertiesAsync(authorization, cancellationToken);
-            if (OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty) is { } last
-                && now - last < interval)
-            {
-                return;
-            }
-
-            var descriptor = new OpenIddictAuthorizationDescriptor();
-            await authorizations.PopulateAsync(descriptor, authorization, cancellationToken);
-            descriptor.Properties[OAuthServerConstants.AuthorizationLastUsedProperty]
-                = JsonSerializer.SerializeToElement(now.ToString("O", CultureInfo.InvariantCulture));
             await authorizations.UpdateAsync(authorization, descriptor, cancellationToken);
         }
-        catch (Exception ex) when (ex is OpenIddictExceptions.ConcurrencyException or OpenIddictExceptions.ValidationException)
+        catch (OpenIddictExceptions.ConcurrencyException ex)
         {
-            // Another request updated the grant first. The time is a hint; the next refresh records it.
+            // Another request updated or deleted the grant first. The time is a hint; the next refresh records it.
             LogLastUsedSkipped(ex);
+            await ResetAsync(authorization, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// The store marks the failed entry unchanged, but the request's DbContext still tracks the values this write set,
+    /// with a concurrency token the database never stored. Reload it so a later update of the same grant in this request
+    /// (another handler, or host code) starts from the stored row instead of failing again.
+    /// </summary>
+    private async Task ResetAsync(object authorization, CancellationToken cancellationToken)
+    {
+        if (services.GetService<OAuthServerMarker>()?.Context(services) is not { } db)
+        {
+            return;
+        }
+
+        var entry = db.Entry(authorization);
+        if (entry.State == EntityState.Detached)
+        {
+            return;
+        }
+
+        if (await entry.GetDatabaseValuesAsync(cancellationToken) is { } stored)
+        {
+            entry.OriginalValues.SetValues(stored);
+            entry.CurrentValues.SetValues(stored);
+            entry.State = EntityState.Unchanged;
+        }
+        else
+        {
+            // Deleted meanwhile.
+            entry.State = EntityState.Detached;
         }
     }
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "The OAuth grant's last-used time was not recorded")]
     private partial void LogLastUsedSkipped(Exception ex);
+}
+
+/// <summary>
+/// Holds the events raised while a DbContext has a transaction open, and publishes them when EF Core reports the commit,
+/// or drops them on rollback or a failed commit. Added to the server's DbContext as an interceptor. Keyed by the
+/// transaction, which is never reused, so events of a transaction disposed without commit or rollback are simply
+/// collected with it, even when the DbContext itself is pooled.
+/// </summary>
+internal sealed partial class OAuthEventTransactions(ILogger<OAuthEventTransactions> logger) : DbTransactionInterceptor
+{
+    private readonly ConditionalWeakTable<DbTransaction, List<Func<CancellationToken, ValueTask>>> _pending = new();
+
+    public void Defer(DbTransaction transaction, Func<CancellationToken, ValueTask> publish)
+    {
+        var queue = _pending.GetOrCreateValue(transaction);
+        lock (queue)
+        {
+            queue.Add(publish);
+        }
+    }
+
+    public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
+        => PublishAsync(transaction).AsTask().GetAwaiter().GetResult();
+
+    public override Task TransactionCommittedAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
+        => PublishAsync(transaction).AsTask();
+
+    public override void TransactionRolledBack(DbTransaction transaction, TransactionEndEventData eventData)
+        => Drop(transaction);
+
+    public override Task TransactionRolledBackAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
+    {
+        Drop(transaction);
+        return Task.CompletedTask;
+    }
+
+    public override void TransactionFailed(DbTransaction transaction, TransactionErrorEventData eventData)
+        => Drop(transaction);
+
+    public override Task TransactionFailedAsync(DbTransaction transaction, TransactionErrorEventData eventData, CancellationToken cancellationToken = default)
+    {
+        Drop(transaction);
+        return Task.CompletedTask;
+    }
+
+    private async ValueTask PublishAsync(DbTransaction transaction)
+    {
+        if (Take(transaction) is not { } queue)
+        {
+            return;
+        }
+
+        foreach (var publish in queue)
+        {
+            // The transaction has committed: what happened is final, so a cancelled request still gets its audit trail.
+            await publish(CancellationToken.None);
+        }
+    }
+
+    private void Drop(DbTransaction transaction)
+    {
+        if (Take(transaction) is { Count: > 0 } queue)
+        {
+            LogDropped(queue.Count);
+        }
+    }
+
+    private List<Func<CancellationToken, ValueTask>>? Take(DbTransaction transaction)
+    {
+        if (!_pending.TryGetValue(transaction, out var queue))
+        {
+            return null;
+        }
+
+        _pending.Remove(transaction);
+        lock (queue)
+        {
+            return [.. queue];
+        }
+    }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Count} OAuth server event(s) were not raised because the host's transaction did not commit")]
+    private partial void LogDropped(int count);
 }

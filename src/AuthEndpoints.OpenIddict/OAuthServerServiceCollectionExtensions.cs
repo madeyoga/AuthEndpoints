@@ -188,6 +188,9 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
         // Audit events. Without an IOAuthServerEvents subscriber, nothing is raised.
         services.TryAddScoped<OAuthServerEventDispatcher>();
+        // Events raised inside a host transaction wait for its commit.
+        services.TryAddSingleton<OAuthEventTransactions>();
+        services.ConfigureDbContext<TContext>((provider, db) => db.AddInterceptors(provider.GetRequiredService<OAuthEventTransactions>()));
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
         services.TryAddScoped(typeof(IOAuthConnectedAppService), typeof(OAuthConnectedAppService<,>).MakeGenericType(typeof(TContext), keyType));
         var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
@@ -317,6 +320,8 @@ public static class OAuthServerServiceCollectionExtensions
                     .DisableAccessTokenExtractionFromQueryString()
                     .DisableAccessTokenExtractionFromBodyForm();
                 options.AddEventHandler(ExtractAccessTokenFromAllowedQueryPaths.Descriptor);
+                // ae:caller = delegated and act = {"client_id": …} on every validated access token.
+                options.AddEventHandler(AttachDelegatedCallerClaims.Descriptor);
                 options.EnableAuthorizationEntryValidation();
             });
 

@@ -44,13 +44,29 @@ public sealed class OAuthRateLimitContext
 public sealed class OAuthTokenRateLimitOptions
 {
     /// <summary>
-    /// Limit the token and revocation endpoints with the built-in fixed window, per endpoint, client id, and remote IP
-    /// address. Default <see langword="false"/>. <c>AddTokenRateLimiter</c> turns the limit on with the host's own limiter.
+    /// Limit the token and revocation endpoints with two built-in fixed windows, and a request needs a permit from both:
+    /// one per endpoint and remote IP address (<see cref="PermitLimitPerAddress"/>), and one per endpoint, client id, and
+    /// remote IP address (<see cref="PermitLimit"/>). Default <see langword="false"/>. <c>AddTokenRateLimiter</c> turns the
+    /// limit on with the host's own limiter instead.
     /// </summary>
     public bool Enabled { get; set; }
 
-    /// <summary>Requests allowed per endpoint, client id, and IP address in each <see cref="Window"/>. Default 60.</summary>
+    /// <summary>
+    /// Requests allowed per endpoint, client id, and IP address in each <see cref="Window"/>, so one noisy client behind a
+    /// shared address does not use up the others' budget. Default 60.
+    /// </summary>
     public int PermitLimit { get; set; } = 60;
+
+    /// <summary>
+    /// Requests allowed per endpoint and IP address in each <see cref="Window"/>, whatever <c>client_id</c> they send. The
+    /// caller chooses the <c>client_id</c> before it is authenticated, so without this limit a new made-up value on each
+    /// request would get a fresh window every time. <see langword="null"/> (the default) means 4 × <see cref="PermitLimit"/>.
+    /// Many people behind one NAT or proxy address share this budget, so raise it for such networks.
+    /// </summary>
+    public int? PermitLimitPerAddress { get; set; }
+
+    /// <summary>The per-address limit in effect.</summary>
+    internal int EffectivePermitLimitPerAddress => PermitLimitPerAddress ?? (int)Math.Min(int.MaxValue, PermitLimit * 4L);
 
     /// <summary>The fixed window. Default 1 minute.</summary>
     public TimeSpan Window { get; set; } = TimeSpan.FromMinutes(1);
@@ -60,7 +76,7 @@ public sealed class OAuthTokenRateLimitOptions
 internal sealed class OAuthTokenRateLimiter : IDisposable
 {
     private readonly PartitionedRateLimiter<OAuthRateLimitContext>? _limiter;
-    private readonly bool _owned;
+    private readonly PartitionedRateLimiter<OAuthRateLimitContext>[] _owned = [];
 
     public OAuthTokenRateLimiter(IOptions<OAuthServerOptions> options, IServiceProvider services, OAuthTokenRateLimiterFactory? factory = null)
     {
@@ -77,16 +93,31 @@ internal sealed class OAuthTokenRateLimiter : IDisposable
         }
 
         var permits = settings.PermitLimit;
+        var perAddress = settings.EffectivePermitLimitPerAddress;
         var window = settings.Window;
-        _owned = true;
-        _limiter = PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context => RateLimitPartition.GetFixedWindowLimiter(
+
+        // The address limit comes first: it does not depend on anything the caller chooses.
+        var address = PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context => RateLimitPartition.GetFixedWindowLimiter(
+            AddressPartition(context),
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = perAddress, Window = window, QueueLimit = 0 }));
+        var client = PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context => RateLimitPartition.GetFixedWindowLimiter(
             DefaultPartition(context),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = permits, Window = window, QueueLimit = 0 }));
+        var chained = PartitionedRateLimiter.CreateChained(address, client);
+        _owned = [chained, address, client];
+        _limiter = chained;
     }
 
     public bool Active => _limiter is not null;
 
     public RateLimitLease Acquire(OAuthRateLimitContext context) => _limiter!.AttemptAcquire(context);
+
+    /// <summary>Endpoint and remote address.</summary>
+    internal static string AddressPartition(OAuthRateLimitContext context)
+        => string.Join(
+            '\n',
+            context.Endpoint.ToString(),
+            context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
 
     /// <summary>Endpoint, client id (or none), and remote address. Separators cannot appear in the parts that matter.</summary>
     internal static string DefaultPartition(OAuthRateLimitContext context)
@@ -98,9 +129,9 @@ internal sealed class OAuthTokenRateLimiter : IDisposable
 
     public void Dispose()
     {
-        if (_owned)
+        foreach (var limiter in _owned)
         {
-            _limiter?.Dispose();
+            limiter.Dispose();
         }
     }
 }

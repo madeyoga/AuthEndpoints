@@ -137,6 +137,68 @@ public sealed class OAuthResourceMetadataTests
         Assert.Equal(RootMetadata, await ChallengeAsync(anon, "/api/me"));
     }
 
+    [Fact]
+    public async Task Under_a_path_base_the_challenge_url_reaches_the_document()
+    {
+        const string AppIssuer = "https://localhost/app/";
+        const string AppMcp = "https://localhost/app/mcp";
+        const string AppMcpMetadata = "https://localhost/.well-known/oauth-protected-resource/app/mcp";
+        await using var host = await StartAsync(
+            options =>
+            {
+                options.Issuer = new Uri(AppIssuer);
+                options.Audience = "https://localhost/app/api";
+                options.AdditionalResources.Add(AppMcp);
+                options.AcceptedAudiences.Add(AppMcp);
+                options.ProtectedResource.Resources.Add(new OAuthProtectedResourceDefinition
+                {
+                    Resource = AppMcp,
+                    ResourceName = "MCP server",
+                    ChallengePaths = { "/mcp" },
+                });
+            },
+            map: app => app.MapGet("/mcp", () => Results.Ok()).RequireAuthorization("api"),
+            pathBase: "/app");
+        using var anon = host.Client(cookies: false);
+
+        // The 401 on the app's /mcp points at the RFC 9728 location, outside /app.
+        Assert.Equal(AppMcpMetadata, await ChallengeAsync(anon, "/app/mcp"));
+
+        // A reverse proxy that routes /.well-known/oauth-protected-resource/app/... to the app unchanged reaches it.
+        var proxied = await anon.GetFromJsonAsync<JsonElement>(new Uri(AppMcpMetadata).PathAndQuery);
+        Assert.Equal(AppMcp, proxied.GetProperty("resource").GetString());
+        Assert.Equal("MCP server", proxied.GetProperty("resource_name").GetString());
+        Assert.Equal([AppIssuer], Strings(proxied, "authorization_servers"));
+
+        // So does a request under the PathBase, which arrives with the PathBase stripped from Request.Path.
+        var direct = await anon.GetFromJsonAsync<JsonElement>("/app/.well-known/oauth-protected-resource/mcp");
+        Assert.Equal(AppMcp, direct.GetProperty("resource").GetString());
+
+        // The audience is under /app too.
+        var api = await anon.GetFromJsonAsync<JsonElement>("/app/.well-known/oauth-protected-resource/api");
+        Assert.Equal("https://localhost/app/api", api.GetProperty("resource").GetString());
+
+        // The PathBase is not part of the app-relative location.
+        Assert.Equal(HttpStatusCode.NotFound, (await anon.GetAsync("/app/.well-known/oauth-protected-resource/app/mcp")).StatusCode);
+    }
+
+    [Fact]
+    public void A_resource_outside_the_issuer_path_is_reported()
+    {
+        var options = Valid();
+        options.Issuer = new Uri("https://localhost/app/");
+        options.AdditionalResources.Add("https://elsewhere.example/tools");
+        options.AcceptedAudiences.Add("https://elsewhere.example/tools");
+
+        // Audience https://localhost/api and https://localhost/mcp are outside /app on the issuer's host. Another host is not this app's concern.
+        Assert.Equal(
+            ["https://localhost/api", Mcp],
+            OAuthProtectedResources.OutsideIssuerPath(options).Order(StringComparer.Ordinal).ToArray());
+
+        options.Issuer = new Uri(Issuer);
+        Assert.Empty(OAuthProtectedResources.OutsideIssuerPath(options));
+    }
+
     [Theory]
     [InlineData("not-accepted", "is not in AcceptedAudiences")]
     [InlineData("audience", "is Audience")]

@@ -131,8 +131,8 @@ public sealed class OAuthConnectedAppTests
         using var api = host.Client(cookies: false);
         api.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
         Assert.Equal(HttpStatusCode.Forbidden, (await api.GetAsync(Route)).StatusCode);
-        // The antiforgery check (allowBearer: false) refuses the DELETE before the endpoint does.
-        Assert.Equal(HttpStatusCode.BadRequest, (await api.DeleteAsync($"{Route}/{id}")).StatusCode);
+        // The group refuses delegated callers before the antiforgery check (allowBearer: false) runs.
+        Assert.Equal(HttpStatusCode.Forbidden, (await api.DeleteAsync($"{Route}/{id}")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await host.CallApiAsync(tokens.AccessToken)).StatusCode);
         Assert.Single((await ListAsync(user)).EnumerateArray());
     }

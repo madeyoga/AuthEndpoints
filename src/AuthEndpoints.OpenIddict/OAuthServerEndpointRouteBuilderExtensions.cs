@@ -127,6 +127,16 @@ public static class OAuthServerEndpointRouteBuilderExtensions
         {
             var resources = OAuthProtectedResources.Create(settings);
             var issuer = settings.Issuer!.AbsoluteUri;
+            if (OAuthProtectedResources.OutsideIssuerPath(settings).ToArray() is { Length: > 0 } outside)
+            {
+                endpoints.ServiceProvider.GetService<ILoggerFactory>()?.CreateLogger("AuthEndpoints.OpenIddict").LogWarning(
+                    "These accepted resources are on the issuer's host but outside the issuer path {IssuerPath}, so their protected resource "
+                    + "metadata is reachable only if the reverse proxy forwards /.well-known/oauth-protected-resource/<resource path> to this app "
+                    + "unchanged: {Resources}",
+                    settings.Issuer.AbsolutePath,
+                    string.Join(", ", outside));
+            }
+
             endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath, () => Metadata(resources.Audience, issuer))
                 .AllowAnonymous()
                 .WithName("GetOAuthProtectedResource")
@@ -136,7 +146,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
             {
                 // RFC 9728 §3.1: one document per accepted resource with a path. The literal root route above wins over this one.
                 endpoints.MapGet(OAuthServerConstants.ProtectedResourceMetadataPath + "/{**resourcePath}", (HttpContext context)
-                        => resources.Find(context.Request.Path) is { } document ? Metadata(document, issuer) : Results.NotFound())
+                        => resources.Find(context.Request.PathBase, context.Request.Path) is { } document ? Metadata(document, issuer) : Results.NotFound())
                     .AllowAnonymous()
                     .WithName("GetOAuthProtectedResourceForPath")
                     .WithSummary("Protected resource metadata for one resource (RFC 9728)")
@@ -202,6 +212,9 @@ internal abstract class OAuthServerMarker
 
     /// <summary>Throws when the DbContext model lacks the tables added by <c>UseAuthEndpointsOpenIddict</c>. Builds the model only.</summary>
     public abstract void EnsureModel(IServiceProvider services);
+
+    /// <summary>The scoped DbContext that OpenIddict's stores use in <paramref name="services"/>.</summary>
+    public abstract DbContext Context(IServiceProvider services);
 }
 
 internal sealed class OAuthServerMarker<TContext, TKey> : OAuthServerMarker
@@ -221,6 +234,8 @@ internal sealed class OAuthServerMarker<TContext, TKey> : OAuthServerMarker
                 "Call modelBuilder.UseAuthEndpointsOpenIddict<TUser>() in OnModelCreating, with the same TUser as AddOAuthServer, then add a migration.");
         }
     }
+
+    public override DbContext Context(IServiceProvider services) => services.GetRequiredService<TContext>();
 
     public override RouteHandlerBuilder MapAuthorize(IEndpointRouteBuilder endpoints)
         => endpoints.MapMethods(

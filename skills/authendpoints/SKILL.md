@@ -109,6 +109,7 @@ Load only the file the task needs. Each one is self-contained.
 | Email-code sign-in, magic link, email-code step-up | [references/email-code.md](references/email-code.md) |
 | GitHub or Google sign-in, linking, unlinking | [references/external-oauth.md](references/external-oauth.md) |
 | List and revoke signed-in sessions | [references/active-sessions.md](references/active-sessions.md) |
+| Tell people from AI agents and API keys, `RequireDirectPerson()`, the any-caller scheme | [references/callers.md](references/callers.md) |
 | More than one session, or a mix neither facade covers | [references/composition.md](references/composition.md) |
 | A host still on `AddAuthEndpoints` and `MapAuthEndpoints` (3.x) | [references/compatibility-facade.md](references/compatibility-facade.md) |
 

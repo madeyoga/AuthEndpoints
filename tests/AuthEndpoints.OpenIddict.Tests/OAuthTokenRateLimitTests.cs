@@ -73,6 +73,52 @@ public sealed class OAuthTokenRateLimitTests
     }
 
     [Fact]
+    public async Task A_new_client_id_on_each_request_still_hits_the_per_address_limit()
+    {
+        await using var host = await StartAsync(options =>
+        {
+            options.TokenRateLimit.Enabled = true;
+            options.TokenRateLimit.PermitLimit = 2;
+        });
+        using var anon = host.Client(cookies: false);
+
+        // The default per-address limit is 4 × PermitLimit. Made-up client ids get no fresh window.
+        for (var i = 0; i < 8; i++)
+        {
+            // An unknown client is refused (invalid_client), but not rate limited yet.
+            Assert.NotEqual(HttpStatusCode.TooManyRequests, (await TokenAsync(anon, RefreshGrant($"made-up-{Guid.NewGuid():N}", "x"))).StatusCode);
+        }
+
+        var rejected = await TokenAsync(anon, RefreshGrant($"made-up-{Guid.NewGuid():N}", "x"));
+        Assert.Equal(HttpStatusCode.TooManyRequests, rejected.StatusCode);
+        Assert.Equal("temporarily_unavailable", JsonSerializer.Deserialize<JsonElement>(await rejected.Content.ReadAsStringAsync()).GetProperty("error").GetString());
+        Assert.True(rejected.Headers.Contains("Retry-After"));
+
+        // Another address has its own budget.
+        using var other = host.Client(cookies: false);
+        Assert.Equal(HttpStatusCode.BadRequest, (await TokenAsync(other, RefreshGrant(SeededClientId, "x"))).StatusCode);
+    }
+
+    [Fact]
+    public async Task The_per_address_limit_can_be_set()
+    {
+        await using var host = await StartAsync(options =>
+        {
+            options.TokenRateLimit.Enabled = true;
+            options.TokenRateLimit.PermitLimit = 10;
+            options.TokenRateLimit.PermitLimitPerAddress = 3;
+        });
+        using var anon = host.Client(cookies: false);
+
+        for (var i = 0; i < 3; i++)
+        {
+            Assert.Equal(HttpStatusCode.BadRequest, (await TokenAsync(anon, RefreshGrant(SeededClientId, "x"))).StatusCode);
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await TokenAsync(anon, RefreshGrant(SeededClientId, "x"))).StatusCode);
+    }
+
+    [Fact]
     public async Task The_revocation_endpoint_is_limited_on_its_own()
     {
         await using var host = await StartAsync(options =>
@@ -124,9 +170,11 @@ public sealed class OAuthTokenRateLimitTests
         {
             options.TokenRateLimit.Enabled = true;
             options.TokenRateLimit.PermitLimit = 0;
+            options.TokenRateLimit.PermitLimitPerAddress = 0;
             options.TokenRateLimit.Window = TimeSpan.Zero;
         }));
         Assert.Contains("TokenRateLimit.PermitLimit", error.ToString(), StringComparison.Ordinal);
+        Assert.Contains("TokenRateLimit.PermitLimitPerAddress", error.ToString(), StringComparison.Ordinal);
         Assert.Contains("TokenRateLimit.Window", error.ToString(), StringComparison.Ordinal);
     }
 
@@ -141,5 +189,8 @@ public sealed class OAuthTokenRateLimitTests
         Assert.Equal(
             "Revocation\n\n203.0.113.5",
             OAuthTokenRateLimiter.DefaultPartition(new OAuthRateLimitContext(http, OAuthRateLimitedEndpoint.Revocation, null)));
+        Assert.Equal(
+            "Token\n203.0.113.5",
+            OAuthTokenRateLimiter.AddressPartition(new OAuthRateLimitContext(http, OAuthRateLimitedEndpoint.Token, "client-1")));
     }
 }
