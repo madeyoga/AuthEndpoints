@@ -137,7 +137,7 @@ public sealed record OAuthServerEvent(OAuthServerEventType Type, DateTimeOffset 
 /// the OAuth flow and the other subscribers carry on.
 /// <para>
 /// When the change behind an event happens while the host has a transaction open on the server's DbContext
-/// (<c>db.Database.BeginTransactionAsync()</c>, for example around <see cref="IOAuthConsentService.ApproveAsync"/>), the
+/// (<c>db.Database.BeginTransactionAsync()</c>, for example around <see cref="IOAuthConsentService.ApproveAsync(Guid, string, CancellationToken)"/>), the
 /// event is held back: subscribers get it after that transaction commits, and never if it rolls back. Commit or roll back
 /// through the <c>IDbContextTransaction</c> EF Core returned; a transaction EF Core cannot see (<c>TransactionScope</c>,
 /// or a <c>DbTransaction</c> committed directly) does not defer events.

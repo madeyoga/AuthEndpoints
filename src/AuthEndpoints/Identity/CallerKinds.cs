@@ -7,7 +7,7 @@ namespace AuthEndpoints.Identity;
 
 /// <summary>
 /// Who is calling: a person directly, a client acting for a person, or an API key. Strings, so a host can add its own
-/// kinds through its principal hooks. Read the kind with <see cref="CallerKindClaimsPrincipalExtensions.GetCallerKind"/>.
+/// kinds through its principal hooks. Read the kind with <see cref="CallerKindClaimsPrincipalExtensions.GetCallerKind(ClaimsPrincipal)"/>.
 /// </summary>
 public static class CallerKinds
 {

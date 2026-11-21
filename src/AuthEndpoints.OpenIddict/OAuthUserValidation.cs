@@ -217,8 +217,8 @@ internal sealed class RevalidateGrantUser(
                 ClientId = request.ClientId,
                 ClientKind = kind,
                 AuthorizationId = authorizationId,
-                Scopes = context.Principal.GetScopes().ToArray(),
-                Resource = context.Principal.GetResources().FirstOrDefault(),
+                Scopes = principal.GetScopes().ToArray(),
+                Resource = principal.GetResources().FirstOrDefault(),
                 GrantType = request.GrantType,
             }, context.CancellationToken);
         }
