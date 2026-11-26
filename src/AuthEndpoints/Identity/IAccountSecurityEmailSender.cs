@@ -16,6 +16,12 @@ public interface IAccountSecurityEmailSender<TUser>
     Task SendPasswordSetAsync(TUser user, string email, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Tells <paramref name="email"/> that the account's password was removed (<c>DELETE /manage/password</c>).
+    /// The default implementation does nothing, so existing senders keep compiling. Implement it to deliver the notice.
+    /// </summary>
+    Task SendPasswordRemovedAsync(TUser user, string email, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+    /// <summary>
     /// Tells <paramref name="email"/> that someone tried to register an account with that address.
     /// The attempted password is not included. <c>POST /register</c> calls this when the email is already registered
     /// and the password meets the password rules, then returns the same empty 200 as a new account.

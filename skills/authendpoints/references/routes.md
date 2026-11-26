@@ -23,10 +23,15 @@ Paths below use `Path` (default `/auth`). A host that changes `Path` uses that p
 | `GET` | `/auth/manage/info` | Yes | | | |
 | `POST` | `/auth/manage/info` | Yes | Yes | Yes | |
 | `POST` | `/auth/manage/password` | Yes | Yes | Yes | `AccountAbuse` |
+| `DELETE` | `/auth/manage/password` | Yes | Yes | Yes | `AccountAbuse` |
 
 `GET /auth/manage/2fa` returns `isTwoFactorEnabled` and `recoveryCodesLeft`. `POST /auth/manage/2fa` changes the security stamp. It refreshes a cookie session and renews the ReAuth proof for the new stamp with the original expiry, so enabling 2FA after `{}` needs no second step-up. A ReAuth cookie is reissued. A token sent in `X-AuthEndpoints-Reauth` comes back renewed in the `X-AuthEndpoints-Reauth` response header. The old token then gets `403`. A cross-origin browser client needs `WithExposedHeaders("X-AuthEndpoints-Reauth")` in its CORS policy to read it.
 
-`POST /auth/manage/password` sets a first password. It returns `404` when password sign-in is not mapped, and `400` when the account already has a password. Change an existing password with `POST /auth/manage/info`.
+`POST /auth/manage/password` sets a first password. It returns `404` when password sign-in is not mapped, and `400` when the account already has a password. Change an existing password with `POST /auth/manage/info`. Changing or setting a password keeps the acting cookie session and its ReAuth proof; other sessions end.
+
+`DELETE /auth/manage/password` removes the password. It returns `400 LastSignInMethod` unless a passkey, an external login, or email code (mapped, confirmed email) remains, `400 NoPassword` without a password, and `404` when password sign-in is not mapped. The notice is `IAccountSecurityEmailSender<TUser>.SendPasswordRemovedAsync`, a no-op unless implemented.
+
+`GET /auth/manage/info` returns `"email": null` for an account without an email.
 
 A JWT session uses the same register, recovery, confirm-email, and management routes. It maps `POST /auth/create`, `POST /auth/refresh`, `GET /auth/verify`, and `POST /auth/logout` in place of `POST /auth/login`. Cookie refresh also maps `GET /auth/csrfToken`. Body refresh omits that route. `POST /auth/create` and `POST /auth/refresh` use `AuthEndpoints.Login`.
 

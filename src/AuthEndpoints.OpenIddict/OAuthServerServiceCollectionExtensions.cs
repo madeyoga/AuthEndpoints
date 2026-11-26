@@ -218,9 +218,9 @@ public static class OAuthServerServiceCollectionExtensions
         // like Identity bearer and JWT. Routes a token must never call use RequireAntiforgery(allowBearer: false).
         services.Configure<AuthEndpointsAntiforgeryOptions>(antiforgery =>
         {
-            if (!antiforgery.BearerSchemes.Contains(ValidationScheme))
+            if (!antiforgery.BearerSchemes.Contains(OAuthServerConstants.AccessTokenScheme))
             {
-                antiforgery.BearerSchemes.Add(ValidationScheme);
+                antiforgery.BearerSchemes.Add(OAuthServerConstants.AccessTokenScheme);
             }
         });
 
@@ -400,6 +400,7 @@ public static class OAuthServerServiceCollectionExtensions
 
     private static Uri Relative(string path) => new(path.TrimStart('/'), UriKind.Relative);
 
-    /// <summary>The authentication scheme that validates access tokens issued by this server.</summary>
-    public const string ValidationScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    /// <summary>Use <see cref="OAuthServerConstants.AccessTokenScheme"/>.</summary>
+    [Obsolete("Use OAuthServerConstants.AccessTokenScheme.")]
+    public const string ValidationScheme = OAuthServerConstants.AccessTokenScheme;
 }

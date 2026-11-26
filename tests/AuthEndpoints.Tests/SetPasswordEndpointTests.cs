@@ -135,6 +135,168 @@ public class SetPasswordEndpointTests
     }
 
     [Fact]
+    public async Task ManageInfoGet_UserWithoutEmail_ReturnsNullEmail()
+    {
+        await using var host = await PasswordHost.StartAsync(requireConfirmedAccount: false);
+        var userName = UserName();
+        await host.SeedUserNameOnlyAsync(userName, "Passw0rd!");
+        var jar = await host.SignInPasswordAsync(userName, "Passw0rd!");
+
+        var response = await host.GetAsync(jar, "/identity/manage/info");
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.StatusCode == HttpStatusCode.OK, $"{(int)response.StatusCode} {body}");
+        using var doc = JsonDocument.Parse(body);
+        Assert.Equal(JsonValueKind.Null, doc.RootElement.GetProperty("email").ValueKind);
+        Assert.False(doc.RootElement.GetProperty("isEmailConfirmed").GetBoolean());
+    }
+
+    [Fact]
+    public async Task ManageInfoPost_ChangePassword_UserWithoutEmail_Returns200_KeepsCaller_EndsOtherSessions()
+    {
+        await using var host = await PasswordHost.StartAsync(requireConfirmedAccount: false);
+        var userName = UserName();
+        await host.SeedUserNameOnlyAsync(userName, "Passw0rd!");
+        var actor = await host.SignInPasswordAsync(userName, "Passw0rd!");
+        var other = await host.SignInPasswordAsync(userName, "Passw0rd!");
+        await host.ConfirmPasswordAsync(actor, "Passw0rd!");
+
+        var changed = await host.PostAsync(actor, "/identity/manage/info", new { oldPassword = "Passw0rd!", newPassword = "Changed1!" }, csrf: true);
+        var body = await changed.Content.ReadAsStringAsync();
+        Assert.True(changed.StatusCode == HttpStatusCode.OK, $"{(int)changed.StatusCode} {body}");
+        using (var doc = JsonDocument.Parse(body))
+        {
+            Assert.Equal(JsonValueKind.Null, doc.RootElement.GetProperty("email").ValueKind);
+        }
+
+        // The caller's cookie and ReAuth proof were carried over to the new security stamp.
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
+        var again = await host.PostAsync(actor, "/identity/manage/info", new { oldPassword = "Changed1!", newPassword = "Changed2!" }, csrf: true);
+        Assert.Equal(HttpStatusCode.OK, again.StatusCode);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.GetAsync(other, "/identity/manage/info")).StatusCode);
+        await host.SignInPasswordAsync(userName, "Changed2!");
+    }
+
+    [Fact]
+    public async Task ManageInfoPost_ChangePassword_KeepsCallerSignedIn()
+    {
+        await using var host = await PasswordHost.StartAsync();
+        var email = Email();
+        await host.SeedWithPasswordAsync(email, "Passw0rd!");
+        var actor = await host.SignInPasswordAsync(email, "Passw0rd!");
+        var other = await host.SignInPasswordAsync(email, "Passw0rd!");
+        await host.ConfirmPasswordAsync(actor, "Passw0rd!");
+        var stamp = await host.StampAsync(email);
+
+        var changed = await host.PostAsync(actor, "/identity/manage/info", new { oldPassword = "Passw0rd!", newPassword = "Changed1!" }, csrf: true);
+        Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
+        Assert.NotEqual(stamp, await host.StampAsync(email));
+
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.GetAsync(other, "/identity/manage/info")).StatusCode);
+    }
+
+    [Fact]
+    public async Task SetPassword_UserWithoutEmail_SetsPassword_KeepsCaller_AndSendsNothing()
+    {
+        await using var host = await PasswordHost.StartAsync(requireConfirmedAccount: false);
+        var userName = UserName();
+        await host.SeedUserNameOnlyAsync(userName, "Passw0rd!");
+        var actor = await host.SignInPasswordAsync(userName, "Passw0rd!");
+        await host.ConfirmPasswordAsync(actor, "Passw0rd!");
+        await host.ClearPasswordHashAsync(userName);
+
+        var set = await host.PostAsync(actor, "/identity/manage/password", new { newPassword = "SetPass1!" }, csrf: true);
+        Assert.True(set.StatusCode == HttpStatusCode.OK, $"{(int)set.StatusCode} {await set.Content.ReadAsStringAsync()}");
+        Assert.True(await host.HasPasswordByNameAsync(userName));
+        Assert.DoesNotContain(host.Mail.Snapshot(), item => item.Kind == "security");
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
+    }
+
+    [Fact]
+    public async Task RemovePassword_WithoutReAuth_Returns403()
+    {
+        await using var host = await PasswordHost.StartAsync();
+        var email = Email();
+        await host.SeedWithPasswordAsync(email, "Passw0rd!");
+        await host.AddPasskeyAsync(email);
+        var jar = await host.SignInPasswordAsync(email, "Passw0rd!");
+
+        var response = await host.DeleteAsync(jar, "/identity/manage/password", csrf: true);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        Assert.True(await host.HasPasswordAsync(email));
+    }
+
+    [Fact]
+    public async Task RemovePassword_WithPasskey_RemovesPassword_Notifies_KeepsCaller_EndsOtherSessions()
+    {
+        await using var host = await PasswordHost.StartAsync();
+        var email = Email();
+        await host.SeedWithPasswordAsync(email, "Passw0rd!");
+        await host.AddPasskeyAsync(email);
+        var actor = await host.SignInPasswordAsync(email, "Passw0rd!");
+        var other = await host.SignInPasswordAsync(email, "Passw0rd!");
+        await host.ConfirmPasswordAsync(actor, "Passw0rd!");
+
+        var missingCsrf = await host.DeleteAsync(actor, "/identity/manage/password", csrf: false);
+        Assert.Equal(HttpStatusCode.BadRequest, missingCsrf.StatusCode);
+        Assert.True(await host.HasPasswordAsync(email));
+
+        var removed = await host.DeleteAsync(actor, "/identity/manage/password", csrf: true);
+        Assert.True(removed.StatusCode == HttpStatusCode.OK, $"{(int)removed.StatusCode} {await removed.Content.ReadAsStringAsync()}");
+        Assert.False(await host.HasPasswordAsync(email));
+        Assert.Contains(host.Mail.Snapshot(), item => item.Kind == "security" && item.Email == email && item.Body == "password-removed");
+
+        Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await host.GetAsync(other, "/identity/manage/info")).StatusCode);
+
+        var login = await host.PostAsync(new CookieJar(), "/identity/login", new { email, password = "Passw0rd!" }, csrf: false);
+        Assert.Equal(HttpStatusCode.Unauthorized, login.StatusCode);
+
+        var again = await host.DeleteAsync(actor, "/identity/manage/password", csrf: true);
+        Assert.Equal(HttpStatusCode.BadRequest, again.StatusCode);
+        Assert.Contains("NoPassword", await again.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RemovePassword_WhenPasswordIsTheOnlySignInMethod_Returns400()
+    {
+        await using var host = await PasswordHost.StartAsync(requireConfirmedAccount: false);
+        var userName = UserName();
+        await host.SeedUserNameOnlyAsync(userName, "Passw0rd!");
+        var jar = await host.SignInPasswordAsync(userName, "Passw0rd!");
+        await host.ConfirmPasswordAsync(jar, "Passw0rd!");
+
+        var response = await host.DeleteAsync(jar, "/identity/manage/password", csrf: true);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("LastSignInMethod", await response.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.True(await host.HasPasswordByNameAsync(userName));
+    }
+
+    [Fact]
+    public async Task RemovePassword_WithConfirmedEmailAndEmailCodeSignIn_RemovesPassword()
+    {
+        await using var host = await PasswordHost.StartAsync();
+        var email = Email();
+        await host.SeedWithPasswordAsync(email, "Passw0rd!");
+        var jar = await host.SignInPasswordAsync(email, "Passw0rd!");
+        await host.ConfirmPasswordAsync(jar, "Passw0rd!");
+
+        var response = await host.DeleteAsync(jar, "/identity/manage/password", csrf: true);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(await host.HasPasswordAsync(email));
+        await host.SignInCookieAsync(email);
+    }
+
+    [Fact]
+    public async Task RemovePassword_WhenPasswordSignInUnmapped_Returns404()
+    {
+        await using var host = await PasswordHost.StartAsync(mapPasswordSignIn: false);
+        var response = await host.DeleteAsync(new CookieJar(), "/identity/manage/password", csrf: false);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task SetPassword_Anonymous_WhenPasswordSignInMapped_Returns401()
     {
         await using var host = await PasswordHost.StartAsync();
@@ -159,7 +321,8 @@ public class SetPasswordEndpointTests
             app => app.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>());
         var endpoint = ((IEndpointRouteBuilder)mapped).DataSources
             .SelectMany(source => source.Endpoints)
-            .Single(item => item is RouteEndpoint route && route.RoutePattern.RawText == "/identity/manage/password");
+            .Single(item => item is RouteEndpoint route && route.RoutePattern.RawText == "/identity/manage/password"
+                && item.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Contains("POST") == true);
         Assert.Contains(
             endpoint.Metadata.GetOrderedMetadata<IAuthorizeData>(),
             data => data.Policy == "ReAuthPolicy");
@@ -180,6 +343,18 @@ public class SetPasswordEndpointTests
             },
             app => app.MapAuthEndpoints<TestAppUser>()));
         Assert.DoesNotContain("POST /identity/manage/password", facade);
+        Assert.DoesNotContain("DELETE /identity/manage/password", facade);
+
+        var remove = ((IEndpointRouteBuilder)mapped).DataSources
+            .SelectMany(source => source.Endpoints)
+            .Single(item => item is RouteEndpoint route && route.RoutePattern.RawText == "/identity/manage/password"
+                && item.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods.Contains("DELETE") == true);
+        Assert.Contains(remove.Metadata.GetOrderedMetadata<IAuthorizeData>(), data => data.Policy == "ReAuthPolicy");
+        Assert.NotNull(remove.Metadata.GetMetadata<AuthEndpointsAntiforgeryMetadata>());
+        Assert.NotNull(remove.Metadata.GetMetadata<SetPasswordEndpointMetadata>());
+        Assert.Equal(
+            AuthEndpointsConstants.AccountAbusePolicy,
+            remove.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
 
         using var defaults = RouteSurface.Build(
             builder => builder.Services.AddAccountManagementEndpoints(),
@@ -284,6 +459,8 @@ public class SetPasswordEndpointTests
 
     private static string Email() => $"set-password-{Guid.NewGuid():N}@test.local";
 
+    private static string UserName() => $"set-password-{Guid.NewGuid():N}";
+
     private sealed class PasswordHost : IAsyncDisposable
     {
         private readonly string _path;
@@ -305,7 +482,7 @@ public class SetPasswordEndpointTests
 
         public bool MapPasswordSignIn { get; }
 
-        public static async Task<PasswordHost> StartAsync(bool mapPasswordSignIn = true)
+        public static async Task<PasswordHost> StartAsync(bool mapPasswordSignIn = true, bool requireConfirmedAccount = true)
         {
             var path = Path.Combine(Path.GetTempPath(), $"ae-set-password-{Guid.NewGuid():N}.sqlite");
             var mail = new CapturingEmailSender();
@@ -323,7 +500,7 @@ public class SetPasswordEndpointTests
             builder.Services
                 .AddIdentityApiEndpoints<TestAppUser>(options =>
                 {
-                    options.SignIn.RequireConfirmedAccount = true;
+                    options.SignIn.RequireConfirmedAccount = requireConfirmedAccount;
                     options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
                     options.Password.RequireDigit = false;
                     options.Password.RequireLowercase = false;
@@ -401,6 +578,43 @@ public class SetPasswordEndpointTests
             Assert.True(created.Succeeded, string.Join("; ", created.Errors.Select(error => error.Description)));
         }
 
+        public async Task SeedUserNameOnlyAsync(string userName, string password)
+        {
+            using var scope = App.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var user = new TestAppUser { UserName = userName, Email = null };
+            var created = await users.CreateAsync(user, password);
+            Assert.True(created.Succeeded, string.Join("; ", created.Errors.Select(error => error.Description)));
+        }
+
+        /// <summary>Drops the password hash without rotating the stamp, so existing sessions and ReAuth proofs stay valid.</summary>
+        public async Task ClearPasswordHashAsync(string userName)
+        {
+            using var scope = App.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<TestDbContext>();
+            var user = await db.Users.SingleAsync(user => user.UserName == userName);
+            user.PasswordHash = null;
+            await db.SaveChangesAsync();
+        }
+
+        public async Task<bool> HasPasswordByNameAsync(string userName)
+        {
+            using var scope = App.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var user = await users.FindByNameAsync(userName);
+            return user is not null && await users.HasPasswordAsync(user);
+        }
+
+        public async Task AddPasskeyAsync(string email)
+        {
+            using var scope = App.Services.CreateScope();
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
+            var user = await users.FindByEmailAsync(email);
+            var passkey = new UserPasskeyInfo([1, 2, 3, 4, 5, 6, 7, 8], [9, 8, 7], DateTimeOffset.UtcNow, 0, [], false, false, false, [1], [2]);
+            var result = await users.AddOrUpdatePasskeyAsync(user!, passkey);
+            Assert.True(result.Succeeded, string.Join("; ", result.Errors.Select(error => error.Description)));
+        }
+
         public async Task<bool> HasPasswordAsync(string email)
         {
             using var scope = App.Services.CreateScope();
@@ -473,6 +687,25 @@ public class SetPasswordEndpointTests
         public async Task<HttpResponseMessage> GetAsync(CookieJar jar, string url)
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            jar.Apply(request, Client.BaseAddress!);
+            var response = await Client.SendAsync(request);
+            jar.Capture(response, Client.BaseAddress!);
+            return response;
+        }
+
+        public async Task<HttpResponseMessage> DeleteAsync(CookieJar jar, string url, bool csrf)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            if (csrf)
+            {
+                request.Headers.TryAddWithoutValidation("RequestVerificationToken", await CsrfAsync(jar));
+            }
+
+            if (Client.BaseAddress is not null)
+            {
+                request.Headers.TryAddWithoutValidation("Origin", Client.BaseAddress.GetLeftPart(UriPartial.Authority));
+            }
+
             jar.Apply(request, Client.BaseAddress!);
             var response = await Client.SendAsync(request);
             jar.Capture(response, Client.BaseAddress!);

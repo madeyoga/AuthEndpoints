@@ -137,7 +137,7 @@ public sealed class OAuthScopeAuthorizationTests
     public void RequireOAuthScope_uses_the_validation_scheme()
     {
         var policy = new AuthorizationPolicyBuilder().RequireOAuthScope("api").Build();
-        Assert.Equal([OAuthServerServiceCollectionExtensions.ValidationScheme], policy.AuthenticationSchemes);
+        Assert.Equal([OAuthServerConstants.AccessTokenScheme], policy.AuthenticationSchemes);
         var requirement = Assert.Single(policy.Requirements.OfType<OAuthScopeRequirement>());
         Assert.Equal(["api"], requirement.Scopes);
         Assert.False(requirement.OnlyWhenDelegated);
@@ -161,11 +161,11 @@ public sealed class OAuthScopeAuthorizationTests
             options.AddPolicy("scoped", policy => policy.RequireOAuthScope("api", "profile"));
             options.AddPolicy("scoped-api", policy => policy.RequireOAuthScope("api"));
             options.AddPolicy("shared", policy => policy
-                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
                 .RequireAuthenticatedUser()
                 .RequireOAuthScopeWhenDelegated("profile"));
             options.AddPolicy("shared-admin", policy => policy
-                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+                .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
                 .RequireRole("admin")
                 .RequireOAuthScopeWhenDelegated("profile"));
         }),

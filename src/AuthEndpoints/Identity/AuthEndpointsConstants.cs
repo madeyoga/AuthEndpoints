@@ -8,6 +8,12 @@ public class AuthEndpointsConstants
     public const string ReAuthBearerScheme = Prefix + ".ReAuth.Bearer";
     public const string ReAuthHeaderName = "X-AuthEndpoints-Reauth";
 
+    /// <summary>
+    /// The scheme name <c>AddAnyCallerScheme</c> registers by default: <c>AuthEndpoints.AnyCaller</c>. Use it in a policy,
+    /// for example <c>AddAuthenticationSchemes(AuthEndpointsConstants.AnyCallerScheme)</c>.
+    /// </summary>
+    public const string AnyCallerScheme = Prefix + ".AnyCaller";
+
     public const string PasskeyObtainOptionsPolicy = Prefix + ".Passkey.ObtainOptions";
     public const string PasskeyRegisterPolicy = Prefix + ".Passkey.Register";
     public const string LoginPolicy = Prefix + ".Login";

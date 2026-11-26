@@ -172,10 +172,10 @@ public sealed class OAuthAccessTokenClaimsTests
                 collection.Configure<AuthorizationOptions>(options =>
                 {
                     options.AddPolicy("admin", policy => policy
-                        .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+                        .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
                         .RequireRole("admin"));
                     options.AddPolicy("viewer", policy => policy
-                        .AddAuthenticationSchemes(OAuthServerServiceCollectionExtensions.ValidationScheme)
+                        .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
                         .RequireRole("viewer"));
                 });
                 services?.Invoke(collection);

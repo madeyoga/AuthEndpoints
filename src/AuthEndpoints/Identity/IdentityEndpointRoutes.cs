@@ -270,6 +270,21 @@ internal static class IdentityEndpointRoutes
             .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
             .WithMetadata(SetPasswordEndpointMetadata.Instance)
             .Track(endpoints, mapMethod);
+        accountGroup.MapDelete("/password", IdentityApiEndpoints<TUser>.RemovePassword)
+            .WithSummary("Removes the password so the account signs in another way, such as with a passkey.")
+            .WithDescription("""
+                Requires a signed-in user, antiforgery, and a ReAuth proof.
+                Rate-limited with the account-abuse policy.
+                Returns 404 when password sign-in is not mapped.
+                Returns 400 NoPassword when the account has no password, and 400 LastSignInMethod when the password is
+                its only sign-in method. Passkeys, external logins, and email code (when mapped and the email is confirmed) count.
+                Sends a security email and rotates the security stamp. The caller stays signed in; other sessions end.
+                """)
+            .RequireAntiforgery()
+            .RequireReauth()
+            .RequireRateLimiting(AuthEndpointsConstants.AccountAbusePolicy)
+            .WithMetadata(SetPasswordEndpointMetadata.Instance)
+            .Track(endpoints, mapMethod);
     }
 
     public static void MapCookieSession<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)

@@ -1,8 +1,16 @@
+using OpenIddict.Validation.AspNetCore;
+
 namespace AuthEndpoints.OpenIddict;
 
 /// <summary>Fixed routes and names used by the authorization server.</summary>
 public static class OAuthServerConstants
 {
+    /// <summary>
+    /// The authentication scheme that validates access tokens issued by this server. Add it to a policy, for example
+    /// <c>AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)</c>.
+    /// </summary>
+    public const string AccessTokenScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+
     public const string AuthorizationEndpointPath = "/connect/authorize";
     public const string TokenEndpointPath = "/connect/token";
     public const string RevocationEndpointPath = "/connect/revoke";

@@ -123,11 +123,11 @@ public sealed class OAuthBearerCookieRedirectTests
     {
         // A route that cookie users and token callers share, guarded by a role neither caller has.
         app.MapGet("/shared/admin", () => Results.Ok()).RequireAuthorization(policy => policy
-            .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+            .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
             .RequireRole("Admin"));
         // A route that reads the token, then refuses with the default (cookie) scheme, as Results.Forbid() does.
         app.MapGet("/shared/forbid", () => Results.Forbid()).RequireAuthorization(policy => policy
-            .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerServiceCollectionExtensions.ValidationScheme)
+            .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme, OAuthServerConstants.AccessTokenScheme)
             .RequireAuthenticatedUser());
         app.MapGet("/cookie-only", () => Results.Ok()).RequireAuthorization(policy => policy
             .AddAuthenticationSchemes(IdentityConstants.ApplicationScheme)

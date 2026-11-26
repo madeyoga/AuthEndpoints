@@ -18,10 +18,10 @@ public sealed class OAuthAntiforgeryTests
         // A host that listed the scheme itself before registering the server.
         await using var host = await StartWithRoutesAsync(beforeServer: services =>
             services.Configure<AuthEndpointsAntiforgeryOptions>(options =>
-                options.BearerSchemes.Add(OAuthServerServiceCollectionExtensions.ValidationScheme)));
+                options.BearerSchemes.Add(OAuthServerConstants.AccessTokenScheme)));
 
         var schemes = host.Services.GetRequiredService<IOptions<AuthEndpointsAntiforgeryOptions>>().Value.BearerSchemes;
-        Assert.Single(schemes, OAuthServerServiceCollectionExtensions.ValidationScheme);
+        Assert.Single(schemes, OAuthServerConstants.AccessTokenScheme);
         Assert.Contains(Microsoft.AspNetCore.Identity.IdentityConstants.BearerScheme, schemes);
     }
 
@@ -42,7 +42,7 @@ public sealed class OAuthAntiforgeryTests
     {
         await using var host = await StartWithRoutesAsync(services =>
             services.PostConfigure<AuthEndpointsAntiforgeryOptions>(options =>
-                options.BearerSchemes.Remove(OAuthServerServiceCollectionExtensions.ValidationScheme)));
+                options.BearerSchemes.Remove(OAuthServerConstants.AccessTokenScheme)));
         var token = await IssueTokenAsync(host);
         using var api = host.Client(cookies: false);
 
