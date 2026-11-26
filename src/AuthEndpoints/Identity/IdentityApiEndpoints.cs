@@ -7,7 +7,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using AuthEndpoints;
+using AuthEndpoints.EmailCode;
 using AuthEndpoints.ReAuth;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
@@ -532,11 +534,7 @@ public class IdentityApiEndpoints<TUser>
             return TypedResults.NotFound();
         }
 
-        return TypedResults.Ok(new InfoResponse()
-        {
-            Email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email."),
-            IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
-        });
+        return TypedResults.Ok(await InfoAsync(userManager, user));
     }
 
     public static async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> ManageInfoPost
@@ -561,11 +559,15 @@ public class IdentityApiEndpoints<TUser>
                     "The old password is required to set a new password. If the old password is forgotten, use /resetPassword.");
             }
 
+            var reauthBefore = await ReAuthProofRenewal.CaptureAsync(context);
+            var stampBefore = await StampAsync(userManager, user);
             var changePasswordResult = await userManager.ChangePasswordAsync(user, infoRequest.OldPassword, infoRequest.NewPassword);
             if (!changePasswordResult.Succeeded)
             {
                 return CreateValidationProblem(changePasswordResult);
             }
+
+            await KeepCallerSignedInAsync(context, sp, userManager, user, reauthBefore, stampBefore);
         }
 
         if (!string.IsNullOrEmpty(infoRequest.NewEmail))
@@ -578,12 +580,43 @@ public class IdentityApiEndpoints<TUser>
             }
         }
 
-        return TypedResults.Ok(new InfoResponse()
-        {
-            Email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email."),
-            IsEmailConfirmed = await userManager.IsEmailConfirmedAsync(user),
-        });
+        return TypedResults.Ok(await InfoAsync(userManager, user));
     }
+
+    /// <summary>
+    /// Identity allows an account without an email, such as one that signs in by user name. <see cref="InfoResponse.Email"/>
+    /// is declared non-nullable by ASP.NET Core, so such an account gets <c>"email": null</c> instead of an exception.
+    /// </summary>
+    private static async Task<InfoResponse> InfoAsync(UserManager<TUser> userManager, TUser user) => new()
+    {
+        Email = userManager.SupportsUserEmail ? (await userManager.GetEmailAsync(user))! : null!,
+        IsEmailConfirmed = userManager.SupportsUserEmail && await userManager.IsEmailConfirmedAsync(user),
+    };
+
+    /// <summary>
+    /// After a change that rotates the security stamp, keeps the caller's own application cookie and ReAuth proof valid.
+    /// Other sessions still end at their next security stamp check.
+    /// </summary>
+    private static async Task KeepCallerSignedInAsync(
+        HttpContext context,
+        IServiceProvider sp,
+        UserManager<TUser> userManager,
+        TUser user,
+        ReAuthProofRenewal.CapturedProof? reauthBefore,
+        string? stampBefore)
+    {
+        if (await SignInSchemes.IsAuthenticatedAsync(context, IdentityConstants.ApplicationScheme))
+        {
+            var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
+            signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
+            await signInManager.RefreshSignInAsync(user);
+        }
+
+        await ReAuthProofRenewal.RenewAsync(context, userManager, user, reauthBefore, stampBefore);
+    }
+
+    private static async Task<string?> StampAsync(UserManager<TUser> userManager, TUser user) =>
+        userManager.SupportsUserSecurityStamp ? await userManager.GetSecurityStampAsync(user) : null;
 
     /// <summary>
     /// Sets a password when the account has none.
@@ -619,23 +652,89 @@ public class IdentityApiEndpoints<TUser>
             return CreateValidationProblem("PasswordRequired", "A password is required.");
         }
 
+        var reauthBefore = await ReAuthProofRenewal.CaptureAsync(context);
+        var stampBefore = await StampAsync(userManager, user);
         var addPasswordResult = await userManager.AddPasswordAsync(user, request.NewPassword);
         if (!addPasswordResult.Succeeded)
         {
             return CreateValidationProblem(addPasswordResult);
         }
 
-        var email = await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email.");
-        await sender.SendPasswordSetAsync(user, email, context.RequestAborted);
+        await KeepCallerSignedInAsync(context, sp, userManager, user, reauthBefore, stampBefore);
 
-        if (await SignInSchemes.IsAuthenticatedAsync(context, IdentityConstants.ApplicationScheme))
+        // An account without an email (one that signs in by user name) has nobody to notify.
+        if (userManager.SupportsUserEmail && await userManager.GetEmailAsync(user) is { Length: > 0 } email)
         {
-            var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
-            signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
-            await signInManager.RefreshSignInAsync(user);
+            await sender.SendPasswordSetAsync(user, email, context.RequestAborted);
         }
 
         return TypedResults.Ok();
+    }
+
+    /// <summary>
+    /// Removes the password so the account signs in another way, such as with a passkey.
+    /// Returns 404 when password sign-in is not mapped, 400 when the account has no password, and 400
+    /// <c>LastSignInMethod</c> when the password is the account's only sign-in method. Passkeys, external logins,
+    /// and email code (when its sign-in routes are mapped and the email is confirmed) count as other methods.
+    /// </summary>
+    public static async Task<Results<Ok, ValidationProblem, NotFound>> RemovePassword(
+        ClaimsPrincipal claimsPrincipal,
+        HttpContext context,
+        [FromServices] IServiceProvider sp)
+    {
+        var userManager = sp.GetRequiredService<UserManager<TUser>>();
+        if (!userManager.SupportsUserPassword || !PasswordSignInMap.IsMapped(sp))
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
+        {
+            return TypedResults.NotFound();
+        }
+
+        if (!await userManager.HasPasswordAsync(user))
+        {
+            return CreateValidationProblem("NoPassword", "The account has no password.");
+        }
+
+        if (!await CanRemovePasswordAsync(userManager, user, sp))
+        {
+            return CreateValidationProblem("LastSignInMethod", "Cannot remove the last sign-in method.");
+        }
+
+        var reauthBefore = await ReAuthProofRenewal.CaptureAsync(context);
+        var stampBefore = await StampAsync(userManager, user);
+        var result = await userManager.RemovePasswordAsync(user);
+        if (!result.Succeeded)
+        {
+            return CreateValidationProblem(result);
+        }
+
+        await KeepCallerSignedInAsync(context, sp, userManager, user, reauthBefore, stampBefore);
+
+        if (userManager.SupportsUserEmail && await userManager.GetEmailAsync(user) is { Length: > 0 } email)
+        {
+            var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>() ?? CreateLoggingSecurityEmailSender(sp);
+            await sender.SendPasswordRemovedAsync(user, email, context.RequestAborted);
+        }
+
+        return TypedResults.Ok();
+    }
+
+    private static async Task<bool> CanRemovePasswordAsync(UserManager<TUser> userManager, TUser user, IServiceProvider sp)
+    {
+        var passkeyCount = userManager.SupportsUserPasskey ? (await userManager.GetPasskeysAsync(user)).Count : 0;
+        var loginCount = userManager.SupportsUserLogin ? (await userManager.GetLoginsAsync(user)).Count : 0;
+        var emailConfirmed = userManager.SupportsUserEmail && await userManager.IsEmailConfirmedAsync(user);
+        return SignInMethodPolicy.CanRemove(
+            new SignInMethodFacts(
+                HasPassword: true,
+                passkeyCount,
+                loginCount,
+                EmailCodeSignInMap.IsMapped(sp),
+                emailConfirmed),
+            SignInMethod.Password);
     }
 
     private static LoggingAccountSecurityEmailSender<TUser> CreateLoggingSecurityEmailSender(IServiceProvider sp)

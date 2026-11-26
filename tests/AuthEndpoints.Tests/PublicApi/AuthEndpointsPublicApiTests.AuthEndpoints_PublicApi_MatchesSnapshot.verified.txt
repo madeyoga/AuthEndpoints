@@ -637,6 +637,7 @@ namespace AuthEndpoints.Identity
     public interface IAccountSecurityEmailSender<TUser>
         where TUser :  class
     {
+        System.Threading.Tasks.Task SendPasswordRemovedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task SendRegistrationAttemptedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
     }
@@ -676,6 +677,7 @@ namespace AuthEndpoints.Identity
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Identity.Data.TwoFactorResponse>, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> ManageTwoFactor(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.TwoFactorRequest tfaRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok<Microsoft.AspNetCore.Authentication.BearerToken.AccessTokenResponse>, Microsoft.AspNetCore.Http.HttpResults.UnauthorizedHttpResult, Microsoft.AspNetCore.Http.HttpResults.SignInHttpResult, Microsoft.AspNetCore.Http.HttpResults.ChallengeHttpResult>> Refresh([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.RefreshRequest refreshRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> Register([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.RegisterRequest registration, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
+        public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> RemovePassword(System.Security.Claims.ClaimsPrincipal claimsPrincipal, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Ok> ResendConfirmationEmail([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResendConfirmationEmailRequest resendRequest, System.Security.Claims.ClaimsPrincipal claimsPrincipal, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp, string confirmEmailEndpointName) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem>> ResetPassword([Microsoft.AspNetCore.Mvc.FromBody] Microsoft.AspNetCore.Identity.Data.ResetPasswordRequest resetRequest, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> SetPassword(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Identity.SetPasswordRequest request, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
@@ -685,6 +687,7 @@ namespace AuthEndpoints.Identity
         where TUser :  class
     {
         public LoggingAccountSecurityEmailSender(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.Identity.LoggingAccountSecurityEmailSender<TUser>> logger) { }
+        public System.Threading.Tasks.Task SendPasswordRemovedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
         public System.Threading.Tasks.Task SendRegistrationAttemptedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
     }

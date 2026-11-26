@@ -15,6 +15,7 @@ Identity.TwoFactorRememberMe
 Identity.TwoFactorUserId
 ---
 DELETE /account/passkeys/{credentialIdUrl} name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=(none)
+DELETE /identity/manage/password name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=AuthEndpoints.AccountAbuse
 GET /account/passkeys/ name=(none) auth=Identity.Application,Identity.Bearer antiforgery=false rateLimit=(none)
 GET /identity/confirmEmail name=MapIdentityManagementApi-TestAppUser-confirmEmail auth=(none) antiforgery=false rateLimit=(none)
 GET /identity/csrfToken name=(none) auth=(none) antiforgery=false rateLimit=(none)

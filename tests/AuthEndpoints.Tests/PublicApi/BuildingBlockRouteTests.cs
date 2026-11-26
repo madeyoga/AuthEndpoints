@@ -171,6 +171,7 @@ public class BuildingBlockRouteTests
 
         Assert.Equal(
             [
+                "DELETE /identity/manage/password",
                 "GET /identity/confirmEmail",
                 "GET /identity/manage/2fa",
                 "GET /identity/manage/authMethods",
@@ -198,6 +199,58 @@ public class BuildingBlockRouteTests
 
         Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
         Assert.Equal(1, routes.Count(route => route == "POST /identity/confirmIdentity/passkeyOptions"));
+    }
+
+    [Fact]
+    public void MapAccountManagementEndpoints_WithPasskeySignInOnly_MapsPasskeyOptions()
+    {
+        var routes = MapIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddPasskeySignInEndpoints<TestAppUser>();
+        }, app =>
+        {
+            app.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+        });
+
+        Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
+    }
+
+    [Fact]
+    public void MapAccountManagementEndpoints_WithPasskeyManagementOnly_MapsPasskeyOptions()
+    {
+        var routes = MapIdentity(services =>
+        {
+            services.AddAccountManagementEndpoints();
+            services.AddPasskeyManagementEndpoints();
+        }, app =>
+        {
+            app.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
+        });
+
+        Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
+    }
+
+    [Fact]
+    public void ComposedPasskeysWithoutSignUp_MapPasskeyOptions_AndNoPasskeyRegistration()
+    {
+        // The setup from issue #475: password auth plus passkey sign-in and management, without anonymous sign-up.
+        using var app = RouteSurface.Build(builder =>
+        {
+            builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(_ => { });
+            builder.Services.AddPasskeySignInEndpoints<TestAppUser>();
+            builder.Services.AddPasskeyManagementEndpoints();
+        }, app =>
+        {
+            var account = app.MapGroup("/identity");
+            account.MapSignInEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
+            account.MapSharedAuthEndpoints<TestAppUser>();
+        });
+        var routes = RouteSurface.ListRoutes(app);
+
+        Assert.Contains("POST /identity/confirmIdentity/passkeyOptions", routes);
+        Assert.Contains("DELETE /identity/manage/password", routes);
+        Assert.DoesNotContain(routes, route => route.Contains("/passkeys/register", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -800,6 +853,7 @@ public class BuildingBlockRouteTests
                 "GET /identity/manage/info",
                 "POST /identity/manage/info",
                 "POST /identity/manage/password",
+                "DELETE /identity/manage/password",
             ],
             RouteSurface.ListInMapOrder(app));
     }

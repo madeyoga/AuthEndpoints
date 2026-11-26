@@ -14,6 +14,7 @@ Identity.External
 Identity.TwoFactorRememberMe
 Identity.TwoFactorUserId
 ---
+DELETE /identity/manage/password name=(none) auth=Identity.Application,Identity.Bearer;(default) antiforgery=true rateLimit=AuthEndpoints.AccountAbuse
 GET /identity/confirmEmail name=MapIdentityManagementApi-TestAppUser-confirmEmail auth=(none) antiforgery=false rateLimit=(none)
 GET /identity/manage/2fa name=(none) auth=Identity.Application,Identity.Bearer antiforgery=false rateLimit=(none)
 GET /identity/manage/authMethods name=(none) auth=Identity.Application,Identity.Bearer antiforgery=false rateLimit=(none)

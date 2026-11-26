@@ -40,6 +40,7 @@ public class RecipeRouteTests
 
         Assert.Equal(
             [
+                "DELETE /auth/manage/password",
                 "GET /auth/confirmEmail",
                 "GET /auth/csrfToken",
                 "GET /auth/manage/2fa",
@@ -159,6 +160,7 @@ public class RecipeRouteTests
 
         Assert.Equal(
             [
+                "DELETE /auth/manage/password",
                 "GET /auth/confirmEmail",
                 "GET /auth/csrfToken",
                 "GET /auth/manage/2fa",
@@ -245,6 +247,7 @@ public class RecipeRouteTests
     {
         return routes
             .Append("POST /auth/manage/password")
+            .Append("DELETE /auth/manage/password")
             .OrderBy(route => route, StringComparer.Ordinal)
             .ToArray();
     }

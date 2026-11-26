@@ -12,7 +12,7 @@ internal readonly record struct SignInMethodFacts(
     bool EmailConfirmed);
 
 /// <summary>
-/// A user keeps at least one sign-in method after a passkey delete or an external unlink.
+/// A user keeps at least one sign-in method after a passkey delete, an external unlink, or a password removal.
 /// Methods are a password, each passkey, each external login, and email code.
 /// </summary>
 internal static class SignInMethodPolicy
@@ -30,6 +30,16 @@ internal static class SignInMethodPolicy
             }
 
             return password + (facts.PasskeyCount - 1) + facts.ExternalLoginCount + emailCode >= 1;
+        }
+
+        if (removing == SignInMethod.Password)
+        {
+            if (!facts.HasPassword)
+            {
+                return false;
+            }
+
+            return facts.PasskeyCount + facts.ExternalLoginCount + emailCode >= 1;
         }
 
         if (removing == SignInMethod.External)

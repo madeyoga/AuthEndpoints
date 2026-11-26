@@ -23,7 +23,7 @@ app.UseAntiforgery();
 | `MapEmailCodeEndpoints` | `AddEmailCodeEndpoints<TUser, TContext>(...)` and `UseEmailCodes()` |
 | `MapExternalAuthEndpoints` | `AddExternalAuthEndpoints<TUser>()` and `AddGitHub` or `AddGoogle` |
 
-`MapIdentityManagementApi` maps register without login, confirm-email, account management, `POST /manage/password`, and `POST /confirmIdentity/passkeyOptions`. It maps `POST /confirmIdentity/emailCode/send` when email-code send is registered. Map it once. Pair it with one of cookie, bearer, or JWT per prefix.
+`MapIdentityManagementApi` maps register without login, confirm-email, account management, `POST` and `DELETE /manage/password`, and `POST /confirmIdentity/passkeyOptions`. `MapAccountManagementEndpoints` maps `POST /confirmIdentity/passkeyOptions` when `AddPasskeyEndpoints`, `AddPasskeySignInEndpoints`, or `AddPasskeyManagementEndpoints` was called. It maps `POST /confirmIdentity/emailCode/send` when email-code send is registered. Map it once. Pair it with one of cookie, bearer, or JWT per prefix.
 
 `MapPasswordEndpoints()` with no arguments finishes `POST /login` through the cookie completer unless `SignInCompletionOptions.Default` names one. An explicit `PasswordLoginMode` uses `PasswordSignInAsync` and overrides that default. `MapCookieAuthEndpoints` and `MapBearerAuthEndpoints` stay on those 3.4.1 handlers.
 
