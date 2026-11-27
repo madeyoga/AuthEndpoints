@@ -165,7 +165,6 @@ internal static class EmailCodeEndpoints<TUser>
         var signInManager = services.GetRequiredService<SignInManager<TUser>>();
         var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
         var store = services.GetRequiredService<IEmailCodeStore>();
-        var completer = services.GetRequiredService<IEmailCodeSignInCompleter<TUser>>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(EmailCodeLog.Category);
 
         if (!TryReadProof(request, options, out var proof))
@@ -327,7 +326,6 @@ internal static class EmailCodeEndpoints<TUser>
             httpContext,
             userManager,
             signInManager,
-            completer,
             logger,
             options,
             user!,
@@ -542,7 +540,6 @@ internal static class EmailCodeEndpoints<TUser>
         HttpContext httpContext,
         UserManager<TUser> userManager,
         SignInManager<TUser> signInManager,
-        IEmailCodeSignInCompleter<TUser> completer,
         ILogger logger,
         EmailCodeOptions options,
         TUser user,
@@ -593,7 +590,6 @@ internal static class EmailCodeEndpoints<TUser>
         var result = await SignInCompletion.CompleteEmailCodeAsync(
             httpContext,
             user,
-            completer,
             isNewUser,
             useCookies,
             useSessionCookies,

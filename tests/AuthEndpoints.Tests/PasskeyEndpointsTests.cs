@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -597,8 +598,8 @@ public class PasskeyEndpointsTests : IClassFixture<TestWebApplicationFactory>
         {
             builder.ConfigureServices(services =>
             {
-                services.RemoveAll<IPasskeySignInCompleter<TestAppUser>>();
-                services.AddSingleton<IPasskeySignInCompleter<TestAppUser>>(recorder);
+                // A map that names no completer falls back to the built-in Identity bearer one.
+                services.AddKeyedSingleton<ISignInCompleter<TestAppUser>>(SignInCompleters.IdentityBearer, recorder);
             });
         });
 

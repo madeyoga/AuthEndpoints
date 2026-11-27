@@ -1,8 +1,5 @@
 using System.Reflection;
-using AuthEndpoints.EmailCode;
-using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Identity;
-using AuthEndpoints.Jwt;
 using AuthEndpoints.OAuth.GitHub;
 using AuthEndpoints.Passkey;
 
@@ -25,61 +22,22 @@ public class CompatibilityMarkerTests
         "MapAuthEndpoints",
     ];
 
-    private static readonly string[] RenamedConstants =
-    [
-        "AnyCallerAuthenticationBuilderExtensions.SchemeName",
-    ];
-
     [Fact]
-    public void ObsoleteMarkers_NameTheSignInCompleterReplacement()
+    public void Core_HasNoObsoleteMembers()
     {
-        var markers = ObsoleteMembers(typeof(AuthEndpointsOptions).Assembly).ToArray();
-        Assert.NotEmpty(markers);
+        // 5.0 removed every API that 4.x marked "Removed in 5.0". The compiler marks the constructors of types with
+        // required members itself; those are not deprecations.
+        var markers = ObsoleteMembers(typeof(AuthEndpointsOptions).Assembly)
+            .Where(pair => !(pair.Obsolete.Message ?? "").StartsWith("Constructors of types with required members", StringComparison.Ordinal))
+            .Select(pair => Display(pair.Member) + ": " + pair.Obsolete.Message)
+            .ToArray();
 
-        foreach (var (member, obsolete) in markers)
-        {
-            var message = obsolete.Message ?? "";
-            if (message.StartsWith("Constructors of types with required members", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            if (RenamedConstants.Contains(Display(member)))
-            {
-                Assert.Contains("Removed in 5.0", message, StringComparison.Ordinal);
-                continue;
-            }
-
-            Assert.True(
-                message.Contains("ISignInCompleter", StringComparison.Ordinal)
-                && message.Contains("AddSignInCompleter", StringComparison.Ordinal)
-                && message.Contains("Removed in 5.0", StringComparison.Ordinal),
-                Display(member) + ": " + message);
-        }
-
-        Assert.All(markers, pair => Assert.DoesNotContain("o.SignIn.Completer", pair.Obsolete.Message ?? "", StringComparison.Ordinal));
-        Assert.Contains(markers, pair => pair.Member.Name == "AddCompleter");
-        Assert.Contains(markers, pair => pair.Member.Name == "AddEmailCodeSignInCompleter");
-        Assert.Contains(markers, pair => pair.Member.Name == "AddPasskeySignInCompleter");
-        Assert.Contains(markers, pair => pair.Member == typeof(IExternalLoginCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(CookieExternalLoginCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(JwtExternalLoginCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(IEmailCodeSignInCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(EmailCodeSignInContext));
-        Assert.Contains(markers, pair => pair.Member == typeof(IdentityEmailCodeSignInCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(JwtEmailCodeSignInCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(IPasskeySignInCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(PasskeySignInCompletionContext));
-        Assert.Contains(markers, pair => pair.Member == typeof(IdentityPasskeySignInCompleter<>));
-        Assert.Contains(markers, pair => pair.Member == typeof(JwtPasskeySignInCompleter<>));
+        Assert.Empty(markers);
     }
 
     [Fact]
-    public void RenamedSchemeConstant_KeepsItsValue()
+    public void AnyCallerScheme_KeepsItsValue()
     {
-#pragma warning disable CS0618
-        Assert.Equal(AuthEndpointsConstants.AnyCallerScheme, AnyCallerAuthenticationBuilderExtensions.SchemeName);
-#pragma warning restore CS0618
         Assert.Equal("AuthEndpoints.AnyCaller", AuthEndpointsConstants.AnyCallerScheme);
     }
 

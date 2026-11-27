@@ -1,3 +1,4 @@
+using AuthEndpoints.SignIn;
 ﻿using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
@@ -1567,7 +1568,6 @@ public partial class EmailCodeEndpointTests
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TContext>(options =>
             options.UseInMemoryDatabase("EmailCodeMap_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddSingleton<IEmailCodeSignInCompleter<TestAppUser>, UnusedEmailCodeSignInCompleter>();
         builder.Services.AddEmailCodeEndpoints<TestAppUser, TContext>();
         return builder.Build();
     }
@@ -1860,7 +1860,8 @@ public partial class EmailCodeEndpointTests
                 {
                     jwtOptions.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                 });
-                builder.Services.AddEmailCodeSignInCompleter<TestAppUser, JwtEmailCodeSignInCompleter<TestAppUser>>();
+                // The parameterless MapEmailCodeEndpoints below honors the configured default.
+                builder.Services.Configure<SignInCompletionOptions>(completion => completion.Default = SignInCompleters.Jwt);
             }
 
             builder.Services.AddSingleton<TimeProvider>(clock);
@@ -2367,18 +2368,6 @@ public partial class EmailCodeEndpointTests
         public override Task<IdentityResult> RedeemTwoFactorRecoveryCodeAsync(TestAppUser user, string code)
         {
             return Task.FromResult(IdentityResult.Failed(ErrorDescriber.RecoveryCodeRedemptionFailed()));
-        }
-    }
-
-    private sealed class UnusedEmailCodeSignInCompleter : IEmailCodeSignInCompleter<TestAppUser>
-    {
-        public Task<IResult> CompleteAsync(
-            HttpContext httpContext,
-            TestAppUser user,
-            EmailCodeSignInContext context,
-            CancellationToken cancellationToken = default)
-        {
-            throw new NotSupportedException();
         }
     }
 

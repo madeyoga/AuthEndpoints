@@ -116,31 +116,6 @@ internal sealed class OAuthSignInMethodCompleter<TUser>(ISignInCompleter<TUser> 
         => OAuthSignInMethodItem.RunAsync(httpContext, context.Method, () => inner.CompleteAsync(httpContext, user, context, cancellationToken));
 }
 
-#pragma warning disable CS0618 // The obsolete completer interfaces are still called by AuthEndpoints when a host registers its own.
-internal sealed class OAuthPasskeySignInMethodCompleter<TUser>(IPasskeySignInCompleter<TUser> inner) : IPasskeySignInCompleter<TUser>
-    where TUser : class
-{
-    public Task<IResult> CompleteAsync(
-        HttpContext httpContext, TUser user, PasskeySignInCompletionContext context, CancellationToken cancellationToken = default)
-        => OAuthSignInMethodItem.RunAsync(httpContext, SignInMethod.Passkey, () => inner.CompleteAsync(httpContext, user, context, cancellationToken));
-}
-
-internal sealed class OAuthEmailCodeSignInMethodCompleter<TUser>(IEmailCodeSignInCompleter<TUser> inner) : IEmailCodeSignInCompleter<TUser>
-    where TUser : class
-{
-    public Task<IResult> CompleteAsync(
-        HttpContext httpContext, TUser user, EmailCodeSignInContext context, CancellationToken cancellationToken = default)
-        => OAuthSignInMethodItem.RunAsync(httpContext, SignInMethod.EmailCode, () => inner.CompleteAsync(httpContext, user, context, cancellationToken));
-}
-
-internal sealed class OAuthExternalSignInMethodCompleter<TUser>(IExternalLoginCompleter<TUser> inner) : IExternalLoginCompleter<TUser>
-    where TUser : class
-{
-    public Task<IResult> CompleteAsync(
-        HttpContext httpContext, TUser user, ExternalLoginInfo info, string? returnUrl, CancellationToken cancellationToken = default)
-        => OAuthSignInMethodItem.RunAsync(httpContext, SignInMethod.External, () => inner.CompleteAsync(httpContext, user, info, returnUrl, cancellationToken));
-}
-
 /// <summary>
 /// Registers the wrappers for <typeparamref name="TUser"/>.
 /// <list type="bullet">
@@ -148,9 +123,6 @@ internal sealed class OAuthExternalSignInMethodCompleter<TUser>(IExternalLoginCo
 /// in place.</item>
 /// <item>The built-in <c>Cookie</c> and <c>IdentityBearer</c> completers are wrapped whichever is registered first: a closed
 /// registration wins over AuthEndpoints' open generic one, and the open generic is looked up when first needed.</item>
-/// <item>A host's own obsolete <see cref="IPasskeySignInCompleter{TUser}"/>, <see cref="IEmailCodeSignInCompleter{TUser}"/>, or
-/// <see cref="IExternalLoginCompleter{TUser}"/> is wrapped too. The built-in ones are returned unwrapped, because
-/// AuthEndpoints routes to an obsolete completer only when it is not the built-in type, and wrapping one would change that.</item>
 /// </list>
 /// A completer registered after this call is not wrapped. <see cref="OAuthSignInMethodAudit"/> names it at startup.
 /// </summary>
@@ -188,31 +160,7 @@ internal static class OAuthSignInMethodRegistration<TUser>
             ours.Add(descriptor);
         }
 
-        WrapLegacy<IPasskeySignInCompleter<TUser>>(services, ours, typeof(IdentityPasskeySignInCompleter<TUser>), inner => new OAuthPasskeySignInMethodCompleter<TUser>(inner));
-        WrapLegacy<IEmailCodeSignInCompleter<TUser>>(services, ours, typeof(IdentityEmailCodeSignInCompleter<TUser>), inner => new OAuthEmailCodeSignInMethodCompleter<TUser>(inner));
-        WrapLegacy<IExternalLoginCompleter<TUser>>(services, ours, typeof(CookieExternalLoginCompleter<TUser>), inner => new OAuthExternalSignInMethodCompleter<TUser>(inner));
         services.AddSingleton<OAuthSignInMethodAudit>(new OAuthSignInMethodAudit<TUser>(services, ours));
-    }
-
-    private static void WrapLegacy<TService>(
-        IServiceCollection services, HashSet<ServiceDescriptor> ours, Type builtIn, Func<TService, TService> wrap)
-        where TService : class
-    {
-        foreach (var existing in services.Where(descriptor => descriptor.ServiceType == typeof(TService) && !descriptor.IsKeyedService).ToList())
-        {
-            if (existing.ImplementationType == builtIn)
-            {
-                continue;
-            }
-
-            var index = services.IndexOf(existing);
-            services[index] = new ServiceDescriptor(typeof(TService), provider =>
-            {
-                var inner = (TService)Create(provider, existing, null);
-                return inner.GetType() == builtIn ? inner : wrap(inner);
-            }, existing.Lifetime);
-            ours.Add(services[index]);
-        }
     }
 
     private static object Create(IServiceProvider provider, ServiceDescriptor descriptor, object? key)
@@ -240,7 +188,6 @@ internal static class OAuthSignInMethodRegistration<TUser>
     private static object Activate(IServiceProvider provider, Type type)
         => ActivatorUtilities.CreateInstance(provider, type.IsGenericTypeDefinition ? type.MakeGenericType(typeof(TUser)) : type);
 }
-#pragma warning restore CS0618
 
 /// <summary>Finds sign-in completers registered after <c>AddOAuthServer</c>, whose cookies get no <c>amr</c>.</summary>
 internal abstract class OAuthSignInMethodAudit
@@ -248,28 +195,13 @@ internal abstract class OAuthSignInMethodAudit
     public abstract IReadOnlyList<string> Unwrapped();
 }
 
-#pragma warning disable CS0618
 internal sealed class OAuthSignInMethodAudit<TUser>(IServiceCollection services, HashSet<ServiceDescriptor> ours) : OAuthSignInMethodAudit
     where TUser : class
 {
     public override IReadOnlyList<string> Unwrapped()
     {
-        var builtIns = new[]
-        {
-            typeof(IdentityPasskeySignInCompleter<TUser>),
-            typeof(IdentityEmailCodeSignInCompleter<TUser>),
-            typeof(CookieExternalLoginCompleter<TUser>),
-        };
-        var types = new[]
-        {
-            typeof(ISignInCompleter<TUser>),
-            typeof(IPasskeySignInCompleter<TUser>),
-            typeof(IEmailCodeSignInCompleter<TUser>),
-            typeof(IExternalLoginCompleter<TUser>),
-        };
         return services
-            .Where(descriptor => types.Contains(descriptor.ServiceType) && !ours.Contains(descriptor))
-            .Where(descriptor => !builtIns.Contains(descriptor.IsKeyedService ? descriptor.KeyedImplementationType : descriptor.ImplementationType))
+            .Where(descriptor => descriptor.ServiceType == typeof(ISignInCompleter<TUser>) && !ours.Contains(descriptor))
             .Select(descriptor => descriptor.IsKeyedService
                 ? $"{descriptor.ServiceType.Name.Split('`')[0]} '{descriptor.ServiceKey}'"
                 : descriptor.ServiceType.Name.Split('`')[0])
@@ -277,7 +209,6 @@ internal sealed class OAuthSignInMethodAudit<TUser>(IServiceCollection services,
             .ToList();
     }
 }
-#pragma warning restore CS0618
 
 /// <summary>The sign-in method of the completer that is running in this request, if any.</summary>
 internal static class OAuthSignInMethodItem

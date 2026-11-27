@@ -247,7 +247,6 @@ internal static class PasskeyEndpoints<TUser>
         UserManager<TUser> userManager,
         IUserStore<TUser> userStore,
         SignInManager<TUser> signInManager,
-        IPasskeySignInCompleter<TUser> completer,
         string confirmEmailEndpointName,
         CancellationToken cancellationToken)
     {
@@ -314,16 +313,12 @@ internal static class PasskeyEndpoints<TUser>
 
         return await PasskeySignInGate.CompleteIfAllowedAsync(
             signInManager,
-            completer,
             httpContext,
             user,
-            new PasskeySignInCompletionContext
-            {
-                Kind = PasskeySignInKind.Register,
-                UseCookies = useCookies,
-                UseSessionCookies = useSessionCookies,
-                CredentialId = attestationResult.Passkey.CredentialId
-            },
+            PasskeySignInKind.Register,
+            attestationResult.Passkey.CredentialId,
+            useCookies,
+            useSessionCookies,
             cancellationToken);
     }
 
@@ -334,7 +329,6 @@ internal static class PasskeyEndpoints<TUser>
         HttpContext httpContext,
         UserManager<TUser> userManager,
         SignInManager<TUser> signInManager,
-        IPasskeySignInCompleter<TUser> completer,
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(request.CredentialJson))
@@ -374,15 +368,12 @@ internal static class PasskeyEndpoints<TUser>
 
         return await PasskeySignInGate.CompleteIfAllowedAsync(
             signInManager,
-            completer,
             httpContext,
             assertionResult.User,
-            new PasskeySignInCompletionContext
-            {
-                Kind = PasskeySignInKind.Login,
-                UseCookies = useCookies,
-                UseSessionCookies = useSessionCookies
-            },
+            PasskeySignInKind.Login,
+            credentialId: null,
+            useCookies,
+            useSessionCookies,
             cancellationToken);
     }
 

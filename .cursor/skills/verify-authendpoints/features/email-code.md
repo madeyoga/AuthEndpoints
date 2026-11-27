@@ -50,7 +50,7 @@ Preconditions:
 
 ## Gotchas
 
-- The compose host maps email-code verify with `IdentityEmailCodeSignInCompleter`. No query flag returns a bearer token, not the application cookie. Cookie login's `useCookies` flag is a different route.
+- The compose host maps email-code verify with no session, so it finishes with the built-in `IdentityBearer` completer. No query flag returns a bearer token, not the application cookie. Cookie login's `useCookies` flag is a different route.
 - This host still maps password register and login when email code is on. The email-code-only recipe (no password routes) is not this process.
 - Verifying an unconfirmed account that has a password, an external login, or a passkey removes those credentials and then confirms the email. Confirm the address first when that credential must stay. Those user-row writes are not email-code consumes; the trace assert counts only `AuthEndpointsEmailCodes`.
 - `GET /test/mailbox` is not a library route. Cite `/identity/emailCode/send` and `/identity/emailCode/verify` as the product proof.

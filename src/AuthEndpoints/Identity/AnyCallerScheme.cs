@@ -33,10 +33,6 @@ public sealed class AnyCallerSchemeOptions
 
 public static class AnyCallerAuthenticationBuilderExtensions
 {
-    /// <summary>Use <see cref="AuthEndpointsConstants.AnyCallerScheme"/>.</summary>
-    [Obsolete("Use AuthEndpointsConstants.AnyCallerScheme. Removed in 5.0.")]
-    public const string SchemeName = AuthEndpointsConstants.AnyCallerScheme;
-
     /// <summary>
     /// Adds an opt-in policy scheme that picks exactly one handler from the request's credential: an API key (by
     /// <see cref="AnyCallerSchemeOptions.ApiKeyPrefix"/>) goes to the API key scheme, any other <c>Authorization</c>

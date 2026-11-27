@@ -40,7 +40,6 @@ internal static class ExternalAuthEndpoints<TUser>
         [FromQuery] string? error,
         [FromQuery] string? error_description,
         ExternalLoginService<TUser> loginService,
-        IExternalLoginCompleter<TUser> completer,
         IOptions<ExternalAuthOptions> options,
         HttpContext httpContext,
         CancellationToken cancellationToken)
@@ -76,7 +75,6 @@ internal static class ExternalAuthEndpoints<TUser>
                 provision.Info!,
                 returnUrl,
                 provision.Created,
-                completer,
                 cancellationToken);
         }
         catch

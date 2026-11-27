@@ -1,5 +1,3 @@
-using AuthEndpoints.EmailCode;
-using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -8,6 +6,10 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.SignIn;
 
+/// <summary>
+/// Finishes a sign-in with the <see cref="ISignInCompleter{TUser}"/> the route selected: the name its map passed,
+/// else <see cref="SignInCompletionOptions.Default"/> on a map that honors it, else the method's built-in default.
+/// </summary>
 internal static class SignInCompletion
 {
     public static string? ExplicitName(HttpContext httpContext)
@@ -15,48 +17,17 @@ internal static class SignInCompletion
         return httpContext.GetEndpoint()?.Metadata.GetMetadata<SignInCompleterSelection>()?.Name;
     }
 
-    public static async Task<IResult> CompleteEmailCodeAsync<TUser>(
+    /// <summary>No name selected: Identity bearer, or the application cookie with <c>useCookies</c> or <c>useSessionCookies</c>.</summary>
+    public static Task<IResult> CompleteEmailCodeAsync<TUser>(
         HttpContext httpContext,
         TUser user,
-        IEmailCodeSignInCompleter<TUser> legacy,
         bool isNewUser,
         bool? useCookies,
         bool? useSessionCookies,
         CancellationToken cancellationToken)
         where TUser : class
     {
-        var explicitName = ExplicitName(httpContext);
-        if (explicitName is null && LegacySignInCompleters.EmailCodeWins(httpContext.RequestServices, legacy))
-        {
-            return await legacy.CompleteAsync(
-                httpContext,
-                user,
-                new EmailCodeSignInContext
-                {
-                    UseCookies = useCookies,
-                    UseSessionCookies = useSessionCookies,
-                    IsNewUser = isNewUser,
-                },
-                cancellationToken);
-        }
-
-        var name = ResolveName(httpContext, explicitName);
-        if (name is null)
-        {
-            return await legacy.CompleteAsync(
-                httpContext,
-                user,
-                new EmailCodeSignInContext
-                {
-                    UseCookies = useCookies,
-                    UseSessionCookies = useSessionCookies,
-                    IsNewUser = isNewUser,
-                },
-                cancellationToken);
-        }
-
-        var completer = httpContext.RequestServices.GetRequiredKeyedService<ISignInCompleter<TUser>>(name);
-        return await completer.CompleteAsync(
+        return CompleteAsync(
             httpContext,
             user,
             new SignInCompletionContext
@@ -66,64 +37,48 @@ internal static class SignInCompletion
                 UseSessionCookies = useSessionCookies,
                 IsNewUser = isNewUser,
             },
+            SignInCompleters.IdentityBearer,
             cancellationToken);
     }
 
-    public static async Task<IResult> CompletePasskeyAsync<TUser>(
+    /// <summary>No name selected: Identity bearer, or the application cookie with <c>useCookies</c> or <c>useSessionCookies</c>.</summary>
+    public static Task<IResult> CompletePasskeyAsync<TUser>(
         HttpContext httpContext,
         TUser user,
-        PasskeySignInCompletionContext legacyContext,
-        IPasskeySignInCompleter<TUser> legacy,
+        PasskeySignInKind kind,
+        byte[]? credentialId,
+        bool? useCookies,
+        bool? useSessionCookies,
         CancellationToken cancellationToken)
         where TUser : class
     {
-        var explicitName = ExplicitName(httpContext);
-        if (explicitName is null && LegacySignInCompleters.PasskeyWins(httpContext.RequestServices, legacy))
-        {
-            return await legacy.CompleteAsync(httpContext, user, legacyContext, cancellationToken);
-        }
-
-        var name = ResolveName(httpContext, explicitName);
-        if (name is null)
-        {
-            return await legacy.CompleteAsync(httpContext, user, legacyContext, cancellationToken);
-        }
-
-        var completer = httpContext.RequestServices.GetRequiredKeyedService<ISignInCompleter<TUser>>(name);
-        return await completer.CompleteAsync(
+        return CompleteAsync(
             httpContext,
             user,
             new SignInCompletionContext
             {
                 Method = SignInMethod.Passkey,
-                UseCookies = legacyContext.UseCookies,
-                UseSessionCookies = legacyContext.UseSessionCookies,
-                IsNewUser = legacyContext.Kind == PasskeySignInKind.Register,
-                PasskeyKind = legacyContext.Kind,
-                PasskeyCredentialId = legacyContext.CredentialId,
+                UseCookies = useCookies,
+                UseSessionCookies = useSessionCookies,
+                IsNewUser = kind == PasskeySignInKind.Register,
+                PasskeyKind = kind,
+                PasskeyCredentialId = credentialId,
             },
+            SignInCompleters.IdentityBearer,
             cancellationToken);
     }
 
-    public static async Task<IResult> CompleteExternalAsync<TUser>(
+    /// <summary>No name selected: the application cookie.</summary>
+    public static Task<IResult> CompleteExternalAsync<TUser>(
         HttpContext httpContext,
         TUser user,
         ExternalLoginInfo info,
         string? returnUrl,
         bool isNewUser,
-        IExternalLoginCompleter<TUser> legacy,
         CancellationToken cancellationToken)
         where TUser : class
     {
-        var explicitName = ExplicitName(httpContext);
-        if (explicitName is null && LegacySignInCompleters.ExternalWins(httpContext.RequestServices, legacy))
-        {
-            return await legacy.CompleteAsync(httpContext, user, info, returnUrl, cancellationToken);
-        }
-
-        var name = ResolveName(httpContext, explicitName) ?? SignInCompleters.Cookie;
-        var completer = httpContext.RequestServices.GetRequiredKeyedService<ISignInCompleter<TUser>>(name);
-        return await completer.CompleteAsync(
+        return CompleteAsync(
             httpContext,
             user,
             new SignInCompletionContext
@@ -133,7 +88,21 @@ internal static class SignInCompletion
                 ExternalLogin = info,
                 ReturnUrl = returnUrl,
             },
+            SignInCompleters.Cookie,
             cancellationToken);
+    }
+
+    private static Task<IResult> CompleteAsync<TUser>(
+        HttpContext httpContext,
+        TUser user,
+        SignInCompletionContext context,
+        string fallback,
+        CancellationToken cancellationToken)
+        where TUser : class
+    {
+        var name = ResolveName(httpContext, ExplicitName(httpContext)) ?? fallback;
+        var completer = httpContext.RequestServices.GetRequiredKeyedService<ISignInCompleter<TUser>>(name);
+        return completer.CompleteAsync(httpContext, user, context, cancellationToken);
     }
 
     private static string? ResolveName(HttpContext httpContext, string? explicitName)

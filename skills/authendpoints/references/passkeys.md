@@ -22,7 +22,7 @@ Rename trims the name and rejects more than 200 characters. Delete returns valid
 
 `Passkey.ObtainOptions` is 5 requests per minute per IP. `Passkey.Register` is 3 requests per minute per IP. The ceremony state cookie is `Identity.TwoFactorUserId`. The client sends that single-use cookie from the options call to the verify call. A ReAuth credential alone leaves the signed-in passkey routes unauthorized.
 
-`MapPasskeySignInEndpoints<TUser>(string?)` sets the confirm-email endpoint name. A string that matches a completer name still sets that endpoint name, and map time logs a warning on the `AuthEndpoints` category. Pass `AuthEndpointsSession` to select a session. `AddPasskeySignInCompleter` is obsolete. Implement `ISignInCompleter<TUser>` and register it with `AddSignInCompleter`.
+`MapPasskeySignInEndpoints<TUser>(string?)` sets the confirm-email endpoint name. A string that matches a completer name still sets that endpoint name, and map time logs a warning on the `AuthEndpoints` category. Pass `AuthEndpointsSession` to select a session. For a custom sign-in, implement `ISignInCompleter<TUser>`, register it with `AddSignInCompleter`, and pass its name to the map.
 
 The builder registers the split passkey and password modules, not the bundles. An extra `MapCookieAuthEndpoints` on this host throws `Call AddPasswordEndpoints before MapCookieAuthEndpoints.` An extra `MapIdentityManagementApi` throws `Call AddPasswordEndpoints before MapPasswordEndpoints.`
 

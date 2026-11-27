@@ -241,7 +241,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         {
             // Redirects cannot carry the refresh token. Refuse before CreateAsync so a body
             // session never stores a token the browser will not receive.
-            throw new InvalidOperationException(JwtExternalBodyTransportValidator.Message);
+            throw new InvalidOperationException(JwtExternalBodyTransport.Message);
         }
 
         var claimsPrincipal = await _claimsFactory.CreateAsync(user);

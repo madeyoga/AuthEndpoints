@@ -1,64 +1,66 @@
 using AuthEndpoints.External.OAuth;
 using AuthEndpoints.Jwt;
+using AuthEndpoints.SignIn;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth.Tests;
 
+/// <summary>
+/// External sign-in redirects, so it cannot hand a JWT session its refresh token in a response body.
+/// Mapping it for a body-transport JWT session throws, and the JWT completer refuses before it stores a token.
+/// </summary>
 public class JwtExternalBodyTransportTests
 {
     [Fact]
-    public async Task BodyTransport_FailsStartup_AndStoresNoRefreshToken()
+    public async Task BodyTransport_MapExternalForJwt_Throws()
     {
         await using var app = Build(RefreshTokenTransport.Body);
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ExternalJwtDb>();
-        await db.Database.EnsureCreatedAsync();
 
-        // SimpleJwtOptions is fixed at AddJwtEndpoints, so the check runs at startup (ValidateOnStart).
-        // CompleteAsync checks again before it creates a token (next test).
-        var startup = await Assert.ThrowsAnyAsync<Exception>(() => app.StartAsync());
-        Assert.Contains(JwtExternalBodyTransportValidator.Message, startup.ToString(), StringComparison.Ordinal);
-        Assert.Equal(0, await db.Set<RefreshToken>().CountAsync());
+        var error = Assert.Throws<InvalidOperationException>(() =>
+            app.MapGroup("/auth/external").MapExternalAuthEndpoints<ExternalJwtUser>(AuthEndpointsSession.Jwt));
+
+        Assert.Equal(JwtExternalBodyTransport.Message, error.Message);
     }
 
     [Fact]
-    public async Task BodyTransport_CompleteAsync_ThrowsBeforeCreatingAToken()
-    {
-        var services = new ServiceCollection();
-        services.AddOptions<SimpleJwtOptions>()
-            .Configure(options => options.RefreshTokenTransport = RefreshTokenTransport.Body);
-        using var provider = services.BuildServiceProvider();
-        var refresh = new RejectingRefreshTokens();
-        var completer = new JwtExternalLoginCompleter<ExternalJwtUser>(
-            null!,
-            null!,
-            refresh,
-            new RefreshTokenCookieWriter(),
-            Options.Create(new ExternalAuthOptions()));
-        var http = new DefaultHttpContext { RequestServices = provider };
-
-        var error = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            completer.CompleteAsync(http, new ExternalJwtUser(), null!, "/", CancellationToken.None));
-
-        Assert.Equal(JwtExternalBodyTransportValidator.Message, error.Message);
-        Assert.Equal(0, refresh.CreateCalls);
-    }
-
-    [Fact]
-    public async Task CookieTransport_Starts()
+    public async Task CookieTransport_MapExternalForJwt_Starts()
     {
         await using var app = Build(RefreshTokenTransport.Cookie);
+        app.MapGroup("/auth/external").MapExternalAuthEndpoints<ExternalJwtUser>(AuthEndpointsSession.Jwt);
+
         await app.StartAsync();
         await app.StopAsync();
     }
 
-    private static WebApplication Build(RefreshTokenTransport transport)
+    [Fact]
+    public async Task BodyTransport_JwtCompleter_RefusesExternalBeforeCreatingAToken()
+    {
+        var refresh = new RejectingRefreshTokens();
+        await using var app = Build(RefreshTokenTransport.Body, refresh);
+        await using var scope = app.Services.CreateAsyncScope();
+        await scope.ServiceProvider.GetRequiredService<ExternalJwtDb>().Database.EnsureCreatedAsync();
+        var users = scope.ServiceProvider.GetRequiredService<UserManager<ExternalJwtUser>>();
+        var user = new ExternalJwtUser { UserName = "external@example.com", Email = "external@example.com" };
+        Assert.True((await users.CreateAsync(user)).Succeeded);
+        var completer = scope.ServiceProvider.GetRequiredKeyedService<ISignInCompleter<ExternalJwtUser>>(SignInCompleters.Jwt);
+        var http = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => completer.CompleteAsync(
+            http,
+            user,
+            new SignInCompletionContext { Method = SignInMethod.External, ReturnUrl = "/" }));
+
+        Assert.Equal(JwtExternalBodyTransport.Message, error.Message);
+        Assert.Equal(0, refresh.CreateCalls);
+    }
+
+    private static WebApplication Build(RefreshTokenTransport transport, IRefreshTokenService? refreshTokens = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.Environment.EnvironmentName = Environments.Development;
@@ -69,6 +71,7 @@ public class JwtExternalBodyTransportTests
             .AddEntityFrameworkStores<ExternalJwtDb>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
+        builder.Services.AddAuthentication();
         builder.Services.AddJwtEndpoints<ExternalJwtUser, ExternalJwtDb>(options =>
         {
             options.Issuer = "https://jwt.example";
@@ -76,8 +79,12 @@ public class JwtExternalBodyTransportTests
             options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             options.RefreshTokenTransport = transport;
         });
-        builder.Services.AddExternalAuthEndpoints<ExternalJwtUser>()
-            .AddCompleter<JwtExternalLoginCompleter<ExternalJwtUser>>();
+        builder.Services.AddExternalAuthEndpoints<ExternalJwtUser>();
+        if (refreshTokens is not null)
+        {
+            builder.Services.AddScoped(_ => refreshTokens);
+        }
+
         return builder.Build();
     }
 

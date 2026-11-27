@@ -14,8 +14,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps login and callback routes for every registered <see cref="IExternalAuthProvider"/>.
-    /// The callback uses the cookie completer unless <see cref="SignInCompletionOptions.Default"/> names one,
-    /// or the host registered <see cref="IExternalLoginCompleter{TUser}"/> with <see cref="ExternalAuthBuilder.AddCompleter{TCompleter}"/>.
+    /// The callback uses the cookie completer unless <see cref="SignInCompletionOptions.Default"/> names one.
     /// </summary>
     public static IEndpointConventionBuilder MapExternalAuthEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -246,13 +245,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
     {
         if (completer is null)
         {
-            var legacy = LegacySignInCompleters.ExternalWins<TUser>(endpoints.ServiceProvider);
-            SignInCompleterMap.EnsureConfiguredDefault<TUser>(endpoints, mapMethod, legacy);
-            if (legacy)
-            {
-                return;
-            }
-
+            SignInCompleterMap.EnsureConfiguredDefault<TUser>(endpoints, mapMethod);
             var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
             var name = string.IsNullOrWhiteSpace(configured) ? SignInCompleters.Cookie : configured;
             if (string.IsNullOrWhiteSpace(configured))
@@ -277,7 +270,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 
         if (JwtRefreshDelivery.IsBody(JwtRefreshDelivery.Session(endpoints.ServiceProvider)))
         {
-            throw new InvalidOperationException(JwtExternalBodyTransportValidator.Message);
+            throw new InvalidOperationException(JwtExternalBodyTransport.Message);
         }
     }
 
@@ -314,7 +307,6 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
             string? error,
             string? error_description,
             ExternalLoginService<TUser> loginService,
-            IExternalLoginCompleter<TUser> legacy,
             IOptions<ExternalAuthOptions> options,
             HttpContext httpContext,
             CancellationToken cancellationToken) =>
@@ -324,7 +316,6 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
                     error,
                     error_description,
                     loginService,
-                    legacy,
                     options,
                     httpContext,
                     cancellationToken))

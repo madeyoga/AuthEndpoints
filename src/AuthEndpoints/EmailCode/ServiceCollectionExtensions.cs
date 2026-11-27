@@ -85,7 +85,6 @@ public static class ServiceCollectionExtensions
         services.AddModule<EmailCodeSignInEndpointsModule>();
         AddEmailCodeInfrastructure<TUser, TContext>(services, configure);
         services.AddLoginRateLimiting();
-        services.TryAddScoped<IEmailCodeSignInCompleter<TUser>, IdentityEmailCodeSignInCompleter<TUser>>();
         SignInCompleterRegistry.AddIdentityCompleters(services);
         return services;
     }
@@ -128,21 +127,6 @@ public static class ServiceCollectionExtensions
         {
             services.AddOptions<EmailCodeOptions>().Configure(configure);
         }
-    }
-
-    /// <summary>
-    /// Replaces the default <see cref="IEmailCodeSignInCompleter{TUser}"/>
-    /// (for example with <c>JwtEmailCodeSignInCompleter&lt;TUser&gt;</c>).
-    /// </summary>
-    [Obsolete(LegacyCompleterMessages.Obsolete)]
-    public static IServiceCollection AddEmailCodeSignInCompleter<TUser, TCompleter>(this IServiceCollection services)
-        where TUser : class
-        where TCompleter : class, IEmailCodeSignInCompleter<TUser>
-    {
-        ArgumentNullException.ThrowIfNull(services);
-        services.AddScoped<IEmailCodeSignInCompleter<TUser>, TCompleter>();
-        LegacySignInCompleters.MarkEmailCode<TUser>(services);
-        return services;
     }
 
     private static void AddEmailCodeSendRateLimiting(IServiceCollection services)

@@ -242,16 +242,6 @@ namespace AuthEndpoints.EmailCode
         public int ExpiresInSeconds { get; init; }
         public int ResendAfterSeconds { get; init; }
     }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class EmailCodeSignInContext
-    {
-        public EmailCodeSignInContext() { }
-        public bool IsNewUser { get; init; }
-        public bool? UseCookies { get; init; }
-        public bool? UseSessionCookies { get; init; }
-    }
     public enum EmailCodeUnconfirmedAccounts
     {
         ConfirmAndResetCredentials = 0,
@@ -271,23 +261,6 @@ namespace AuthEndpoints.EmailCode
     {
         System.Threading.Tasks.Task SendSignInCodeAsync(AuthEndpoints.EmailCode.EmailCodeMessage<TUser> message, System.Threading.CancellationToken cancellationToken = default);
     }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public interface IEmailCodeSignInCompleter<TUser>
-        where TUser :  class
-    {
-        System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.EmailCode.EmailCodeSignInContext context, System.Threading.CancellationToken cancellationToken = default);
-    }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class IdentityEmailCodeSignInCompleter<TUser> : AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser>
-        where TUser :  class
-    {
-        public IdentityEmailCodeSignInCompleter(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.EmailCode.EmailCodeSignInContext context, System.Threading.CancellationToken cancellationToken = default) { }
-    }
     public static class ServiceCollectionExtensions
     {
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
@@ -296,12 +269,6 @@ namespace AuthEndpoints.EmailCode
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSendEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
             where TUser :  class, new ()
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-            "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-            "ions.Default. Removed in 5.0.")]
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
-            where TUser :  class
-            where TCompleter :  class, AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser> { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
             where TUser :  class, new ()
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
@@ -309,25 +276,11 @@ namespace AuthEndpoints.EmailCode
 }
 namespace AuthEndpoints.External.OAuth
 {
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class CookieExternalLoginCompleter<TUser> : AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser>
-        where TUser :  class
-    {
-        public CookieExternalLoginCompleter(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options) { }
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default) { }
-    }
     public sealed class ExternalAuthBuilder
     {
         public ExternalAuthBuilder(System.Type userType, Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
         public System.Type UserType { get; }
-        [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-            "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-            "ions.Default. Removed in 5.0.")]
-        public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddCompleter<TCompleter>()
-            where TCompleter :  class { }
         public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddProvider(AuthEndpoints.External.OAuth.IExternalAuthProvider provider) { }
         public AuthEndpoints.External.OAuth.ExternalAuthBuilder AddProvider<TProvider>()
             where TProvider :  class, AuthEndpoints.External.OAuth.IExternalAuthProvider { }
@@ -416,23 +369,6 @@ namespace AuthEndpoints.External.OAuth
         string LoginPath { get; }
         string Scheme { get; }
     }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public interface IExternalLoginCompleter<TUser>
-        where TUser :  class
-    {
-        System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default);
-    }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class JwtExternalLoginCompleter<TUser> : AuthEndpoints.External.OAuth.IExternalLoginCompleter<TUser>
-        where TUser :  class
-    {
-        public JwtExternalLoginCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter, Microsoft.Extensions.Options.IOptions<AuthEndpoints.External.OAuth.ExternalAuthOptions> options) { }
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, Microsoft.AspNetCore.Identity.ExternalLoginInfo info, string? returnUrl, System.Threading.CancellationToken cancellationToken = default) { }
-    }
     public static class OAuthTicketChain
     {
         public static void Seal(Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents events, System.Func<Microsoft.AspNetCore.Authentication.OAuth.OAuthCreatingTicketContext, System.Threading.Tasks.Task> enrich) { }
@@ -504,8 +440,6 @@ namespace AuthEndpoints.Identity
     }
     public static class AnyCallerAuthenticationBuilderExtensions
     {
-        [System.Obsolete("Use AuthEndpointsConstants.AnyCallerScheme. Removed in 5.0.")]
-        public const string SchemeName = "AuthEndpoints.AnyCaller";
         public static Microsoft.AspNetCore.Authentication.AuthenticationBuilder AddAnyCallerScheme(this Microsoft.AspNetCore.Authentication.AuthenticationBuilder builder, System.Action<AuthEndpoints.Identity.AnyCallerSchemeOptions>? configure = null, string scheme = "AuthEndpoints.AnyCaller") { }
     }
     public sealed class AnyCallerSchemeOptions
@@ -788,24 +722,6 @@ namespace AuthEndpoints.Jwt
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapJwtSessionEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
             where TUser :  class, new () { }
     }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class JwtEmailCodeSignInCompleter<TUser> : AuthEndpoints.EmailCode.IEmailCodeSignInCompleter<TUser>
-        where TUser :  class
-    {
-        public JwtEmailCodeSignInCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.EmailCode.EmailCodeSignInContext context, System.Threading.CancellationToken cancellationToken = default) { }
-    }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class JwtPasskeySignInCompleter<TUser> : AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser>
-        where TUser :  class
-    {
-        public JwtPasskeySignInCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default) { }
-    }
     public class RefreshToken
     {
         public RefreshToken() { }
@@ -946,26 +862,9 @@ namespace AuthEndpoints.Passkey
         public DefaultPasskeyUserIdFactory() { }
         public string CreateUserId() { }
     }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public interface IPasskeySignInCompleter<TUser>
-        where TUser :  class
-    {
-        System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default);
-    }
     public interface IPasskeyUserIdFactory
     {
         string CreateUserId();
-    }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class IdentityPasskeySignInCompleter<TUser> : AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser>
-        where TUser :  class
-    {
-        public IdentityPasskeySignInCompleter(Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
-        public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class PasskeyApiEndpointRouteBuilderExtensions
     {
@@ -1029,17 +928,6 @@ namespace AuthEndpoints.Passkey
         public PasskeyRequestOptionsRequest(string? Email = null) { }
         public string? Email { get; init; }
     }
-    [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-        "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-        "ions.Default. Removed in 5.0.")]
-    public sealed class PasskeySignInCompletionContext
-    {
-        public PasskeySignInCompletionContext() { }
-        public byte[]? CredentialId { get; init; }
-        public required AuthEndpoints.Passkey.PasskeySignInKind Kind { get; init; }
-        public bool? UseCookies { get; init; }
-        public bool? UseSessionCookies { get; init; }
-    }
     public enum PasskeySignInKind
     {
         Login = 0,
@@ -1058,12 +946,6 @@ namespace AuthEndpoints.Passkey
             where TUser :  class { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyManagementEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeyRegisterOptionsEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
-        [System.Obsolete("Implement ISignInCompleter<TUser> and register it with AddSignInCompleter<TUser, " +
-            "TCompleter>(name). Pass that name to the sign-in map, or set SignInCompletionOpt" +
-            "ions.Default. Removed in 5.0.")]
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
-            where TUser :  class
-            where TCompleter :  class, AuthEndpoints.Passkey.IPasskeySignInCompleter<TUser> { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddPasskeySignInEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
             where TUser :  class { }

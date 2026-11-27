@@ -10,7 +10,7 @@ public class ShimCompileTests
         Assert.Equal("AuthEndpoints", typeof(ExternalAuthOptions).Assembly.GetName().Name);
         Assert.Equal("AuthEndpoints", typeof(OAuthTicketChain).Assembly.GetName().Name);
         Assert.Equal("AuthEndpoints", typeof(ExternalAuthEndpointRouteBuilderExtensions).Assembly.GetName().Name);
-        Assert.Equal("AuthEndpoints", typeof(IExternalLoginCompleter<>).Assembly.GetName().Name);
+        Assert.Equal("AuthEndpoints", typeof(ExternalLoginService<>).Assembly.GetName().Name);
         _ = new ExternalAuthOptions();
     }
 }

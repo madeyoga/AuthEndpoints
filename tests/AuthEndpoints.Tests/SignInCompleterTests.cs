@@ -79,7 +79,7 @@ public class SignInCompleterTests
     }
 
     [Fact]
-    public async Task NoArgument_StaysOn3xHandlers_AndDoesNotResolveKeyedCompleter()
+    public async Task NoArgument_PasswordStaysOn3xHandlers_EmailCodeAndPasskeyUseTheIdentityBearerName()
     {
         await using var host = await SignInHost.StartAsync(o =>
         {
@@ -119,14 +119,15 @@ public class SignInCompleterTests
         var verify = await host.Client.PostAsync(
             "/default-email/emailCode/verify",
             new { email = codeEmail, code = host.Code(codeEmail) });
-        await AssertSession(verify, SessionKind.IdentityBearer, passkeyRegister: false);
+        // 5.0: with no completer named, email code and passkeys finish with the completer registered as
+        // IdentityBearer, so replacing that name replaces their default too. 4.x used a separate legacy completer.
+        Assert.Equal("keyed", await MarkerAsync(verify));
+        Assert.Equal(1, host.Counter.Calls);
 
         var passkeyEmail = UniqueEmail("default-passkey");
         var (register, _) = await host.RegisterPasskeyAsync("/default-passkey/passkeys", passkeyEmail);
-        await AssertSession(register, SessionKind.IdentityBearer, passkeyRegister: true);
-
-        Assert.Equal(0, host.Counter.Calls);
-        Assert.Equal(0, host.Counter.Constructions);
+        Assert.Equal("keyed", await MarkerAsync(register));
+        Assert.Equal(2, host.Counter.Calls);
     }
 
     [Fact]
@@ -319,52 +320,6 @@ public class SignInCompleterTests
         Assert.False(string.IsNullOrEmpty(TestHelpers.TryGetString(doc.RootElement, "credentialId", "CredentialId")));
         Assert.Equal(0, passkeyHost.Counter.Calls);
         Assert.Equal(0, passkeyHost.Counter.Constructions);
-    }
-
-    [Fact]
-    public async Task LegacyCompleter_WinsOverDefault_ExplicitMapWinsOverLegacy()
-    {
-        await using var host = await SignInHost.StartAsync(o =>
-        {
-            o.DefaultCompleter = SignInCompleters.Jwt;
-            o.RegisterKeyedSpy = true;
-            o.SpyName = SignInCompleters.Jwt;
-            o.LegacyEmail = true;
-            o.LegacyPasskey = true;
-            o.Map = app =>
-            {
-                app.MapGroup("/email").MapEmailCodeEndpoints<TestAppUser>();
-                app.MapGroup("/email-jwt").MapEmailCodeEndpoints<TestAppUser>(AuthEndpointsSession.Jwt);
-                app.MapGroup("/passkey").MapPasskeySignInEndpoints<TestAppUser>("legacy-passkey-confirm");
-                app.MapGroup("/passkey-jwt").MapPasskeySignInEndpoints<TestAppUser>(AuthEndpointsSession.Jwt, "legacy-passkey-jwt-confirm");
-            };
-        });
-
-        var email = UniqueEmail("legacy-email");
-        await host.SeedAsync(email);
-        Assert.Equal(HttpStatusCode.OK, (await host.Client.PostAsync("/email/emailCode/send", new { email })).StatusCode);
-        var legacy = await host.Client.PostAsync("/email/emailCode/verify", new { email, code = host.Code(email) });
-        Assert.Equal("email", await MarkerAsync(legacy));
-        Assert.Equal(1, host.LegacyEmailCount.Calls);
-        Assert.Equal(0, host.Counter.Calls);
-
-        var forcedEmail = UniqueEmail("forced-email");
-        await host.SeedAsync(forcedEmail);
-        Assert.Equal(HttpStatusCode.OK, (await host.Client.PostAsync("/email-jwt/emailCode/send", new { email = forcedEmail })).StatusCode);
-        var forced = await host.Client.PostAsync("/email-jwt/emailCode/verify", new { email = forcedEmail, code = host.Code(forcedEmail) });
-        Assert.Equal("keyed", await MarkerAsync(forced));
-        Assert.Equal(1, host.LegacyEmailCount.Calls);
-        Assert.Equal(1, host.Counter.Calls);
-
-        var (passkey, _) = await host.RegisterPasskeyAsync("/passkey/passkeys", UniqueEmail("legacy-passkey"));
-        Assert.Equal("passkey", await MarkerAsync(passkey));
-        Assert.Equal(1, host.LegacyPasskeyCount.Calls);
-        Assert.Equal(1, host.Counter.Calls);
-
-        var (forcedPasskey, _) = await host.RegisterPasskeyAsync("/passkey-jwt/passkeys", UniqueEmail("forced-passkey"));
-        Assert.Equal("keyed", await MarkerAsync(forcedPasskey));
-        Assert.Equal(1, host.LegacyPasskeyCount.Calls);
-        Assert.Equal(2, host.Counter.Calls);
     }
 
     [Fact]
@@ -778,9 +733,7 @@ internal class SignInCompleterCounter
 
 internal sealed class KeyedSpyCounter : SignInCompleterCounter;
 
-internal sealed class LegacyEmailCounter : SignInCompleterCounter;
 
-internal sealed class LegacyPasskeyCounter : SignInCompleterCounter;
 
 internal sealed class CountingSignInCompleter : ISignInCompleter<TestAppUser>
 {
@@ -842,46 +795,6 @@ internal sealed class BetaCompleter : ISignInCompleter<TestAppUser>
         => Task.FromResult<IResult>(TypedResults.Empty);
 }
 
-internal sealed class LegacyEmailCodeSpy : IEmailCodeSignInCompleter<TestAppUser>
-{
-    private readonly LegacyEmailCounter _counter;
-
-    public LegacyEmailCodeSpy(LegacyEmailCounter counter)
-    {
-        _counter = counter;
-    }
-
-    public Task<IResult> CompleteAsync(
-        HttpContext httpContext,
-        TestAppUser user,
-        EmailCodeSignInContext context,
-        CancellationToken cancellationToken = default)
-    {
-        Interlocked.Increment(ref _counter.Calls);
-        return Task.FromResult<IResult>(TypedResults.Ok(new { marker = "email" }));
-    }
-}
-
-internal sealed class LegacyPasskeySpy : IPasskeySignInCompleter<TestAppUser>
-{
-    private readonly LegacyPasskeyCounter _counter;
-
-    public LegacyPasskeySpy(LegacyPasskeyCounter counter)
-    {
-        _counter = counter;
-    }
-
-    public Task<IResult> CompleteAsync(
-        HttpContext httpContext,
-        TestAppUser user,
-        PasskeySignInCompletionContext context,
-        CancellationToken cancellationToken = default)
-    {
-        Interlocked.Increment(ref _counter.Calls);
-        return Task.FromResult<IResult>(TypedResults.Ok(new { marker = "passkey" }));
-    }
-}
-
 internal sealed class WarningLoggerProvider : ILoggerProvider
 {
     public List<string> Messages { get; } = [];
@@ -930,9 +843,7 @@ internal sealed class SignInHost : IAsyncDisposable
         CapturingEmailSender mail,
         ApiClient client,
         SoftwareWebAuthnAuthenticator authenticator,
-        KeyedSpyCounter counter,
-        LegacyEmailCounter legacyEmail,
-        LegacyPasskeyCounter legacyPasskey)
+        KeyedSpyCounter counter)
     {
         App = app;
         _path = path;
@@ -940,8 +851,6 @@ internal sealed class SignInHost : IAsyncDisposable
         Client = client;
         Authenticator = authenticator;
         Counter = counter;
-        LegacyEmailCount = legacyEmail;
-        LegacyPasskeyCount = legacyPasskey;
     }
 
     public WebApplication App { get; }
@@ -954,9 +863,7 @@ internal sealed class SignInHost : IAsyncDisposable
 
     public KeyedSpyCounter Counter { get; }
 
-    public LegacyEmailCounter LegacyEmailCount { get; }
 
-    public LegacyPasskeyCounter LegacyPasskeyCount { get; }
 
     public static async Task<SignInHost> StartAsync(Action<SignInHostOptions> configure)
     {
@@ -966,8 +873,6 @@ internal sealed class SignInHost : IAsyncDisposable
         var mail = new CapturingEmailSender();
         var authenticator = new SoftwareWebAuthnAuthenticator();
         var counter = new KeyedSpyCounter();
-        var legacyEmail = new LegacyEmailCounter();
-        var legacyPasskey = new LegacyPasskeyCounter();
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             EnvironmentName = Environments.Development,
@@ -978,8 +883,6 @@ internal sealed class SignInHost : IAsyncDisposable
         builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
         builder.Services.AddSingleton(authenticator);
         builder.Services.AddSingleton(counter);
-        builder.Services.AddSingleton(legacyEmail);
-        builder.Services.AddSingleton(legacyPasskey);
         builder.Services
             .AddIdentityApiEndpoints<TestAppUser>(identity =>
             {
@@ -1024,16 +927,6 @@ internal sealed class SignInHost : IAsyncDisposable
             builder.Services.Configure<SignInCompletionOptions>(completion => completion.Default = options.DefaultCompleter);
         }
 
-        if (options.LegacyEmail)
-        {
-            builder.Services.AddEmailCodeSignInCompleter<TestAppUser, LegacyEmailCodeSpy>();
-        }
-
-        if (options.LegacyPasskey)
-        {
-            builder.Services.AddPasskeySignInCompleter<TestAppUser, LegacyPasskeySpy>();
-        }
-
         if (options.SpyOnBuiltInNames)
         {
             builder.Services.AddSignInCompleter<TestAppUser, CountingSignInCompleter>(SignInCompleters.Cookie);
@@ -1060,7 +953,7 @@ internal sealed class SignInHost : IAsyncDisposable
             Results.Ok(new { csrfToken = antiforgery.GetAndStoreTokens(http).RequestToken }));
         options.Map(app);
         await app.StartAsync();
-        return new SignInHost(app, path, mail, new ApiClient(app), authenticator, counter, legacyEmail, legacyPasskey);
+        return new SignInHost(app, path, mail, new ApiClient(app), authenticator, counter);
     }
 
     public async Task<TestAppUser> SeedAsync(string email, bool confirmed = true, bool twoFactor = false, bool locked = false)
@@ -1168,9 +1061,7 @@ internal sealed class SignInHostOptions
 
     public string? SpyName { get; set; }
 
-    public bool LegacyEmail { get; set; }
 
-    public bool LegacyPasskey { get; set; }
 
     public int? MaxFailedAccessAttempts { get; set; }
 

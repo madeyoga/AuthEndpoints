@@ -90,7 +90,7 @@ The compose host calls the composite maps. Those composites call the smaller map
 Not on the compose or builder hosts, so do not mark them verified from those drives:
 
 - Email-code-only recipe (`MapEmailCodeEndpoints` without password register/login). When `AE_EMAIL_CODE=true`, this host still maps password routes.
-- `JwtPasskeySignInCompleter`. Passkey register/login use `IdentityPasskeySignInCompleter`. Bearer register returns the token body only. Cookie register returns `credentialId`. The JWT completer always returns a token and ignores `useCookies`; that body is not produced here.
+- The JWT completer. Passkey register/login use the built-in `IdentityBearer` completer. Bearer register returns the token body only. Cookie register returns `credentialId`. The JWT completer always returns a token and ignores `useCookies`; that body is not produced here.
 - External OAuth on compose or builder. `AE_HOST_MODE=external` maps GitHub. See [external-github.md](features/external-github.md).
 
 Host defaults that **differ from production library defaults**:
