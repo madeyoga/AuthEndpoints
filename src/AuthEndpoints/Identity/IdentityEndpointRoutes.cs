@@ -159,6 +159,7 @@ internal static class IdentityEndpointRoutes
         // Sign-in shares the store, and it does not register that policy.
         if (!AuthEndpointsFeatures.For(endpoints).EmailCode.CanConfirmIdentity)
         {
+            SkippedRoutes.Log(endpoints, SkippedRoutes.EmailCodeConfirmIdentity);
             return;
         }
 

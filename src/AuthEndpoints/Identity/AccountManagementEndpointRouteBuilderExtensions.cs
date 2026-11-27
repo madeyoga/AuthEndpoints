@@ -59,6 +59,10 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         {
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }
+        else
+        {
+            SkippedRoutes.Log(endpoints, SkippedRoutes.PasskeyConfirmIdentity);
+        }
 
         IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod);
         IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName, mapMethod);
