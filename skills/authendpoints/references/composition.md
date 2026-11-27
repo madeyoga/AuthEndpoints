@@ -1,6 +1,6 @@
 # Compose more than one session
 
-Use the building blocks when the host needs email-code sign-in, external sign-in, more than one session, or a mix the `AddAuthEndpoints` builder does not cover. The builder registers the same `Add*` pairs, so a host can mix the two. Match each `Map*` to its `Add*`. A missing `Add*` throws `InvalidOperationException` with `Call {AddMethod} before {MapMethod}.`
+Use the building blocks when the host needs email-code sign-in, external sign-in, more than one session, or a mix the `AddAuthEndpoints` builder does not cover. The builder registers the same `Add*` pairs, so a host can mix the two. Match each `Map*` to its `Add*`. A missing `Add*` throws `InvalidOperationException` with `Call {AddMethod} before {MapMethod}.` A composite map such as `MapSharedAuthEndpoints` leaves out the routes whose `Add*` is missing instead, and logs `Skipped {routes}: {reason}` under the `AuthEndpoints.Routing` category.
 
 `MapSignInEndpoints<TUser>(AuthEndpointsSession)` maps the per-session routes whose `Add*` is registered, plus that session's logout and refresh routes. Password login on a JWT session is `POST /create`. `MapSharedAuthEndpoints<TUser>(sharedPath)` maps the shared routes whose `Add*` is registered, and it always ensures confirm-email. Null `sharedPath` mounts them on the builder you call.
 

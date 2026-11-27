@@ -68,6 +68,8 @@ app.MapAuthEndpoints<AppUser>("/auth", AuthEndpointsSession.Cookie);
 
 `MapAuthEndpoints` without `AddAuthEndpoints` throws `Call AddAuthEndpoints before MapAuthEndpoints.` Mapping `Jwt` or `IdentityBearer` without the matching builder call throws and names it. It returns the route group, so `WithTags` and other conventions apply to every route.
 
+A route that is missing was not added. Startup logs `Skipped {routes}: {reason}` at `Information` under the `AuthEndpoints.Routing` category, and the reason names the `Add*` call that maps it.
+
 `UseAuthEndpoints` adds authentication, authorization, rate limiting, and antiforgery, in that order. Call it after exception-handling middleware. Enable HTTPS in Production yourself. A second call is a no-op.
 
 Cookie login is `POST /auth/login` and returns an empty `200` plus `Set-Cookie: .AspNetCore.Identity.Application`.

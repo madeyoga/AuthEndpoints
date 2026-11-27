@@ -43,10 +43,20 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
                 ? endpoints.MapJwtPasswordEndpoints<TUser>()
                 : endpoints.MapPasswordSignInEndpoints<TUser>(session));
         }
+        else
+        {
+            SkippedRoutes.Log(endpoints, session == AuthEndpointsSession.Jwt
+                ? SkippedRoutes.JwtPasswordSignIn
+                : SkippedRoutes.PasswordSignIn);
+        }
 
         if (features.EmailCode.CanSignIn)
         {
             builders.Add(endpoints.MapEmailCodeSignInEndpoints<TUser>(session));
+        }
+        else
+        {
+            SkippedRoutes.Log(endpoints, SkippedRoutes.EmailCodeSignIn);
         }
 
         if (features.Passkeys.CanAuthenticate)
@@ -55,6 +65,10 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
                 endpoints,
                 completer,
                 nameof(MapSignInEndpoints)));
+        }
+        else
+        {
+            SkippedRoutes.Log(endpoints, SkippedRoutes.PasskeySignIn);
         }
 
         if (features.Passkeys.CanSignUp)
@@ -67,6 +81,10 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
                 honorDefault: false,
                 nameof(MapSignInEndpoints),
                 warn: false));
+        }
+        else
+        {
+            SkippedRoutes.Log(endpoints, SkippedRoutes.PasskeySignUp);
         }
 
         builders.Add(session switch
@@ -119,15 +137,27 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
             builders.Add(target.MapPasswordSignUpEndpoints<TUser>());
             mappedConfirm = true;
         }
+        else
+        {
+            SkippedRoutes.Log(target, SkippedRoutes.PasswordSignUp);
+        }
 
         if (features.Password.CanRecover)
         {
             builders.Add(target.MapPasswordRecoveryEndpoints<TUser>());
         }
+        else
+        {
+            SkippedRoutes.Log(target, SkippedRoutes.PasswordRecovery);
+        }
 
         if (features.EmailCode.CanSend)
         {
             builders.Add(target.MapEmailCodeSendEndpoints<TUser>());
+        }
+        else
+        {
+            SkippedRoutes.Log(target, SkippedRoutes.EmailCodeSend);
         }
 
         if (features.Passkeys.CanRequestRegisterOptions)
@@ -139,16 +169,28 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
                     nameof(MapSharedAuthEndpoints))
                 : target.MapPasskeyRegisterOptionsEndpoints<TUser>());
         }
+        else
+        {
+            SkippedRoutes.Log(target, SkippedRoutes.PasskeyRegisterOptions);
+        }
 
         if (features.Passkeys.CanManage)
         {
             builders.Add(target.MapPasskeyManagementEndpoints<TUser>());
+        }
+        else
+        {
+            SkippedRoutes.Log(target, SkippedRoutes.PasskeyManagement);
         }
 
         if (features.AccountManagement)
         {
             builders.Add(target.MapAccountManagementEndpoints<TUser>());
             mappedConfirm = true;
+        }
+        else
+        {
+            SkippedRoutes.Log(target, SkippedRoutes.AccountManagement);
         }
 
         if (!mappedConfirm)
