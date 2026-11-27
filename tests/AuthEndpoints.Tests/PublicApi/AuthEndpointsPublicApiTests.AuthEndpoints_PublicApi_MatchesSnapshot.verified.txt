@@ -475,6 +475,20 @@ namespace AuthEndpoints.Identity
     {
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddAccountManagementEndpoints(this Microsoft.Extensions.DependencyInjection.IServiceCollection services) { }
     }
+    public enum AccountSecurityEventKind
+    {
+        PasswordSet = 1,
+        PasswordRemoved = 2,
+        RegistrationAttempted = 3,
+    }
+    public sealed record AccountSecurityEvent<TUser> : System.IEquatable<AuthEndpoints.Identity.AccountSecurityEvent<TUser>>
+        where TUser :  class
+    {
+        public AccountSecurityEvent(AuthEndpoints.Identity.AccountSecurityEventKind Kind, TUser User, string? Email) { }
+        public string? Email { get; init; }
+        public AuthEndpoints.Identity.AccountSecurityEventKind Kind { get; init; }
+        public TUser User { get; init; }
+    }
     public class AntiforgeryEnforcementMiddleware
     {
         public AntiforgeryEnforcementMiddleware(Microsoft.AspNetCore.Http.RequestDelegate next) { }
@@ -581,12 +595,10 @@ namespace AuthEndpoints.Identity
         public EnforceAntiforgeryEndpointFilters(Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery) { }
         public virtual System.Threading.Tasks.ValueTask<object?> InvokeAsync(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext context, Microsoft.AspNetCore.Http.EndpointFilterDelegate next) { }
     }
-    public interface IAccountSecurityEmailSender<TUser>
+    public interface IAccountSecurityNotifier<TUser>
         where TUser :  class
     {
-        System.Threading.Tasks.Task SendPasswordRemovedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
-        System.Threading.Tasks.Task SendRegistrationAttemptedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task NotifyAsync(AuthEndpoints.Identity.AccountSecurityEvent<TUser> securityEvent, System.Threading.CancellationToken cancellationToken = default);
     }
     public static class IdentityApiEndpointRouteBuilderExtensions
     {
@@ -630,13 +642,11 @@ namespace AuthEndpoints.Identity
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.HttpResults.Results<Microsoft.AspNetCore.Http.HttpResults.Ok, Microsoft.AspNetCore.Http.HttpResults.ValidationProblem, Microsoft.AspNetCore.Http.HttpResults.NotFound>> SetPassword(System.Security.Claims.ClaimsPrincipal claimsPrincipal, [Microsoft.AspNetCore.Mvc.FromBody] AuthEndpoints.Identity.SetPasswordRequest request, Microsoft.AspNetCore.Http.HttpContext context, [Microsoft.AspNetCore.Mvc.FromServices] System.IServiceProvider sp) { }
         public static System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> TwoFactorStatus(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, System.Security.Claims.ClaimsPrincipal user) { }
     }
-    public sealed class LoggingAccountSecurityEmailSender<TUser> : AuthEndpoints.Identity.IAccountSecurityEmailSender<TUser>
+    public sealed class LoggingAccountSecurityNotifier<TUser> : AuthEndpoints.Identity.IAccountSecurityNotifier<TUser>
         where TUser :  class
     {
-        public LoggingAccountSecurityEmailSender(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.Identity.LoggingAccountSecurityEmailSender<TUser>> logger) { }
-        public System.Threading.Tasks.Task SendPasswordRemovedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
-        public System.Threading.Tasks.Task SendPasswordSetAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
-        public System.Threading.Tasks.Task SendRegistrationAttemptedAsync(TUser user, string email, System.Threading.CancellationToken cancellationToken = default) { }
+        public LoggingAccountSecurityNotifier(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.Identity.LoggingAccountSecurityNotifier<TUser>> logger) { }
+        public System.Threading.Tasks.Task NotifyAsync(AuthEndpoints.Identity.AccountSecurityEvent<TUser> securityEvent, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public static class PasswordEndpointRouteBuilderExtensions
     {

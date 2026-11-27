@@ -42,7 +42,7 @@ public class GitHubSetPasswordUnlinkTests
             .AddEntityFrameworkStores<FlowDb>()
             .AddDefaultTokenProviders();
         builder.Services.AddSingleton<IEmailCodeSender<FlowUser>>(mail);
-        builder.Services.AddSingleton<IAccountSecurityEmailSender<FlowUser>>(mail);
+        builder.Services.AddSingleton<IAccountSecurityNotifier<FlowUser>>(mail);
         builder.Services.AddPasswordSignInEndpoints();
         builder.Services.AddCookieSessionEndpoints();
         builder.Services.AddAccountManagementEndpoints();
@@ -157,7 +157,7 @@ public class GitHubSetPasswordUnlinkTests
         }
     }
 
-    private sealed class Mailbox : IEmailCodeSender<FlowUser>, IAccountSecurityEmailSender<FlowUser>
+    private sealed class Mailbox : IEmailCodeSender<FlowUser>, IAccountSecurityNotifier<FlowUser>
     {
         public List<EmailCodeMessage<FlowUser>> Codes { get; } = new();
 
@@ -167,10 +167,7 @@ public class GitHubSetPasswordUnlinkTests
             return Task.CompletedTask;
         }
 
-        public Task SendPasswordSetAsync(FlowUser user, string email, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
-
-        public Task SendRegistrationAttemptedAsync(FlowUser user, string email, CancellationToken cancellationToken = default) =>
+        public Task NotifyAsync(AccountSecurityEvent<FlowUser> securityEvent, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
     }
 }

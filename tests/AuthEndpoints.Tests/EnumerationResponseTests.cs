@@ -487,7 +487,7 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             builder.Services.AddSingleton(mail);
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
-            builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(mail);
+            builder.Services.AddSingleton<IAccountSecurityNotifier<TestAppUser>>(mail);
             builder.Services.AddAuthorization();
             builder.Services.AddAntiforgery();
             builder.Services.AddCookieAuthEndpoints();

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace AuthEndpoints.Tests;
 
-internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>, IEmailCodeSender<TestAppUser>, IAccountSecurityEmailSender<TestAppUser>
+internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>, IEmailCodeSender<TestAppUser>, IAccountSecurityNotifier<TestAppUser>
 {
     private readonly ConcurrentQueue<CapturedMail> _sent = new();
 
@@ -29,21 +29,26 @@ internal sealed class CapturingEmailSender : IEmailSender<TestAppUser>, IEmailCo
         return Task.CompletedTask;
     }
 
-    public Task SendPasswordSetAsync(TestAppUser user, string email, CancellationToken cancellationToken = default)
-    {
-        _sent.Enqueue(new CapturedMail(email, "security", "password-set"));
-        return Task.CompletedTask;
-    }
+    private readonly ConcurrentQueue<AccountSecurityEvent<TestAppUser>> _securityEvents = new();
 
-    public Task SendPasswordRemovedAsync(TestAppUser user, string email, CancellationToken cancellationToken = default)
-    {
-        _sent.Enqueue(new CapturedMail(email, "security", "password-removed"));
-        return Task.CompletedTask;
-    }
+    /// <summary>Every account security event, including those for an account with no email.</summary>
+    public IReadOnlyList<AccountSecurityEvent<TestAppUser>> SecurityEvents() => _securityEvents.ToArray();
 
-    public Task SendRegistrationAttemptedAsync(TestAppUser user, string email, CancellationToken cancellationToken = default)
+    public Task NotifyAsync(AccountSecurityEvent<TestAppUser> securityEvent, CancellationToken cancellationToken = default)
     {
-        _sent.Enqueue(new CapturedMail(email, "registration-attempt", "existing-account"));
+        _securityEvents.Enqueue(securityEvent);
+        if (securityEvent.Email is not { } email)
+        {
+            return Task.CompletedTask;
+        }
+
+        _sent.Enqueue(securityEvent.Kind switch
+        {
+            AccountSecurityEventKind.PasswordSet => new CapturedMail(email, "security", "password-set"),
+            AccountSecurityEventKind.PasswordRemoved => new CapturedMail(email, "security", "password-removed"),
+            AccountSecurityEventKind.RegistrationAttempted => new CapturedMail(email, "registration-attempt", "existing-account"),
+            _ => new CapturedMail(email, "security", securityEvent.Kind.ToString()),
+        });
         return Task.CompletedTask;
     }
 

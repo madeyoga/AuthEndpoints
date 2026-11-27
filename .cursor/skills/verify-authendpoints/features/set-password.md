@@ -42,5 +42,5 @@ Preconditions:
 - Email-code step-up is offered only while the account has no password, authenticator, or passkey. After the password is set, the next proof is the password. The set-password call rotates the security stamp, so the previous ReAuth cookie is `403` on the next sensitive action.
 - A missing CSRF token is `400` with the body `Invalid or missing CSRF token.`
 - An email-code-only map still maps `POST /manage/password` and returns `404` until `POST /login` or JWT `POST /create` is mapped.
-- The default `IAccountSecurityEmailSender<TUser>` only logs. This host replaces it with the capturing sender, so the mailbox item exists here.
+- The default `IAccountSecurityNotifier<TUser>` only logs. This host replaces it with the capturing sender, which turns each event with an address into a mailbox item, so the item exists here.
 - The route uses `AuthEndpoints.AccountAbuse` (10 requests per minute per IP). A burst returns `429`.

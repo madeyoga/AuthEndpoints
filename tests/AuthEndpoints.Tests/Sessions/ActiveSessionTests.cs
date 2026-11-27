@@ -640,7 +640,7 @@ public class ActiveSessionTests
             builder.Services.AddDbContext<ActiveSessionsDbContext>(o => o.UseSqlite($"Data Source={path};Default Timeout=30"));
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
-            builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(mail);
+            builder.Services.AddSingleton<IAccountSecurityNotifier<TestAppUser>>(mail);
             builder.Services
                 .AddIdentityApiEndpoints<TestAppUser>(options =>
                 {
