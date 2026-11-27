@@ -905,6 +905,43 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
+    public void AddPasskeyRegisterOptionsEndpoints_Alone_MapsRegisterOptions()
+    {
+        // POST /passkeys/register/options mints a user id, so this Add call must register the factory.
+        var direct = MapIdentity(services => services.AddPasskeyRegisterOptionsEndpoints(), app =>
+        {
+            app.MapGroup("/identity").MapPasskeyRegisterOptionsEndpoints<TestAppUser>();
+        });
+        // The shared map always ensures confirm-email, which needs the account-abuse policy.
+        var shared = MapIdentity(services => services
+            .AddPasskeyRegisterOptionsEndpoints()
+            .AddAccountAbuseRateLimiting(), app =>
+        {
+            app.MapGroup("/identity").MapSharedAuthEndpoints<TestAppUser>();
+        });
+
+        Assert.Contains("POST /identity/passkeys/register/options", direct);
+        Assert.Contains("POST /identity/passkeys/register/options", shared);
+    }
+
+    [Fact]
+    public void AddPasskeyUserIdFactory_ReplacesTheRegisterOptionsDefault_InEitherOrder()
+    {
+        var before = new ServiceCollection()
+            .AddPasskeyUserIdFactory(() => "custom")
+            .AddPasskeyRegisterOptionsEndpoints();
+        var after = new ServiceCollection()
+            .AddPasskeyRegisterOptionsEndpoints()
+            .AddPasskeyUserIdFactory(() => "custom");
+
+        foreach (var services in new[] { before, after })
+        {
+            using var provider = services.AddLogging().BuildServiceProvider();
+            Assert.Equal("custom", provider.GetRequiredService<IPasskeyUserIdFactory>().CreateUserId());
+        }
+    }
+
+    [Fact]
     public void AddMethods_AreIdempotent()
     {
         AssertIdempotent(services => services.AddPasswordEndpoints());

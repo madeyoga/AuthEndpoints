@@ -4,7 +4,6 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.Passkey;
 using AuthEndpoints.ReAuth;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AuthEndpoints.Tests.PublicApi;
 
@@ -190,9 +189,6 @@ public class AuthEndpointsFeaturesTests
                 .AddDefaultTokenProviders();
             builder.Services.AddAccountManagementEndpoints();
             AddPasskeys(builder.Services, passkeys);
-            // AddPasskeyRegisterOptionsEndpoints alone does not register the user-id factory
-            // that POST /passkeys/register/options needs, so the shared map would fail to build.
-            builder.Services.TryAddSingleton<IPasskeyUserIdFactory, DefaultPasskeyUserIdFactory>();
         }, map);
         return RouteSurface.ListRoutes(app);
     }
