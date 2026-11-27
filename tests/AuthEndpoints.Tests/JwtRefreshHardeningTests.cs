@@ -394,7 +394,7 @@ public class JwtRefreshHardeningTests :
         var service = new RefreshTokenService<TestDbContext>(
             db,
             clock,
-            Options.Create(new JwtSessionOptions
+            Options.Create(new SimpleJwtOptions
             {
                 RefreshTokenLifetime = TimeSpan.FromDays(14),
                 AbsoluteLifetime = TimeSpan.FromHours(1),
@@ -422,21 +422,31 @@ public class JwtRefreshHardeningTests :
     }
 
     [Fact]
-    public void JwtSessionOptions_RejectsNonPositiveLifetimeAndUnknownTransport()
+    public void SimpleJwtOptions_RejectsNonPositiveLifetimeAndUnknownTransport()
     {
-        var validator = new JwtSessionOptionsValidator();
-        var lifetime = validator.Validate(null, new JwtSessionOptions { AbsoluteLifetime = TimeSpan.Zero });
+        var validator = new SimpleJwtOptionsValidator();
+        static SimpleJwtOptions Valid() => new()
+        {
+            SigningOptions = { SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!" },
+        };
+
+        Assert.True(validator.Validate(null, Valid()).Succeeded);
+
+        var absolute = Valid();
+        absolute.AbsoluteLifetime = TimeSpan.Zero;
+        var lifetime = validator.Validate(null, absolute);
         Assert.True(lifetime.Failed);
         Assert.Contains(lifetime.Failures!, failure => failure.Contains("AbsoluteLifetime", StringComparison.Ordinal));
 
-        var window = validator.Validate(null, new JwtSessionOptions { RefreshTokenLifetime = TimeSpan.Zero });
+        var refresh = Valid();
+        refresh.RefreshTokenLifetime = TimeSpan.Zero;
+        var window = validator.Validate(null, refresh);
         Assert.True(window.Failed);
+        Assert.Contains(window.Failures!, failure => failure.Contains("RefreshTokenLifetime", StringComparison.Ordinal));
 
-        var transport = validator.Validate(null, new JwtSessionOptions
-        {
-            RefreshTokenTransport = (RefreshTokenTransport)9,
-        });
-        Assert.True(transport.Failed);
+        var unknown = Valid();
+        unknown.RefreshTokenTransport = (RefreshTokenTransport)9;
+        Assert.True(validator.Validate(null, unknown).Failed);
     }
 
     [Fact]
@@ -567,15 +577,12 @@ public class JwtRefreshHardeningTests :
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             base.ConfigureWebHost(builder);
+            // The test host reads this in its AddJwtEndpoints callback.
+            builder.UseSetting("AE_JWT_ABSOLUTE_LIFETIME", "00:05:00");
             builder.ConfigureTestServices(services =>
             {
                 services.RemoveAll<TimeProvider>();
                 services.AddSingleton<TimeProvider>(Clock);
-                services.Configure<JwtSessionOptions>(options =>
-                {
-                    options.AbsoluteLifetime = TimeSpan.FromMinutes(5);
-                    options.RefreshTokenLifetime = TimeSpan.FromDays(14);
-                });
             });
         }
     }

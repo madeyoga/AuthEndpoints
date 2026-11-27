@@ -78,9 +78,8 @@ public class PerSessionSharedRouteTests
                 builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
                 });
-                builder.Services.Configure<JwtSessionOptions>(options =>
-                    options.RefreshTokenTransport = RefreshTokenTransport.Body);
             },
             app => app.MapGroup("/auth").MapJwtAuthEndpoints<TestAppUser>());
 

@@ -46,7 +46,7 @@ public sealed class ExternalAuthBuilder
             && typeof(TCompleter).GetGenericTypeDefinition() == typeof(JwtExternalLoginCompleter<>))
         {
             Services.TryAddEnumerable(
-                ServiceDescriptor.Singleton<IValidateOptions<JwtSessionOptions>, JwtExternalBodyTransportValidator>());
+                ServiceDescriptor.Singleton<IValidateOptions<SimpleJwtOptions>, JwtExternalBodyTransportValidator>());
         }
 
         return this;

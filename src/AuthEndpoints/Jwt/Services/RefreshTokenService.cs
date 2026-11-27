@@ -13,14 +13,14 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
 {
     private readonly TContext _db;
     private readonly TimeProvider _time;
-    private readonly JwtSessionOptions _session;
+    private readonly SimpleJwtOptions _session;
 
     public RefreshTokenService(TContext db)
-        : this(db, TimeProvider.System, Options.Create(new JwtSessionOptions()))
+        : this(db, TimeProvider.System, Options.Create(new SimpleJwtOptions()))
     {
     }
 
-    public RefreshTokenService(TContext db, TimeProvider time, IOptions<JwtSessionOptions> sessionOptions)
+    public RefreshTokenService(TContext db, TimeProvider time, IOptions<SimpleJwtOptions> sessionOptions)
     {
         _db = db;
         _time = time;

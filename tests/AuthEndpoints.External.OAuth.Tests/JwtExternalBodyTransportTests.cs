@@ -20,10 +20,8 @@ public class JwtExternalBodyTransportTests
         var db = scope.ServiceProvider.GetRequiredService<ExternalJwtDb>();
         await db.Database.EnsureCreatedAsync();
 
-        var resolved = Assert.Throws<OptionsValidationException>(() =>
-            scope.ServiceProvider.GetRequiredService<IExternalLoginCompleter<ExternalJwtUser>>());
-        Assert.Contains(JwtExternalBodyTransportValidator.Message, resolved.Failures);
-
+        // SimpleJwtOptions is fixed at AddJwtEndpoints, so the check runs at startup (ValidateOnStart).
+        // CompleteAsync checks again before it creates a token (next test).
         var startup = await Assert.ThrowsAnyAsync<Exception>(() => app.StartAsync());
         Assert.Contains(JwtExternalBodyTransportValidator.Message, startup.ToString(), StringComparison.Ordinal);
         Assert.Equal(0, await db.Set<RefreshToken>().CountAsync());
@@ -33,7 +31,7 @@ public class JwtExternalBodyTransportTests
     public async Task BodyTransport_CompleteAsync_ThrowsBeforeCreatingAToken()
     {
         var services = new ServiceCollection();
-        services.AddOptions<JwtSessionOptions>()
+        services.AddOptions<SimpleJwtOptions>()
             .Configure(options => options.RefreshTokenTransport = RefreshTokenTransport.Body);
         using var provider = services.BuildServiceProvider();
         var refresh = new RejectingRefreshTokens();
@@ -76,8 +74,8 @@ public class JwtExternalBodyTransportTests
             options.Issuer = "https://jwt.example";
             options.Audience = "https://jwt.example";
             options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            options.RefreshTokenTransport = transport;
         });
-        builder.Services.Configure<JwtSessionOptions>(options => options.RefreshTokenTransport = transport);
         builder.Services.AddExternalAuthEndpoints<ExternalJwtUser>()
             .AddCompleter<JwtExternalLoginCompleter<ExternalJwtUser>>();
         return builder.Build();

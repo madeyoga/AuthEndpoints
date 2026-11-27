@@ -17,7 +17,7 @@ app.MapAuthEndpoints<AppUser>("/auth", AuthEndpointsSession.Jwt);
 
 Password sign-in is `POST /auth/create`. The JSON body is `accessToken` and `tokenType` `Bearer`. A missing second factor is `401` with title `RequiresTwoFactor`, detail `Two-factor authentication is required.`, and extension `requiresTwoFactor` set to true. A wrong authenticator code and a wrong recovery code are `401` with detail `Invalid credentials.` Both count toward lockout. `POST /auth/logout` reads the refresh token. It has no access-token check. Refresh transport defaults to the HttpOnly cookie `AuthEndpoints.Jwt.RefreshToken` (`SameSite=Strict`, path `/`). `RefreshTokenTransport.Body` also returns `refreshToken` from create, email-code verify, passkey sign-in, and refresh. Body refresh and logout accept `{ "refreshToken" }`, skip antiforgery, and leave `GET /auth/csrfToken` unmapped. A non-JSON body on those two routes is `415`.
 
-`AddJwtEndpoints` copies `SimpleJwtOptions.RefreshTokenTransport` onto `JwtSessionOptions` when the value is `Body`. An earlier `Configure<JwtSessionOptions>` stays when transport is left at `Cookie`. A configure registered after `AddJwtEndpoints` replaces the result.
+Every JWT setting is on `SimpleJwtOptions`, including `RefreshTokenTransport`, `RefreshTokenLifetime`, and `AbsoluteLifetime`. Set them in the `AddJwt` or `AddJwtEndpoints` callback. They are fixed when that call runs, so `Configure<SimpleJwtOptions>` afterwards has no effect. 4.x's `JwtSessionOptions` is gone.
 
 Cookie-transport refresh returns `{ "accessToken" }` and requires the CSRF token. `GET /auth/verify` with `Authorization: Bearer` returns `204` and no refresh token.
 

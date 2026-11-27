@@ -35,22 +35,14 @@ public static class ServiceCollectionExtensions
                 o.SigningOptions = options.SigningOptions;
                 o.TokenValidationParameters = options.TokenValidationParameters;
                 o.RefreshTokenTransport = options.RefreshTokenTransport;
+                o.RefreshTokenLifetime = options.RefreshTokenLifetime;
+                o.AbsoluteLifetime = options.AbsoluteLifetime;
             })
             .ValidateOnStart();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<SimpleJwtOptions>, SimpleJwtOptionsValidator>());
 
         services.TryAddSingleton(TimeProvider.System);
-        // Cookie is the property default. Copying it would wipe a Configure<JwtSessionOptions>
-        // registered before AddJwtEndpoints. A non-default value is the caller's choice and wins
-        // over that earlier configure. A Configure registered after AddJwtEndpoints still runs later.
-        var jwtSession = services.AddOptions<JwtSessionOptions>().ValidateOnStart();
-        if (options.RefreshTokenTransport != RefreshTokenTransport.Cookie)
-        {
-            jwtSession.Configure(session => session.RefreshTokenTransport = options.RefreshTokenTransport);
-        }
-        services.TryAddEnumerable(
-            ServiceDescriptor.Singleton<IValidateOptions<JwtSessionOptions>, JwtSessionOptionsValidator>());
 
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();

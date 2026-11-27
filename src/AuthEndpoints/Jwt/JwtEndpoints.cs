@@ -214,7 +214,7 @@ internal static class JwtEndpoints<TUser>
     private static IResult InvalidRefresh(
         HttpContext context,
         RefreshTokenCookieWriter refreshTokenCookieWriter,
-        JwtSessionOptions session,
+        SimpleJwtOptions session,
         string message = "Invalid refresh token. Token may be expired or revoked by the server.")
     {
         JwtRefreshDelivery.DeleteCookie(context, refreshTokenCookieWriter, session);

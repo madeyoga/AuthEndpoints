@@ -75,7 +75,7 @@ if (builderSession is { } session)
 
     if (session == AuthEndpointsSession.Jwt)
     {
-        auth.AddJwt(jwt => jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!");
+        auth.AddJwt(jwt => ConfigureJwt(jwt, builder.Configuration));
     }
     else if (session == AuthEndpointsSession.IdentityBearer)
     {
@@ -116,10 +116,7 @@ else if (useSplit)
     builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
         ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
-    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
-    {
-        options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-    });
+    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options => ConfigureJwt(options, builder.Configuration));
     builder.Services.AddOptions<AuthEndpointsOptions>()
         .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
 }
@@ -130,10 +127,7 @@ else
         .AddEntityFrameworkStores<TestDbContext>()
         .AddDefaultTokenProviders();
 
-    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
-    {
-        options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-    });
+    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options => ConfigureJwt(options, builder.Configuration));
 
     builder.Services.AddAuthorization();
     builder.Services.AddAntiforgery();
@@ -150,7 +144,6 @@ else
 }
 
 ConfigureOpenTelemetry(builder);
-ApplyJwtSession(builder);
 
 var app = builder.Build();
 
@@ -222,41 +215,35 @@ MapTestOnlyEndpoints(app);
 
 app.Run();
 
-static void ApplyJwtSession(WebApplicationBuilder builder)
+static void ConfigureJwt(SimpleJwtOptions options, IConfiguration configuration)
 {
-    var transport = builder.Configuration["AE_JWT_REFRESH_TRANSPORT"];
-    var absolute = builder.Configuration["AE_JWT_ABSOLUTE_LIFETIME"];
-    if (string.IsNullOrWhiteSpace(transport) && string.IsNullOrWhiteSpace(absolute))
+    options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+
+    var transport = configuration["AE_JWT_REFRESH_TRANSPORT"];
+    if (string.Equals(transport, "Body", StringComparison.OrdinalIgnoreCase))
+    {
+        options.RefreshTokenTransport = RefreshTokenTransport.Body;
+    }
+    else if (!string.IsNullOrWhiteSpace(transport)
+        && !string.Equals(transport, "Cookie", StringComparison.OrdinalIgnoreCase))
+    {
+        throw new InvalidOperationException("AE_JWT_REFRESH_TRANSPORT must be Cookie or Body.");
+    }
+
+    var absolute = configuration["AE_JWT_ABSOLUTE_LIFETIME"];
+    if (string.IsNullOrWhiteSpace(absolute))
     {
         return;
     }
 
-    builder.Services.Configure<JwtSessionOptions>(options =>
+    if (!TimeSpan.TryParse(absolute, System.Globalization.CultureInfo.InvariantCulture, out var lifetime)
+        || lifetime <= TimeSpan.Zero)
     {
-        if (string.Equals(transport, "Body", StringComparison.OrdinalIgnoreCase))
-        {
-            options.RefreshTokenTransport = RefreshTokenTransport.Body;
-        }
-        else if (!string.IsNullOrWhiteSpace(transport)
-            && !string.Equals(transport, "Cookie", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("AE_JWT_REFRESH_TRANSPORT must be Cookie or Body.");
-        }
+        throw new InvalidOperationException(
+            "AE_JWT_ABSOLUTE_LIFETIME must be a positive TimeSpan, for example 00:00:03.");
+    }
 
-        if (string.IsNullOrWhiteSpace(absolute))
-        {
-            return;
-        }
-
-        if (!TimeSpan.TryParse(absolute, System.Globalization.CultureInfo.InvariantCulture, out var lifetime)
-            || lifetime <= TimeSpan.Zero)
-        {
-            throw new InvalidOperationException(
-                "AE_JWT_ABSOLUTE_LIFETIME must be a positive TimeSpan, for example 00:00:03.");
-        }
-
-        options.AbsoluteLifetime = lifetime;
-    });
+    options.AbsoluteLifetime = lifetime;
 }
 
 static void ConfigureOpenTelemetry(WebApplicationBuilder builder)
