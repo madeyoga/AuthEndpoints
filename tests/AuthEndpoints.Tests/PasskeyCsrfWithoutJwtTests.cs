@@ -7,18 +7,18 @@ namespace AuthEndpoints.Tests;
 
 public class PasskeyCsrfWithoutJwtTests
 {
-    public static TheoryData<string, string> FacadeHosts => new()
+    public static TheoryData<string, string> BuilderHosts => new()
     {
-        { "cookie-facade", "/identity/csrfToken" },
-        { "bearer-facade", "/test/csrfToken" }
+        { "builder-cookie", "/identity/csrfToken" },
+        { "builder-bearer", "/test/csrfToken" }
     };
 
     public static TheoryData<string, string> AnonymousPasskeyRequests => new()
     {
-        { "cookie-facade", "/account/passkeys/requestOptions" },
-        { "cookie-facade", "/account/passkeys/register/options" },
-        { "cookie-facade", "/account/passkeys/register" },
-        { "cookie-facade", "/account/passkeys/login" }
+        { "builder-cookie", "/identity/passkeys/requestOptions" },
+        { "builder-cookie", "/identity/passkeys/register/options" },
+        { "builder-cookie", "/identity/passkeys/register" },
+        { "builder-cookie", "/identity/passkeys/login" }
     };
 
     [Theory]
@@ -26,7 +26,7 @@ public class PasskeyCsrfWithoutJwtTests
     public async Task AnonymousPasskeyEndpoint_WithoutCsrf_Returns400(string hostMode, string path)
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, hostMode, jwtEnabled: false);
+        using var factory = CreateBuilderFactory(root, hostMode);
         using var client = TestHelpers.CreateClientWithCookies(factory);
 
         var response = await client.PostAsJsonAsync(path, new
@@ -41,16 +41,16 @@ public class PasskeyCsrfWithoutJwtTests
     }
 
     [Theory]
-    [MemberData(nameof(FacadeHosts))]
+    [MemberData(nameof(BuilderHosts))]
     public async Task RequestOptions_WithCsrf_ReturnsOptions(string hostMode, string csrfPath)
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, hostMode, jwtEnabled: false);
+        using var factory = CreateBuilderFactory(root, hostMode);
         using var client = TestHelpers.CreateClientWithCookies(factory);
 
         var response = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/requestOptions",
+            "/identity/passkeys/requestOptions",
             new { },
             csrfPath: csrfPath);
 
@@ -60,11 +60,11 @@ public class PasskeyCsrfWithoutJwtTests
     }
 
     [Theory]
-    [MemberData(nameof(FacadeHosts))]
+    [MemberData(nameof(BuilderHosts))]
     public async Task PasskeyRegisterAndLogin_WithCsrf_Succeeds(string hostMode, string csrfPath)
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, hostMode, jwtEnabled: false);
+        using var factory = CreateBuilderFactory(root, hostMode);
         var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
         var email = $"passkey-nojwt-{Guid.NewGuid():N}@test.local";
 
@@ -73,7 +73,7 @@ public class PasskeyCsrfWithoutJwtTests
             var origin = registerClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
             var optionsResponse = await TestHelpers.PostWithCsrfAsync(
                 registerClient,
-                "/account/passkeys/register/options",
+                "/identity/passkeys/register/options",
                 new { email },
                 csrfPath: csrfPath);
             Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
@@ -83,7 +83,7 @@ public class PasskeyCsrfWithoutJwtTests
                 origin);
             var register = await TestHelpers.PostWithCsrfAsync(
                 registerClient,
-                "/account/passkeys/register?useCookies=true",
+                "/identity/passkeys/register?useCookies=true",
                 new { email, credentialJson },
                 csrfPath: csrfPath);
             Assert.Equal(HttpStatusCode.OK, register.StatusCode);
@@ -93,7 +93,7 @@ public class PasskeyCsrfWithoutJwtTests
         var loginOrigin = loginClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
         var requestOptions = await TestHelpers.PostWithCsrfAsync(
             loginClient,
-            "/account/passkeys/requestOptions",
+            "/identity/passkeys/requestOptions",
             new { email },
             csrfPath: csrfPath);
         Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
@@ -101,10 +101,10 @@ public class PasskeyCsrfWithoutJwtTests
         var assertionJson = authenticator.CreateAssertion(
             await requestOptions.Content.ReadAsStringAsync(),
             loginOrigin);
-        var useCookies = hostMode == "cookie-facade";
+        var useCookies = hostMode == "builder-cookie";
         var login = await TestHelpers.PostWithCsrfAsync(
             loginClient,
-            useCookies ? "/account/passkeys/login?useCookies=true" : "/account/passkeys/login",
+            useCookies ? "/identity/passkeys/login?useCookies=true" : "/identity/passkeys/login",
             new { credentialJson = assertionJson },
             csrfPath: csrfPath);
         Assert.True(
@@ -128,7 +128,7 @@ public class PasskeyCsrfWithoutJwtTests
     public async Task IdentityBearerCaller_CsrfProtectedEndpoint_WithoutToken_SucceedsWithoutJwt()
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, "bearer-facade", jwtEnabled: false);
+        using var factory = CreateBuilderFactory(root, "builder-bearer");
         var email = $"bearer-nojwt-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(factory, email);
 
@@ -151,7 +151,7 @@ public class PasskeyCsrfWithoutJwtTests
     public async Task CookieCaller_CsrfProtectedEndpoint_WithoutToken_Returns400WithoutJwt()
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, "cookie-facade", jwtEnabled: false);
+        using var factory = CreateBuilderFactory(root, "builder-cookie");
         var email = $"cookie-nojwt-{Guid.NewGuid():N}@test.local";
         await TestHelpers.SeedUserAsync(factory, email);
 
@@ -166,30 +166,30 @@ public class PasskeyCsrfWithoutJwtTests
     }
 
     [Fact]
-    public async Task JwtEnabledFacade_RequestOptions_DoesNotRequireCsrf()
+    public async Task JwtBodyRefreshBuilder_RequestOptions_DoesNotRequireCsrf()
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, "bearer-facade", jwtEnabled: true);
+        using var factory = CreateBuilderFactory(root, "builder-jwt", jwtBodyRefresh: true);
         using var client = TestHelpers.CreateClientWithCookies(factory);
 
-        var withoutToken = await client.PostAsJsonAsync("/account/passkeys/requestOptions", new { });
+        var withoutToken = await client.PostAsJsonAsync("/identity/passkeys/requestOptions", new { });
         Assert.Equal(HttpStatusCode.OK, withoutToken.StatusCode);
         using var doc = JsonDocument.Parse(await withoutToken.Content.ReadAsStringAsync());
         Assert.True(doc.RootElement.TryGetProperty("challenge", out _));
     }
 
     [Fact]
-    public async Task BearerFacade_PasskeyRegisterAndLogin_WithoutCsrf_Succeeds()
+    public async Task BearerBuilder_PasskeyRegisterAndLogin_WithoutCsrf_Succeeds()
     {
         await using var root = new TestWebApplicationFactory();
-        using var factory = CreateFacadeFactory(root, "bearer-facade", jwtEnabled: false);
+        using var factory = CreateBuilderFactory(root, "builder-bearer");
         var authenticator = factory.Services.GetRequiredService<SoftwareWebAuthnAuthenticator>();
         var email = $"passkey-bearer-nocsrf-{Guid.NewGuid():N}@test.local";
 
         using var registerClient = TestHelpers.CreateClientWithCookies(factory);
         var origin = registerClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
         var optionsResponse = await registerClient.PostAsJsonAsync(
-            "/account/passkeys/register/options",
+            "/identity/passkeys/register/options",
             new { email });
         Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
 
@@ -197,7 +197,7 @@ public class PasskeyCsrfWithoutJwtTests
             await optionsResponse.Content.ReadAsStringAsync(),
             origin);
         var register = await registerClient.PostAsJsonAsync(
-            "/account/passkeys/register",
+            "/identity/passkeys/register",
             new { email, credentialJson });
         Assert.Equal(HttpStatusCode.OK, register.StatusCode);
         using var registerDoc = JsonDocument.Parse(await register.Content.ReadAsStringAsync());
@@ -207,7 +207,7 @@ public class PasskeyCsrfWithoutJwtTests
         using var loginClient = TestHelpers.CreateClientWithCookies(factory);
         var loginOrigin = loginClient.BaseAddress!.GetLeftPart(UriPartial.Authority);
         var requestOptions = await loginClient.PostAsJsonAsync(
-            "/account/passkeys/requestOptions",
+            "/identity/passkeys/requestOptions",
             new { email });
         Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
 
@@ -215,7 +215,7 @@ public class PasskeyCsrfWithoutJwtTests
             await requestOptions.Content.ReadAsStringAsync(),
             loginOrigin);
         var login = await loginClient.PostAsJsonAsync(
-            "/account/passkeys/login",
+            "/identity/passkeys/login",
             new { credentialJson = assertionJson });
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         using var loginDoc = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
@@ -223,13 +223,18 @@ public class PasskeyCsrfWithoutJwtTests
             TestHelpers.TryGetString(loginDoc.RootElement, "accessToken", "AccessToken")));
     }
 
-    private static WebApplicationFactory<Program> CreateFacadeFactory(
+    private static WebApplicationFactory<Program> CreateBuilderFactory(
         TestWebApplicationFactory root,
         string hostMode,
-        bool jwtEnabled) =>
+        bool jwtBodyRefresh = false) =>
         root.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("AE_HOST_MODE", hostMode);
-            builder.UseSetting("AE_FACADE_JWT", jwtEnabled ? "true" : "false");
+            builder.UseSetting("AE_BUILDER_PATH", "/identity");
+            builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "false");
+            if (jwtBodyRefresh)
+            {
+                builder.UseSetting("AE_JWT_REFRESH_TRANSPORT", "Body");
+            }
         });
 }

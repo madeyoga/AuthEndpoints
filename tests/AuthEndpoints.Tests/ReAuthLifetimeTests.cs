@@ -21,7 +21,7 @@ public class ReAuthLifetimeTests
     public void Options_DefaultLifetime_IsFiveMinutes()
     {
         Assert.Equal(TimeSpan.FromMinutes(5), new AuthEndpointsReAuthOptions().Lifetime);
-        Assert.Equal(TimeSpan.FromMinutes(5), new AuthEndpointsOptions().ReAuth.Lifetime);
+        Assert.Equal(TimeSpan.FromMinutes(5), new AuthEndpointsReAuthOptions().Lifetime);
     }
 
     [Theory]
@@ -107,16 +107,15 @@ public class ReAuthLifetimeTests
     }
 
     [Fact]
-    public async Task Facade_Configure_DrivesCookieAndTokenLifetime()
+    public async Task Builder_ConfigureReAuthOptions_DrivesCookieAndTokenLifetime()
     {
         var lifetime = TimeSpan.FromMinutes(2);
-        await using var host = await StartFacadeHostAsync(o => o.ReAuth.Lifetime = lifetime);
+        await using var host = await StartBuilderHostAsync(o => o.Lifetime = lifetime);
 
         var reauth = host.Services.GetRequiredService<IOptions<AuthEndpointsReAuthOptions>>().Value;
         var cookie = host.Services.GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
             .Get(AuthEndpointsConstants.ReAuthScheme);
 
-        Assert.Equal(lifetime, host.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value.ReAuth.Lifetime);
         Assert.Equal(lifetime, reauth.Lifetime);
         Assert.Equal(lifetime, cookie.ExpireTimeSpan);
         Assert.False(cookie.SlidingExpiration);
@@ -245,7 +244,7 @@ public class ReAuthLifetimeTests
         return builder.Build();
     }
 
-    private static async Task<WebApplication> StartFacadeHostAsync(Action<AuthEndpointsOptions> configure)
+    private static async Task<WebApplication> StartBuilderHostAsync(Action<AuthEndpointsReAuthOptions> configure)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -253,16 +252,12 @@ public class ReAuthLifetimeTests
         });
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(o =>
-            o.UseInMemoryDatabase("ReAuthLifetimeFacade_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
-        {
-            o.Passkeys.ServerDomain = "localhost";
-            o.ConfigureIdentity = identity =>
-            {
-                identity.SignIn.RequireConfirmedAccount = false;
-            };
-            configure(o);
-        });
+            o.UseInMemoryDatabase("ReAuthLifetimeBuilder_" + Guid.NewGuid().ToString("N")));
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false)
+            .AddPassword()
+            .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
+        builder.Services.Configure(configure);
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
 
         var app = builder.Build();
@@ -273,7 +268,7 @@ public class ReAuthLifetimeTests
         }
 
         app.UseAuthEndpoints();
-        app.MapAuthEndpoints<TestAppUser>();
+        app.MapAuthEndpoints<TestAppUser>("/identity", AuthEndpointsSession.Cookie);
         await app.StartAsync();
         return app;
     }

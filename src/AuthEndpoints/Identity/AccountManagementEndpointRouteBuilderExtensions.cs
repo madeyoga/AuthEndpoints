@@ -1,4 +1,3 @@
-using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -17,7 +16,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     /// <c>AddEmailCodeSignInEndpoints</c> alone leaves that route unmapped.
     /// <c>POST /confirmIdentity/passkeyOptions</c> is mapped when passkeys are registered: <c>AddPasskeyEndpoints</c>,
     /// <c>AddPasskeySignInEndpoints</c>, or <c>AddPasskeyManagementEndpoints</c>.
-    /// <c>AddPasswordAuth</c> registers passkeys when <c>Passkeys.ServerDomain</c> is set.
+    /// <c>AddAuthEndpoints(...).AddPasskeys()</c> registers passkey sign-in and management.
     /// Also maps confirm-email when that name is not mapped yet.
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
     /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
@@ -31,23 +30,20 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         return MapAccountManagementEndpoints<TUser>(
             endpoints,
             confirmEmailEndpointName,
-            alwaysMapPasskeyOptions: false,
-            emailCodeReAuth: true,
-            includeSetPassword: true);
+            alwaysMapPasskeyOptions: false);
     }
 
     internal static IEndpointConventionBuilder MapAccountManagementEndpoints<TUser>(
         this IEndpointRouteBuilder endpoints,
         string? confirmEmailEndpointName,
-        bool alwaysMapPasskeyOptions,
-        bool emailCodeReAuth,
-        bool includeSetPassword)
+        bool alwaysMapPasskeyOptions)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<AccountManagementEndpointsModule>(
-            endpoints,
+        var features = AuthEndpointsFeatures.For(endpoints);
+        AuthEndpointsFeatures.Require(
+            features.AccountManagement,
             "AddAccountManagementEndpoints",
             "MapAccountManagementEndpoints");
 
@@ -57,32 +53,17 @@ public static class AccountManagementEndpointRouteBuilderExtensions
         var group = endpoints.MapGroup("");
         const string mapMethod = nameof(MapAccountManagementEndpoints);
         IdentityEndpointRoutes.MapConfirmIdentity<TUser>(group, requireAntiforgery: true, mapMethod);
-        if (emailCodeReAuth)
-        {
-            IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
-        }
+        IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
 
-        if (alwaysMapPasskeyOptions || PasskeyReAuthAvailable(endpoints.ServiceProvider))
+        if (alwaysMapPasskeyOptions || features.Passkeys.CanConfirmIdentity)
         {
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
-        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod, includeEmailCode: emailCodeReAuth);
+        IdentityEndpointRoutes.MapAuthMethods<TUser>(group, mapMethod);
         IdentityEndpointRoutes.MapManageInfoAndTwoFactor<TUser>(group, confirmEmailEndpointName, mapMethod);
-        if (includeSetPassword)
-        {
-            IdentityEndpointRoutes.MapSetPassword<TUser>(group, mapMethod);
-        }
+        IdentityEndpointRoutes.MapSetPassword<TUser>(group, mapMethod);
 
         return new CompositeEndpointConventionBuilder(confirm, group);
     }
-
-    /// <summary>
-    /// A passkey can confirm identity whenever the host signs in with passkeys or lets users manage them,
-    /// not only with the full passkey bundle.
-    /// </summary>
-    private static bool PasskeyReAuthAvailable(IServiceProvider services) =>
-        AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(services)
-        || AuthEndpointsModules.IsRegistered<PasskeySignInEndpointsModule>(services)
-        || AuthEndpointsModules.IsRegistered<PasskeyManagementEndpointsModule>(services);
 }

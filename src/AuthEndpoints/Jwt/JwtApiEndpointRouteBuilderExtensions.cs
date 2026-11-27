@@ -29,55 +29,25 @@ public static class JwtApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps password JWT <c>POST /create</c> on the shared password pipeline and the Jwt completer.
     /// A wrong authenticator or recovery code counts toward lockout.
-    /// <c>MapAuthEndpoints</c> keeps the 3.4.1 handler instead.
     /// </summary>
     public static IEndpointConventionBuilder MapJwtPasswordEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
-        return MapJwtPasswordCore<TUser>(endpoints, preserve3x: false, nameof(MapJwtPasswordEndpoints), warn: true);
-    }
-
-    internal static IEndpointConventionBuilder MapJwtAuthEndpointsPreserving3x<TUser>(this IEndpointRouteBuilder endpoints)
-        where TUser : class, new()
-    {
-        ArgumentNullException.ThrowIfNull(endpoints);
-
-        var create = MapJwtPasswordCore<TUser>(endpoints, preserve3x: true, nameof(MapJwtPasswordEndpoints), warn: true);
-        var session = endpoints.MapJwtSessionEndpoints<TUser>();
-        return new CompositeEndpointConventionBuilder(create, session);
+        return MapJwtPasswordCore<TUser>(endpoints, nameof(MapJwtPasswordEndpoints));
     }
 
     internal static IEndpointConventionBuilder MapJwtPasswordCore<TUser>(
         IEndpointRouteBuilder endpoints,
-        bool preserve3x,
-        string mapMethod,
-        bool warn)
+        string mapMethod)
         where TUser : class, new()
     {
         var routeGroup = endpoints.MapGroup("");
-        if (preserve3x)
-        {
-            if (warn)
-            {
-                AuthEndpointsModules.ThrowIfMissing<JwtEndpointsModule>(
-                    endpoints,
-                    "AddJwtEndpoints",
-                    mapMethod);
-            }
-
-            routeGroup.MapPost("/create", JwtEndpoints<TUser>.Create)
-                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-                .Track(endpoints, mapMethod);
-        }
-        else
-        {
-            SignInCompleterMap.EnsureSelected<TUser>(endpoints, SignInCompleters.Jwt, mapMethod);
-            routeGroup.MapPost("/create", PasswordCompleterSignIn<TUser>.HandleCreate)
-                .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
-                .WithMetadata(new SignInCompleterSelection(SignInCompleters.Jwt))
-                .Track(endpoints, mapMethod);
-        }
+        SignInCompleterMap.EnsureSelected<TUser>(endpoints, SignInCompleters.Jwt, mapMethod);
+        routeGroup.MapPost("/create", PasswordCompleterSignIn<TUser>.HandleCreate)
+            .RequireRateLimiting(AuthEndpointsConstants.LoginPolicy)
+            .WithMetadata(new SignInCompleterSelection(SignInCompleters.Jwt))
+            .Track(endpoints, mapMethod);
 
         PasswordSignInMap.Mark(endpoints.ServiceProvider);
         return routeGroup;
@@ -93,8 +63,8 @@ public static class JwtApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<JwtEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Jwt,
             "AddJwtEndpoints",
             "MapJwtSessionEndpoints");
 

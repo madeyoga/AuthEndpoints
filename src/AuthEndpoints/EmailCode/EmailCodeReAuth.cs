@@ -162,7 +162,7 @@ internal static class EmailCodeReAuthEndpoints<TUser>
         var options = services.GetService<IOptions<EmailCodeOptions>>()?.Value;
         var store = services.GetService<IEmailCodeStore>();
         // Sign-in shares the store. Send owns the step-up proof.
-        if (!AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(services)
+        if (!AuthEndpointsFeatures.For(services).EmailCode.CanConfirmIdentity
             || options is null
             || store is null
             || !await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options))

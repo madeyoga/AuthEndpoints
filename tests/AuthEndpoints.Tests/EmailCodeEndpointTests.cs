@@ -211,18 +211,16 @@ public partial class EmailCodeEndpointTests
     }
 
     [Fact]
-    public async Task Facade_DisabledOmitsRoutes_EnabledMapsBothUnderIdentityPath()
+    public async Task Builder_WithoutAddEmailCode_OmitsRoutes_WithItMapsBothUnderPath()
     {
-        Assert.False(new AuthEndpointsOptions().EmailCode.Enabled);
-
-        await using (var disabled = await StartFacadeAsync(enabled: false))
+        await using (var disabled = await StartBuilderAsync(emailCode: false))
         {
             using var client = disabled.GetTestClient();
             Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/identity/emailCode/send", new { email = "a@x.com" })).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/identity/emailCode/verify", new { email = "a@x.com", code = "000000" })).StatusCode);
         }
 
-        await using (var enabled = await StartFacadeAsync(enabled: true, identityPath: "/accounts"))
+        await using (var enabled = await StartBuilderAsync(emailCode: true, path: "/accounts"))
         {
             using var client = enabled.GetTestClient();
             var send = await client.PostAsJsonAsync("/accounts/emailCode/send", new { email = "not-an-email" });
@@ -1411,17 +1409,12 @@ public partial class EmailCodeEndpointTests
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>, DevelopmentEmailCodeSender<TestAppUser>>();
         }
 
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options =>
-        {
-            options.Passkeys.ServerDomain = "example.com";
-            options.RequireEmailSenderInProduction = false;
-            options.EmailCode.Enabled = true;
-            options.EmailCode.Configure = emailCode => emailCode.RequireSenderOutsideDevelopment = requireSender;
-        });
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options => options.RequireEmailSenderInProduction = false)
+            .AddEmailCode(emailCode => emailCode.RequireSenderOutsideDevelopment = requireSender);
         return builder.Build();
     }
 
-    private static async Task<WebApplication> StartFacadeAsync(bool enabled, string identityPath = "/identity")
+    private static async Task<WebApplication> StartBuilderAsync(bool emailCode, string path = "/identity")
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -1429,25 +1422,16 @@ public partial class EmailCodeEndpointTests
         });
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(options =>
-            options.UseInMemoryDatabase("EmailCodeFacade_" + Guid.NewGuid().ToString("N")));
+            options.UseInMemoryDatabase("EmailCodeBuilder_" + Guid.NewGuid().ToString("N")));
         builder.Services.AddSingleton<IEmailSender<TestAppUser>, TestEmailSender>();
         builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>, CapturingEmailSender>();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options =>
+        var auth = builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false)
+            .AddPassword();
+        if (emailCode)
         {
-            options.IdentityPath = identityPath;
-            options.Passkeys.ServerDomain = "localhost";
-            options.RequireConfirmedAccount = false;
-            options.EmailCode.Enabled = enabled;
-            options.ConfigureIdentity = identity =>
-            {
-                identity.SignIn.RequireConfirmedAccount = false;
-                identity.Password.RequireDigit = false;
-                identity.Password.RequireLowercase = false;
-                identity.Password.RequireUppercase = false;
-                identity.Password.RequireNonAlphanumeric = false;
-                identity.Password.RequiredLength = 6;
-            };
-        });
+            auth.AddEmailCode();
+        }
 
         var app = builder.Build();
         using (var scope = app.Services.CreateScope())
@@ -1456,7 +1440,7 @@ public partial class EmailCodeEndpointTests
         }
 
         app.UseAuthEndpoints();
-        app.MapAuthEndpoints<TestAppUser>();
+        app.MapAuthEndpoints<TestAppUser>(path, AuthEndpointsSession.Cookie);
         await app.StartAsync();
         return app;
     }

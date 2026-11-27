@@ -23,7 +23,7 @@ A client asks for a reset code, reads it from mail, and sets a new password. The
 
 Preconditions:
 
-- Host is healthy (`ae-http.sh doctor`). Compose or cookie-facade. `RequireConfirmedAccount` may stay false; the user still has to confirm before a reset code is mailed.
+- Host is healthy (`ae-http.sh doctor`). Compose. `RequireConfirmedAccount` may stay false; the user still has to confirm before a reset code is mailed.
 - Cookie jar is empty.
 - `EMAIL` is unused. `PASS` is `Passw0rd!`. New password is `ChangedPass1!`.
 - Register, forgot-password, and reset-password share the account-abuse limit (10 per minute).

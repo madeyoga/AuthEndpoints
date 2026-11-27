@@ -11,51 +11,29 @@
     {
         public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseAuthEndpoints(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
     }
-    public sealed class AuthEndpointsEmailCodeOptions
+    public sealed class AuthEndpointsBuilder<TUser, TContext>
+        where TUser :  class, new ()
+        where TContext : Microsoft.EntityFrameworkCore.DbContext
     {
-        public AuthEndpointsEmailCodeOptions() { }
-        public System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? Configure { get; set; }
-        public bool Enabled { get; set; }
-    }
-    public sealed class AuthEndpointsEmailConfirmationOptions
-    {
-        public AuthEndpointsEmailConfirmationOptions() { }
-        public System.Collections.Generic.IList<string> AllowedRedirectOrigins { get; set; }
-        public string? ConfirmEmailRedirectUri { get; set; }
+        public Microsoft.AspNetCore.Identity.IdentityBuilder Identity { get; }
+        public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddEmailCode(System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null) { }
+        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddIdentityBearer() { }
+        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddJwt(System.Action<AuthEndpoints.Jwt.SimpleJwtOptions> configure) { }
+        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddPasskeys(System.Action<AuthEndpoints.PasskeyFeatureOptions>? configure = null) { }
+        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddPassword(System.Action<AuthEndpoints.PasswordFeatureOptions>? configure = null) { }
+        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> ConfigureIdentity(System.Action<Microsoft.AspNetCore.Identity.IdentityOptions> configure) { }
     }
     public static class AuthEndpointsEndpointRouteBuilderExtensions
     {
-        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
+        public static Microsoft.AspNetCore.Routing.RouteGroupBuilder MapAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints, string path, AuthEndpoints.AuthEndpointsSession session)
             where TUser :  class, new () { }
-    }
-    public sealed class AuthEndpointsJwtOptions
-    {
-        public AuthEndpointsJwtOptions() { }
-        public System.Action<AuthEndpoints.Jwt.SimpleJwtOptions>? Configure { get; set; }
-        public bool Enabled { get; set; }
-        public string Path { get; set; }
     }
     public sealed class AuthEndpointsOptions
     {
         public AuthEndpointsOptions() { }
-        public System.Action<Microsoft.AspNetCore.Identity.IdentityOptions>? ConfigureIdentity { get; set; }
-        public System.Action<Microsoft.AspNetCore.Identity.IdentityPasskeyOptions>? ConfigurePasskeys { get; set; }
-        public AuthEndpoints.AuthEndpointsEmailCodeOptions EmailCode { get; set; }
-        public AuthEndpoints.AuthEndpointsEmailConfirmationOptions EmailConfirmation { get; set; }
-        public string IdentityPath { get; set; }
-        public AuthEndpoints.AuthEndpointsJwtOptions Jwt { get; set; }
-        public string PasskeyPath { get; set; }
-        public AuthEndpoints.AuthEndpointsPasskeyOptions Passkeys { get; set; }
-        public AuthEndpoints.AuthEndpointsReAuthOptions ReAuth { get; }
-        public bool RequireConfirmedAccount { get; set; }
+        public AuthEndpoints.EmailConfirmationOptions EmailConfirmation { get; set; }
         public bool RequireEmailSenderInProduction { get; set; }
-        public AuthEndpoints.AuthEndpointsSignIn SignIn { get; set; }
-    }
-    public sealed class AuthEndpointsPasskeyOptions
-    {
-        public AuthEndpointsPasskeyOptions() { }
-        public bool Enabled { get; set; }
-        public string? ServerDomain { get; set; }
     }
     public sealed class AuthEndpointsReAuthOptions
     {
@@ -64,17 +42,10 @@
     }
     public static class AuthEndpointsServiceCollectionExtensions
     {
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+        public static AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddAuthEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
             where TUser :  class, new ()
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, AuthEndpoints.AuthEndpointsSignIn signIn, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
-            where TUser :  class, new ()
-            where TRole :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, AuthEndpoints.AuthEndpointsSignIn signIn, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+        public static AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddAuthEndpoints<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
             where TUser :  class, new ()
             where TRole :  class
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
@@ -84,11 +55,6 @@
         Cookie = 0,
         IdentityBearer = 1,
         Jwt = 2,
-    }
-    public enum AuthEndpointsSignIn
-    {
-        Cookie = 0,
-        IdentityBearer = 1,
     }
     public sealed class EmailConfirmationOptions
     {
@@ -101,37 +67,18 @@
     {
         System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.SignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default);
     }
-    public sealed class PasskeyScenarioOptions
+    public sealed class PasskeyFeatureOptions
     {
-        public PasskeyScenarioOptions() { }
+        public PasskeyFeatureOptions() { }
+        public bool Management { get; set; }
         public string? ServerDomain { get; set; }
+        public bool SignUp { get; set; }
     }
-    public static class PasswordAuthEndpointRouteBuilderExtensions
+    public sealed class PasswordFeatureOptions
     {
-        public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapPasswordAuth<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
-            where TUser :  class, new () { }
-    }
-    public sealed class PasswordAuthOptions
-    {
-        public PasswordAuthOptions() { }
-        public System.Action<Microsoft.AspNetCore.Identity.IdentityOptions>? ConfigureIdentity { get; set; }
-        public AuthEndpoints.EmailConfirmationOptions EmailConfirmation { get; }
-        public System.Action<AuthEndpoints.Jwt.SimpleJwtOptions>? Jwt { get; set; }
-        public AuthEndpoints.PasskeyScenarioOptions Passkeys { get; }
-        public string Path { get; set; }
-        public bool RequireConfirmedAccount { get; set; }
-        public bool RequireEmailSenderInProduction { get; set; }
-        public AuthEndpoints.AuthEndpointsSession Session { get; set; }
-    }
-    public static class PasswordAuthServiceCollectionExtensions
-    {
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddPasswordAuth<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.PasswordAuthOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddPasswordAuth<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.PasswordAuthOptions>? configure = null)
-            where TUser :  class, new ()
-            where TRole :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public PasswordFeatureOptions() { }
+        public bool Recovery { get; set; }
+        public bool SignUp { get; set; }
     }
     public static class SignInCompleterServiceCollectionExtensions
     {

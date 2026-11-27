@@ -9,52 +9,18 @@ namespace AuthEndpoints;
 internal sealed class AuthEndpointsOptionsValidator : IValidateOptions<AuthEndpointsOptions>
 {
     private readonly IHostEnvironment _environment;
-    private readonly IServiceProvider _services;
 
-    public AuthEndpointsOptionsValidator(IHostEnvironment environment, IServiceProvider services)
+    public AuthEndpointsOptionsValidator(IHostEnvironment environment)
     {
         _environment = environment;
-        _services = services;
     }
 
     public ValidateOptionsResult Validate(string? name, AuthEndpointsOptions options)
     {
-        if (_services.GetService<PasswordAuthRegistration>() is not null)
-        {
-            return ValidateOptionsResult.Fail(
-                "AuthEndpoints: AddAuthEndpoints and AddPasswordAuth cannot be used in the same host. Use one facade.");
-        }
-
-        if (string.IsNullOrWhiteSpace(options.IdentityPath) || !options.IdentityPath.StartsWith('/'))
-        {
-            return ValidateOptionsResult.Fail("AuthEndpoints: IdentityPath must be a rooted path (e.g. \"/identity\").");
-        }
-
-        if (options.Passkeys.Enabled &&
-            (string.IsNullOrWhiteSpace(options.PasskeyPath) || !options.PasskeyPath.StartsWith('/')))
-        {
-            return ValidateOptionsResult.Fail("AuthEndpoints: PasskeyPath must be a rooted path (e.g. \"/account\").");
-        }
-
-        if (_environment.IsProduction()
-            && options.Passkeys.Enabled
-            && string.IsNullOrWhiteSpace(options.Passkeys.ServerDomain))
-        {
-            return ValidateOptionsResult.Fail(
-                "AuthEndpoints: Passkeys.ServerDomain must be set in Production when Passkeys.Enabled is true " +
-                "(e.g. options.Passkeys.ServerDomain = \"example.com\").");
-        }
-
-        if (options.Jwt.Enabled
-            && (string.IsNullOrWhiteSpace(options.Jwt.Path) || !options.Jwt.Path.StartsWith('/')))
-        {
-            return ValidateOptionsResult.Fail("AuthEndpoints: Jwt.Path must be a rooted path (e.g. \"/auth\").");
-        }
-
         return EmailConfirmationValidation.Validate(
             _environment,
-            options.EmailConfirmation.ConfirmEmailRedirectUri,
-            options.EmailConfirmation.AllowedRedirectOrigins,
+            options.EmailConfirmation?.ConfirmEmailRedirectUri,
+            options.EmailConfirmation?.AllowedRedirectOrigins,
             "AuthEndpoints");
     }
 }

@@ -23,29 +23,12 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         string? confirmEmailEndpointName = null)
         where TUser : class, new()
     {
-        return MapIdentityManagementCore<TUser>(
-            endpoints,
-            confirmEmailEndpointName,
-            emailCodeReAuth: true,
-            includeSetPassword: true);
-    }
-
-    internal static IEndpointConventionBuilder MapIdentityManagementApiPreserving3x<TUser>(
-        this IEndpointRouteBuilder endpoints)
-        where TUser : class, new()
-    {
-        return MapIdentityManagementCore<TUser>(
-            endpoints,
-            confirmEmailEndpointName: null,
-            emailCodeReAuth: false,
-            includeSetPassword: false);
+        return MapIdentityManagementCore<TUser>(endpoints, confirmEmailEndpointName);
     }
 
     private static IEndpointConventionBuilder MapIdentityManagementCore<TUser>(
         IEndpointRouteBuilder endpoints,
-        string? confirmEmailEndpointName,
-        bool emailCodeReAuth,
-        bool includeSetPassword)
+        string? confirmEmailEndpointName)
         where TUser : class, new()
     {
         ArgumentNullException.ThrowIfNull(endpoints);
@@ -54,9 +37,7 @@ public static class IdentityApiEndpointRouteBuilderExtensions
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
         var account = endpoints.MapAccountManagementEndpoints<TUser>(
             confirmEmailEndpointName,
-            alwaysMapPasskeyOptions: true,
-            emailCodeReAuth: emailCodeReAuth,
-            includeSetPassword: includeSetPassword);
+            alwaysMapPasskeyOptions: true);
         return new CompositeEndpointConventionBuilder(password, confirm, account);
     }
 
@@ -146,8 +127,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Password.Bundle,
             "AddPasswordEndpoints",
             "MapPasswordEndpoints");
 
@@ -182,8 +163,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Password.Bundle,
             "AddPasswordEndpoints",
             "MapBearerAuthEndpoints");
 
@@ -206,8 +187,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<BearerSessionEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Sessions.IdentityBearer,
             "AddBearerSessionEndpoints",
             "MapBearerSessionEndpoints");
 
@@ -226,8 +207,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Password.Bundle,
             "AddPasswordEndpoints",
             "MapCookieAuthEndpoints");
 
@@ -250,8 +231,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<CookieSessionEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Sessions.Cookie,
             "AddCookieSessionEndpoints",
             "MapCookieSessionEndpoints");
 

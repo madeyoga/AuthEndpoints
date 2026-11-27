@@ -1,7 +1,4 @@
-﻿using AuthEndpoints.EmailCode;
-using AuthEndpoints.Identity;
-using AuthEndpoints.Jwt;
-using AuthEndpoints.Passkey;
+﻿using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,102 +7,50 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints;
 
+/// <summary>Registered by <c>AddAuthEndpoints</c> so <c>MapAuthEndpoints</c> can check it ran.</summary>
 internal sealed class AuthEndpointsRegistration;
 
 public static class AuthEndpointsServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the cookie Identity facade: Identity API endpoints, EF stores, antiforgery,
-    /// ReAuth, rate limiting, and (by default) passkey support.
-    /// Hosts must still register <see cref="DbContext"/>, call <see cref="AuthEndpointsApplicationBuilderExtensions.UseAuthEndpoints"/>,
-    /// <see cref="AuthEndpointsEndpointRouteBuilderExtensions.MapAuthEndpoints{TUser}"/>, and in Production
-    /// provide a real <c>IEmailSender&lt;TUser&gt;</c> plus <c>Passkeys.ServerDomain</c>.
+    /// Registers Identity with EF stores, the cookie session, and account management, and returns a builder
+    /// that adds sign-in methods: <see cref="AuthEndpointsBuilder{TUser, TContext}.AddPassword"/>,
+    /// <see cref="AuthEndpointsBuilder{TUser, TContext}.AddPasskeys"/>, and
+    /// <see cref="AuthEndpointsBuilder{TUser, TContext}.AddEmailCode"/>.
+    /// <c>MapAuthEndpoints</c> maps exactly what was added.
+    /// Hosts must also call <c>UseAuthEndpoints</c>, and in Production register a real <c>IEmailSender&lt;TUser&gt;</c>.
     /// </summary>
     /// <remarks>
-    /// For roles, prefer <see cref="AddAuthEndpoints{TUser, TRole, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/> so
-    /// <c>IRoleStore</c> is registered. Do not chain bare <c>AddRoles</c> after this overload
-    /// without calling <c>AddEntityFrameworkStores</c> again.
-    /// For Identity bearer tokens, pass <see cref="AuthEndpointsSignIn.IdentityBearer"/> or set
-    /// <see cref="AuthEndpointsOptions.SignIn"/>.
-    /// This is the 3.4.1 compatibility facade. It stays frozen: same options, same routes, and no 4.0-only features.
-    /// Do not also call <c>AddPasswordAuth</c>.
+    /// The builder is a shortcut over the <c>Add*Endpoints</c> building blocks. A host can mix the two:
+    /// <c>MapAuthEndpoints</c> maps whatever is registered, whichever way it was added.
+    /// For roles, call <see cref="AddAuthEndpoints{TUser, TRole, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>
+    /// so <c>AddRoles</c> runs before <c>AddEntityFrameworkStores</c>.
     /// </remarks>
-    public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
+    public static AuthEndpointsBuilder<TUser, TContext> AddAuthEndpoints<TUser, TContext>(
         this IServiceCollection services,
         Action<AuthEndpointsOptions>? configure = null)
         where TUser : class, new()
         where TContext : DbContext
     {
-        return AddAuthEndpointsCore<TUser, TContext>(services, configure, addRoles: null, roleType: null);
+        return AddCore<TUser, TContext>(services, configure, addRoles: null, roleType: null);
     }
 
     /// <summary>
     /// Same as <see cref="AddAuthEndpoints{TUser, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
-    /// with <see cref="AuthEndpointsOptions.SignIn"/> forced to <paramref name="signIn"/>.
+    /// and registers Identity roles (<typeparamref name="TRole"/>) before EF stores so <c>IRoleStore</c> is available
+    /// and sign-in includes role claims.
     /// </summary>
-    public static IdentityBuilder AddAuthEndpoints<TUser, TContext>(
-        this IServiceCollection services,
-        AuthEndpointsSignIn signIn,
-        Action<AuthEndpointsOptions>? configure = null)
-        where TUser : class, new()
-        where TContext : DbContext
-    {
-        return AddAuthEndpointsCore<TUser, TContext>(
-            services,
-            WrapSignIn(signIn, configure),
-            addRoles: null,
-            roleType: null);
-    }
-
-    /// <summary>
-    /// Same as <see cref="AddAuthEndpoints{TUser, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
-    /// and registers Identity roles (<typeparamref name="TRole"/>) before EF stores so <c>IRoleStore</c> is available.
-    /// </summary>
-    public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
+    public static AuthEndpointsBuilder<TUser, TContext> AddAuthEndpoints<TUser, TRole, TContext>(
         this IServiceCollection services,
         Action<AuthEndpointsOptions>? configure = null)
         where TUser : class, new()
         where TRole : class
         where TContext : DbContext
     {
-        return AddAuthEndpointsCore<TUser, TContext>(
-            services,
-            configure,
-            builder => builder.AddRoles<TRole>(),
-            typeof(TRole));
+        return AddCore<TUser, TContext>(services, configure, builder => builder.AddRoles<TRole>(), typeof(TRole));
     }
 
-    /// <summary>
-    /// Same as <see cref="AddAuthEndpoints{TUser, TRole, TContext}(IServiceCollection, Action{AuthEndpointsOptions}?)"/>,
-    /// with <see cref="AuthEndpointsOptions.SignIn"/> forced to <paramref name="signIn"/>.
-    /// </summary>
-    public static IdentityBuilder AddAuthEndpoints<TUser, TRole, TContext>(
-        this IServiceCollection services,
-        AuthEndpointsSignIn signIn,
-        Action<AuthEndpointsOptions>? configure = null)
-        where TUser : class, new()
-        where TRole : class
-        where TContext : DbContext
-    {
-        return AddAuthEndpointsCore<TUser, TContext>(
-            services,
-            WrapSignIn(signIn, configure),
-            builder => builder.AddRoles<TRole>(),
-            typeof(TRole));
-    }
-
-    private static Action<AuthEndpointsOptions> WrapSignIn(
-        AuthEndpointsSignIn signIn,
-        Action<AuthEndpointsOptions>? configure)
-    {
-        return o =>
-        {
-            configure?.Invoke(o);
-            o.SignIn = signIn;
-        };
-    }
-
-    private static IdentityBuilder AddAuthEndpointsCore<TUser, TContext>(
+    private static AuthEndpointsBuilder<TUser, TContext> AddCore<TUser, TContext>(
         IServiceCollection services,
         Action<AuthEndpointsOptions>? configure,
         Func<IdentityBuilder, IdentityBuilder>? addRoles,
@@ -116,70 +61,22 @@ public static class AuthEndpointsServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(services);
 
         services.TryAddSingleton<AuthEndpointsRegistration>();
+        var options = services.AddOptions<AuthEndpointsOptions>().ValidateOnStart();
+        if (configure is not null)
+        {
+            options.Configure(configure);
+        }
 
-        var bootstrap = new AuthEndpointsOptions();
-        configure?.Invoke(bootstrap);
-
-        services.AddOptions<AuthEndpointsOptions>()
-            .Configure(o =>
-            {
-                configure?.Invoke(o);
-            })
-            .ValidateOnStart();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<AuthEndpointsOptions>, AuthEndpointsOptionsValidator>());
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IValidateOptions<AuthEndpointsOptions>, AuthEndpointsEmailSenderValidator<TUser>>());
 
         // Roles must be configured before AddEntityFrameworkStores so IRoleStore is registered.
-        var identityBuilder = services.AddAuthEndpointsIdentity<TUser, TContext>(
-            identity =>
-            {
-                identity.SignIn.RequireConfirmedAccount = bootstrap.RequireConfirmedAccount;
-                bootstrap.ConfigureIdentity?.Invoke(identity);
-            },
-            addRoles,
-            roleType);
+        var identity = services.AddAuthEndpointsIdentity<TUser, TContext>(configure: null, addRoles, roleType);
+        services.AddCookieSessionEndpoints();
+        services.AddAccountManagementEndpoints();
 
-        services.AddCookieAuthEndpoints();
-        if (bootstrap.SignIn == AuthEndpointsSignIn.IdentityBearer)
-        {
-            services.AddBearerAuthEndpoints();
-        }
-
-        services.AddOptions<AuthEndpointsReAuthOptions>()
-            .PostConfigure<IOptions<AuthEndpointsOptions>>((reauth, parent) =>
-            {
-                reauth.Lifetime = parent.Value.ReAuth.Lifetime;
-            });
-
-        if (bootstrap.Passkeys.Enabled)
-        {
-            services.AddPasskeyEndpoints<TUser>();
-            services.Configure<IdentityPasskeyOptions>(passkeys =>
-            {
-                if (!string.IsNullOrWhiteSpace(bootstrap.Passkeys.ServerDomain))
-                {
-                    passkeys.ServerDomain = bootstrap.Passkeys.ServerDomain;
-                }
-
-                bootstrap.ConfigurePasskeys?.Invoke(passkeys);
-            });
-        }
-
-        if (bootstrap.Jwt.Enabled)
-        {
-            services.AddJwtEndpoints<TUser, TContext>(jwt =>
-            {
-                bootstrap.Jwt.Configure?.Invoke(jwt);
-            });
-        }
-
-        if (bootstrap.EmailCode.Enabled)
-        {
-            services.AddEmailCodeEndpoints<TUser, TContext>(bootstrap.EmailCode.Configure);
-        }
-
-        return identityBuilder;
+        return new AuthEndpointsBuilder<TUser, TContext>(services, identity);
     }
 }

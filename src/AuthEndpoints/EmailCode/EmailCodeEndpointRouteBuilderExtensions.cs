@@ -70,12 +70,6 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         return MapEmailCodeSignInCore<TUser>(endpoints, completer, honorDefault: false);
     }
 
-    internal static IEndpointConventionBuilder MapEmailCodeEndpointsPreserving3x<TUser>(this IEndpointRouteBuilder endpoints)
-        where TUser : class, new()
-    {
-        return MapEmailCodeCore<TUser>(endpoints, completer: null, honorDefault: false);
-    }
-
     /// <summary>
     /// Maps email-code send and verify, and finishes verify with the built-in completer for <paramref name="session"/>.
     /// </summary>

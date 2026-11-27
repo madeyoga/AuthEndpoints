@@ -157,7 +157,7 @@ internal static class IdentityEndpointRoutes
     {
         // Send owns this route and AuthEndpoints.ConfirmIdentity.EmailCode.
         // Sign-in shares the store, and it does not register that policy.
-        if (!AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(endpoints.ServiceProvider))
+        if (!AuthEndpointsFeatures.For(endpoints).EmailCode.CanConfirmIdentity)
         {
             return;
         }
@@ -196,19 +196,14 @@ internal static class IdentityEndpointRoutes
         passkeyOptions.Track(endpoints, mapMethod);
     }
 
-    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod, bool includeEmailCode = true)
+    public static void MapAuthMethods<TUser>(IEndpointRouteBuilder endpoints, string mapMethod)
         where TUser : class, new()
     {
         var manage = endpoints.MapGroup("/manage").RequireAuthEndpointsUser();
-        RouteHandlerBuilder authMethods = includeEmailCode
-            ? manage.MapGet("/authMethods", (
+        manage.MapGet("/authMethods", (
                 ClaimsPrincipal principal,
                 UserManager<TUser> userManager,
                 IServiceProvider services) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager, services))
-            : manage.MapGet("/authMethods", (
-                ClaimsPrincipal principal,
-                UserManager<TUser> userManager) => ReAuthEndpoints<TUser>.AuthMethods(principal, userManager));
-        authMethods
             .WithSummary("List available step-up / reauthentication methods for the current user.")
             .Track(endpoints, mapMethod);
     }

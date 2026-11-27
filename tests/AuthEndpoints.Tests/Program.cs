@@ -22,15 +22,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 var dbName = builder.Configuration["TestDbName"] ?? "AuthEndpointsTests";
 var hostMode = builder.Configuration["AE_HOST_MODE"] ?? "compose";
-var useBearerFacade = string.Equals(hostMode, "bearer-facade", StringComparison.OrdinalIgnoreCase);
-var useCookieFacade = string.Equals(hostMode, "cookie-facade", StringComparison.OrdinalIgnoreCase);
+string[] knownHostModes = ["compose", "split", "external", "builder-cookie", "builder-jwt", "builder-bearer"];
+if (!knownHostModes.Contains(hostMode, StringComparer.OrdinalIgnoreCase))
+{
+    throw new InvalidOperationException(
+        $"Unknown AE_HOST_MODE '{hostMode}'. Use one of: {string.Join(", ", knownHostModes)}.");
+}
+
 var useSplit = string.Equals(hostMode, "split", StringComparison.OrdinalIgnoreCase);
-var usePasswordCookie = string.Equals(hostMode, "password-cookie", StringComparison.OrdinalIgnoreCase);
-var usePasswordJwt = string.Equals(hostMode, "password-jwt", StringComparison.OrdinalIgnoreCase);
 var useExternal = string.Equals(hostMode, "external", StringComparison.OrdinalIgnoreCase);
-var usePassword = usePasswordCookie || usePasswordJwt;
-var useFacade = useBearerFacade || useCookieFacade;
-var facadeJwtEnabled = !string.Equals(builder.Configuration["AE_FACADE_JWT"], "false", StringComparison.OrdinalIgnoreCase);
+AuthEndpointsSession? builderSession = hostMode.ToLowerInvariant() switch
+{
+    "builder-cookie" => AuthEndpointsSession.Cookie,
+    "builder-jwt" => AuthEndpointsSession.Jwt,
+    "builder-bearer" => AuthEndpointsSession.IdentityBearer,
+    _ => null,
+};
 var emailCode = IsTruthy(builder.Configuration["AE_EMAIL_CODE"]);
 var emailCodeSignUp = IsTruthy(builder.Configuration["AE_EMAIL_CODE_SIGNUP"]);
 var emailCodeLink = builder.Configuration["AE_EMAIL_CODE_LINK"];
@@ -48,68 +55,31 @@ builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequire
 builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
 builder.Services.AddSingleton<SoftwareWebAuthnAuthenticator>();
 
-if (usePassword)
+if (builderSession is { } session)
 {
+    // AddAuthEndpoints / MapAuthEndpoints. RequireConfirmedAccount follows the library default (true)
+    // unless AE_REQUIRE_CONFIRMED_ACCOUNT is set.
     var confirmed = string.IsNullOrWhiteSpace(builder.Configuration["AE_REQUIRE_CONFIRMED_ACCOUNT"])
         ? true
         : requireConfirmedAccount;
-    builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
+    var auth = builder.Services
+        .AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+            ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins))
+        .ConfigureIdentity(identity => ConfigureTestIdentity(identity, confirmed))
+        .AddPassword()
+        .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
+    if (emailCode)
     {
-        o.RequireConfirmedAccount = confirmed;
-        o.Passkeys.ServerDomain = "localhost";
-        o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, confirmed);
-        if (!string.IsNullOrWhiteSpace(confirmEmailRedirectUri))
-        {
-            o.EmailConfirmation.ConfirmEmailRedirectUri = confirmEmailRedirectUri;
-        }
-
-        if (confirmEmailAllowedOrigins.Count > 0)
-        {
-            o.EmailConfirmation.AllowedRedirectOrigins = confirmEmailAllowedOrigins.ToList();
-        }
-
-        if (usePasswordJwt)
-        {
-            o.Session = AuthEndpointsSession.Jwt;
-            o.Jwt = jwt =>
-            {
-                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-                if (string.Equals(builder.Configuration["AE_JWT_REFRESH_TRANSPORT"], "Body", StringComparison.OrdinalIgnoreCase))
-                {
-                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
-                }
-            };
-        }
-    });
-}
-else if (useFacade)
-{
-    void ConfigureFacade(AuthEndpointsOptions o)
-    {
-        o.RequireConfirmedAccount = requireConfirmedAccount;
-        o.Passkeys.ServerDomain = "localhost";
-        o.ConfigureIdentity = identity => ConfigureTestIdentity(identity, requireConfirmedAccount);
-        o.Jwt.Enabled = facadeJwtEnabled;
-        o.EmailCode.Enabled = emailCode;
-        o.EmailCode.Configure = options => ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink);
-        if (facadeJwtEnabled)
-        {
-            o.Jwt.Configure = jwt =>
-            {
-                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-            };
-        }
-
-        ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins);
+        auth.AddEmailCode(options => ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
     }
 
-    if (useBearerFacade)
+    if (session == AuthEndpointsSession.Jwt)
     {
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(AuthEndpointsSignIn.IdentityBearer, ConfigureFacade);
+        auth.AddJwt(jwt => jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!");
     }
-    else
+    else if (session == AuthEndpointsSession.IdentityBearer)
     {
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(ConfigureFacade);
+        auth.AddIdentityBearer();
     }
 }
 else if (useExternal)
@@ -191,15 +161,10 @@ using (var scope = app.Services.CreateScope())
     await db.Database.EnsureCreatedAsync();
 }
 
-if (usePassword)
+if (builderSession is { } mappedSession)
 {
     app.UseAuthEndpoints();
-    app.MapPasswordAuth<TestAppUser>();
-}
-else if (useFacade)
-{
-    app.UseAuthEndpoints();
-    app.MapAuthEndpoints<TestAppUser>();
+    app.MapAuthEndpoints<TestAppUser>(builder.Configuration["AE_BUILDER_PATH"] ?? "/auth", mappedSession);
 }
 else if (useExternal)
 {

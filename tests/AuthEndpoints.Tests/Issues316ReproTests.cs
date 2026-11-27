@@ -18,7 +18,7 @@ public sealed class Issues316ReproTests
     private static void ExtraMap_ThrowsMissingAdd(AuthEndpointsSession session, string? serverDomain)
     {
         using var app = Build(session, serverDomain);
-        app.MapPasswordAuth<TestAppUser>();
+        app.MapAuthEndpoints<TestAppUser>("/auth", session);
 
         var cookie = Assert.Throws<InvalidOperationException>(() =>
             app.MapGroup("/auth").MapCookieAuthEndpoints<TestAppUser>());
@@ -56,19 +56,20 @@ public sealed class Issues316ReproTests
         builder.Services.AddDbContext<TestDbContext>(options =>
             options.UseInMemoryDatabase("issue-316-" + Guid.NewGuid().ToString("N")));
         builder.Services.AddSingleton<IEmailSender<TestAppUser>, TestEmailSender>();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(options =>
+        var auth = builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        if (serverDomain is not null)
         {
-            options.Session = session;
-            options.Passkeys.ServerDomain = serverDomain;
-            if (session == AuthEndpointsSession.Jwt)
+            auth.AddPasskeys(passkeys => passkeys.ServerDomain = serverDomain);
+        }
+
+        if (session == AuthEndpointsSession.Jwt)
+        {
+            auth.AddJwt(jwt =>
             {
-                options.Jwt = jwt =>
-                {
-                    jwt.SigningOptions.SymmetricKey = SigningKey;
-                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
-                };
-            }
-        });
+                jwt.SigningOptions.SymmetricKey = SigningKey;
+                jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+            });
+        }
         return builder.Build();
     }
 }

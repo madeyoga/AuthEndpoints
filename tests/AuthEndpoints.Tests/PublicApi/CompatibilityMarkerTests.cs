@@ -23,8 +23,6 @@ public class CompatibilityMarkerTests
         "AddBearerAuthEndpoints",
         "AddAuthEndpoints",
         "MapAuthEndpoints",
-        "AddPasswordAuth",
-        "MapPasswordAuth",
     ];
 
     private static readonly string[] RenamedConstants =
@@ -100,7 +98,6 @@ public class CompatibilityMarkerTests
         }
 
         Assert.Null(typeof(PasswordLoginMode).GetCustomAttribute<ObsoleteAttribute>());
-        Assert.Null(typeof(AuthEndpointsSignIn).GetCustomAttribute<ObsoleteAttribute>());
         Assert.Null(typeof(PasskeySignInKind).GetCustomAttribute<ObsoleteAttribute>());
         Assert.Empty(ObsoleteMembers(typeof(GitHubExternalAuthProvider).Assembly));
     }

@@ -7,7 +7,7 @@ namespace AuthEndpoints.Tests;
 
 public class PasskeyRegisterResponseTests
 {
-    public static TheoryData<string, bool, bool> FacadeRegisterCases()
+    public static TheoryData<string, bool, bool> BuilderRegisterCases()
     {
         var data = new TheoryData<string, bool, bool>();
         foreach (var mode in new[] { "cookie", "bearer", "jwt" })
@@ -25,7 +25,7 @@ public class PasskeyRegisterResponseTests
     }
 
     [Theory]
-    [MemberData(nameof(FacadeRegisterCases))]
+    [MemberData(nameof(BuilderRegisterCases))]
     public async Task Register_ReturnsCredentialOrToken_AndDoesNotThrow(
         string mode,
         bool requireConfirmed,
@@ -35,15 +35,11 @@ public class PasskeyRegisterResponseTests
         var configured = requireConfirmed ? root.WithRequireConfirmedAccount() : root;
         using var factory = configured.WithWebHostBuilder(builder =>
         {
-            var hostMode = mode == "bearer" ? "bearer-facade" : "cookie-facade";
-            builder.UseSetting("AE_HOST_MODE", hostMode);
-            if (mode == "jwt")
+            builder.UseSetting("AE_HOST_MODE", "builder-" + mode);
+            builder.UseSetting("AE_BUILDER_PATH", "/identity");
+            if (!requireConfirmed)
             {
-                builder.UseSetting("AE_FACADE_JWT", "true");
-                builder.ConfigureServices(services =>
-                {
-                    services.AddPasskeySignInCompleter<TestAppUser, JwtPasskeySignInCompleter<TestAppUser>>();
-                });
+                builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "false");
             }
         });
 
@@ -55,7 +51,7 @@ public class PasskeyRegisterResponseTests
 
         var optionsResponse = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/register/options",
+            "/identity/passkeys/register/options",
             new { email },
             csrfPath: csrfPath);
         Assert.Equal(HttpStatusCode.OK, optionsResponse.StatusCode);
@@ -64,8 +60,8 @@ public class PasskeyRegisterResponseTests
             await optionsResponse.Content.ReadAsStringAsync(),
             origin);
         var registerPath = useCookies
-            ? "/account/passkeys/register?useCookies=true"
-            : "/account/passkeys/register";
+            ? "/identity/passkeys/register?useCookies=true"
+            : "/identity/passkeys/register";
         var register = await TestHelpers.PostWithCsrfAsync(
             client,
             registerPath,
@@ -80,7 +76,9 @@ public class PasskeyRegisterResponseTests
         using var doc = JsonDocument.Parse(body);
         var credentialId = TestHelpers.TryGetString(doc.RootElement, "credentialId", "CredentialId");
         var accessToken = TestHelpers.TryGetString(doc.RootElement, "accessToken", "AccessToken");
-        var cookieSignIn = mode != "jwt" && useCookies;
+        // The session decides: a cookie session always signs in with a cookie, and Identity bearer
+        // honours ?useCookies=true. JWT always returns a token.
+        var cookieSignIn = mode == "cookie" || (mode == "bearer" && useCookies);
         var sessionIssued = !requireConfirmed;
 
         if (requireConfirmed || cookieSignIn)

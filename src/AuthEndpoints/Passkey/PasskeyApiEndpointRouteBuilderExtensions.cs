@@ -20,8 +20,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// The sign-in completer stays Identity bearer. Anonymous ceremonies keep antiforgery, because
     /// this map is the 3.x surface used beside cookie sign-in. Pass
     /// <see cref="AuthEndpointsSession.IdentityBearer"/> to omit it on those ceremonies.
-    /// <see cref="AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions.MapBearerAuthEndpoints{TUser}(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)"/> maps no <c>csrfToken</c> route, and
-    /// the bearer facade passes that session. JWT body refresh omits it on those ceremonies when
+    /// <see cref="AuthEndpoints.Identity.IdentityApiEndpointRouteBuilderExtensions.MapBearerAuthEndpoints{TUser}(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder)"/> maps no <c>csrfToken</c> route.
+    /// JWT body refresh omits it on those ceremonies when
     /// the session is <see cref="AuthEndpointsSession.Jwt"/>. Signed-in passkey changes always
     /// require antiforgery. An <c>Authorization: Bearer</c> access token still skips that check.
     /// </summary>
@@ -144,8 +144,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfNeitherPasskeyModule<PasskeySignInEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Passkeys.CanAuthenticate,
             "AddPasskeySignInEndpoints",
             nameof(MapPasskeySignInEndpoints));
         if (completer is null)
@@ -187,8 +187,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfNeitherPasskeyModule<PasskeyManagementEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Passkeys.CanManage,
             "AddPasskeyManagementEndpoints",
             nameof(MapPasskeyManagementEndpoints));
 
@@ -218,7 +218,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
     {
-        AuthEndpointsModules.ThrowIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
+        AuthEndpointsFeatures.Require(AuthEndpointsFeatures.For(endpoints).Passkeys.Bundle, "AddPasskeyEndpoints", mapMethod);
     }
 
     private static void MapPasskeyRoutes<TUser>(
@@ -468,20 +468,34 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfNeitherPasskeyModule<PasskeyRegisterOptionsEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Passkeys.CanRequestRegisterOptions,
             "AddPasskeyRegisterOptionsEndpoints",
             nameof(MapPasskeyRegisterOptionsEndpoints));
 
-        var group = endpoints.MapGroup("/passkeys");
         // Shared with every session, including cookie. Keep the token check on this one route.
+        return MapPasskeyRegisterOptionsCore<TUser>(endpoints, AuthEndpointsSession.Cookie, nameof(MapPasskeyRegisterOptionsEndpoints));
+    }
+
+    /// <summary>
+    /// Maps <c>POST /passkeys/register/options</c> with the antiforgery rule of <paramref name="session"/>.
+    /// <c>MapAuthEndpoints</c> maps one session, so an Identity bearer or JWT body-refresh client, which has no
+    /// <c>csrfToken</c> route, can still start passkey sign-up.
+    /// </summary>
+    internal static IEndpointConventionBuilder MapPasskeyRegisterOptionsCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        AuthEndpointsSession session,
+        string mapMethod)
+        where TUser : class, new()
+    {
+        var group = endpoints.MapGroup("/passkeys");
         MapPasskeySignInRoutes<TUser>(
             group,
             confirmEmailEndpointName: AuthEndpointsEndpointNames.ConfirmEmail<TUser>(),
-            nameof(MapPasskeyRegisterOptionsEndpoints),
+            mapMethod,
             completer: null,
             honorDefault: false,
-            AuthEndpointsSession.Cookie,
+            session,
             requestOptions: false,
             registerOptions: true,
             register: false,
@@ -525,8 +539,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
         if (warn)
         {
-            WarnIfNeitherPasskeyModule<PasskeySignUpEndpointsModule>(
-                endpoints,
+            AuthEndpointsFeatures.Require(
+                AuthEndpointsFeatures.For(endpoints).Passkeys.CanSignUp,
                 "AddPasskeySignUpEndpoints",
                 mapMethod);
         }
@@ -567,21 +581,6 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
         return new CompositeEndpointConventionBuilder(group, confirm);
-    }
-
-    private static void WarnIfNeitherPasskeyModule<TSpecific>(
-        IEndpointRouteBuilder endpoints,
-        string addMethod,
-        string mapMethod)
-        where TSpecific : class
-    {
-        if (AuthEndpointsModules.IsRegistered<TSpecific>(endpoints.ServiceProvider)
-            || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
-        {
-            return;
-        }
-
-        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     /// <summary>

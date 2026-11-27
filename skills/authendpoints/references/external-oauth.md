@@ -1,6 +1,6 @@
 # Add GitHub or Google
 
-Neither facade maps external sign-in. Add the provider package and map the routes yourself.
+`MapAuthEndpoints` does not map external sign-in. Add the provider package and map the routes yourself.
 
 ```cs
 builder.Services.AddExternalAuthEndpoints<AppUser>(o =>
