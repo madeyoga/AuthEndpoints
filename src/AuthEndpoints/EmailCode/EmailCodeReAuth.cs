@@ -20,7 +20,8 @@ internal static class EmailCodeReAuthGate
     public static async Task<bool> IsAvailableAsync<TUser>(
         UserManager<TUser> userManager,
         TUser user,
-        EmailCodeOptions options)
+        EmailCodeOptions options,
+        int? passkeyCount = null)
         where TUser : class
     {
         if (options.ReAuth is not { Enabled: true })
@@ -49,7 +50,9 @@ internal static class EmailCodeReAuthGate
             return false;
         }
 
-        if (userManager.SupportsUserPasskey && (await userManager.GetPasskeysAsync(user)).Count > 0)
+        // Callers that already loaded the passkeys pass the count to skip a second query.
+        if (userManager.SupportsUserPasskey
+            && (passkeyCount ?? (await userManager.GetPasskeysAsync(user)).Count) > 0)
         {
             return false;
         }

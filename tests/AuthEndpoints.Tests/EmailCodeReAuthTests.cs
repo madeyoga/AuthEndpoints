@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -306,6 +308,35 @@ public partial class EmailCodeEndpointTests
     }
 
     [Fact]
+    public async Task AuthMethods_EmailCode_TracksPasskeys_WithOnePasskeyQuery()
+    {
+        var passkeyQueries = new PasskeyQueryCounter();
+        await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
+            services.ConfigureDbContext<TestDbContext>(options => options.AddInterceptors(passkeyQueries)));
+        var email = UniqueEmail("authmethods-passkey");
+        await SeedAsync(host.App, email, password: null);
+        var jar = await SignInEmailCodeAsync(host, email);
+
+        passkeyQueries.Reset();
+        var (offered, passkeyCount) = await ReadAuthMethodsAsync(host, jar);
+        Assert.True(offered);
+        Assert.Equal(0, passkeyCount);
+        Assert.Equal(1, passkeyQueries.Count);
+
+        await AddPasskeyAsync(host.App, email);
+        passkeyQueries.Reset();
+        (offered, passkeyCount) = await ReadAuthMethodsAsync(host, jar);
+        Assert.False(offered);
+        Assert.Equal(1, passkeyCount);
+        Assert.Equal(1, passkeyQueries.Count);
+
+        // Send still loads the passkeys itself and refuses the proof.
+        var sent = await SendReAuthAsync(host, jar);
+        Assert.Equal(HttpStatusCode.BadRequest, sent.StatusCode);
+        Assert.Equal("EmailCodeProofUnavailable", await ProblemTitleAsync(sent));
+    }
+
+    [Fact]
     public async Task Facade_EmailCodeEnabled_OmitsReAuthSend_AndKeepsEmailCodeFalse()
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-facade-reauth-{Guid.NewGuid():N}.sqlite");
@@ -585,6 +616,51 @@ public partial class EmailCodeEndpointTests
         }
 
         return doc.RootElement.GetProperty("EmailCode").GetBoolean();
+    }
+
+    private static async Task<(bool EmailCode, int PasskeyCount)> ReadAuthMethodsAsync(EmailCodeHost host, CookieJar jar)
+    {
+        var response = await GetAsync(host.Client, "/identity/manage/authMethods", jar);
+        await AssertStatusAsync(response, HttpStatusCode.OK);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return (doc.RootElement.GetProperty("emailCode").GetBoolean(), doc.RootElement.GetProperty("passkeyCount").GetInt32());
+    }
+
+    private sealed class PasskeyQueryCounter : DbCommandInterceptor
+    {
+        private int _count;
+
+        public int Count => Volatile.Read(ref _count);
+
+        public void Reset() => Interlocked.Exchange(ref _count, 0);
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            Track(command);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            Track(command);
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        private void Track(DbCommand command)
+        {
+            if (command.CommandText.TrimStart().StartsWith("SELECT", StringComparison.OrdinalIgnoreCase)
+                && command.CommandText.Contains("AspNetUserPasskeys", StringComparison.Ordinal))
+            {
+                Interlocked.Increment(ref _count);
+            }
+        }
     }
 
     private static async Task<string> CsrfAsync(HttpClient client, CookieJar jar)
