@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Passkey;
 
-public static class PasskeyEndpoints<TUser>
+internal static class PasskeyEndpoints<TUser>
     where TUser : class, new()
 {
     private static readonly EmailAddressAttribute EmailAddressAttribute = new();

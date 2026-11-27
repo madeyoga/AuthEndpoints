@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
@@ -19,7 +18,7 @@ internal static class IdentityEndpointRoutes
         where TUser : class, new()
     {
         endpoints.MapPost("/register", (
-            RegisterRequest registration,
+            PasswordRegisterRequest registration,
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.Register(registration, context, sp, confirmEmailEndpointName))
             .WithSummary("Registers a new user account.")
@@ -44,7 +43,7 @@ internal static class IdentityEndpointRoutes
                 SignInCompleterMap.EnsureSelected<TUser>(endpoints, completer, mapMethod);
             }
             endpoints.MapPost("/login", (
-                    [FromBody] LoginRequest loginRequest,
+                    [FromBody] PasswordLoginRequest loginRequest,
                     [FromQuery] bool? useCookies,
                     [FromQuery] bool? useSessionCookies,
                     HttpContext httpContext) => PasswordCompleterSignIn<TUser>.Handle(
@@ -111,7 +110,7 @@ internal static class IdentityEndpointRoutes
             .Track(endpoints, mapMethod);
 
         var resend = endpoints.MapPost("/resendConfirmationEmail", (
-            ResendConfirmationEmailRequest resendRequest,
+            ConfirmationEmailRequest resendRequest,
             ClaimsPrincipal claimsPrincipal,
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.ResendConfirmationEmail(
@@ -219,7 +218,7 @@ internal static class IdentityEndpointRoutes
             .Track(endpoints, mapMethod);
         accountGroup.MapPost("/2fa", (
             ClaimsPrincipal claimsPrincipal,
-            [FromBody] TwoFactorRequest tfaRequest,
+            [FromBody] TwoFactorSettingsRequest tfaRequest,
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageTwoFactor(claimsPrincipal, tfaRequest, sp, context))
             .WithSummary("Enables or disables two-factor authentication.")
@@ -234,7 +233,7 @@ internal static class IdentityEndpointRoutes
             .Track(endpoints, mapMethod);
         accountGroup.MapPost("/info", (
             ClaimsPrincipal claimsPrincipal,
-            InfoRequest infoRequest,
+            AccountInfoRequest infoRequest,
             HttpContext context,
             IServiceProvider sp) => IdentityApiEndpoints<TUser>.ManageInfoPost(
                 claimsPrincipal,

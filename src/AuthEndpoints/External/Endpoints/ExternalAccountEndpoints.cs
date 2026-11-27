@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-public static class ExternalAccountEndpoints<TUser>
+internal static class ExternalAccountEndpoints<TUser>
     where TUser : class, new()
 {
     /// <summary>

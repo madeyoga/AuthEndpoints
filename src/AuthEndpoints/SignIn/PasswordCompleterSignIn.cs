@@ -1,7 +1,7 @@
+using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthEndpoints.SignIn;
@@ -14,7 +14,7 @@ internal static class PasswordCompleterSignIn<TUser>
     where TUser : class
 {
     public static async Task<IResult> Handle(
-        LoginRequest login,
+        PasswordLoginRequest login,
         bool? useCookies,
         bool? useSessionCookies,
         HttpContext httpContext,

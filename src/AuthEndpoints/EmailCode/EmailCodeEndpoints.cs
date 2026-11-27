@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.EmailCode;
 
-public static class EmailCodeEndpoints<TUser>
+internal static class EmailCodeEndpoints<TUser>
     where TUser : class, new()
 {
     public static async Task<Results<Ok<EmailCodeSendResponse>, ValidationProblem>> Send(
