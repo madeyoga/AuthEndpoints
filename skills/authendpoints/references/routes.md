@@ -29,7 +29,7 @@ Paths below use `/auth`, as in `MapAuthEndpoints<AppUser>("/auth", AuthEndpoints
 
 `POST /auth/manage/password` sets a first password. It returns `404` when password sign-in is not mapped, and `400` when the account already has a password. Change an existing password with `POST /auth/manage/info`. Changing or setting a password keeps the acting cookie session and its ReAuth proof; other sessions end.
 
-`DELETE /auth/manage/password` removes the password. It returns `400 LastSignInMethod` unless a passkey, an external login, or email code (mapped, confirmed email) remains, `400 NoPassword` without a password, and `404` when password sign-in is not mapped. The notice is `IAccountSecurityEmailSender<TUser>.SendPasswordRemovedAsync`, a no-op unless implemented.
+`DELETE /auth/manage/password` removes the password. It returns `400 LastSignInMethod` unless a passkey, an external login, or email code (mapped, confirmed email) remains, `400 NoPassword` without a password, and `404` when password sign-in is not mapped. It raises `AccountSecurityEventKind.PasswordRemoved` on `IAccountSecurityNotifier<TUser>`.
 
 `GET /auth/manage/info` returns `"email": null` for an account without an email.
 

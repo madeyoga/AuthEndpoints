@@ -113,6 +113,8 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
         return MapSharedAuthEndpointsCore<TUser>(endpoints, sharedPath, onlySession: null);
     }
 
+    /// <param name="endpoints">The builder to map on.</param>
+    /// <param name="sharedPath">A prefix for the shared routes, or null or empty for none.</param>
     /// <param name="onlySession">
     /// The one session these shared routes serve, or null when they serve every session.
     /// With one session, passkey register options follow that session's antiforgery rule.

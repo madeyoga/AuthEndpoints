@@ -374,9 +374,10 @@ public class IdentityApiEndpoints<TUser>
             ownerEmail = email;
         }
 
-        var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>()
-            ?? CreateLoggingSecurityEmailSender(sp);
-        await sender.SendRegistrationAttemptedAsync(user, ownerEmail, cancellationToken);
+        await AccountSecurityNotifications.NotifyAsync(
+            sp,
+            new AccountSecurityEvent<TUser>(AccountSecurityEventKind.RegistrationAttempted, user, ownerEmail),
+            cancellationToken);
     }
 
     public static async Task<Results<Ok, ValidationProblem>> ResetPassword
@@ -629,8 +630,6 @@ public class IdentityApiEndpoints<TUser>
         HttpContext context,
         [FromServices] IServiceProvider sp)
     {
-        var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>()
-            ?? CreateLoggingSecurityEmailSender(sp);
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (!userManager.SupportsUserPassword || !PasswordSignInMap.IsMapped(sp))
         {
@@ -662,11 +661,8 @@ public class IdentityApiEndpoints<TUser>
 
         await KeepCallerSignedInAsync(context, sp, userManager, user, reauthBefore, stampBefore);
 
-        // An account without an email (one that signs in by user name) has nobody to notify.
-        if (userManager.SupportsUserEmail && await userManager.GetEmailAsync(user) is { Length: > 0 } email)
-        {
-            await sender.SendPasswordSetAsync(user, email, context.RequestAborted);
-        }
+        await AccountSecurityNotifications.NotifyAsync(
+            sp, userManager, user, AccountSecurityEventKind.PasswordSet, context.RequestAborted);
 
         return TypedResults.Ok();
     }
@@ -713,11 +709,8 @@ public class IdentityApiEndpoints<TUser>
 
         await KeepCallerSignedInAsync(context, sp, userManager, user, reauthBefore, stampBefore);
 
-        if (userManager.SupportsUserEmail && await userManager.GetEmailAsync(user) is { Length: > 0 } email)
-        {
-            var sender = sp.GetService<IAccountSecurityEmailSender<TUser>>() ?? CreateLoggingSecurityEmailSender(sp);
-            await sender.SendPasswordRemovedAsync(user, email, context.RequestAborted);
-        }
+        await AccountSecurityNotifications.NotifyAsync(
+            sp, userManager, user, AccountSecurityEventKind.PasswordRemoved, context.RequestAborted);
 
         return TypedResults.Ok();
     }
@@ -735,15 +728,6 @@ public class IdentityApiEndpoints<TUser>
                 EmailCodeSignInMap.IsMapped(sp),
                 emailConfirmed),
             SignInMethod.Password);
-    }
-
-    private static LoggingAccountSecurityEmailSender<TUser> CreateLoggingSecurityEmailSender(IServiceProvider sp)
-    {
-        var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
-        loggerFactory.CreateLogger(AuthEndpointsModules.LogCategory).LogWarning(
-            "IAccountSecurityEmailSender<{User}> is not registered. Password-set notices are logged and not sent. Register an implementation to deliver them.",
-            typeof(TUser).Name);
-        return ActivatorUtilities.CreateInstance<LoggingAccountSecurityEmailSender<TUser>>(sp);
     }
 
     internal static async Task SendConfirmationEmailAsync(

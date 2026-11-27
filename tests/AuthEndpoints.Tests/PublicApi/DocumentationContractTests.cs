@@ -207,7 +207,7 @@ public class DocumentationContractTests
 
         var guide5 = Path.Combine(docs, "content", "1.getting-started", "9.upgrading-to-5.md");
         var guide5Samples = ExtractFences(guide5, "cs").ToList();
-        Assert.Equal(2, guide5Samples.Count);
+        Assert.Equal(3, guide5Samples.Count);
 
         var failures = new List<string>();
         for (var index = 0; index < recipes.Count; index++)

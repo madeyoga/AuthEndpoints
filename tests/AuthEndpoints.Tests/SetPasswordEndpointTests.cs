@@ -197,7 +197,7 @@ public class SetPasswordEndpointTests
     }
 
     [Fact]
-    public async Task SetPassword_UserWithoutEmail_SetsPassword_KeepsCaller_AndSendsNothing()
+    public async Task SetPassword_UserWithoutEmail_SetsPassword_KeepsCaller_AndRaisesTheEventWithNoAddress()
     {
         await using var host = await PasswordHost.StartAsync(requireConfirmedAccount: false);
         var userName = UserName();
@@ -210,6 +210,10 @@ public class SetPasswordEndpointTests
         Assert.True(set.StatusCode == HttpStatusCode.OK, $"{(int)set.StatusCode} {await set.Content.ReadAsStringAsync()}");
         Assert.True(await host.HasPasswordByNameAsync(userName));
         Assert.DoesNotContain(host.Mail.Snapshot(), item => item.Kind == "security");
+        var raised = Assert.Single(host.Mail.SecurityEvents());
+        Assert.Equal(AccountSecurityEventKind.PasswordSet, raised.Kind);
+        Assert.Equal(userName, raised.User.UserName);
+        Assert.Null(raised.Email);
         Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
     }
 
@@ -246,6 +250,8 @@ public class SetPasswordEndpointTests
         Assert.True(removed.StatusCode == HttpStatusCode.OK, $"{(int)removed.StatusCode} {await removed.Content.ReadAsStringAsync()}");
         Assert.False(await host.HasPasswordAsync(email));
         Assert.Contains(host.Mail.Snapshot(), item => item.Kind == "security" && item.Email == email && item.Body == "password-removed");
+        var raised = Assert.Single(host.Mail.SecurityEvents());
+        Assert.Equal(new AccountSecurityEvent<TestAppUser>(AccountSecurityEventKind.PasswordRemoved, raised.User, email), raised);
 
         Assert.Equal(HttpStatusCode.OK, (await host.GetAsync(actor, "/identity/manage/info")).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await host.GetAsync(other, "/identity/manage/info")).StatusCode);
@@ -350,8 +356,8 @@ public class SetPasswordEndpointTests
             builder => builder.Services.AddAccountManagementEndpoints(),
             _ => { });
         using var scope = defaults.Services.CreateScope();
-        Assert.IsType<LoggingAccountSecurityEmailSender<TestAppUser>>(
-            scope.ServiceProvider.GetRequiredService<IAccountSecurityEmailSender<TestAppUser>>());
+        Assert.IsType<LoggingAccountSecurityNotifier<TestAppUser>>(
+            scope.ServiceProvider.GetRequiredService<IAccountSecurityNotifier<TestAppUser>>());
     }
 
     [Fact]
@@ -381,8 +387,8 @@ public class SetPasswordEndpointTests
         using var app = builder.Build();
         using (var scope = app.Services.CreateScope())
         {
-            Assert.IsType<LoggingAccountSecurityEmailSender<TestAppUser>>(
-                scope.ServiceProvider.GetRequiredService<IAccountSecurityEmailSender<TestAppUser>>());
+            Assert.IsType<LoggingAccountSecurityNotifier<TestAppUser>>(
+                scope.ServiceProvider.GetRequiredService<IAccountSecurityNotifier<TestAppUser>>());
         }
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
@@ -408,24 +414,24 @@ public class SetPasswordEndpointTests
     }
 
     [Fact]
-    public async Task LoggingSender_LogsStartupWarning()
+    public async Task LoggingNotifier_LogsStartupWarning()
     {
         var logs = new AuthEndpointsWarningLog();
         await using var app = await StartSenderHostAsync(logs, registerCustomSender: false);
         Assert.Contains(
             logs.Messages,
-            message => message.Contains("LoggingAccountSecurityEmailSender", StringComparison.Ordinal)
-                && message.Contains("does not send mail", StringComparison.Ordinal));
+            message => message.Contains("LoggingAccountSecurityNotifier", StringComparison.Ordinal)
+                && message.Contains("sends no notice", StringComparison.Ordinal));
     }
 
     [Fact]
-    public async Task CustomSender_SkipsStartupWarning()
+    public async Task CustomNotifier_SkipsStartupWarning()
     {
         var logs = new AuthEndpointsWarningLog();
         await using var app = await StartSenderHostAsync(logs, registerCustomSender: true);
         Assert.DoesNotContain(
             logs.Messages,
-            message => message.Contains("LoggingAccountSecurityEmailSender", StringComparison.Ordinal));
+            message => message.Contains("LoggingAccountSecurityNotifier", StringComparison.Ordinal));
     }
 
     private static async Task<WebApplication> StartSenderHostAsync(AuthEndpointsWarningLog logs, bool registerCustomSender)
@@ -438,7 +444,7 @@ public class SetPasswordEndpointTests
         builder.Logging.AddProvider(logs);
         if (registerCustomSender)
         {
-            builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(new CapturingEmailSender());
+            builder.Services.AddSingleton<IAccountSecurityNotifier<TestAppUser>>(new CapturingEmailSender());
         }
 
         builder.Services.AddAccountManagementEndpoints();
@@ -486,7 +492,7 @@ public class SetPasswordEndpointTests
             builder.Services.AddSingleton(mail);
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
-            builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(mail);
+            builder.Services.AddSingleton<IAccountSecurityNotifier<TestAppUser>>(mail);
             builder.Services
                 .AddIdentityApiEndpoints<TestAppUser>(options =>
                 {

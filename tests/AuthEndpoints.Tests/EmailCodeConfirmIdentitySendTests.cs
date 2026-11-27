@@ -274,7 +274,7 @@ public class EmailCodeConfirmIdentitySendTests
             builder.Services.AddSingleton(mail);
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
-            builder.Services.AddSingleton<IAccountSecurityEmailSender<TestAppUser>>(mail);
+            builder.Services.AddSingleton<IAccountSecurityNotifier<TestAppUser>>(mail);
             configure(builder.Services);
 
             var app = builder.Build();

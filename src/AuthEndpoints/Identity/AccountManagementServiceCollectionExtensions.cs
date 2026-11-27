@@ -12,9 +12,9 @@ public static class AccountManagementServiceCollectionExtensions
 {
     /// <summary>
     /// Registers ReAuth schemes, the account-abuse and confirm-identity rate-limit policies,
-    /// authorization, antiforgery, and the logging account-security email sender used by account management.
+    /// authorization, antiforgery, and the logging account-security notifier used by account management.
     /// Safe to call more than once. Hosts must call <c>UseRateLimiter()</c> for the policies to apply.
-    /// Startup logs a warning while <see cref="LoggingAccountSecurityEmailSender{TUser}"/> is the registered sender.
+    /// Startup logs a warning while <see cref="LoggingAccountSecurityNotifier{TUser}"/> is the registered notifier.
     /// </summary>
     public static IServiceCollection AddAccountManagementEndpoints(this IServiceCollection services)
     {
@@ -30,22 +30,22 @@ public static class AccountManagementServiceCollectionExtensions
         services.AddAccountAbuseRateLimiting();
         services.AddConfirmIdentityRateLimiting();
         services.AddAuthEndpointsAuthorizationAndAntiforgery();
-        services.AddAccountSecurityEmailSender();
+        services.AddAccountSecurityNotifier();
         WrapAuthorizationResultHandler(services);
         return services;
     }
 
-    internal static void AddAccountSecurityEmailSender(this IServiceCollection services)
+    internal static void AddAccountSecurityNotifier(this IServiceCollection services)
     {
-        services.TryAddScoped(typeof(IAccountSecurityEmailSender<>), typeof(LoggingAccountSecurityEmailSender<>));
-        if (services.Any(descriptor => descriptor.ServiceType == typeof(AccountSecurityEmailSenderStartupMarker)))
+        services.TryAddScoped(typeof(IAccountSecurityNotifier<>), typeof(LoggingAccountSecurityNotifier<>));
+        if (services.Any(descriptor => descriptor.ServiceType == typeof(AccountSecurityNotifierStartupMarker)))
         {
             return;
         }
 
-        services.AddSingleton<AccountSecurityEmailSenderStartupMarker>();
+        services.AddSingleton<AccountSecurityNotifierStartupMarker>();
         services.AddSingleton<IHostedService>(sp =>
-            new AccountSecurityEmailSenderStartup(services, sp.GetRequiredService<ILoggerFactory>()));
+            new AccountSecurityNotifierStartup(services, sp.GetRequiredService<ILoggerFactory>()));
     }
 
     private static void WrapAuthorizationResultHandler(IServiceCollection services)
@@ -89,14 +89,14 @@ public static class AccountManagementServiceCollectionExtensions
     }
 }
 
-internal sealed class AccountSecurityEmailSenderStartupMarker;
+internal sealed class AccountSecurityNotifierStartupMarker;
 
-internal sealed class AccountSecurityEmailSenderStartup : IHostedService
+internal sealed class AccountSecurityNotifierStartup : IHostedService
 {
     private readonly IServiceCollection _services;
     private readonly ILogger _logger;
 
-    public AccountSecurityEmailSenderStartup(IServiceCollection services, ILoggerFactory loggerFactory)
+    public AccountSecurityNotifierStartup(IServiceCollection services, ILoggerFactory loggerFactory)
     {
         _services = services;
         _logger = loggerFactory.CreateLogger(AuthEndpointsModules.LogCategory);
@@ -104,30 +104,30 @@ internal sealed class AccountSecurityEmailSenderStartup : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        if (HasCustomSender(_services))
+        if (HasCustomNotifier(_services))
         {
             return Task.CompletedTask;
         }
 
         _logger.LogWarning(
-            "IAccountSecurityEmailSender is LoggingAccountSecurityEmailSender, which logs password-set and registration-attempt notices and does not send mail. Register an implementation to deliver them.");
+            "IAccountSecurityNotifier is LoggingAccountSecurityNotifier, which logs account security events (password set or removed, registration attempted) and sends no notice. Register an implementation to deliver them.");
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    internal static bool HasCustomSender(IServiceCollection services)
+    internal static bool HasCustomNotifier(IServiceCollection services)
     {
-        return services.Any(descriptor => IsSender(descriptor) && !IsLoggingSender(descriptor));
+        return services.Any(descriptor => IsNotifier(descriptor) && !IsLoggingNotifier(descriptor));
     }
 
-    private static bool IsSender(ServiceDescriptor descriptor)
+    private static bool IsNotifier(ServiceDescriptor descriptor)
     {
         return descriptor.ServiceType.IsGenericType
-            && descriptor.ServiceType.GetGenericTypeDefinition() == typeof(IAccountSecurityEmailSender<>);
+            && descriptor.ServiceType.GetGenericTypeDefinition() == typeof(IAccountSecurityNotifier<>);
     }
 
-    private static bool IsLoggingSender(ServiceDescriptor descriptor)
+    private static bool IsLoggingNotifier(ServiceDescriptor descriptor)
     {
         var type = descriptor.ImplementationType;
         if (type is null)
@@ -135,12 +135,12 @@ internal sealed class AccountSecurityEmailSenderStartup : IHostedService
             return false;
         }
 
-        if (type == typeof(LoggingAccountSecurityEmailSender<>))
+        if (type == typeof(LoggingAccountSecurityNotifier<>))
         {
             return true;
         }
 
         return type.IsGenericType
-            && type.GetGenericTypeDefinition() == typeof(LoggingAccountSecurityEmailSender<>);
+            && type.GetGenericTypeDefinition() == typeof(LoggingAccountSecurityNotifier<>);
     }
 }

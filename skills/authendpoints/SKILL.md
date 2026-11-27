@@ -119,7 +119,7 @@ To make this app an OAuth 2.0 authorization server for other apps, CLIs, or MCP 
 ## Check production
 
 - Serve the API over HTTPS. `UseAuthEndpoints` leaves HTTPS to the host.
-- Register a real `IEmailSender<TUser>`. `AddPassword` and `AddJwtEndpoints` register `LoggingAccountSecurityEmailSender<TUser>` when no `IAccountSecurityEmailSender<TUser>` is registered. That sender writes registration-attempt notices to the log.
+- Register a real `IEmailSender<TUser>`. `AddPassword` and `AddJwtEndpoints` register `LoggingAccountSecurityNotifier<TUser>` when no `IAccountSecurityNotifier<TUser>` is registered. That notifier only logs account security events (password set or removed, registration attempted). Register one that delivers them.
 - For email code, call `UseEmailCodes()`, register a real `IEmailCodeSender<TUser>` outside Development, and use `https` plus `AllowedOrigins` for an absolute magic-link URI in Production.
 - Set `ServerDomain` on `AddPasskeys` when passkeys are on. Leave out `AddPasskeys` to keep them off.
 - For JWT, call `UseRefreshToken()` and set a real issuer, audience, and signing key.
