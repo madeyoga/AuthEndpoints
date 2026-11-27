@@ -99,21 +99,24 @@ public class PasskeyCeremonyAntiforgeryTests
     }
 
     [Fact]
-    public void IdentityBearerFacade_PasskeyRoutes_OmitAntiforgery()
+    public void IdentityBearerBuilder_PasskeyCeremonies_OmitAntiforgery()
     {
         var surface = RouteSurface.Capture(
             builder =>
             {
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(AuthEndpointsSignIn.IdentityBearer, options =>
-                {
-                    options.Passkeys.ServerDomain = "localhost";
-                });
+                builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
+                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+                    .AddPassword()
+                    .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost")
+                    .AddIdentityBearer();
             },
-            app => app.MapAuthEndpoints<TestAppUser>());
+            app => app.MapAuthEndpoints<TestAppUser>("/identity", AuthEndpointsSession.IdentityBearer));
 
+        // An Identity bearer client has no csrfToken route, so every anonymous ceremony,
+        // register options included, must not require a token.
         Assert.DoesNotContain("GET /identity/csrfToken", surface, StringComparison.Ordinal);
-        AssertCeremonyAntiforgery(surface, "/account/passkeys", required: false);
-        AssertManagementAntiforgery(surface, "/account/passkeys");
+        AssertCeremonyAntiforgery(surface, "/identity/passkeys", required: false);
+        AssertManagementAntiforgery(surface, "/identity/passkeys");
     }
 
     [Fact]
@@ -290,20 +293,7 @@ public class PasskeyCeremonyAntiforgeryTests
         mail ??= new CapturingEmailSender();
         builder.Services.AddSingleton(mail);
         builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
-        {
-            o.Session = session;
-            o.RequireConfirmedAccount = true;
-            o.Passkeys.ServerDomain = "localhost";
-            if (session == AuthEndpointsSession.Jwt)
-            {
-                o.Jwt = jwt =>
-                {
-                    jwt.SigningOptions.SymmetricKey = SigningKey;
-                    jwt.RefreshTokenTransport = transport;
-                };
-            }
-        });
+        AddPasswordPasskeys(builder.Services, session, transport);
 
         var app = builder.Build();
         using (var scope = app.Services.CreateScope())
@@ -314,7 +304,7 @@ public class PasskeyCeremonyAntiforgeryTests
         }
 
         app.UseAuthEndpoints();
-        app.MapPasswordAuth<TestAppUser>();
+        app.MapAuthEndpoints<TestAppUser>("/auth", session);
         if (mapHostAntiforgeryEndpoint)
         {
             app.MapGet("/auth/csrfToken", (IAntiforgery antiforgery, HttpContext http) =>
@@ -331,22 +321,27 @@ public class PasskeyCeremonyAntiforgeryTests
             builder =>
             {
                 builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-                builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
-                {
-                    o.Session = session;
-                    o.RequireConfirmedAccount = true;
-                    o.Passkeys.ServerDomain = "localhost";
-                    if (session == AuthEndpointsSession.Jwt)
-                    {
-                        o.Jwt = jwt =>
-                        {
-                            jwt.SigningOptions.SymmetricKey = SigningKey;
-                            jwt.RefreshTokenTransport = transport;
-                        };
-                    }
-                });
+                AddPasswordPasskeys(builder.Services, session, transport);
             },
-            app => app.MapPasswordAuth<TestAppUser>());
+            app => app.MapAuthEndpoints<TestAppUser>("/auth", session));
+    }
+
+    private static void AddPasswordPasskeys(
+        IServiceCollection services,
+        AuthEndpointsSession session,
+        RefreshTokenTransport transport)
+    {
+        var auth = services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .AddPassword()
+            .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
+        if (session == AuthEndpointsSession.Jwt)
+        {
+            auth.AddJwt(jwt =>
+            {
+                jwt.SigningOptions.SymmetricKey = SigningKey;
+                jwt.RefreshTokenTransport = transport;
+            });
+        }
     }
 
     private static void AddIdentity(WebApplicationBuilder builder)

@@ -27,7 +27,7 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public void Facade_RegistersIdentityPasskeySignInCompleterByDefault()
+    public void Builder_RegistersIdentityPasskeySignInCompleterByDefault()
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -35,12 +35,9 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
         });
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(o =>
-            o.UseInMemoryDatabase("PasskeyCompleterFacade_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
-        {
-            o.Passkeys.ServerDomain = "localhost";
-            o.RequireEmailSenderInProduction = false;
-        });
+            o.UseInMemoryDatabase("PasskeyCompleterBuilder_" + Guid.NewGuid().ToString("N")));
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
 
         using var app = builder.Build();

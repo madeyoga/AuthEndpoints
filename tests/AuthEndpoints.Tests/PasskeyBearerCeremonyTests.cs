@@ -7,13 +7,14 @@ namespace AuthEndpoints.Tests;
 public class PasskeyBearerCeremonyTests
 {
     [Fact]
-    public async Task AnonymousPasskeyRoutes_OnBearerFacade_SetAndReadCeremonyCookie()
+    public async Task AnonymousPasskeyRoutes_OnBearerBuilder_SetAndReadCeremonyCookie()
     {
         await using var root = new TestWebApplicationFactory();
         using var factory = root.WithWebHostBuilder(builder =>
         {
-            builder.UseSetting("AE_HOST_MODE", "bearer-facade");
-            builder.UseSetting("AE_FACADE_JWT", "false");
+            builder.UseSetting("AE_HOST_MODE", "builder-bearer");
+            builder.UseSetting("AE_BUILDER_PATH", "/identity");
+            builder.UseSetting("AE_REQUIRE_CONFIRMED_ACCOUNT", "false");
         });
 
         using var client = TestHelpers.CreateClientWithCookies(factory);
@@ -23,7 +24,7 @@ public class PasskeyBearerCeremonyTests
 
         var requestOptions = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/requestOptions",
+            "/identity/passkeys/requestOptions",
             new { email },
             csrfPath: "/test/csrfToken");
         Assert.Equal(HttpStatusCode.OK, requestOptions.StatusCode);
@@ -34,7 +35,7 @@ public class PasskeyBearerCeremonyTests
 
         var registerOptions = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/register/options",
+            "/identity/passkeys/register/options",
             new { email },
             csrfPath: "/test/csrfToken");
         var registerOptionsBody = await registerOptions.Content.ReadAsStringAsync();
@@ -48,7 +49,7 @@ public class PasskeyBearerCeremonyTests
         var credentialJson = authenticator.CreateAttestation(registerOptionsBody, origin);
         var missingState = await TestHelpers.PostWithCsrfAsync(
             withoutCeremonyCookie,
-            "/account/passkeys/register",
+            "/identity/passkeys/register",
             new { email, credentialJson },
             csrfPath: "/test/csrfToken");
         Assert.Equal(HttpStatusCode.BadRequest, missingState.StatusCode);
@@ -61,7 +62,7 @@ public class PasskeyBearerCeremonyTests
         // ceremony cookie is consumed and that register can set an auth cookie.
         var register = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/register?useCookies=true",
+            "/identity/passkeys/register?useCookies=true",
             new { email, credentialJson },
             csrfPath: "/test/csrfToken");
         var registerBody = await register.Content.ReadAsStringAsync();
@@ -76,7 +77,7 @@ public class PasskeyBearerCeremonyTests
 
         var loginOptions = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/requestOptions",
+            "/identity/passkeys/requestOptions",
             new { email },
             csrfPath: "/test/csrfToken");
         var loginOptionsBody = await loginOptions.Content.ReadAsStringAsync();
@@ -86,14 +87,14 @@ public class PasskeyBearerCeremonyTests
         using var noStateClient = TestHelpers.CreateClientWithCookies(factory);
         var noState = await TestHelpers.PostWithCsrfAsync(
             noStateClient,
-            "/account/passkeys/login",
+            "/identity/passkeys/login",
             new { credentialJson = assertionJson },
             csrfPath: "/test/csrfToken");
         await TestHelpers.AssertValidationErrorAsync(noState, "InvalidPasskeyState");
 
         var login = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/login",
+            "/identity/passkeys/login",
             new { credentialJson = assertionJson },
             csrfPath: "/test/csrfToken");
         var loginBody = await login.Content.ReadAsStringAsync();
@@ -113,7 +114,7 @@ public class PasskeyBearerCeremonyTests
 
         var cookieLoginOptions = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/requestOptions",
+            "/identity/passkeys/requestOptions",
             new { email },
             csrfPath: "/test/csrfToken");
         var cookieAssertion = authenticator.CreateAssertion(
@@ -121,7 +122,7 @@ public class PasskeyBearerCeremonyTests
             origin);
         var cookieLogin = await TestHelpers.PostWithCsrfAsync(
             client,
-            "/account/passkeys/login?useCookies=true",
+            "/identity/passkeys/login?useCookies=true",
             new { credentialJson = cookieAssertion },
             csrfPath: "/test/csrfToken");
         Assert.True(

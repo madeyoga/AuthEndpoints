@@ -237,7 +237,7 @@ public class BuildingBlockRouteTests
         // The setup from issue #475: password auth plus passkey sign-in and management, without anonymous sign-up.
         using var app = RouteSurface.Build(builder =>
         {
-            builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(_ => { });
+            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
             builder.Services.AddPasskeySignInEndpoints<TestAppUser>();
             builder.Services.AddPasskeyManagementEndpoints();
         }, app =>
@@ -538,7 +538,6 @@ public class BuildingBlockRouteTests
     [InlineData("MapSignInEndpoints", "AddCookieSessionEndpoints", "MapCookieSessionEndpoints")]
     [InlineData("MapSharedAuthEndpoints", "AddAccountAbuseRateLimiting", "MapConfirmEmailEndpoints")]
     [InlineData("MapAuthEndpoints", "AddAuthEndpoints", "MapAuthEndpoints")]
-    [InlineData("MapPasswordAuth", "AddPasswordAuth", "MapPasswordAuth")]
     public void Map_WithoutMatchingAdd_ThrowsNamedFix(string mapMethod, string addMethod, string namedMap)
     {
         var ex = Assert.Throws<InvalidOperationException>(() => BuildIdentity(_ => { }, app =>
@@ -630,10 +629,7 @@ public class BuildingBlockRouteTests
                     app.MapSharedAuthEndpoints<TestAppUser>();
                     break;
                 case "MapAuthEndpoints":
-                    app.MapAuthEndpoints<TestAppUser>();
-                    break;
-                case "MapPasswordAuth":
-                    app.MapPasswordAuth<TestAppUser>();
+                    app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie);
                     break;
             }
         }));
@@ -976,16 +972,15 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
-    public void SecondFacadeCall_AppliesConfirmedAccountAndPasswordOptions()
+    public void SecondIdentityCall_BuilderConfigureIdentity_AppliesConfirmedAccountAndPasswordOptions()
     {
         var services = new ServiceCollection();
-        services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("identity-second-facade"));
+        services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("identity-second-builder"));
         services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
-        services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+        services.AddAuthEndpoints<TestAppUser, TestDbContext>().ConfigureIdentity(identity =>
         {
-            o.Passkeys.Enabled = false;
-            o.RequireConfirmedAccount = false;
-            o.ConfigureIdentity = identity => identity.Password.RequiredLength = 8;
+            identity.SignIn.RequireConfirmedAccount = false;
+            identity.Password.RequiredLength = 8;
         });
 
         using var provider = services.BuildServiceProvider();
@@ -995,12 +990,12 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
-    public void SecondFacadeCall_RegistersRolesWhenTheFirstCallDidNot()
+    public void SecondIdentityCall_RegistersRolesWhenTheFirstCallDidNot()
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-late-roles"));
         services.AddAuthEndpointsIdentity<TestAppUser, TestRolesDbContext>();
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
 
         using var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<RoleManager<IdentityRole>>());
@@ -1008,44 +1003,39 @@ public class BuildingBlockRouteTests
     }
 
     [Fact]
-    public void SecondFacadeCall_SameRoleType_DoesNotThrow()
+    public void SecondBuilderCall_SameRoleType_DoesNotThrow()
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-same-role"));
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
 
         using var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<RoleManager<IdentityRole>>());
     }
 
     [Fact]
-    public void SecondFacadeCall_ConflictingRoleType_Throws()
+    public void SecondBuilderCall_ConflictingRoleType_Throws()
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-role-conflict"));
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false);
+        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
 
         var conflict = Assert.Throws<InvalidOperationException>(() =>
-            services.AddAuthEndpoints<TestAppUser, OtherRole, TestRolesDbContext>(o => o.Passkeys.Enabled = false));
+            services.AddAuthEndpoints<TestAppUser, OtherRole, TestRolesDbContext>());
         Assert.Contains("RoleManager<IdentityRole>", conflict.Message, StringComparison.Ordinal);
         Assert.Contains("RoleManager<OtherRole>", conflict.Message, StringComparison.Ordinal);
     }
 
     [Fact]
-    public void FacadePlusExplicitAdd_DoesNotDuplicatePolicies()
+    public void BuilderPlusExplicitAdd_DoesNotDuplicatePolicies()
     {
         var services = new ServiceCollection();
-        services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("facade-plus-add"));
-        services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
-        {
-            o.Passkeys.ServerDomain = "localhost";
-            o.Jwt.Enabled = true;
-            o.Jwt.Configure = jwt =>
-            {
-                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-            };
-        });
+        services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("builder-plus-add"));
+        services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .AddPassword()
+            .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost")
+            .AddJwt(jwt => jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!");
         services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
         services.AddPasswordEndpoints();
         services.AddCookieSessionEndpoints();

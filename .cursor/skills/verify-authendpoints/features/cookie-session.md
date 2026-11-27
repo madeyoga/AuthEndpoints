@@ -48,4 +48,4 @@ Preconditions:
 - Duplicate email register is 200 by design and emails the existing owner (`registration-attempt` in `/test/mailbox`). Use a new email when you need a distinct user.
 - Login is rate-limited (token bucket). Bursting logins from one IP yields 429. `traces probe` already spends that budget; run it on its own host, not after a long login drive.
 - Logout without CSRF is a CSRF failure, not a successful logout. See [CSRF on cookie mutations](./csrf.md).
-- Test host allows unconfirmed users to sign in. Production facade default does not.
+- Test host allows unconfirmed users to sign in. The library default does not.

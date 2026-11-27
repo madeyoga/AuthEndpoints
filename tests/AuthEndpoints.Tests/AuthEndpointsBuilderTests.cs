@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Identity;
@@ -8,33 +9,57 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Tests;
 
-public class PasswordAuthTests
+/// <summary>
+/// <c>AddAuthEndpoints</c> / <c>MapAuthEndpoints</c>: end-to-end flows per session, options validation,
+/// and map-time checks. Route lists are in <c>AuthEndpointsBuilderRouteTests</c>.
+/// </summary>
+public class AuthEndpointsBuilderTests
 {
     private const string SigningKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
 
     [Fact]
     public void Options_Defaults()
     {
-        var options = new PasswordAuthOptions();
-        Assert.Equal(AuthEndpointsSession.Cookie, options.Session);
-        Assert.Equal("/auth", options.Path);
-        Assert.True(options.RequireConfirmedAccount);
+        var options = new AuthEndpointsOptions();
         Assert.True(options.RequireEmailSenderInProduction);
-        Assert.Null(options.Jwt);
-        Assert.Null(options.ConfigureIdentity);
-        Assert.Null(options.Passkeys.ServerDomain);
         Assert.Null(options.EmailConfirmation.ConfirmEmailRedirectUri);
         Assert.Empty(options.EmailConfirmation.AllowedRedirectOrigins);
+
+        var password = new PasswordFeatureOptions();
+        Assert.True(password.SignUp);
+        Assert.True(password.Recovery);
+
+        var passkeys = new PasskeyFeatureOptions();
+        Assert.Null(passkeys.ServerDomain);
+        Assert.True(passkeys.SignUp);
+        Assert.True(passkeys.Management);
+    }
+
+    [Fact]
+    public void RequireConfirmedAccount_DefaultsToTrue_AndConfigureIdentityReplacesIt()
+    {
+        var builder = NewBuilder();
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        using (var app = builder.Build())
+        {
+            Assert.True(app.Services.GetRequiredService<IOptions<IdentityOptions>>().Value.SignIn.RequireConfirmedAccount);
+        }
+
+        var relaxed = NewBuilder();
+        relaxed.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false);
+        using var relaxedApp = relaxed.Build();
+        Assert.False(relaxedApp.Services.GetRequiredService<IOptions<IdentityOptions>>().Value.SignIn.RequireConfirmedAccount);
     }
 
     [Fact]
     public async Task Cookie_RegisterConfirmLoginManageLogout()
     {
         var mail = new CapturingEmailSender();
-        await using var app = await StartAsync(mail, o => o.Session = AuthEndpointsSession.Cookie);
+        await using var app = await StartAsync(mail, AuthEndpointsSession.Cookie, auth => auth.AddPassword());
         var http = app.GetTestServer().CreateClient();
         var cookies = new CookieContainer();
-        var email = $"password-cookie-{Guid.NewGuid():N}@test.local";
+        var email = $"builder-cookie-{Guid.NewGuid():N}@test.local";
 
         var register = await SendAsync(http, cookies, () =>
             Post("/auth/register", new { email, password = TestHelpers.DefaultPassword }));
@@ -77,14 +102,12 @@ public class PasswordAuthTests
     public async Task Jwt_RegisterConfirmCreateManageRefreshLogout()
     {
         var mail = new CapturingEmailSender();
-        await using var app = await StartAsync(mail, o =>
-        {
-            o.Session = AuthEndpointsSession.Jwt;
-            o.Jwt = jwt => jwt.SigningOptions.SymmetricKey = SigningKey;
-        });
+        await using var app = await StartAsync(mail, AuthEndpointsSession.Jwt, auth => auth
+            .AddPassword()
+            .AddJwt(jwt => jwt.SigningOptions.SymmetricKey = SigningKey));
         var http = app.GetTestServer().CreateClient();
         var cookies = new CookieContainer();
-        var email = $"password-jwt-{Guid.NewGuid():N}@test.local";
+        var email = $"builder-jwt-{Guid.NewGuid():N}@test.local";
 
         var register = await SendAsync(http, cookies, () =>
             Post("/auth/register", new { email, password = TestHelpers.DefaultPassword }));
@@ -159,17 +182,15 @@ public class PasswordAuthTests
     public async Task Jwt_BodyTransport_CreateRefreshLogout_WithoutCookiesOrCsrf()
     {
         var mail = new CapturingEmailSender();
-        await using var app = await StartAsync(mail, o =>
-        {
-            o.Session = AuthEndpointsSession.Jwt;
-            o.Jwt = jwt =>
+        await using var app = await StartAsync(mail, AuthEndpointsSession.Jwt, auth => auth
+            .AddPassword()
+            .AddJwt(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = SigningKey;
                 jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
-            };
-        });
+            }));
         var http = app.GetTestServer().CreateClient();
-        var email = $"password-jwt-body-{Guid.NewGuid():N}@test.local";
+        var email = $"builder-jwt-body-{Guid.NewGuid():N}@test.local";
 
         var register = await SendBareAsync(http, () =>
             Post("/auth/register", new { email, password = TestHelpers.DefaultPassword }));
@@ -219,16 +240,65 @@ public class PasswordAuthTests
     }
 
     [Fact]
-    public async Task ConfirmEmailRedirect_UsesPasswordAuthOptions()
+    public async Task IdentityBearer_RegisterConfirmLoginManageRefresh()
     {
         var mail = new CapturingEmailSender();
-        await using var app = await StartAsync(mail, o =>
+        await using var app = await StartAsync(mail, AuthEndpointsSession.IdentityBearer, auth => auth
+            .AddPassword()
+            .AddIdentityBearer());
+        var http = app.GetTestServer().CreateClient();
+        var email = $"builder-bearer-{Guid.NewGuid():N}@test.local";
+
+        var register = await SendBareAsync(http, () =>
+            Post("/auth/register", new { email, password = TestHelpers.DefaultPassword }));
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+
+        var confirm = await SendBareAsync(http, () => new HttpRequestMessage(HttpMethod.Get, ConfirmPath(mail, email)));
+        Assert.Equal(HttpStatusCode.OK, confirm.StatusCode);
+
+        var missingCsrf = await SendBareAsync(http, () => new HttpRequestMessage(HttpMethod.Get, "/auth/csrfToken"));
+        Assert.Equal(HttpStatusCode.NotFound, missingCsrf.StatusCode);
+
+        var login = await SendBareAsync(http, () =>
+            Post("/auth/login", new { email, password = TestHelpers.DefaultPassword }));
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        using var loginDoc = JsonDocument.Parse(await login.Content.ReadAsStringAsync());
+        var accessToken = TestHelpers.TryGetString(loginDoc.RootElement, "accessToken", "AccessToken");
+        var refreshToken = TestHelpers.TryGetString(loginDoc.RootElement, "refreshToken", "RefreshToken");
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+        Assert.False(string.IsNullOrWhiteSpace(refreshToken));
+
+        var info = await SendBareAsync(http, () =>
         {
-            o.EmailConfirmation.ConfirmEmailRedirectUri = "/done";
+            var request = new HttpRequestMessage(HttpMethod.Get, "/auth/manage/info");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            return request;
         });
+        Assert.Equal(HttpStatusCode.OK, info.StatusCode);
+        using (var infoDoc = JsonDocument.Parse(await info.Content.ReadAsStringAsync()))
+        {
+            Assert.Equal(email, TestHelpers.TryGetString(infoDoc.RootElement, "email", "Email"));
+        }
+
+        var refresh = await SendBareAsync(http, () => Post("/auth/refresh", new { refreshToken }));
+        Assert.Equal(HttpStatusCode.OK, refresh.StatusCode);
+        using var refreshDoc = JsonDocument.Parse(await refresh.Content.ReadAsStringAsync());
+        Assert.False(string.IsNullOrWhiteSpace(
+            TestHelpers.TryGetString(refreshDoc.RootElement, "accessToken", "AccessToken")));
+    }
+
+    [Fact]
+    public async Task ConfirmEmailRedirect_UsesAuthEndpointsOptions()
+    {
+        var mail = new CapturingEmailSender();
+        await using var app = await StartAsync(
+            mail,
+            AuthEndpointsSession.Cookie,
+            auth => auth.AddPassword(),
+            o => o.EmailConfirmation.ConfirmEmailRedirectUri = "/done");
         var http = app.GetTestServer().CreateClient();
         var cookies = new CookieContainer();
-        var email = $"password-redirect-{Guid.NewGuid():N}@test.local";
+        var email = $"builder-redirect-{Guid.NewGuid():N}@test.local";
 
         var register = await SendAsync(http, cookies, () =>
             Post("/auth/register", new { email, password = TestHelpers.DefaultPassword }));
@@ -243,115 +313,43 @@ public class PasswordAuthTests
     }
 
     [Fact]
-    public void Jwt_WithoutCallback_FailsValidation()
-    {
-        using var app = Build(o => o.Session = AuthEndpointsSession.Jwt);
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        Assert.Contains("Jwt", ex.ToString(), StringComparison.Ordinal);
-        Assert.Contains("requires", ex.ToString(), StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
-    public void Jwt_CallbackWithoutSigningKey_FailsAtRegistration()
+    public void LaterConfigure_EmailConfirmation_Applies()
     {
         var builder = NewBuilder();
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
-            {
-                o.Session = AuthEndpointsSession.Jwt;
-                o.Jwt = _ => { };
-            }));
-        Assert.Contains("SymmetricKey", ex.ToString(), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void IdentityBearer_FailsValidation()
-    {
-        using var app = Build(o => o.Session = AuthEndpointsSession.IdentityBearer);
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        Assert.Contains("IdentityBearer", ex.ToString(), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void UndefinedSession_FailsValidation()
-    {
-        using var app = Build(o => o.Session = (AuthEndpointsSession)9);
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        Assert.Contains("Session", ex.ToString(), StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void Path_MustBeRooted()
-    {
-        using var app = Build(o => o.Path = "auth");
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        Assert.Contains("Path", ex.ToString(), StringComparison.Ordinal);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void TogetherWithAddAuthEndpoints_FailsValidation(bool passwordFirst)
-    {
-        var builder = NewBuilder();
-        builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-        if (passwordFirst)
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o => o.EmailConfirmation.ConfirmEmailRedirectUri = "/first");
+        builder.Services.Configure<AuthEndpointsOptions>(o =>
         {
-            builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>();
-            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o => o.Passkeys.Enabled = false);
-        }
-        else
-        {
-            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o => o.Passkeys.Enabled = false);
-            builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>();
-        }
-
+            o.EmailConfirmation.ConfirmEmailRedirectUri = "/later";
+            o.EmailConfirmation.AllowedRedirectOrigins.Add("https://app.example.com");
+        });
         using var app = builder.Build();
-        var password = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        var compat = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value);
-        Assert.Contains("cannot be used in the same host", password.ToString(), StringComparison.Ordinal);
-        Assert.Contains("cannot be used in the same host", compat.ToString(), StringComparison.Ordinal);
+
+        var auth = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
+        Assert.Equal("/later", auth.EmailConfirmation.ConfirmEmailRedirectUri);
+        Assert.Contains("https://app.example.com", auth.EmailConfirmation.AllowedRedirectOrigins);
     }
 
     [Fact]
     public void Production_MissingEmailSender_FailsValidation()
     {
-        using var app = Build(o => o.Passkeys.ServerDomain = "example.com", Environments.Production);
+        var builder = NewBuilder(Environments.Production);
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        using var app = builder.Build();
+
         var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
+            _ = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value);
         Assert.Contains("IEmailSender", ex.ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
-    public void Production_WithoutPasskeys_AllowsMissingServerDomain()
+    public void Production_EmailSenderCheck_CanBeTurnedOff()
     {
         var builder = NewBuilder(Environments.Production);
-        builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>();
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o => o.RequireEmailSenderInProduction = false)
+            .AddPassword();
         using var app = builder.Build();
 
-        var options = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value;
-        Assert.Null(options.Passkeys.ServerDomain);
-        Assert.Equal(AuthEndpointsSession.Cookie, options.Session);
-    }
-
-    [Fact]
-    public void Production_BlankPasskeyDomain_FailsValidation()
-    {
-        var builder = NewBuilder(Environments.Production);
-        builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o => o.Passkeys.ServerDomain = "  ");
-        using var app = builder.Build();
-
-        var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        Assert.Contains("ServerDomain", ex.ToString(), StringComparison.Ordinal);
+        Assert.False(app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value.RequireEmailSenderInProduction);
     }
 
     [Fact]
@@ -359,12 +357,12 @@ public class PasswordAuthTests
     {
         var builder = NewBuilder(Environments.Production);
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o =>
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
             o.EmailConfirmation.ConfirmEmailRedirectUri = "https://spa.example.com/confirmed");
         using var app = builder.Build();
 
         var ex = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
+            _ = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value);
         Assert.Contains("AllowedRedirectOrigins", ex.ToString(), StringComparison.Ordinal);
     }
 
@@ -373,88 +371,75 @@ public class PasswordAuthTests
     {
         var builder = NewBuilder();
         using var app = builder.Build();
-        var ex = Assert.Throws<InvalidOperationException>(() => app.MapPasswordAuth<TestAppUser>());
-        Assert.Contains("AddPasswordAuth", ex.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void AddPasswordAuth_Twice_Throws()
-    {
-        var builder = NewBuilder();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>();
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>());
-        Assert.Contains("already called", ex.Message, StringComparison.Ordinal);
+            app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie));
+        Assert.Equal("Call AddAuthEndpoints before MapAuthEndpoints.", ex.Message);
     }
 
     [Fact]
-    public void LaterConfigure_EmailConfirmation_IsCopiedAndRegistrationStays()
+    public void MapJwt_WithoutAddJwt_ThrowsNamedFix()
     {
         var builder = NewBuilder();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o => o.Passkeys.ServerDomain = "localhost");
-        builder.Services.Configure<PasswordAuthOptions>(o =>
-        {
-            o.EmailConfirmation.ConfirmEmailRedirectUri = "/later";
-            o.EmailConfirmation.AllowedRedirectOrigins.Add("https://app.example.com");
-        });
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
         using var app = builder.Build();
-
-        var registration = app.Services.GetRequiredService<PasswordAuthRegistration>();
-        Assert.Equal(AuthEndpointsSession.Cookie, registration.Session);
-        Assert.Equal("/auth", registration.Path);
-        Assert.Equal("localhost", registration.ServerDomain);
-
-        var password = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value;
-        var auth = app.Services.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
-        Assert.Equal("/later", password.EmailConfirmation.ConfirmEmailRedirectUri);
-        Assert.Equal("/later", auth.EmailConfirmation.ConfirmEmailRedirectUri);
-        Assert.Contains("https://app.example.com", auth.EmailConfirmation.AllowedRedirectOrigins);
-        app.MapPasswordAuth<TestAppUser>();
-    }
-
-    [Theory]
-    [InlineData("Session")]
-    [InlineData("Path")]
-    [InlineData("Passkeys.ServerDomain")]
-    public void LaterConfigure_ChangingRegistrationFields_FailsValidationAndMap(string field)
-    {
-        var builder = NewBuilder();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(o => o.Passkeys.ServerDomain = "localhost");
-        builder.Services.Configure<PasswordAuthOptions>(o =>
-        {
-            if (field == "Session")
-            {
-                o.Session = AuthEndpointsSession.Jwt;
-            }
-            else if (field == "Path")
-            {
-                o.Path = "/other";
-            }
-            else
-            {
-                o.Passkeys.ServerDomain = "example.com";
-            }
-        });
-        using var app = builder.Build();
-
-        var registration = app.Services.GetRequiredService<PasswordAuthRegistration>();
-        Assert.Equal(AuthEndpointsSession.Cookie, registration.Session);
-        Assert.Equal("/auth", registration.Path);
-        Assert.Equal("localhost", registration.ServerDomain);
-
-        var resolved = Assert.ThrowsAny<Exception>(() =>
-            _ = app.Services.GetRequiredService<IOptions<PasswordAuthOptions>>().Value);
-        Assert.Contains("changed " + field, resolved.ToString(), StringComparison.Ordinal);
-
-        var mapped = Assert.ThrowsAny<Exception>(() => app.MapPasswordAuth<TestAppUser>());
-        Assert.Contains("changed " + field, mapped.ToString(), StringComparison.Ordinal);
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Jwt));
+        Assert.Equal("Call AddJwt on AddAuthEndpoints before MapAuthEndpoints with AuthEndpointsSession.Jwt.", ex.Message);
     }
 
     [Fact]
-    public void AddPasswordAuth_Roles_ResolvesRoleStoreWithoutRemoveAll()
+    public void MapIdentityBearer_WithoutAddIdentityBearer_ThrowsNamedFix()
+    {
+        var builder = NewBuilder();
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        using var app = builder.Build();
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.IdentityBearer));
+        Assert.Equal(
+            "Call AddIdentityBearer on AddAuthEndpoints before MapAuthEndpoints with AuthEndpointsSession.IdentityBearer.",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Map_PathMustBeRooted()
+    {
+        var builder = NewBuilder();
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        using var app = builder.Build();
+        var ex = Assert.Throws<ArgumentException>(() =>
+            app.MapAuthEndpoints<TestAppUser>("auth", AuthEndpointsSession.Cookie));
+        Assert.Equal("path", ex.ParamName);
+    }
+
+    [Fact]
+    public void AddJwt_WithoutSigningKey_FailsAtRegistration()
+    {
+        var builder = NewBuilder();
+        var ex = Assert.ThrowsAny<Exception>(() =>
+            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddJwt(_ => { }));
+        Assert.Contains("SymmetricKey", ex.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AddAuthEndpoints_Twice_AddsTheUnion()
+    {
+        var builder = NewBuilder();
+        builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword(p => p.SignUp = false);
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        using var app = builder.Build();
+        app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie);
+
+        var routes = PublicApi.RouteSurface.ListRoutes(app);
+        Assert.Contains("POST /auth/register", routes);
+        Assert.Single(routes, route => route == "POST /auth/login");
+    }
+
+    [Fact]
+    public void AddAuthEndpoints_Roles_ResolvesRoleStoreWithoutRemoveAll()
     {
         var builder = NewRolesBuilder();
-        builder.Services.AddPasswordAuth<TestAppUser, IdentityRole, TestRolesDbContext>();
+        builder.Services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>().AddPassword();
 
         using var app = builder.Build();
         using var scope = app.Services.CreateScope();
@@ -468,10 +453,10 @@ public class PasswordAuthTests
     }
 
     [Fact]
-    public void AddPasswordAuth_WithoutRoles_ResolvesUserOnlyStore()
+    public void AddAuthEndpoints_WithoutRoles_ResolvesUserOnlyStore()
     {
         var builder = NewBuilder();
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>();
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
 
         using var app = builder.Build();
         using var scope = app.Services.CreateScope();
@@ -519,7 +504,7 @@ public class PasswordAuthTests
             EnvironmentName = environment,
         });
         builder.WebHost.UseTestServer();
-        var databaseName = "password-auth-" + Guid.NewGuid().ToString("N");
+        var databaseName = "builder-" + Guid.NewGuid().ToString("N");
         builder.Services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase(databaseName));
         return builder;
     }
@@ -531,30 +516,27 @@ public class PasswordAuthTests
             EnvironmentName = "Development",
         });
         builder.WebHost.UseTestServer();
-        var databaseName = "password-auth-roles-" + Guid.NewGuid().ToString("N");
+        var databaseName = "builder-roles-" + Guid.NewGuid().ToString("N");
         builder.Services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase(databaseName));
         return builder;
     }
 
-    private static WebApplication Build(Action<PasswordAuthOptions> configure, string environment = "Development")
-    {
-        var builder = NewBuilder(environment);
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(configure);
-        return builder.Build();
-    }
-
-    private static async Task<WebApplication> StartAsync(CapturingEmailSender mail, Action<PasswordAuthOptions> configure)
+    private static async Task<WebApplication> StartAsync(
+        CapturingEmailSender mail,
+        AuthEndpointsSession session,
+        Action<AuthEndpointsBuilder<TestAppUser, TestDbContext>> add,
+        Action<AuthEndpointsOptions>? configure = null)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             EnvironmentName = "Development",
         });
         builder.WebHost.UseTestServer();
-        var path = Path.Combine(Path.GetTempPath(), $"ae-password-auth-{Guid.NewGuid():N}.sqlite");
+        var path = Path.Combine(Path.GetTempPath(), $"ae-builder-{Guid.NewGuid():N}.sqlite");
         builder.Services.AddDbContext<TestDbContext>(o => o.UseSqlite($"Data Source={path}"));
         builder.Services.AddSingleton(mail);
         builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
-        builder.Services.AddPasswordAuth<TestAppUser, TestDbContext>(configure);
+        add(builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(configure));
         var app = builder.Build();
         using (var scope = app.Services.CreateScope())
         {
@@ -564,7 +546,7 @@ public class PasswordAuthTests
         }
 
         app.UseAuthEndpoints();
-        app.MapPasswordAuth<TestAppUser>();
+        app.MapAuthEndpoints<TestAppUser>("/auth", session);
         await app.StartAsync();
         return app;
     }
@@ -576,9 +558,9 @@ public class PasswordAuthTests
             EnvironmentName = "Development",
         });
         builder.WebHost.UseTestServer();
-        var path = Path.Combine(Path.GetTempPath(), $"ae-password-auth-roles-{Guid.NewGuid():N}.sqlite");
+        var path = Path.Combine(Path.GetTempPath(), $"ae-builder-roles-{Guid.NewGuid():N}.sqlite");
         builder.Services.AddDbContext<TestRolesDbContext>(o => o.UseSqlite($"Data Source={path}"));
-        builder.Services.AddPasswordAuth<TestAppUser, IdentityRole, TestRolesDbContext>();
+        builder.Services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>().AddPassword();
         var app = builder.Build();
         using (var scope = app.Services.CreateScope())
         {
@@ -588,7 +570,7 @@ public class PasswordAuthTests
         }
 
         app.UseAuthEndpoints();
-        app.MapPasswordAuth<TestAppUser>();
+        app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie);
         app.MapGet("/admin", () => Results.Ok())
             .RequireAuthorization(policy => policy.RequireRole("Admin"));
         await app.StartAsync();

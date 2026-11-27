@@ -41,10 +41,10 @@ public class DocumentationContractTests
         ["MapBearerAuthEndpoints"] = ("PerSessionSharedRouteTests.MapBearerAuthEndpoints_Matches341RouteTable.verified.txt", "/identity"),
         ["MapJwtAuthEndpoints"] = ("PerSessionSharedRouteTests.MapJwtAuthEndpoints_Matches341RouteTable.verified.txt", "/auth"),
         ["MapPasskeyEndpoints"] = ("PerSessionSharedRouteTests.MapPasskeyEndpoints_Matches341RouteTable.verified.txt", "/account"),
-        ["MapPasswordAuthCookie"] = ("PasswordAuthRouteTests.Cookie_PasskeysOff.verified.txt", "/auth"),
-        ["MapPasswordAuthCookiePasskeys"] = ("PasswordAuthRouteTests.Cookie_PasskeysOn.verified.txt", "/auth"),
-        ["MapPasswordAuthJwt"] = ("PasswordAuthRouteTests.Jwt_PasskeysOff.verified.txt", "/auth"),
-        ["MapPasswordAuthJwtPasskeys"] = ("PasswordAuthRouteTests.Jwt_PasskeysOn.verified.txt", "/auth"),
+        ["MapAuthEndpointsCookie"] = ("AuthEndpointsBuilderRouteTests.Cookie_Password.verified.txt", "/auth"),
+        ["MapAuthEndpointsCookiePasskeys"] = ("AuthEndpointsBuilderRouteTests.Cookie_PasswordPasskeys.verified.txt", "/auth"),
+        ["MapAuthEndpointsJwt"] = ("AuthEndpointsBuilderRouteTests.Jwt_Password.verified.txt", "/auth"),
+        ["MapAuthEndpointsJwtPasskeys"] = ("AuthEndpointsBuilderRouteTests.Jwt_PasswordPasskeys.verified.txt", "/auth"),
     };
 
     [Fact]

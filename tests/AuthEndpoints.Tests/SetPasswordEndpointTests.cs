@@ -305,7 +305,7 @@ public class SetPasswordEndpointTests
     }
 
     [Fact]
-    public void SetPassword_RouteRequiresSignInAntiforgeryAndReAuth_AndFacadeOmitsIt()
+    public void SetPassword_RouteRequiresSignInAntiforgeryAndReAuth()
     {
         using var mapped = RouteSurface.Build(
             builder =>
@@ -334,16 +334,6 @@ public class SetPasswordEndpointTests
         Assert.Equal(
             AuthEndpointsConstants.AccountAbusePolicy,
             endpoint.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName);
-
-        var facade = RouteSurface.ListRoutes(RouteSurface.Build(
-            builder =>
-            {
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options => options.Passkeys.Enabled = false);
-                builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-            },
-            app => app.MapAuthEndpoints<TestAppUser>()));
-        Assert.DoesNotContain("POST /identity/manage/password", facade);
-        Assert.DoesNotContain("DELETE /identity/manage/password", facade);
 
         var remove = ((IEndpointRouteBuilder)mapped).DataSources
             .SelectMany(source => source.Endpoints)

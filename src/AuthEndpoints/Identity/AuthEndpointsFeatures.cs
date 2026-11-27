@@ -75,8 +75,8 @@ internal sealed record AuthEndpointsFeatures(
 
         bool Has<TModule>() where TModule : class => AuthEndpointsModules.IsRegistered<TModule>(services);
 
-        // AddPasskeyEndpoints and AddPasswordAuth with a ServerDomain register every passkey module,
-        // so the bundle check is a guard for hosts that only have the bundle marker.
+        // AddPasskeyEndpoints registers every passkey module, so the bundle check is a guard
+        // for hosts that only have the bundle marker.
         var passkeyBundle = Has<PasskeyEndpointsModule>();
 
         return new AuthEndpointsFeatures(
@@ -110,7 +110,7 @@ internal sealed record AuthEndpointsFeatures(
 /// <param name="CanRecover"><c>POST /forgotPassword</c> and <c>POST /resetPassword</c>.</param>
 internal sealed record PasswordFeatures(bool Bundle, bool CanSignUp, bool CanSignIn, bool CanRecover);
 
-/// <param name="Bundle"><c>AddPasskeyEndpoints</c>, or <c>AddPasswordAuth</c> with a passkey server domain.</param>
+/// <param name="Bundle"><c>AddPasskeyEndpoints</c>.</param>
 /// <param name="CanSignUp"><c>POST /passkeys/register</c> for an anonymous caller.</param>
 /// <param name="CanAuthenticate">Passkey request options and passkey login.</param>
 /// <param name="CanRequestRegisterOptions"><c>POST /passkeys/register/options</c>.</param>

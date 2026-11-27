@@ -510,60 +510,6 @@ public class SignInCompleterTests
     }
 
     [Fact]
-    public async Task Facade_IgnoresSignInCompletionDefault()
-    {
-        var mail = new CapturingEmailSender();
-        WebApplication? cookieApp = null;
-        WebApplication? bearerApp = null;
-        try
-        {
-            cookieApp = await StartFacadeAsync(AuthEndpointsSignIn.Cookie, mail);
-            using var cookieClient = new ApiClient(cookieApp);
-
-            Assert.Equal("LoginCookie", HandlerName(Find(cookieApp, "POST /identity/login")));
-            Assert.Null(Find(cookieApp, "POST /identity/login").Metadata.GetMetadata<SignInCompleterSelection>());
-            Assert.Null(Find(cookieApp, "POST /identity/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
-            var verify = Find(cookieApp, "POST /identity/emailCode/verify");
-            Assert.Null(verify.Metadata.GetMetadata<HonorSignInCompletionDefault>());
-            Assert.Null(verify.Metadata.GetMetadata<SignInCompleterSelection>());
-            var passkey = Find(cookieApp, "POST /account/passkeys/login");
-            Assert.Null(passkey.Metadata.GetMetadata<HonorSignInCompletionDefault>());
-            Assert.Null(passkey.Metadata.GetMetadata<SignInCompleterSelection>());
-
-            var cookieEmail = UniqueEmail("facade-cookie");
-            Assert.Equal(HttpStatusCode.OK, (await cookieClient.PostAsync("/identity/register", new { email = cookieEmail, password = TestHelpers.DefaultPassword })).StatusCode);
-            await AssertSession(
-                await cookieClient.PostAsync("/identity/login", new { email = cookieEmail, password = TestHelpers.DefaultPassword }),
-                SessionKind.Cookie,
-                passkeyRegister: false);
-
-            Assert.Equal(HttpStatusCode.OK, (await cookieClient.PostAsync("/identity/emailCode/send", new { email = cookieEmail })).StatusCode);
-            await AssertSession(
-                await cookieClient.PostAsync("/identity/emailCode/verify", new { email = cookieEmail, code = CodeFor(mail, cookieEmail) }),
-                SessionKind.IdentityBearer,
-                passkeyRegister: false);
-
-            bearerApp = await StartFacadeAsync(AuthEndpointsSignIn.IdentityBearer, new CapturingEmailSender());
-            using var bearerClient = new ApiClient(bearerApp);
-            Assert.Equal("Login", HandlerName(Find(bearerApp, "POST /identity/login")));
-            Assert.Null(Find(bearerApp, "POST /identity/login").Metadata.GetMetadata<SignInCompleterSelection>());
-            Assert.Null(Find(bearerApp, "POST /identity/login").Metadata.GetMetadata<HonorSignInCompletionDefault>());
-            Assert.Null(Find(bearerApp, "POST /identity/emailCode/verify").Metadata.GetMetadata<HonorSignInCompletionDefault>());
-            var bearerEmail = UniqueEmail("facade-bearer");
-            Assert.Equal(HttpStatusCode.OK, (await bearerClient.PostAsync("/identity/register", new { email = bearerEmail, password = TestHelpers.DefaultPassword })).StatusCode);
-            await AssertSession(
-                await bearerClient.PostAsync("/identity/login", new { email = bearerEmail, password = TestHelpers.DefaultPassword }),
-                SessionKind.IdentityBearer,
-                passkeyRegister: false);
-        }
-        finally
-        {
-            await DisposeFacadeAsync(cookieApp);
-            await DisposeFacadeAsync(bearerApp);
-        }
-    }
-
-    [Fact]
     public void CompleterName_IsCheckedPerUserType()
     {
         OtherUserCompleter.Constructions = 0;
@@ -633,66 +579,6 @@ public class SignInCompleterTests
         Assert.Null(Find(app, "POST /mode/login").Metadata.GetMetadata<SignInCompleterSelection>());
     }
 
-    [Fact]
-    public async Task Facade_JwtCreate_Keeps341FailureBodies_AndDoesNotCountTwoFactorFailures()
-    {
-        var app = await StartFacadeAsync(AuthEndpointsSignIn.Cookie, new CapturingEmailSender());
-        try
-        {
-            Assert.Equal("Create", HandlerName(Find(app, "POST /auth/create")));
-            Assert.Null(Find(app, "POST /auth/create").Metadata.GetMetadata<SignInCompleterSelection>());
-            Assert.Equal("LoginCookie", HandlerName(Find(app, "POST /identity/login")));
-
-            var email = UniqueEmail("facade-create");
-            string key;
-            using (var scope = app.Services.CreateScope())
-            {
-                var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-                var user = new TestAppUser
-                {
-                    UserName = email,
-                    Email = email,
-                    EmailConfirmed = true,
-                };
-                Assert.True((await users.CreateAsync(user, TestHelpers.DefaultPassword)).Succeeded);
-                Assert.True((await users.ResetAuthenticatorKeyAsync(user)).Succeeded);
-                Assert.True((await users.SetTwoFactorEnabledAsync(user, true)).Succeeded);
-                key = (await users.GetAuthenticatorKeyAsync(user))!;
-            }
-
-            using var client = new ApiClient(app);
-            var wrongCode = await client.PostAsync(
-                "/auth/create",
-                new { email, password = TestHelpers.DefaultPassword, twoFactorCode = WrongTotp(key) });
-            Assert.Equal(HttpStatusCode.Unauthorized, wrongCode.StatusCode);
-            Assert.Contains("Invalid two factor code", await wrongCode.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-            Assert.Equal(0, await FailedCountAsync(app, email));
-
-            var wrongRecovery = await client.PostAsync(
-                "/auth/create",
-                new { email, password = TestHelpers.DefaultPassword, twoFactorRecoveryCode = "not-a-recovery-code" });
-            Assert.Equal(HttpStatusCode.Unauthorized, wrongRecovery.StatusCode);
-            Assert.Contains(
-                "Recovery code redemption failed",
-                await wrongRecovery.Content.ReadAsStringAsync(),
-                StringComparison.Ordinal);
-            Assert.Equal(0, await FailedCountAsync(app, email));
-        }
-        finally
-        {
-            await DisposeFacadeAsync(app);
-        }
-    }
-
-    private static async Task<int> FailedCountAsync(WebApplication app, string email)
-    {
-        using var scope = app.Services.CreateScope();
-        var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-        var user = await users.FindByEmailAsync(email);
-        Assert.NotNull(user);
-        return await users.GetAccessFailedCountAsync(user);
-    }
-
     private static void AssertConfirmNameStillDefault(WebApplication app, string prefix, string confirmName)
     {
         Assert.Equal(confirmName, Find(app, "GET " + prefix + "/confirmEmail").Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName);
@@ -702,79 +588,6 @@ public class SignInCompleterTests
         var register = Find(app, "POST " + prefix + "/passkeys/register");
         Assert.Null(register.Metadata.GetMetadata<SignInCompleterSelection>());
         Assert.NotNull(register.Metadata.GetMetadata<HonorSignInCompletionDefault>());
-    }
-
-    private static async Task<WebApplication> StartFacadeAsync(AuthEndpointsSignIn signIn, CapturingEmailSender mail)
-    {
-        var path = Path.Combine(Path.GetTempPath(), $"ae-facade-{Guid.NewGuid():N}.sqlite");
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-        {
-            EnvironmentName = Environments.Development,
-        });
-        builder.WebHost.UseTestServer();
-        builder.Services.AddDbContext<TestDbContext>(db => db.UseSqlite($"Data Source={path}"));
-        builder.Services.AddSingleton(new FacadeDatabase(path));
-        builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
-        builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(signIn, options =>
-        {
-            options.Passkeys.ServerDomain = "localhost";
-            options.RequireConfirmedAccount = false;
-            options.RequireEmailSenderInProduction = false;
-            options.ConfigureIdentity = identity =>
-            {
-                identity.SignIn.RequireConfirmedAccount = false;
-            };
-            options.EmailCode.Enabled = true;
-            options.Jwt.Enabled = true;
-            options.Jwt.Configure = jwt =>
-            {
-                jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-            };
-        });
-        builder.Services.Configure<SignInCompletionOptions>(completion => completion.Default = SignInCompleters.Jwt);
-
-        var app = builder.Build();
-        using (var scope = app.Services.CreateScope())
-        {
-            await scope.ServiceProvider.GetRequiredService<TestDbContext>().Database.EnsureCreatedAsync();
-        }
-
-        app.UseAuthEndpoints();
-        app.MapAuthEndpoints<TestAppUser>();
-        await app.StartAsync();
-        return app;
-    }
-
-    private sealed class FacadeDatabase(string path)
-    {
-        public string Path { get; } = path;
-    }
-
-    private static async Task DisposeFacadeAsync(WebApplication? app)
-    {
-        if (app is null)
-        {
-            return;
-        }
-
-        var path = app.Services.GetRequiredService<FacadeDatabase>().Path;
-        await app.DisposeAsync();
-        SqliteConnection.ClearAllPools();
-        foreach (var suffix in new[] { "", "-wal", "-shm" })
-        {
-            try
-            {
-                var file = path + suffix;
-                if (File.Exists(file))
-                {
-                    File.Delete(file);
-                }
-            }
-            catch (IOException)
-            {
-            }
-        }
     }
 
     private static string CodeFor(CapturingEmailSender mail, string email)

@@ -306,9 +306,9 @@ public partial class EmailCodeEndpointTests
     }
 
     [Fact]
-    public async Task Facade_EmailCodeEnabled_OmitsReAuthSend_AndKeepsEmailCodeFalse()
+    public async Task Builder_EmailCode_OffersStepUp_AndMapsReAuthSend()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"ae-facade-reauth-{Guid.NewGuid():N}.sqlite");
+        var path = Path.Combine(Path.GetTempPath(), $"ae-builder-reauth-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             EnvironmentName = Environments.Development
@@ -319,21 +319,10 @@ public partial class EmailCodeEndpointTests
         builder.Services.AddSingleton<CapturingEmailSender>();
         builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
         builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options =>
-        {
-            options.Passkeys.ServerDomain = "localhost";
-            options.RequireConfirmedAccount = false;
-            options.EmailCode.Enabled = true;
-            options.ConfigureIdentity = identity =>
-            {
-                identity.SignIn.RequireConfirmedAccount = false;
-                identity.Password.RequireDigit = false;
-                identity.Password.RequireLowercase = false;
-                identity.Password.RequireUppercase = false;
-                identity.Password.RequireNonAlphanumeric = false;
-                identity.Password.RequiredLength = 6;
-            };
-        });
+        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false)
+            .AddPassword()
+            .AddEmailCode();
 
         await using var app = builder.Build();
         try
@@ -344,10 +333,10 @@ public partial class EmailCodeEndpointTests
             }
 
             app.UseAuthEndpoints();
-            app.MapAuthEndpoints<TestAppUser>();
+            app.MapAuthEndpoints<TestAppUser>("/identity", AuthEndpointsSession.Cookie);
             await app.StartAsync();
 
-            var email = UniqueEmail("facade-reauth");
+            var email = UniqueEmail("builder-reauth");
             await SeedAsync(app, email, password: null);
             using var client = app.GetTestClient();
             var mail = app.Services.GetRequiredService<CapturingEmailSender>();
@@ -368,10 +357,11 @@ public partial class EmailCodeEndpointTests
             var emailCode = doc.RootElement.TryGetProperty("emailCode", out var camel)
                 ? camel.GetBoolean()
                 : doc.RootElement.GetProperty("EmailCode").GetBoolean();
-            Assert.False(emailCode);
+            Assert.True(emailCode);
 
+            // Mapped (unlike the removed 3.x facade). Without a CSRF token it is rejected, not missing.
             var send = await PostAsync(client, "/identity/confirmIdentity/emailCode/send", new { }, jar);
-            Assert.Equal(HttpStatusCode.NotFound, send.StatusCode);
+            Assert.NotEqual(HttpStatusCode.NotFound, send.StatusCode);
         }
         finally
         {

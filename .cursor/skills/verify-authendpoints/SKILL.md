@@ -1,6 +1,6 @@
 ---
 name: verify-authendpoints
-description: Drive the AuthEndpoints HTTP API via the in-repo test host (cookie sessions, cookie and bearer facades, Identity bearer, Simple JWT, CSRF, ReAuth, passkeys, email code). Use when verifying a change to src/AuthEndpoints or tests/AuthEndpoints.Tests, proving register/login/session/token behavior, or when a task needs a live auth API instead of only `dotnet test`.
+description: Drive the AuthEndpoints HTTP API via the in-repo test host (cookie sessions, the AddAuthEndpoints builder, Identity bearer, Simple JWT, CSRF, ReAuth, passkeys, email code). Use when verifying a change to src/AuthEndpoints or tests/AuthEndpoints.Tests, proving register/login/session/token behavior, or when a task needs a live auth API instead of only `dotnet test`.
 ---
 
 # Verify AuthEndpoints
@@ -35,13 +35,9 @@ Ready signal for the default **compose** host: `GET {AE_BASE_URL}/identity/csrfT
 
 `launch` turns on OpenTelemetry export when `OTEL_EXPORTER_OTLP_ENDPOINT` is unset (`http://localhost:4317`, service name `authendpoints-demo`). Set `OTEL_EXPORTER_OTLP_ENDPOINT` to empty before `launch` to skip export. After the host is ready, `launch` writes `$AE_RUN_DIR/traces.since` so later trace checks ignore spans from earlier processes. Read those spans with `ae-http.sh traces` (below), not by route name alone. The dashboard URL and resource query are also in the repository `AGENTS.md`.
 
-Identity bearer facade: set `AE_HOST_MODE=bearer-facade` before `launch`. Ready signal is `GET /identity/manage/info` returning **401**. Doctor prints `mode=bearer-facade`. See [bearer-facade.md](features/bearer-facade.md).
-
-Cookie facade: set `AE_HOST_MODE=cookie-facade` before `launch`. Ready signal is the same `GET /identity/csrfToken` **200** as compose. Doctor prints `mode=cookie-facade`. See [cookie-facade.md](features/cookie-facade.md). Facade hosts map `/auth` unless `AE_FACADE_JWT=false`.
-
 Per-session and shared routes: set `AE_HOST_MODE=split` before `launch`. Ready signal is `GET /web/csrfToken` returning **200**. Doctor prints `mode=split`. Cookie sign-in is under `/web`, JWT sign-in is under `/app`, and shared routes (register, recovery, email-code send, passkey register options, account management, confirm-email) are at the root. Email-code routes are mapped in this mode without `AE_EMAIL_CODE`. See [per-session-shared.md](features/per-session-shared.md).
 
-Password facade: set `AE_HOST_MODE=password-cookie` or `AE_HOST_MODE=password-jwt` before `launch`. Routes are under `/auth` (`AddPasswordAuth` / `MapPasswordAuth`). Passkeys are on (`ServerDomain=localhost`). `RequireConfirmedAccount` defaults to **true** when `AE_REQUIRE_CONFIRMED_ACCOUNT` is unset (the library default). Cookie ready signal is `GET /auth/csrfToken` **200**. JWT cookie refresh uses the same signal. JWT body refresh (`AE_JWT_REFRESH_TRANSPORT=Body`) is ready when `GET /auth/manage/info` is **401**. See [password-auth.md](features/password-auth.md).
+Builder: set `AE_HOST_MODE=builder-cookie`, `builder-jwt`, or `builder-bearer` before `launch`. Routes are under `/auth` (`AddAuthEndpoints(...).AddPassword().AddPasskeys()` / `MapAuthEndpoints("/auth", session)`). Passkeys are on (`ServerDomain=localhost`). `AE_EMAIL_CODE=true` adds email code. `RequireConfirmedAccount` defaults to **true** when `AE_REQUIRE_CONFIRMED_ACCOUNT` is unset (the library default). Cookie ready signal is `GET /auth/csrfToken` **200**. JWT cookie refresh uses the same signal. Identity bearer, and JWT body refresh (`AE_JWT_REFRESH_TRANSPORT=Body`), are ready when `GET /auth/manage/info` is **401**. See [builder.md](features/builder.md).
 
 External GitHub: set `AE_HOST_MODE=external` before `launch`. Ready signal is `GET /auth/csrfToken` **200**. Doctor prints `mode=external`. GitHub sign-in and account routes are under `/auth/external`. Password login, set-password, and confirm-identity are under `/auth`. Email-code verify is not mapped. See [external-github.md](features/external-github.md).
 
@@ -61,32 +57,14 @@ Default `AE_HOST_MODE=compose`:
 | `/account` | Passkey routes |
 | `/test/*` | **Test-only** probes (`/test/csrf`, `/test/reauth`, `/test/csrf-auth`). Not library surface. Use them only as extra observation, never as the sole proof of a library feature. |
 
-`AE_HOST_MODE=bearer-facade` uses `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` / `MapAuthEndpoints` instead of the compose maps:
+`AE_HOST_MODE=builder-cookie`, `builder-jwt`, and `builder-bearer` use `AddAuthEndpoints` / `MapAuthEndpoints("/auth", session)`:
 
 | Prefix | Mapped surface |
 | --- | --- |
-| `/identity` | Identity management + **Identity bearer** login (`Login`) + `/refresh` (no `/csrfToken`) |
-| `/auth` | Simple JWT (facade JWT opt-in is on for this host) |
-| `/account` | Passkey routes |
+| `/auth` | Password register, recovery, confirm-email, account management (`manage/info`, `manage/2fa`, `manage/authMethods`, `manage/password`, `confirmIdentity`), passkeys, and email code when `AE_EMAIL_CODE=true`. Cookie session adds `POST /login`, `POST /logout`, `GET /csrfToken`. JWT session adds `POST /create`, `POST /refresh`, `GET /verify`, `POST /logout`, and `GET /csrfToken` unless refresh transport is `Body`. Identity bearer adds `POST /login`, `POST /refresh`, `POST /logout`, and no `GET /csrfToken`. |
 | `/test/*` | Same test-only probes |
 
-`AE_HOST_MODE=cookie-facade` uses `AddAuthEndpoints` / `MapAuthEndpoints` with the default cookie sign-in (`LoginCookie`):
-
-| Prefix | Mapped surface |
-| --- | --- |
-| `/identity` | Identity management + **cookie** login + logout + `/csrfToken` (no `/identity/bearer`, no `/identity/refresh`) |
-| `/auth` | Simple JWT, unless `AE_FACADE_JWT=false` |
-| `/account` | Passkey routes |
-| `/test/*` | Same test-only probes |
-
-`AE_HOST_MODE=password-cookie` and `AE_HOST_MODE=password-jwt` use `AddPasswordAuth` / `MapPasswordAuth` (not the `MapAuthEndpoints` facade):
-
-| Prefix | Mapped surface |
-| --- | --- |
-| `/auth` | Password register, recovery, confirm-email, account management (`manage/info`, `manage/2fa`, `manage/authMethods`, `manage/password`, `confirmIdentity`), passkeys. Cookie session adds `POST /login`, `POST /logout`, `GET /csrfToken`. JWT session adds `POST /create`, `POST /refresh`, `GET /verify`, `POST /logout`, and `GET /csrfToken` unless refresh transport is `Body`. |
-| `/test/*` | Same test-only probes |
-
-`AE_HOST_MODE=split` maps `MapSignInEndpoints` twice and `MapSharedAuthEndpoints` once (not the `MapAuthEndpoints` facade):
+`AE_HOST_MODE=split` maps `MapSignInEndpoints` twice and `MapSharedAuthEndpoints` once (not `MapAuthEndpoints`):
 
 | Prefix | Mapped surface |
 | --- | --- |
@@ -107,23 +85,23 @@ The compose host calls the composite maps. Those composites call the smaller map
 | `MapJwtAuthEndpoints` | `MapJwtPasswordEndpoints` (`POST /create`) + `MapJwtSessionEndpoints` (refresh, verify, logout, `csrfToken`) |
 | `MapPasskeyEndpoints` | the sign-in routes of `MapPasskeySignInEndpoints` (this composite does not map confirm-email) plus `MapPasskeyManagementEndpoints` |
 
-`MapAuthEndpoints` on either facade calls those same composites for the configured sign-in.
+`MapAuthEndpoints` calls `MapSignInEndpoints` for its session and `MapSharedAuthEndpoints` once, on one prefix.
 
-Not on the compose or facade hosts, so do not mark them verified from those drives:
+Not on the compose or builder hosts, so do not mark them verified from those drives:
 
 - Email-code-only recipe (`MapEmailCodeEndpoints` without password register/login). When `AE_EMAIL_CODE=true`, this host still maps password routes.
 - `JwtPasskeySignInCompleter`. Passkey register/login use `IdentityPasskeySignInCompleter`. Bearer register returns the token body only. Cookie register returns `credentialId`. The JWT completer always returns a token and ignores `useCookies`; that body is not produced here.
-- External OAuth on compose or facade. `AE_HOST_MODE=external` maps GitHub. See [external-github.md](features/external-github.md).
+- External OAuth on compose or builder. `AE_HOST_MODE=external` maps GitHub. See [external-github.md](features/external-github.md).
 
 Host defaults that **differ from production library defaults**:
 
-- `SignIn.RequireConfirmedAccount = false` on compose, bearer-facade, cookie-facade, and split (library facade default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in. `password-cookie` and `password-jwt` already default to true when that variable is unset.
+- `SignIn.RequireConfirmedAccount = false` on compose, split, and external (library default is **true**). Set `AE_REQUIRE_CONFIRMED_ACCOUNT=true` before `launch` to match the library default for confirmation-gated sign-in. The `builder-*` modes already default to true when that variable is unset.
 - Confirm-email SPA redirect is unset. Set `AE_CONFIRM_EMAIL_REDIRECT_URI` (and `AE_CONFIRM_EMAIL_ALLOWED_ORIGINS` for an absolute URI) before `launch`. The launch whitelist passes both through `exec env`.
 - Password rules are relaxed (`RequiredLength = 6`, no digit/case/symbol requirements). Use `Passw0rd!`.
 - EF Core **SQLite** file under the temp directory (`TestDbName`). All users vanish when that file is removed; a new `AE_RUN_ID` uses a new file.
 - JWT signing key is the test-only value in `Program.cs`. Never treat it as a production secret.
 - `IEmailSender<TUser>` is a capturing sender. `GET /test/mailbox` lists `{email,kind,body}` (confirmation links are HTML-encoded). Email-code items also include `linkUrl` and `purpose`. This is a **test-only** probe.
-- Compose and split map `POST /manage/password` with account management. It returns `404` when password sign-in is not mapped. The `MapAuthEndpoints` facade (`bearer-facade` and `cookie-facade`) does not map it. Drive it from [features/set-password.md](features/set-password.md).
+- Compose and split map `POST /manage/password` with account management. It returns `404` when password sign-in is not mapped. The `builder-*` modes map it too. Drive it from [features/set-password.md](features/set-password.md).
 - On the compose host, email-code routes are unmapped unless `AE_EMAIL_CODE=true`. `AE_EMAIL_CODE_SIGNUP=true` sets `AllowSignUp`. `AE_EMAIL_CODE_LINK` is the magic-link base URL and enables the link. Drive them from [features/email-code.md](features/email-code.md). Verify with no query flag returns a bearer `accessToken`. `useSessionCookies=true` sets a session application cookie. `useCookies=true` sets a persistent application cookie. The split host always maps email-code send and verify; see [per-session-shared.md](features/per-session-shared.md).
 - Software WebAuthn: `POST /test/webauthn/attestation` and `POST /test/webauthn/assertion` turn options JSON into `credentialJson`. These are **test-only** probes. The library still verifies attestation/assertion on `/account/passkeys/register` and `/login`.
 
@@ -135,7 +113,7 @@ Run `"$HARNESS" doctor` before the first drive, after any failed drive, and when
 
 1. `$AE_RUN_DIR/host.pid` exists and that PID is alive.
 2. `AE_BASE_URL` accepts connections (the port we chose).
-3. Compose and cookie-facade: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Bearer facade: `GET /identity/manage/info` is 401. Split host: `GET /web/csrfToken` is 200 with a non-empty `csrfToken`. Password cookie, password JWT with cookie refresh, and external: `GET /auth/csrfToken` is 200. Password JWT with body refresh: `GET /auth/manage/info` is 401.
+3. Compose: `GET /identity/csrfToken` is 200 with a non-empty `csrfToken`. Split host: `GET /web/csrfToken` is 200 with a non-empty `csrfToken`. `builder-cookie`, `builder-jwt` with cookie refresh, and external: `GET /auth/csrfToken` is 200. `builder-bearer` and `builder-jwt` with body refresh: `GET /auth/manage/info` is 401.
 
 If doctor fails, `stop` (if we started the process) and `launch` again. Do not keep driving a surprising instance.
 
@@ -258,7 +236,7 @@ Never `pkill -f AuthEndpoints` or similar.
 
 | Command | What it does |
 | --- | --- |
-| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until the ready signal for `AE_HOST_MODE` (`/identity/csrfToken` 200, bearer-facade `/identity/manage/info` 401, split `/web/csrfToken` 200, password-cookie, password-jwt cookie refresh, and external `/auth/csrfToken` 200, password-jwt body refresh `/auth/manage/info` 401) |
+| `launch` | `dotnet build` the test project, start `AuthEndpoints.Tests.dll` on `AE_BASE_URL`, wait until the ready signal for `AE_HOST_MODE` (`/identity/csrfToken` 200, split `/web/csrfToken` 200, builder-cookie, builder-jwt cookie refresh, and external `/auth/csrfToken` 200, builder-bearer and builder-jwt body refresh `/auth/manage/info` 401) |
 | `doctor` | PID + port + ready signal for the current `AE_HOST_MODE` |
 | `csrf [path]` | Print the token string |
 | `get <path> [--out N]` | GET with cookie jar |

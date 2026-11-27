@@ -73,16 +73,22 @@ public class AuthEndpointsFeaturesTests
     }
 
     [Fact]
-    public void PasswordAuthWithServerDomain_TurnsOnEveryPasskeyFeature()
+    public void BuilderAddPasskeys_TurnsOnEachPasskeyFeature_ButNotTheBundle()
     {
-        var features = Resolve(services => services.AddPasswordAuth<TestAppUser, TestDbContext>(
-            options => options.Passkeys.ServerDomain = "localhost"));
+        var features = Resolve(services => services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .AddPasskeys(options => options.ServerDomain = "localhost"));
 
-        Assert.True(features.Passkeys.Bundle);
+        Assert.False(features.Passkeys.Bundle);
         Assert.True(features.Passkeys.CanSignUp);
         Assert.True(features.Passkeys.CanAuthenticate);
         Assert.True(features.Passkeys.CanRequestRegisterOptions);
         Assert.True(features.Passkeys.CanManage);
+
+        var withoutSignUp = Resolve(services => services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+            .AddPasskeys(options => options.SignUp = false));
+        Assert.False(withoutSignUp.Passkeys.CanSignUp);
+        Assert.False(withoutSignUp.Passkeys.CanRequestRegisterOptions);
+        Assert.True(withoutSignUp.Passkeys.CanConfirmIdentity);
     }
 
     public static TheoryData<string, bool> PasskeyConfirmIdentityCases => new()

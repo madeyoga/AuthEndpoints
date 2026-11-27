@@ -820,21 +820,19 @@ public class ActiveSessionTests
             builder.WebHost.UseTestServer();
             builder.Services.AddDbContext<ActiveSessionsDbContext>(o => o.UseSqlite($"Data Source={path};Default Timeout=30"));
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(new CapturingEmailSender());
-            builder.Services.AddPasswordAuth<TestAppUser, ActiveSessionsDbContext>(o =>
-            {
-                o.Session = AuthEndpointsSession.Jwt;
-                o.Jwt = jwt =>
+            builder.Services.AddAuthEndpoints<TestAppUser, ActiveSessionsDbContext>()
+                .AddPassword()
+                .AddJwt(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                     jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
-                };
-            });
+                });
             builder.Services.AddActiveSessions<TestAppUser, ActiveSessionsDbContext>();
 
             var app = builder.Build();
             await CreateDatabaseAsync(app);
             app.UseAuthEndpoints();
-            app.MapPasswordAuth<TestAppUser>();
+            app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Jwt);
             app.MapGroup("/auth").MapActiveSessionEndpoints<TestAppUser>();
             await app.StartAsync();
             return new JwtHost(app, path);

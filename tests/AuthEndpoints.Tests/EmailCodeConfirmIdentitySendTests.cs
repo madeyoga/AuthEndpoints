@@ -67,9 +67,9 @@ public class EmailCodeConfirmIdentitySendTests
     }
 
     [Fact]
-    public async Task PasswordAuth_WithEmailCodeEndpoints_SendsConfirmIdentityEmailCode()
+    public async Task Builder_WithEmailCode_SendsConfirmIdentityEmailCode()
     {
-        await using var host = await SendHost.StartPasswordAuthAsync();
+        await using var host = await SendHost.StartBuilderAsync();
         var email = $"password-auth-{Guid.NewGuid():N}@test.local";
         await host.SeedPasswordlessAsync(email);
 
@@ -158,19 +158,11 @@ public class EmailCodeConfirmIdentitySendTests
                 });
         }
 
-        public static Task<SendHost> StartPasswordAuthAsync()
+        public static Task<SendHost> StartBuilderAsync()
         {
             return StartAsync(
-                services =>
-                {
-                    services.AddPasswordAuth<TestAppUser, TestDbContext>();
-                    services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
-                },
-                app =>
-                {
-                    app.MapPasswordAuth<TestAppUser>();
-                    app.MapGroup("/auth").MapEmailCodeEndpoints<TestAppUser>(AuthEndpointsSession.Cookie);
-                });
+                services => services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword().AddEmailCode(),
+                app => app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie));
         }
 
         public async Task SeedPasswordlessAsync(string email)

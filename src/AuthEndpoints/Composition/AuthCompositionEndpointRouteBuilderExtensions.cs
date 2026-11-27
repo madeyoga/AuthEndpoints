@@ -92,6 +92,19 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
         string? sharedPath = null)
         where TUser : class, new()
     {
+        return MapSharedAuthEndpointsCore<TUser>(endpoints, sharedPath, onlySession: null);
+    }
+
+    /// <param name="onlySession">
+    /// The one session these shared routes serve, or null when they serve every session.
+    /// With one session, passkey register options follow that session's antiforgery rule.
+    /// </param>
+    internal static IEndpointConventionBuilder MapSharedAuthEndpointsCore<TUser>(
+        IEndpointRouteBuilder endpoints,
+        string? sharedPath,
+        AuthEndpointsSession? onlySession)
+        where TUser : class, new()
+    {
         ArgumentNullException.ThrowIfNull(endpoints);
 
         var target = string.IsNullOrWhiteSpace(sharedPath)
@@ -119,7 +132,12 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
 
         if (features.Passkeys.CanRequestRegisterOptions)
         {
-            builders.Add(target.MapPasskeyRegisterOptionsEndpoints<TUser>());
+            builders.Add(onlySession is { } session
+                ? PasskeyApiEndpointRouteBuilderExtensions.MapPasskeyRegisterOptionsCore<TUser>(
+                    target,
+                    session,
+                    nameof(MapSharedAuthEndpoints))
+                : target.MapPasskeyRegisterOptionsEndpoints<TUser>());
         }
 
         if (features.Passkeys.CanManage)
