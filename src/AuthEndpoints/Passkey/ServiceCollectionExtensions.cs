@@ -119,8 +119,8 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers the passkey rate limits used by <c>POST /passkeys/register/options</c>.
-    /// Safe to call more than once.
+    /// Registers the passkey rate limits and the user-id factory used by <c>POST /passkeys/register/options</c>.
+    /// Safe to call more than once. <c>AddPasskeyUserIdFactory</c> replaces the default factory.
     /// </summary>
     public static IServiceCollection AddPasskeyRegisterOptionsEndpoints(this IServiceCollection services)
     {
@@ -132,6 +132,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddModule<PasskeyRegisterOptionsEndpointsModule>();
+        services.TryAddSingleton<IPasskeyUserIdFactory, DefaultPasskeyUserIdFactory>();
         AddPasskeyRateLimiting(services);
         return services;
     }

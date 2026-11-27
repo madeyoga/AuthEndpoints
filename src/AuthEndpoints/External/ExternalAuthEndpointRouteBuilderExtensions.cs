@@ -283,7 +283,7 @@ public static class ExternalAuthEndpointRouteBuilderExtensions
 
     private static void EnsureExternalAuth(IEndpointRouteBuilder endpoints, string mapMethod)
     {
-        if (AuthEndpointsModules.IsRegistered<ExternalAuthEndpointsModule>(endpoints.ServiceProvider))
+        if (AuthEndpointsFeatures.For(endpoints).ExternalAuth)
         {
             return;
         }

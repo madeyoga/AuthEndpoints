@@ -27,31 +27,29 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
 
         var builders = new List<IEndpointConventionBuilder>();
         var completer = SignInCompleterMap.FromSession(session);
-        var passkeyBundle = Registered<PasskeyEndpointsModule>(endpoints);
-        var passkeySignIn = passkeyBundle || Registered<PasskeySignInEndpointsModule>(endpoints);
-        var passkeySignUp = passkeyBundle || Registered<PasskeySignUpEndpointsModule>(endpoints);
+        var features = AuthEndpointsFeatures.For(endpoints);
 
-        if (!Registered<PasswordSignInEndpointsModule>(endpoints)
-            && !Registered<EmailCodeSignInEndpointsModule>(endpoints)
-            && !passkeySignIn
-            && !passkeySignUp)
+        if (!features.Password.CanSignIn
+            && !features.EmailCode.CanSignIn
+            && !features.Passkeys.CanAuthenticate
+            && !features.Passkeys.CanSignUp)
         {
             AuthEndpointsModules.LogNoSignInModule(endpoints);
         }
 
-        if (Registered<PasswordSignInEndpointsModule>(endpoints))
+        if (features.Password.CanSignIn)
         {
             builders.Add(session == AuthEndpointsSession.Jwt
                 ? endpoints.MapJwtPasswordEndpoints<TUser>()
                 : endpoints.MapPasswordSignInEndpoints<TUser>(session));
         }
 
-        if (Registered<EmailCodeSignInEndpointsModule>(endpoints))
+        if (features.EmailCode.CanSignIn)
         {
             builders.Add(endpoints.MapEmailCodeSignInEndpoints<TUser>(session));
         }
 
-        if (passkeySignIn)
+        if (features.Passkeys.CanAuthenticate)
         {
             builders.Add(PasskeyApiEndpointRouteBuilderExtensions.MapPasskeyAuthenticationCore<TUser>(
                 endpoints,
@@ -59,7 +57,7 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
                 nameof(MapSignInEndpoints)));
         }
 
-        if (passkeySignUp)
+        if (features.Passkeys.CanSignUp)
         {
             builders.Add(PasskeyApiEndpointRouteBuilderExtensions.MapPasskeyRegisterCore<TUser>(
                 endpoints,
@@ -101,34 +99,35 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
             : endpoints.MapGroup(sharedPath);
         var builders = new List<IEndpointConventionBuilder>();
         var mappedConfirm = false;
+        var features = AuthEndpointsFeatures.For(target);
 
-        if (Registered<PasswordSignUpEndpointsModule>(target))
+        if (features.Password.CanSignUp)
         {
             builders.Add(target.MapPasswordSignUpEndpoints<TUser>());
             mappedConfirm = true;
         }
 
-        if (Registered<PasswordRecoveryEndpointsModule>(target))
+        if (features.Password.CanRecover)
         {
             builders.Add(target.MapPasswordRecoveryEndpoints<TUser>());
         }
 
-        if (Registered<EmailCodeSendEndpointsModule>(target))
+        if (features.EmailCode.CanSend)
         {
             builders.Add(target.MapEmailCodeSendEndpoints<TUser>());
         }
 
-        if (Registered<PasskeyEndpointsModule>(target) || Registered<PasskeyRegisterOptionsEndpointsModule>(target))
+        if (features.Passkeys.CanRequestRegisterOptions)
         {
             builders.Add(target.MapPasskeyRegisterOptionsEndpoints<TUser>());
         }
 
-        if (Registered<PasskeyEndpointsModule>(target) || Registered<PasskeyManagementEndpointsModule>(target))
+        if (features.Passkeys.CanManage)
         {
             builders.Add(target.MapPasskeyManagementEndpoints<TUser>());
         }
 
-        if (Registered<AccountManagementEndpointsModule>(target))
+        if (features.AccountManagement)
         {
             builders.Add(target.MapAccountManagementEndpoints<TUser>());
             mappedConfirm = true;
@@ -140,12 +139,6 @@ public static class AuthCompositionEndpointRouteBuilderExtensions
         }
 
         return Combine(builders);
-    }
-
-    private static bool Registered<TModule>(IEndpointRouteBuilder endpoints)
-        where TModule : class
-    {
-        return AuthEndpointsModules.IsRegistered<TModule>(endpoints.ServiceProvider);
     }
 
     private static IEndpointConventionBuilder Combine(List<IEndpointConventionBuilder> builders)

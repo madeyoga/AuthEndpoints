@@ -42,7 +42,7 @@ public static class ActiveSessionEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         const string mapMethod = nameof(MapActiveSessionEndpoints);
-        AuthEndpointsModules.ThrowIfMissing<ActiveSessionsModule>(endpoints, "AddActiveSessions", mapMethod);
+        AuthEndpointsFeatures.Require(AuthEndpointsFeatures.For(endpoints).ActiveSessions, "AddActiveSessions", mapMethod);
 
         var group = endpoints.MapGroup("/sessions");
 

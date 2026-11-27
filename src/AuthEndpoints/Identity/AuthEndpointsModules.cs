@@ -16,6 +16,7 @@ internal static class AuthEndpointsModules
         where TModule : class
     {
         services.TryAddSingleton<AuthEndpointsModule<TModule>>();
+        services.TryAddSingleton(AuthEndpointsFeatures.Resolve);
         return services;
     }
 
@@ -25,24 +26,14 @@ internal static class AuthEndpointsModules
         return services.Any(descriptor => descriptor.ServiceType == typeof(AuthEndpointsModule<TModule>));
     }
 
-    public static bool IsRegistered<TModule>(IServiceProvider services)
+    /// <summary>
+    /// Reads one module marker. Only <see cref="AuthEndpointsFeatures.Resolve"/> should call this;
+    /// route conditions read <see cref="AuthEndpointsFeatures"/>.
+    /// </summary>
+    internal static bool IsRegistered<TModule>(IServiceProvider services)
         where TModule : class
     {
         return services.GetService<AuthEndpointsModule<TModule>>() is not null;
-    }
-
-    public static void ThrowIfMissing<TModule>(
-        IEndpointRouteBuilder endpoints,
-        string addMethod,
-        string mapMethod)
-        where TModule : class
-    {
-        if (IsRegistered<TModule>(endpoints.ServiceProvider))
-        {
-            return;
-        }
-
-        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     public static void LogNoSignInModule(IEndpointRouteBuilder endpoints)

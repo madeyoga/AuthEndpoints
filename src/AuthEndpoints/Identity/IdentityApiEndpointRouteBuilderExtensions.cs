@@ -146,8 +146,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Password.Bundle,
             "AddPasswordEndpoints",
             "MapPasswordEndpoints");
 
@@ -182,8 +182,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Password.Bundle,
             "AddPasswordEndpoints",
             "MapBearerAuthEndpoints");
 
@@ -206,8 +206,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<BearerSessionEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Sessions.IdentityBearer,
             "AddBearerSessionEndpoints",
             "MapBearerSessionEndpoints");
 
@@ -226,8 +226,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<PasswordEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Password.Bundle,
             "AddPasswordEndpoints",
             "MapCookieAuthEndpoints");
 
@@ -250,8 +250,8 @@ public static class IdentityApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<CookieSessionEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Sessions.Cookie,
             "AddCookieSessionEndpoints",
             "MapCookieSessionEndpoints");
 
