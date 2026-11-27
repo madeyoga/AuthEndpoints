@@ -60,8 +60,8 @@ public static class JwtApiEndpointRouteBuilderExtensions
         {
             if (warn)
             {
-                AuthEndpointsModules.ThrowIfMissing<JwtEndpointsModule>(
-                    endpoints,
+                AuthEndpointsFeatures.Require(
+                    AuthEndpointsFeatures.For(endpoints).Jwt,
                     "AddJwtEndpoints",
                     mapMethod);
             }
@@ -93,8 +93,8 @@ public static class JwtApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<JwtEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Jwt,
             "AddJwtEndpoints",
             "MapJwtSessionEndpoints");
 

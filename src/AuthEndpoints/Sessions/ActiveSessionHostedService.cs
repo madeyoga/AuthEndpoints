@@ -55,7 +55,7 @@ internal sealed class ActiveSessionHostedService<TContext> : BackgroundService
                 $"AddActiveSessions needs the session table. Call modelBuilder.UseActiveSessions() in {typeof(TContext).Name}.OnModelCreating.");
         }
 
-        if (AuthEndpointsModules.IsRegistered<JwtEndpointsModule>(provider))
+        if (AuthEndpointsFeatures.For(provider).Jwt)
         {
             if (db.Model.FindEntityType(typeof(RefreshToken))?.FindProperty(ActiveSessionModelBuilderExtensions.RefreshTokenSessionIdProperty) is null)
             {

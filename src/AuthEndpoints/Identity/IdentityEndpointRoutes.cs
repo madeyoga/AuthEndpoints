@@ -157,7 +157,7 @@ internal static class IdentityEndpointRoutes
     {
         // Send owns this route and AuthEndpoints.ConfirmIdentity.EmailCode.
         // Sign-in shares the store, and it does not register that policy.
-        if (!AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(endpoints.ServiceProvider))
+        if (!AuthEndpointsFeatures.For(endpoints).EmailCode.CanConfirmIdentity)
         {
             return;
         }

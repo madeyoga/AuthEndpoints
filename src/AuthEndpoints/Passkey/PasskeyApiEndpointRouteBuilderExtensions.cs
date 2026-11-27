@@ -144,8 +144,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfNeitherPasskeyModule<PasskeySignInEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Passkeys.CanAuthenticate,
             "AddPasskeySignInEndpoints",
             nameof(MapPasskeySignInEndpoints));
         if (completer is null)
@@ -187,8 +187,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         ArgumentNullException.ThrowIfNull(endpoints);
 
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfNeitherPasskeyModule<PasskeyManagementEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Passkeys.CanManage,
             "AddPasskeyManagementEndpoints",
             nameof(MapPasskeyManagementEndpoints));
 
@@ -218,7 +218,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
     private static void WarnIfPasskeysMissing(IEndpointRouteBuilder endpoints, string mapMethod)
     {
-        AuthEndpointsModules.ThrowIfMissing<PasskeyEndpointsModule>(endpoints, "AddPasskeyEndpoints", mapMethod);
+        AuthEndpointsFeatures.Require(AuthEndpointsFeatures.For(endpoints).Passkeys.Bundle, "AddPasskeyEndpoints", mapMethod);
     }
 
     private static void MapPasskeyRoutes<TUser>(
@@ -468,8 +468,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
-        WarnIfNeitherPasskeyModule<PasskeyRegisterOptionsEndpointsModule>(
-            endpoints,
+        AuthEndpointsFeatures.Require(
+            AuthEndpointsFeatures.For(endpoints).Passkeys.CanRequestRegisterOptions,
             "AddPasskeyRegisterOptionsEndpoints",
             nameof(MapPasskeyRegisterOptionsEndpoints));
 
@@ -525,8 +525,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         EnsurePasskeyAndEmailSupport<TUser>(endpoints.ServiceProvider);
         if (warn)
         {
-            WarnIfNeitherPasskeyModule<PasskeySignUpEndpointsModule>(
-                endpoints,
+            AuthEndpointsFeatures.Require(
+                AuthEndpointsFeatures.For(endpoints).Passkeys.CanSignUp,
                 "AddPasskeySignUpEndpoints",
                 mapMethod);
         }
@@ -567,21 +567,6 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
 
         var confirm = endpoints.MapConfirmEmailEndpoints<TUser>(confirmEmailEndpointName);
         return new CompositeEndpointConventionBuilder(group, confirm);
-    }
-
-    private static void WarnIfNeitherPasskeyModule<TSpecific>(
-        IEndpointRouteBuilder endpoints,
-        string addMethod,
-        string mapMethod)
-        where TSpecific : class
-    {
-        if (AuthEndpointsModules.IsRegistered<TSpecific>(endpoints.ServiceProvider)
-            || AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(endpoints.ServiceProvider))
-        {
-            return;
-        }
-
-        throw new InvalidOperationException($"Call {addMethod} before {mapMethod}.");
     }
 
     /// <summary>

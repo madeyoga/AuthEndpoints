@@ -129,8 +129,8 @@ public static class PasswordEndpointRouteBuilderExtensions
     {
         if (warn)
         {
-            AuthEndpointsModules.ThrowIfMissing<PasswordSignUpEndpointsModule>(
-                endpoints,
+            AuthEndpointsFeatures.Require(
+                AuthEndpointsFeatures.For(endpoints).Password.CanSignUp,
                 "AddPasswordSignUpEndpoints",
                 mapMethod);
         }
@@ -153,8 +153,8 @@ public static class PasswordEndpointRouteBuilderExtensions
     {
         if (warn)
         {
-            AuthEndpointsModules.ThrowIfMissing<PasswordSignInEndpointsModule>(
-                endpoints,
+            AuthEndpointsFeatures.Require(
+                AuthEndpointsFeatures.For(endpoints).Password.CanSignIn,
                 "AddPasswordSignInEndpoints",
                 mapMethod);
         }
@@ -209,8 +209,8 @@ public static class PasswordEndpointRouteBuilderExtensions
     {
         if (warn)
         {
-            AuthEndpointsModules.ThrowIfMissing<PasswordRecoveryEndpointsModule>(
-                endpoints,
+            AuthEndpointsFeatures.Require(
+                AuthEndpointsFeatures.For(endpoints).Password.CanRecover,
                 "AddPasswordRecoveryEndpoints",
                 mapMethod);
         }

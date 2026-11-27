@@ -43,7 +43,7 @@ public static class ReAuthEndpoints<TUser>
         var emailCode = false;
         if (includeEmailCode
             && services is not null
-            && AuthEndpointsModules.IsRegistered<EmailCodeSendEndpointsModule>(services))
+            && AuthEndpointsFeatures.For(services).EmailCode.CanConfirmIdentity)
         {
             var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
             emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options);

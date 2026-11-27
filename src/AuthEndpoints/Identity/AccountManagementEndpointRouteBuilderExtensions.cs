@@ -1,4 +1,3 @@
-using AuthEndpoints.Passkey;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
@@ -46,8 +45,9 @@ public static class AccountManagementEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        AuthEndpointsModules.ThrowIfMissing<AccountManagementEndpointsModule>(
-            endpoints,
+        var features = AuthEndpointsFeatures.For(endpoints);
+        AuthEndpointsFeatures.Require(
+            features.AccountManagement,
             "AddAccountManagementEndpoints",
             "MapAccountManagementEndpoints");
 
@@ -62,7 +62,7 @@ public static class AccountManagementEndpointRouteBuilderExtensions
             IdentityEndpointRoutes.MapEmailCodeReAuthSend<TUser>(group, requireAntiforgery: true, mapMethod);
         }
 
-        if (alwaysMapPasskeyOptions || PasskeyReAuthAvailable(endpoints.ServiceProvider))
+        if (alwaysMapPasskeyOptions || features.Passkeys.CanConfirmIdentity)
         {
             IdentityEndpointRoutes.MapPasskeyOptions<TUser>(group, requireAntiforgery: true, mapMethod);
         }
@@ -76,13 +76,4 @@ public static class AccountManagementEndpointRouteBuilderExtensions
 
         return new CompositeEndpointConventionBuilder(confirm, group);
     }
-
-    /// <summary>
-    /// A passkey can confirm identity whenever the host signs in with passkeys or lets users manage them,
-    /// not only with the full passkey bundle.
-    /// </summary>
-    private static bool PasskeyReAuthAvailable(IServiceProvider services) =>
-        AuthEndpointsModules.IsRegistered<PasskeyEndpointsModule>(services)
-        || AuthEndpointsModules.IsRegistered<PasskeySignInEndpointsModule>(services)
-        || AuthEndpointsModules.IsRegistered<PasskeyManagementEndpointsModule>(services);
 }
