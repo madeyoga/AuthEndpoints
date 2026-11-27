@@ -6,10 +6,11 @@ namespace AuthEndpoints.OpenIddict.Tests;
 
 public class OAuthPackageDependencyTests
 {
-    // The package calls CallerKinds and GetCallerKind, which first shipped in AuthEndpoints 4.3.0
-    // (and the antiforgery options from 4.2.0). An older core must be refused at restore.
+    // The package calls core API added in 4.2 and 4.3 (CallerKinds, GetCallerKind, the antiforgery
+    // options). The range starts at the core it was built against, so an older core is refused at restore,
+    // and stops before the next major. See src/AuthEndpoints.DependencyRange.targets.
     [Fact]
-    public void Packed_package_requires_AuthEndpoints_4_3_or_later()
+    public void Packed_package_requires_the_built_core_up_to_its_next_major()
     {
         var root = FindRepoRoot();
         var output = Path.Combine(Path.GetTempPath(), "ae-oidc-pack-" + Guid.NewGuid().ToString("N"));
@@ -29,7 +30,16 @@ public class OAuthPackageDependencyTests
             var dependency = document
                 .Descendants(ns + "dependency")
                 .Single(element => element.Attribute("id")?.Value == "AuthEndpoints");
-            Assert.Equal("[4.3.0, 5.0.0)", dependency.Attribute("version")?.Value);
+            var coreVersion = XDocument
+                .Load(Path.Combine(root, "src", "AuthEndpoints", "AuthEndpoints.csproj"))
+                .Descendants("Version")
+                .Single()
+                .Value;
+            var major = int.Parse(coreVersion.Split('.')[0], System.Globalization.CultureInfo.InvariantCulture);
+            Assert.Equal($"[{coreVersion}, {major + 1}.0.0)", dependency.Attribute("version")?.Value);
+            Assert.True(
+                System.Version.Parse(coreVersion.Split('-')[0]) >= new System.Version(4, 3, 0),
+                $"Core {coreVersion} is older than 4.3.0, which this package needs.");
         }
         finally
         {

@@ -31,6 +31,24 @@ dotnet test AuthEndpoints.sln
 
 The package versions in `src/` are the minimums every consumer must have. We raise them only when a security advisory or a required API needs it, so please don't send PRs that only bump library dependencies. Test projects can track the latest versions.
 
+## Releases
+
+Maintainers publish to NuGet by publishing a GitHub release. The tag prefix picks the packages:
+
+| Tag | Packages |
+| --- | --- |
+| `v<version>` | `AuthEndpoints` |
+| `external-oauth-v<version>` | `AuthEndpoints.External.OAuth`, `AuthEndpoints.OAuth.GitHub`, `AuthEndpoints.OAuth.Google` |
+| `openiddict-v<version>` | `AuthEndpoints.OpenIddict` |
+
+- Set `<Version>` in each of those projects to the tag's version before you tag. The add-on packages in one family share a version.
+- Mark the GitHub release as a pre-release exactly when the version has a suffix, such as `5.0.0-preview.1`.
+- To ship core and add-ons together, publish one release per family, core first.
+
+[`.github/scripts/release-packages.sh`](.github/scripts/release-packages.sh) checks the tag, before anything is built or pushed. The publish fails on an unknown prefix, a version that doesn't match `<Version>`, or a pre-release flag that doesn't match the version. It also fails when every selected package is already on NuGet.
+
+Each add-on depends on `AuthEndpoints` from the core version in `src/AuthEndpoints` up to the next major, for example `[5.0.0, 6.0.0)`. [`src/AuthEndpoints.DependencyRange.targets`](src/AuthEndpoints.DependencyRange.targets) sets this at pack time. Pack an add-on from a commit whose core version the add-on supports as its minimum.
+
 ## Security
 
 Never report a vulnerability in a public issue. Follow [SECURITY.md](SECURITY.md).
