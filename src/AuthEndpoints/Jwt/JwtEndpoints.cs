@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthEndpoints.Jwt;
 
-public class JwtEndpoints<TUser>
+internal static class JwtEndpoints<TUser>
     where TUser : class, new()
 {
     public static async Task<IResult> Create(

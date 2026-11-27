@@ -29,10 +29,8 @@ public class PackagedPublicApiTests
         Assert.Equal(
             [
                 "AuthEndpoints.External.OAuth.CookieExternalLoginCompleter`1",
-                "AuthEndpoints.External.OAuth.ExternalAccountEndpoints`1",
                 "AuthEndpoints.External.OAuth.ExternalAuthBuilder",
                 "AuthEndpoints.External.OAuth.ExternalAuthEndpointRouteBuilderExtensions",
-                "AuthEndpoints.External.OAuth.ExternalAuthEndpoints`1",
                 "AuthEndpoints.External.OAuth.ExternalAuthOptions",
                 "AuthEndpoints.External.OAuth.ExternalAuthOptionsValidator",
                 "AuthEndpoints.External.OAuth.ExternalEmailClaims",

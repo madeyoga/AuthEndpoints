@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebUtilities;
@@ -27,13 +26,13 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Identity;
 
-public class IdentityApiEndpoints<TUser>
+internal static class IdentityApiEndpoints<TUser>
     where TUser : class, new()
 {
     private static readonly EmailAddressAttribute _emailAddressAttribute = new();
 
     public static async Task<Results<Ok, ValidationProblem>> Register(
-        [FromBody] RegisterRequest registration,
+        [FromBody] PasswordRegisterRequest registration,
         HttpContext context,
         [FromServices] IServiceProvider sp,
         string confirmEmailEndpointName)
@@ -96,7 +95,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Login
-        ([FromBody] LoginRequest login, [FromQuery] bool? useCookies, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp)
+        ([FromBody] PasswordLoginRequest login, [FromQuery] bool? useCookies, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp)
     {
         var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
 
@@ -127,7 +126,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> LoginCookie
-        ([FromBody] LoginRequest login, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp)
+        ([FromBody] PasswordLoginRequest login, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp)
     {
         var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
 
@@ -157,7 +156,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok<AccessTokenResponse>, UnauthorizedHttpResult, SignInHttpResult, ChallengeHttpResult>> Refresh
-        ([FromBody] RefreshRequest refreshRequest, [FromServices] IServiceProvider sp)
+        ([FromBody] BearerRefreshRequest refreshRequest, [FromServices] IServiceProvider sp)
     {
         var bearerTokenOptions = sp.GetRequiredService<IOptionsMonitor<BearerTokenOptions>>();
         var timeProvider = sp.GetRequiredService<TimeProvider>();
@@ -284,7 +283,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Ok> ResendConfirmationEmail(
-        [FromBody] ResendConfirmationEmailRequest resendRequest,
+        [FromBody] ConfirmationEmailRequest resendRequest,
         ClaimsPrincipal claimsPrincipal,
         HttpContext context,
         [FromServices] IServiceProvider sp,
@@ -322,7 +321,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok, ValidationProblem>> ForgotPassword
-        ([FromBody] ForgotPasswordRequest resetRequest, [FromServices] IServiceProvider sp)
+        ([FromBody] PasswordRecoveryRequest resetRequest, [FromServices] IServiceProvider sp)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         var email = resetRequest.Email;
@@ -381,7 +380,7 @@ public class IdentityApiEndpoints<TUser>
     }
 
     public static async Task<Results<Ok, ValidationProblem>> ResetPassword
-        ([FromBody] ResetPasswordRequest resetRequest, [FromServices] IServiceProvider sp)
+        ([FromBody] PasswordResetRequest resetRequest, [FromServices] IServiceProvider sp)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
 
@@ -413,23 +412,27 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok();
     }
 
-    public static async Task<IResult> TwoFactorStatus(UserManager<TUser> userManager, ClaimsPrincipal user)
+    public static async Task<Results<Ok<TwoFactorStatusResponse>, UnauthorizedHttpResult>> TwoFactorStatus(
+        UserManager<TUser> userManager,
+        ClaimsPrincipal user)
     {
         var currentUser = await userManager.GetUserAsync(user);
         if (currentUser is null)
-            return Results.Unauthorized();
+        {
+            return TypedResults.Unauthorized();
+        }
 
-        return Results.Ok(new
+        return TypedResults.Ok(new TwoFactorStatusResponse
         {
             IsTwoFactorEnabled = await userManager.GetTwoFactorEnabledAsync(currentUser),
             RecoveryCodesLeft = await userManager.CountRecoveryCodesAsync(currentUser),
         });
     }
 
-    public static Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorRequest tfaRequest, [FromServices] IServiceProvider sp)
+    public static Task<Results<Ok<TwoFactorSettingsResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, [FromBody] TwoFactorSettingsRequest tfaRequest, [FromServices] IServiceProvider sp)
         => ManageTwoFactor(claimsPrincipal, tfaRequest, sp, context: null);
 
-    internal static async Task<Results<Ok<TwoFactorResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, TwoFactorRequest tfaRequest, IServiceProvider sp, HttpContext? context)
+    internal static async Task<Results<Ok<TwoFactorSettingsResponse>, ValidationProblem, NotFound>> ManageTwoFactor(ClaimsPrincipal claimsPrincipal, TwoFactorSettingsRequest tfaRequest, IServiceProvider sp, HttpContext? context)
     {
         var signInManager = sp.GetRequiredService<SignInManager<TUser>>();
         var userManager = signInManager.UserManager;
@@ -516,7 +519,7 @@ public class IdentityApiEndpoints<TUser>
         // Only expose the shared key when it was just (re)generated or 2FA is being enabled.
         var exposeSharedKey = tfaRequest.ResetSharedKey || keyWasMissing || tfaRequest.Enable == true;
 
-        return TypedResults.Ok(new TwoFactorResponse
+        return TypedResults.Ok(new TwoFactorSettingsResponse
         {
             SharedKey = exposeSharedKey ? key! : string.Empty,
             RecoveryCodes = recoveryCodes,
@@ -526,7 +529,7 @@ public class IdentityApiEndpoints<TUser>
         });
     }
 
-    public static async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> ManageInfoGet
+    public static async Task<Results<Ok<AccountInfoResponse>, ValidationProblem, NotFound>> ManageInfoGet
         (ClaimsPrincipal claimsPrincipal, [FromServices] IServiceProvider sp)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
@@ -538,8 +541,8 @@ public class IdentityApiEndpoints<TUser>
         return TypedResults.Ok(await InfoAsync(userManager, user));
     }
 
-    public static async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> ManageInfoPost
-        (ClaimsPrincipal claimsPrincipal, [FromBody] InfoRequest infoRequest, HttpContext context, [FromServices] IServiceProvider sp, string confirmEmailEndpointName)
+    public static async Task<Results<Ok<AccountInfoResponse>, ValidationProblem, NotFound>> ManageInfoPost
+        (ClaimsPrincipal claimsPrincipal, [FromBody] AccountInfoRequest infoRequest, HttpContext context, [FromServices] IServiceProvider sp, string confirmEmailEndpointName)
     {
         var userManager = sp.GetRequiredService<UserManager<TUser>>();
         if (await userManager.GetUserAsync(claimsPrincipal) is not { } user)
@@ -585,12 +588,12 @@ public class IdentityApiEndpoints<TUser>
     }
 
     /// <summary>
-    /// Identity allows an account without an email, such as one that signs in by user name. <see cref="InfoResponse.Email"/>
-    /// is declared non-nullable by ASP.NET Core, so such an account gets <c>"email": null</c> instead of an exception.
+    /// Identity allows an account without an email, such as one that signs in by user name. Such an account gets
+    /// <c>"email": null</c>.
     /// </summary>
-    private static async Task<InfoResponse> InfoAsync(UserManager<TUser> userManager, TUser user) => new()
+    private static async Task<AccountInfoResponse> InfoAsync(UserManager<TUser> userManager, TUser user) => new()
     {
-        Email = userManager.SupportsUserEmail ? (await userManager.GetEmailAsync(user))! : null!,
+        Email = userManager.SupportsUserEmail ? await userManager.GetEmailAsync(user) : null,
         IsEmailConfirmed = userManager.SupportsUserEmail && await userManager.IsEmailConfirmedAsync(user),
     };
 

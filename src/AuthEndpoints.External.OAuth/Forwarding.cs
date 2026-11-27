@@ -2,10 +2,8 @@ using System.Runtime.CompilerServices;
 using AuthEndpoints.External.OAuth;
 
 [assembly: TypeForwardedTo(typeof(CookieExternalLoginCompleter<>))]
-[assembly: TypeForwardedTo(typeof(ExternalAccountEndpoints<>))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthBuilder))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthEndpointRouteBuilderExtensions))]
-[assembly: TypeForwardedTo(typeof(ExternalAuthEndpoints<>))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthOptions))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthOptionsValidator))]
 [assembly: TypeForwardedTo(typeof(ExternalEmailClaims))]

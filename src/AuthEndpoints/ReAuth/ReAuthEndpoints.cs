@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.ReAuth;
 
-public static class ReAuthEndpoints<TUser>
+internal static class ReAuthEndpoints<TUser>
     where TUser : class, new()
 {
     public static Task<Results<Ok<AuthMethodsResponse>, UnauthorizedHttpResult>> AuthMethods(

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.External.OAuth;
 
-public static class ExternalAuthEndpoints<TUser>
+internal static class ExternalAuthEndpoints<TUser>
     where TUser : class, new()
 {
     public static IResult Login(
