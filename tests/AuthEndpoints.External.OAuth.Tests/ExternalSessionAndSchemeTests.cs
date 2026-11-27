@@ -96,24 +96,6 @@ public class ExternalSessionAndSchemeTests
     }
 
     [Fact]
-    public async Task Explicit_legacy_completer_wins_until_a_session_is_passed()
-    {
-        await using var host = await ExternalHost.StartAsync(app =>
-        {
-            app.MapGroup("/legacy").MapExternalAuthProvider<FlowUser>(ExternalHost.LegacyProvider);
-            app.MapGroup("/session").MapExternalAuthProvider<FlowUser>(ExternalHost.SessionProvider, AuthEndpointsSession.Cookie);
-        }, services => services.AddExternalAuthEndpoints<FlowUser>().AddCompleter<LegacyMarkerCompleter>());
-
-        var legacy = await host.CallbackAsync("/legacy", ExternalHost.LegacyProvider.Scheme, "legacy@example.com", "legacy-key");
-        Assert.Equal(HttpStatusCode.OK, legacy.Status.StatusCode);
-        Assert.Equal("legacy-completer", legacy.Body);
-
-        var session = await host.CallbackAsync("/session", ExternalHost.SessionProvider.Scheme, "session@example.com", "session-key");
-        Assert.Equal(HttpStatusCode.Redirect, session.Status.StatusCode);
-        Assert.NotEqual("legacy-completer", session.Body);
-    }
-
-    [Fact]
     public async Task Jwt_body_transport_throws_at_map_time()
     {
         var builder = ExternalHost.CreateBuilder(
@@ -126,7 +108,7 @@ public class ExternalSessionAndSchemeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
             app.MapGroup("/jwt").MapExternalAuthProvider<FlowUser>(ExternalHost.JwtProvider, AuthEndpointsSession.Jwt));
-        Assert.Equal(JwtExternalBodyTransportValidator.Message, ex.Message);
+        Assert.Equal(JwtExternalBodyTransport.Message, ex.Message);
 
         using var check = app.Services.CreateScope();
         Assert.Equal(0, await check.ServiceProvider.GetRequiredService<FlowDb>().Set<RefreshToken>().CountAsync());
@@ -229,19 +211,6 @@ public class ExternalSessionAndSchemeTests
         {
             Calls++;
             return Task.FromResult<IResult>(Results.Text("spy"));
-        }
-    }
-
-    private sealed class LegacyMarkerCompleter : IExternalLoginCompleter<FlowUser>
-    {
-        public Task<IResult> CompleteAsync(
-            HttpContext httpContext,
-            FlowUser user,
-            ExternalLoginInfo info,
-            string? returnUrl,
-            CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult<IResult>(Results.Text("legacy-completer"));
         }
     }
 }

@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
     /// and <c>MapCookieAuthEndpoints</c>.
     /// Hosts must call <c>UseRateLimiter()</c>, serve over HTTPS, and configure
     /// <c>IdentityPasskeyOptions</c> (<c>ServerDomain</c>, allowed origins, etc.).
-    /// Does not register <see cref="IPasskeySignInCompleter{TUser}"/> — prefer
+    /// Does not register the sign-in completers; prefer
     /// <see cref="AddPasskeyEndpoints{TUser}"/> for compose hosts.
     /// </summary>
     public static IServiceCollection AddPasskeyEndpoints(this IServiceCollection services)
@@ -50,7 +50,7 @@ public static class ServiceCollectionExtensions
 
     /// <summary>
     /// Registers passkey rate limits and the user-id factory used by <c>POST /passkeys/register</c>.
-    /// Safe to call more than once. Does not register <see cref="IPasskeySignInCompleter{TUser}"/> —
+    /// Safe to call more than once. Does not register the sign-in completers;
     /// use <see cref="AddPasskeySignUpEndpoints{TUser}"/> when register should be able to sign in.
     /// </summary>
     public static IServiceCollection AddPasskeySignUpEndpoints(this IServiceCollection services)
@@ -69,14 +69,12 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers passkey infrastructure and the default
-    /// <see cref="IdentityPasskeySignInCompleter{TUser}"/> for <c>POST /passkeys/register</c>.
+    /// Registers passkey sign-up services and the built-in sign-in completers for <c>POST /passkeys/register</c>.
     /// </summary>
     public static IServiceCollection AddPasskeySignUpEndpoints<TUser>(this IServiceCollection services)
         where TUser : class
     {
         services.AddPasskeySignUpEndpoints();
-        services.TryAddScoped<IPasskeySignInCompleter<TUser>, IdentityPasskeySignInCompleter<TUser>>();
         SignInCompleterRegistry.AddIdentityCompleters(services);
         return services;
     }
@@ -85,7 +83,7 @@ public static class ServiceCollectionExtensions
     /// Registers passkey rate limits, the login and account-abuse rate-limit policies, and the user-id factory
     /// used by passkey request options, login, and the confirm-email route that
     /// <c>MapPasskeySignInEndpoints</c> ensures.
-    /// Safe to call more than once. Does not register <see cref="IPasskeySignInCompleter{TUser}"/> —
+    /// Safe to call more than once. Does not register the sign-in completers;
     /// use <see cref="AddPasskeySignInEndpoints{TUser}"/> when login should be able to sign in.
     /// </summary>
     public static IServiceCollection AddPasskeySignInEndpoints(this IServiceCollection services)
@@ -106,14 +104,12 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers passkey sign-in services and the default
-    /// <see cref="IdentityPasskeySignInCompleter{TUser}"/> for passkey login.
+    /// Registers passkey sign-in services and the built-in sign-in completers for passkey login.
     /// </summary>
     public static IServiceCollection AddPasskeySignInEndpoints<TUser>(this IServiceCollection services)
         where TUser : class
     {
         services.AddPasskeySignInEndpoints();
-        services.TryAddScoped<IPasskeySignInCompleter<TUser>, IdentityPasskeySignInCompleter<TUser>>();
         SignInCompleterRegistry.AddIdentityCompleters(services);
         return services;
     }
@@ -190,8 +186,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Registers passkey infrastructure and the default
-    /// <see cref="IdentityPasskeySignInCompleter{TUser}"/>.
+    /// Registers passkey sign-up, sign-in, and management, and the built-in sign-in completers.
     /// </summary>
     public static IServiceCollection AddPasskeyEndpoints<TUser>(this IServiceCollection services)
         where TUser : class
@@ -199,20 +194,6 @@ public static class ServiceCollectionExtensions
         services.AddPasskeyEndpoints();
         services.AddPasskeySignUpEndpoints<TUser>();
         services.AddPasskeySignInEndpoints<TUser>();
-        return services;
-    }
-
-    /// <summary>
-    /// Replaces the default <see cref="IPasskeySignInCompleter{TUser}"/> (e.g. with
-    /// <c>JwtPasskeySignInCompleter&lt;TUser&gt;</c>).
-    /// </summary>
-    [Obsolete(LegacyCompleterMessages.Obsolete)]
-    public static IServiceCollection AddPasskeySignInCompleter<TUser, TCompleter>(this IServiceCollection services)
-        where TUser : class
-        where TCompleter : class, IPasskeySignInCompleter<TUser>
-    {
-        services.AddScoped<IPasskeySignInCompleter<TUser>, TCompleter>();
-        LegacySignInCompleters.MarkPasskey<TUser>(services);
         return services;
     }
 

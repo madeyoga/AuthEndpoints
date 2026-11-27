@@ -14,8 +14,8 @@ public static class EmailCodeEndpointRouteBuilderExtensions
     /// Send uses <see cref="AuthEndpointsConstants.EmailCodeSendPolicy"/>.
     /// Verify uses <see cref="AuthEndpointsConstants.LoginPolicy"/>.
     /// Neither route requires antiforgery.
-    /// Verify uses an explicitly registered <see cref="IEmailCodeSignInCompleter{TUser}"/>,
-    /// otherwise Identity bearer.
+    /// Verify uses <see cref="SignInCompletionOptions.Default"/> when it names a completer, otherwise Identity bearer
+    /// (the application cookie with <c>useCookies</c> or <c>useSessionCookies</c>).
     /// </summary>
     public static IEndpointConventionBuilder MapEmailCodeEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()
@@ -36,7 +36,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
 
     /// <summary>
     /// Maps <c>POST /emailCode/verify</c>.
-    /// Uses an explicitly registered completer unless <see cref="SignInCompletionOptions.Default"/> names one.
+    /// Uses <see cref="SignInCompletionOptions.Default"/> when it names a completer, otherwise Identity bearer.
     /// Per session: call it on each session prefix. Also signs new users up when <c>AllowSignUp</c> is on.
     /// </summary>
     public static IEndpointConventionBuilder MapEmailCodeSignInEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
@@ -108,10 +108,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         {
             if (honorDefault)
             {
-                SignInCompleterMap.EnsureConfiguredDefault<TUser>(
-                    endpoints,
-                    nameof(MapEmailCodeEndpoints),
-                    LegacySignInCompleters.EmailCodeWins<TUser>(endpoints.ServiceProvider));
+                SignInCompleterMap.EnsureConfiguredDefault<TUser>(endpoints, nameof(MapEmailCodeEndpoints));
             }
         }
         else
@@ -141,10 +138,7 @@ public static class EmailCodeEndpointRouteBuilderExtensions
         {
             if (honorDefault)
             {
-                SignInCompleterMap.EnsureConfiguredDefault<TUser>(
-                    endpoints,
-                    nameof(MapEmailCodeSignInEndpoints),
-                    LegacySignInCompleters.EmailCodeWins<TUser>(endpoints.ServiceProvider));
+                SignInCompleterMap.EnsureConfiguredDefault<TUser>(endpoints, nameof(MapEmailCodeSignInEndpoints));
             }
         }
         else

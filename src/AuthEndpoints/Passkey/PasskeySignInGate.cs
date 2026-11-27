@@ -35,23 +35,27 @@ internal static class PasskeySignInGate
 
     public static async Task<IResult> CompleteIfAllowedAsync<TUser>(
         SignInManager<TUser> signInManager,
-        IPasskeySignInCompleter<TUser> completer,
         HttpContext httpContext,
         TUser user,
-        PasskeySignInCompletionContext context,
+        PasskeySignInKind kind,
+        byte[]? credentialId,
+        bool? useCookies,
+        bool? useSessionCookies,
         CancellationToken cancellationToken)
         where TUser : class
     {
         if (!await CanCompleteAsync(signInManager, user))
         {
-            return Denied(context.Kind, context.CredentialId);
+            return Denied(kind, credentialId);
         }
 
         return await SignInCompletion.CompletePasskeyAsync(
             httpContext,
             user,
-            context,
-            completer,
+            kind,
+            credentialId,
+            useCookies,
+            useSessionCookies,
             cancellationToken);
     }
 }

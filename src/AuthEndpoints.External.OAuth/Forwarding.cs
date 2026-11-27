@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using AuthEndpoints.External.OAuth;
 
-[assembly: TypeForwardedTo(typeof(CookieExternalLoginCompleter<>))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthBuilder))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthEndpointRouteBuilderExtensions))]
 [assembly: TypeForwardedTo(typeof(ExternalAuthOptions))]
@@ -11,7 +10,5 @@ using AuthEndpoints.External.OAuth;
 [assembly: TypeForwardedTo(typeof(ExternalLoginProvisionResult<>))]
 [assembly: TypeForwardedTo(typeof(ExternalLoginService<>))]
 [assembly: TypeForwardedTo(typeof(IExternalAuthProvider))]
-[assembly: TypeForwardedTo(typeof(IExternalLoginCompleter<>))]
-[assembly: TypeForwardedTo(typeof(JwtExternalLoginCompleter<>))]
 [assembly: TypeForwardedTo(typeof(OAuthTicketChain))]
 [assembly: TypeForwardedTo(typeof(ServiceCollectionExtensions))]

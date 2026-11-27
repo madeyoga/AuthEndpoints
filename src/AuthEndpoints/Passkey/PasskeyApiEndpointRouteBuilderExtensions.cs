@@ -83,8 +83,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
     /// The returned builder includes that confirm-email group, so later conventions apply to confirm and resend.
     /// When the name is already mapped, <see cref="ConfirmEmailEndpointRouteBuilderExtensions.MapConfirmEmailEndpoints{TUser}"/>
     /// contributes a no-op builder and those conventions do not reach the existing route.
-    /// Register and login use an explicitly registered
-    /// <see cref="IPasskeySignInCompleter{TUser}"/>, otherwise Identity bearer.
+    /// Register and login use <see cref="SignInCompletionOptions.Default"/> when it names a completer,
+    /// otherwise Identity bearer.
     /// A single string is the confirm-email endpoint name, not a completer.
     /// When that string matches a registered completer name, this method logs a warning and still
     /// treats it as the confirm-email name. Pass <see cref="AuthEndpointsSession"/> to select a session.
@@ -150,10 +150,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             nameof(MapPasskeySignInEndpoints));
         if (completer is null)
         {
-            SignInCompleterMap.EnsureConfiguredDefault<TUser>(
-                endpoints,
-                nameof(MapPasskeySignInEndpoints),
-                LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider));
+            SignInCompleterMap.EnsureConfiguredDefault<TUser>(endpoints, nameof(MapPasskeySignInEndpoints));
         }
         else
         {
@@ -329,7 +326,6 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                 UserManager<TUser> userManager,
                 IUserStore<TUser> userStore,
                 SignInManager<TUser> signInManager,
-                IPasskeySignInCompleter<TUser> legacyCompleter,
                 CancellationToken cancellationToken) => PasskeyEndpoints<TUser>.Register(
                     request,
                     useCookies,
@@ -338,14 +334,13 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
                     userManager,
                     userStore,
                     signInManager,
-                    legacyCompleter,
                     confirmEmailEndpointName,
                     cancellationToken))
                 .WithSummary("Create a passwordless account and store the attested passkey.")
                 .WithDescription("""
                     After a successful user create, sends the same confirmation email as password register.
-                    Sign-in is completed by IPasskeySignInCompleter unless the map selected a session or completer.
-                    Default IdentityPasskeySignInCompleter: useCookies / useSessionCookies select the application cookie
+                    Sign-in uses the session or completer the map selected, otherwise SignInCompletionOptions.Default,
+                    otherwise Identity bearer: useCookies / useSessionCookies select the application cookie
                     and the body is credentialId; otherwise Identity bearer tokens are issued and that token body is the response.
                     Pass session: AuthEndpointsSession.Jwt or completer: SignInCompleters.Jwt for Simple JWT
                     (access token + refresh cookie, no credentialId).
@@ -364,8 +359,8 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             login = group.MapPost("/login", PasskeyEndpoints<TUser>.Login)
                 .WithSummary("Sign in with a passkey assertion.")
                 .WithDescription("""
-                    Completes sign-in via IPasskeySignInCompleter unless the map selected a session or completer.
-                    Default IdentityPasskeySignInCompleter:
+                    Sign-in uses the session or completer the map selected, otherwise SignInCompletionOptions.Default,
+                    otherwise Identity bearer:
                     ?useCookies=true → persistent application cookie;
                     ?useSessionCookies=true → session application cookie;
                     neither → Identity bearer token (AccessTokenResponse).
@@ -549,10 +544,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
         {
             if (honorDefault)
             {
-                SignInCompleterMap.EnsureConfiguredDefault<TUser>(
-                    endpoints,
-                    mapMethod,
-                    LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider));
+                SignInCompleterMap.EnsureConfiguredDefault<TUser>(endpoints, mapMethod);
             }
         }
         else
@@ -599,7 +591,7 @@ public static class PasskeyApiEndpointRouteBuilderExtensions
             return SessionForName(completer);
         }
 
-        if (honorDefault && !LegacySignInCompleters.PasskeyWins<TUser>(endpoints.ServiceProvider))
+        if (honorDefault)
         {
             var configured = endpoints.ServiceProvider.GetService<IOptions<SignInCompletionOptions>>()?.Value.Default;
             if (!string.IsNullOrWhiteSpace(configured))

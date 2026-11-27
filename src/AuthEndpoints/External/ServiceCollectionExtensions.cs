@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
             ServiceDescriptor.Singleton<IValidateOptions<ExternalAuthOptions>, ExternalAuthOptionsValidator>());
 
         services.TryAddScoped<ExternalLoginService<TUser>>();
-        services.TryAddScoped<IExternalLoginCompleter<TUser>, CookieExternalLoginCompleter<TUser>>();
         SignInCompleterRegistry.AddIdentityCompleters(services);
 
         services.AddLoginRateLimiting();

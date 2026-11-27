@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Passkey;
+using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
@@ -19,15 +20,15 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public void TestHost_RegistersIdentityPasskeySignInCompleterByDefault()
+    public void TestHost_RegistersTheIdentityBearerCompleter_PasskeysFallBackTo()
     {
         using var scope = _factory.Services.CreateScope();
-        var completer = scope.ServiceProvider.GetRequiredService<IPasskeySignInCompleter<TestAppUser>>();
-        Assert.IsType<IdentityPasskeySignInCompleter<TestAppUser>>(completer);
+        var completer = scope.ServiceProvider.GetRequiredKeyedService<ISignInCompleter<TestAppUser>>(SignInCompleters.IdentityBearer);
+        Assert.IsType<IdentityBearerSignInCompleter<TestAppUser>>(completer);
     }
 
     [Fact]
-    public void Builder_RegistersIdentityPasskeySignInCompleterByDefault()
+    public void Builder_RegistersTheIdentityBearerCompleter_PasskeysFallBackTo()
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -42,8 +43,8 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
 
         using var app = builder.Build();
         using var scope = app.Services.CreateScope();
-        var completer = scope.ServiceProvider.GetRequiredService<IPasskeySignInCompleter<TestAppUser>>();
-        Assert.IsType<IdentityPasskeySignInCompleter<TestAppUser>>(completer);
+        var completer = scope.ServiceProvider.GetRequiredKeyedService<ISignInCompleter<TestAppUser>>(SignInCompleters.IdentityBearer);
+        Assert.IsType<IdentityBearerSignInCompleter<TestAppUser>>(completer);
     }
 
     [Fact]
@@ -78,40 +79,13 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public void AddPasskeySignInCompleter_ReplacesDefaultWithJwtCompleter()
-    {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddDbContext<TestDbContext>(o =>
-            o.UseInMemoryDatabase("PasskeyCompleterReplace_" + Guid.NewGuid().ToString("N")));
-        services
-            .AddIdentityApiEndpoints<TestAppUser>(o =>
-            {
-                o.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
-            })
-            .AddEntityFrameworkStores<TestDbContext>()
-            .AddDefaultTokenProviders();
-        services.AddJwtEndpoints<TestAppUser, TestDbContext>(o =>
-        {
-            o.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
-        });
-        services.AddPasskeyEndpoints<TestAppUser>();
-        services.AddPasskeySignInCompleter<TestAppUser, JwtPasskeySignInCompleter<TestAppUser>>();
-
-        using var sp = services.BuildServiceProvider();
-        using var scope = sp.CreateScope();
-        var completer = scope.ServiceProvider.GetRequiredService<IPasskeySignInCompleter<TestAppUser>>();
-        Assert.IsType<JwtPasskeySignInCompleter<TestAppUser>>(completer);
-    }
-
-    [Fact]
-    public async Task IdentityPasskeySignInCompleter_Register_Bearer_ReturnsTokenWithoutSecondWrite()
+    public async Task IdentityBearerCompleter_PasskeyRegister_Bearer_ReturnsTokenWithoutSecondWrite()
     {
         var email = $"passkey-bearer-reg-{Guid.NewGuid():N}@test.local";
         var user = await TestHelpers.SeedUserAsync(_factory, email);
 
         using var scope = _factory.Services.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<IdentityPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<IdentityBearerSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
         var httpContext = NewHttpContext(scope.ServiceProvider);
         var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
@@ -121,10 +95,11 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
             var result = await completer.CompleteAsync(
                 httpContext,
                 user,
-                new PasskeySignInCompletionContext
+                new SignInCompletionContext
                 {
-                    Kind = PasskeySignInKind.Register,
-                    CredentialId = [1, 2, 3, 4]
+                    Method = SignInMethod.Passkey,
+                    PasskeyKind = PasskeySignInKind.Register,
+                    PasskeyCredentialId = [1, 2, 3, 4]
                 },
                 CancellationToken.None);
 
@@ -148,13 +123,13 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task IdentityPasskeySignInCompleter_Register_Cookies_ReturnsCredentialId()
+    public async Task IdentityBearerCompleter_PasskeyRegister_Cookies_ReturnsCredentialId()
     {
         var email = $"passkey-cookie-reg-{Guid.NewGuid():N}@test.local";
         var user = await TestHelpers.SeedUserAsync(_factory, email);
 
         using var scope = _factory.Services.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<IdentityPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<IdentityBearerSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
         var httpContext = NewHttpContext(scope.ServiceProvider);
         var accessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
@@ -164,11 +139,12 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
             var result = await completer.CompleteAsync(
                 httpContext,
                 user,
-                new PasskeySignInCompletionContext
+                new SignInCompletionContext
                 {
-                    Kind = PasskeySignInKind.Register,
+                    Method = SignInMethod.Passkey,
+                    PasskeyKind = PasskeySignInKind.Register,
                     UseCookies = true,
-                    CredentialId = [1, 2, 3, 4]
+                    PasskeyCredentialId = [1, 2, 3, 4]
                 },
                 CancellationToken.None);
 
@@ -193,24 +169,25 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task JwtPasskeySignInCompleter_Register_ReturnsTokenWithoutCredentialId()
+    public async Task JwtCompleter_PasskeyRegister_ReturnsTokenWithoutCredentialId()
     {
         var email = $"passkey-jwt-reg-{Guid.NewGuid():N}@test.local";
         var user = await TestHelpers.SeedUserAsync(_factory, email);
 
         using var scope = _factory.Services.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<JwtPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<JwtSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
         var httpContext = NewHttpContext(scope.ServiceProvider);
 
         var result = await completer.CompleteAsync(
             httpContext,
             user,
-            new PasskeySignInCompletionContext
+            new SignInCompletionContext
             {
-                Kind = PasskeySignInKind.Register,
+                Method = SignInMethod.Passkey,
+                PasskeyKind = PasskeySignInKind.Register,
                 UseCookies = true,
-                CredentialId = [1, 2, 3, 4]
+                PasskeyCredentialId = [1, 2, 3, 4]
             },
             CancellationToken.None);
 
@@ -234,13 +211,13 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task JwtPasskeySignInCompleter_IssuesAccessTokenAndRefreshCookie()
+    public async Task JwtCompleter_PasskeyIssuesAccessTokenAndRefreshCookie()
     {
         var email = $"passkey-jwt-{Guid.NewGuid():N}@test.local";
         var user = await TestHelpers.SeedUserAsync(_factory, email);
 
         using var scope = _factory.Services.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<JwtPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<JwtSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
 
         var httpContext = NewHttpContext(scope.ServiceProvider);
@@ -248,7 +225,7 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
         var result = await completer.CompleteAsync(
             httpContext,
             user,
-            new PasskeySignInCompletionContext { Kind = PasskeySignInKind.Login },
+            new SignInCompletionContext { Method = SignInMethod.Passkey, PasskeyKind = PasskeySignInKind.Login },
             CancellationToken.None);
 
         await result.ExecuteAsync(httpContext);
@@ -266,20 +243,20 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task IdentityPasskeySignInCompleter_Login_Unconfirmed_DoesNotSignIn()
+    public async Task IdentityBearerCompleter_PasskeyLogin_Unconfirmed_DoesNotSignIn()
     {
         await using var sp = BuildRequireConfirmedAccountServices();
         var user = await SeedUnconfirmedAsync(sp);
 
         using var scope = sp.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<IdentityPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<IdentityBearerSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
 
         var httpContext = NewHttpContext(scope.ServiceProvider);
         var result = await completer.CompleteAsync(
             httpContext,
             user,
-            new PasskeySignInCompletionContext { Kind = PasskeySignInKind.Login },
+            new SignInCompletionContext { Method = SignInMethod.Passkey, PasskeyKind = PasskeySignInKind.Login },
             CancellationToken.None);
 
         await result.ExecuteAsync(httpContext);
@@ -291,23 +268,24 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task IdentityPasskeySignInCompleter_Register_Unconfirmed_DoesNotSignIn()
+    public async Task IdentityBearerCompleter_PasskeyRegister_Unconfirmed_DoesNotSignIn()
     {
         await using var sp = BuildRequireConfirmedAccountServices();
         var user = await SeedUnconfirmedAsync(sp);
 
         using var scope = sp.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<IdentityPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<IdentityBearerSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
 
         var httpContext = NewHttpContext(scope.ServiceProvider);
         var result = await completer.CompleteAsync(
             httpContext,
             user,
-            new PasskeySignInCompletionContext
+            new SignInCompletionContext
             {
-                Kind = PasskeySignInKind.Register,
-                CredentialId = [1, 2, 3, 4]
+                Method = SignInMethod.Passkey,
+                PasskeyKind = PasskeySignInKind.Register,
+                PasskeyCredentialId = [1, 2, 3, 4]
             },
             CancellationToken.None);
 
@@ -325,20 +303,20 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
     }
 
     [Fact]
-    public async Task JwtPasskeySignInCompleter_Login_Unconfirmed_DoesNotIssueTokens()
+    public async Task JwtCompleter_PasskeyLogin_Unconfirmed_DoesNotIssueTokens()
     {
         await using var sp = BuildRequireConfirmedAccountServices();
         var user = await SeedUnconfirmedAsync(sp);
 
         using var scope = sp.CreateScope();
-        var completer = ActivatorUtilities.CreateInstance<JwtPasskeySignInCompleter<TestAppUser>>(
+        var completer = ActivatorUtilities.CreateInstance<JwtSignInCompleter<TestAppUser>>(
             scope.ServiceProvider);
 
         var httpContext = NewHttpContext(scope.ServiceProvider);
         var result = await completer.CompleteAsync(
             httpContext,
             user,
-            new PasskeySignInCompletionContext { Kind = PasskeySignInKind.Login },
+            new SignInCompletionContext { Method = SignInMethod.Passkey, PasskeyKind = PasskeySignInKind.Login },
             CancellationToken.None);
 
         await result.ExecuteAsync(httpContext);
