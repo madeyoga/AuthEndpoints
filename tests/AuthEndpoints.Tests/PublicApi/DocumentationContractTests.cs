@@ -205,6 +205,10 @@ public class DocumentationContractTests
         var guideSamples = ExtractFences(guide, "cs").ToList();
         Assert.Equal(3, guideSamples.Count);
 
+        var guide5 = Path.Combine(docs, "content", "1.getting-started", "9.upgrading-to-5.md");
+        var guide5Samples = ExtractFences(guide5, "cs").ToList();
+        Assert.Equal(2, guide5Samples.Count);
+
         var failures = new List<string>();
         for (var index = 0; index < recipes.Count; index++)
         {
@@ -219,6 +223,18 @@ public class DocumentationContractTests
                 guide,
                 index,
                 WrapGuideSample(guideSamples[index]),
+                usings,
+                parseOptions,
+                references);
+        }
+
+        for (var index = 0; index < guide5Samples.Count; index++)
+        {
+            CollectCompileErrors(
+                failures,
+                guide5,
+                index,
+                WrapGuideSample(guide5Samples[index]),
                 usings,
                 parseOptions,
                 references);
@@ -257,16 +273,22 @@ public class DocumentationContractTests
 
     private static string WrapGuideSample(string snippet)
     {
-        var usesBuilder = snippet.Contains("builder.", StringComparison.Ordinal);
-        var usesApp = snippet.Contains("app.", StringComparison.Ordinal);
-        Assert.False(usesBuilder && usesApp, "A guide sample uses both builder and app.");
-
-        var services = usesBuilder ? snippet : string.Empty;
-        var maps = usesApp ? snippet : string.Empty;
+        // A sample may register services and then map: split it at the first line that starts with "app.".
+        var split = Regex.Match(snippet, @"^app\.", RegexOptions.Multiline);
+        var services = split.Success ? snippet[..split.Index] : snippet;
+        var maps = split.Success ? snippet[split.Index..] : string.Empty;
+        Assert.DoesNotContain("builder.", maps, StringComparison.Ordinal);
+        if (!services.Contains("builder.", StringComparison.Ordinal))
+        {
+            maps = services + maps;
+            services = string.Empty;
+        }
         return $$"""
             using AuthEndpoints;
             using AuthEndpoints.External.OAuth;
+            using AuthEndpoints.Identity;
             using AuthEndpoints.Jwt;
+            using AuthEndpoints.Passkey;
             using Microsoft.AspNetCore.Identity;
             using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
             using Microsoft.EntityFrameworkCore;

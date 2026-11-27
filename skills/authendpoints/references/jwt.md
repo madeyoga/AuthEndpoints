@@ -1,18 +1,18 @@
 # Use a JWT session
 
-Set `Session` to `AuthEndpointsSession.Jwt` and pass `Jwt`. Call `modelBuilder.UseRefreshToken()` and migrate. The table is `AuthEndpoints.AuthEndpointsRefreshTokens`. The absolute family lifetime adds non-null `AbsoluteExpiresAt`. Backfill existing rows from `ExpiresAt`. Recreate the table when upgrading from plaintext storage.
+Call `.AddJwt(...)` on `AddAuthEndpoints` and map `AuthEndpointsSession.Jwt`. Call `modelBuilder.UseRefreshToken()` and migrate. The table is `AuthEndpoints.AuthEndpointsRefreshTokens`. The absolute family lifetime adds non-null `AbsoluteExpiresAt`. Backfill existing rows from `ExpiresAt`. Recreate the table when upgrading from plaintext storage.
 
 ```cs
-builder.Services.AddPasswordAuth<AppUser, AppDbContext>(o =>
-{
-	o.Session = AuthEndpointsSession.Jwt;
-	o.Jwt = jwt =>
+builder.Services.AddAuthEndpoints<AppUser, AppDbContext>()
+	.AddPassword()
+	.AddJwt(jwt =>
 	{
 		jwt.Issuer = "https://example.com";
 		jwt.Audience = "https://example.com";
 		jwt.SigningOptions.SymmetricKey = key;
-	};
-});
+	});
+
+app.MapAuthEndpoints<AppUser>("/auth", AuthEndpointsSession.Jwt);
 ```
 
 Password sign-in is `POST /auth/create`. The JSON body is `accessToken` and `tokenType` `Bearer`. A missing second factor is `401` with title `RequiresTwoFactor`, detail `Two-factor authentication is required.`, and extension `requiresTwoFactor` set to true. A wrong authenticator code and a wrong recovery code are `401` with detail `Invalid credentials.` Both count toward lockout. `POST /auth/logout` reads the refresh token. It has no access-token check. Refresh transport defaults to the HttpOnly cookie `AuthEndpoints.Jwt.RefreshToken` (`SameSite=Strict`, path `/`). `RefreshTokenTransport.Body` also returns `refreshToken` from create, email-code verify, passkey sign-in, and refresh. Body refresh and logout accept `{ "refreshToken" }`, skip antiforgery, and leave `GET /auth/csrfToken` unmapped. A non-JSON body on those two routes is `415`.

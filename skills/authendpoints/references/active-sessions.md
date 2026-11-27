@@ -1,6 +1,6 @@
 # List and revoke sessions
 
-Active sessions are off by default and support cookie and JWT sessions. Identity bearer fails at startup when it is mapped with active sessions on. Call `modelBuilder.UseActiveSessions()` (after `UseRefreshToken()` for JWT) and migrate (`AuthEndpointsActiveSessions`, plus a nullable `SessionId` on refresh tokens for JWT). Call `AddActiveSessions<TUser, TContext>(Action<ActiveSessionOptions>?)` after `AddPasswordAuth` or `AddJwtEndpoints` and after any custom refresh-token service or access-token generator. Map `MapActiveSessionEndpoints<TUser>()` on the sign-in prefix.
+Active sessions are off by default and support cookie and JWT sessions. Identity bearer fails at startup when it is mapped with active sessions on. Call `modelBuilder.UseActiveSessions()` (after `UseRefreshToken()` for JWT) and migrate (`AuthEndpointsActiveSessions`, plus a nullable `SessionId` on refresh tokens for JWT). Call `AddActiveSessions<TUser, TContext>(Action<ActiveSessionOptions>?)` after `AddAuthEndpoints(...).AddJwt(...)` or `AddJwtEndpoints` and after any custom refresh-token service or access-token generator. Map `MapActiveSessionEndpoints<TUser>()` on the sign-in prefix.
 
 | Option | Default | Meaning |
 | --- | --- | --- |

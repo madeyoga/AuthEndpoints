@@ -35,14 +35,14 @@ Defaults:
 
 ## Setup
 
-The default recipe is one registration call, one model call, and one map call, in the style of `AddPasswordAuth` / `MapPasswordAuth`. It turns on the authorization server (code + PKCE, refresh, revocation, metadata), the JSON consent API, and developer app management. Anonymous (dynamic) registration stays off. Everything else keeps the defaults above, and each optional part can be turned off.
+The default recipe is one registration call, one model call, and one map call, in the style of `AddAuthEndpoints` / `MapAuthEndpoints`. It turns on the authorization server (code + PKCE, refresh, revocation, metadata), the JSON consent API, and developer app management. Anonymous (dynamic) registration stays off. Everything else keeps the defaults above, and each optional part can be turned off.
 
 ### 1. Register the server
 
 ```csharp
 using AuthEndpoints.OpenIddict;
 
-builder.Services.AddPasswordAuth<AppUser, AppDbContext>(); // or your existing AuthEndpoints setup
+builder.Services.AddAuthEndpoints<AppUser, AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
 
 builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 {

@@ -235,7 +235,7 @@ Each capability links to the guide that shows you how to use it.
 Start with password sign-in
 
 #description
-The quick start uses AddPasswordAuth and MapPasswordAuth. Pick another setup when you need JWT, passkeys, an emailed code, or an external provider.
+The quick start uses AddAuthEndpoints and MapAuthEndpoints. Pick another setup when you need JWT, passkeys, an emailed code, or an external provider.
 
 #links
   :::u-button

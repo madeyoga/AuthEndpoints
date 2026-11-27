@@ -1,6 +1,6 @@
 ---
 name: authendpoints
-description: "Wire AuthEndpoints in an ASP.NET Core host. AddPasswordAuth, UseAuthEndpoints, and MapPasswordAuth are the password session (cookie by default, prefix /auth). AddAuthEndpoints is the 3.x compatibility facade. Covers JWT, Identity bearer, passkeys, CSRF, ReAuth, email code, GitHub or Google, active sessions, and composing building blocks. Use when the project references the AuthEndpoints package, the user asks for Identity auth API endpoints, or the task is login, register, session, or token flows for a first-party web or mobile client. Read this skill instead of decompiling the assembly or web-searching the API."
+description: "Wire AuthEndpoints in an ASP.NET Core host. AddAuthEndpoints returns a builder (AddPassword, AddPasskeys, AddEmailCode, AddJwt, AddIdentityBearer), and MapAuthEndpoints maps what was added under one prefix for one session. Covers JWT, Identity bearer, passkeys, CSRF, ReAuth, email code, GitHub or Google, active sessions, and composing building blocks. Use when the project references the AuthEndpoints package, the user asks for Identity auth API endpoints, or the task is login, register, session, or token flows for a first-party web or mobile client. Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
   version: "4.3.0"
@@ -20,7 +20,7 @@ Current packages:
 
 | Package | Version | Role |
 | --- | --- | --- |
-| `AuthEndpoints` | 4.3.0 | Endpoints, both facades, and external OAuth types in namespace `AuthEndpoints.External.OAuth` |
+| `AuthEndpoints` | 4.3.0 | Endpoints, the `AddAuthEndpoints` builder, and external OAuth types in namespace `AuthEndpoints.External.OAuth` |
 | `AuthEndpoints.OAuth.GitHub` | 4.0.1 | Registers the GitHub handler. The host maps the routes. |
 | `AuthEndpoints.OAuth.Google` | 4.0.1 | Registers the Google handler. The host maps the routes. |
 | `AuthEndpoints.External.OAuth` | 4.0.1 | Forwarding shim. Remove the reference. |
@@ -31,58 +31,58 @@ The provider packages depend on `AuthEndpoints` `[4.0.0, 5.0.0)`. A reference to
 
 | Client | Call |
 | --- | --- |
-| First-party browser, one password session | `AddPasswordAuth` and `MapPasswordAuth`. Leave `Session` unset. |
-| Browser or native client that wants a Simple JWT | `Session = AuthEndpointsSession.Jwt` and a `Jwt` callback on `AddPasswordAuth`. See [references/jwt.md](references/jwt.md). |
-| Native client that wants Identity bearer tokens | `AddAuthEndpoints(..., AuthEndpointsSignIn.IdentityBearer)` and `MapAuthEndpoints`. |
+| First-party browser | `AddAuthEndpoints(...).AddPassword()` and `MapAuthEndpoints(path, AuthEndpointsSession.Cookie)`. |
+| Browser or native client that wants a Simple JWT | Add `.AddJwt(jwt => ...)` and map `AuthEndpointsSession.Jwt`. See [references/jwt.md](references/jwt.md). |
+| Native client that wants Identity bearer tokens | Add `.AddIdentityBearer()` and map `AuthEndpointsSession.IdentityBearer`. |
 | Cookie and a second session | `MapSignInEndpoints` on each prefix and `MapSharedAuthEndpoints` once. See [references/composition.md](references/composition.md). |
 
 Map one sign-in stack per prefix. Cookie and bearer both map `POST /logout`, so they need different prefixes.
 
-## Wire one password session
+## Wire one session
 
-New hosts that want one password session call `AddPasswordAuth`, `UseAuthEndpoints`, and `MapPasswordAuth`. The session is a cookie. The prefix is `/auth`. Passkeys stay off until `Passkeys.ServerDomain` is set. Email-code sign-in and external sign-in stay unmapped. Roles use `AddPasswordAuth<TUser, TRole, TContext>` so `AddRoles<TRole>()` runs before `AddEntityFrameworkStores`. `IUserStore<TUser>` then implements `IUserRoleStore<TUser>`, `RoleManager<TRole>` resolves, and sign-in uses `UserClaimsPrincipalFactory<TUser, TRole>`. The context is `IdentityDbContext<TUser, TRole, TKey>` or the equivalent. The two-type overload registers no roles. Do not chain `.AddRoles<TRole>()` after it.
+`AddAuthEndpoints<TUser, TContext>()` registers Identity (`RequireConfirmedAccount` true, schema version 3), account management, and the cookie session, and returns `AuthEndpointsBuilder<TUser, TContext>`. Each builder method adds one sign-in method or session. `MapAuthEndpoints<TUser>(path, session)` maps exactly what was added under one prefix. Roles use `AddAuthEndpoints<TUser, TRole, TContext>` so `AddRoles<TRole>()` runs before `AddEntityFrameworkStores`. `IUserStore<TUser>` then implements `IUserRoleStore<TUser>`, `RoleManager<TRole>` resolves, and sign-in uses `UserClaimsPrincipalFactory<TUser, TRole>`. The context is `IdentityDbContext<TUser, TRole, TKey>` or the equivalent.
 
 ```cs
 builder.Services.AddDbContext<AppDbContext>(/* your provider */);
 
-builder.Services.AddPasswordAuth<AppUser, AppDbContext>(o =>
-{
-	o.Passkeys.ServerDomain = "example.com"; // omit to leave passkeys off
-});
+builder.Services.AddAuthEndpoints<AppUser, AppDbContext>()
+	.AddPassword()
+	.AddPasskeys(p => p.ServerDomain = "example.com"); // omit to leave passkeys off
 
 builder.Services.AddTransient<IEmailSender<AppUser>, MyEmailSender>();
 
 var app = builder.Build();
 
 app.UseAuthEndpoints();
-app.MapPasswordAuth<AppUser>();
+app.MapAuthEndpoints<AppUser>("/auth", AuthEndpointsSession.Cookie);
 ```
 
-`AddPasswordAuth` registers Identity (`RequireConfirmedAccount` true, schema version 3), password sign-up, sign-in, and recovery, account management, and the cookie session. A second `AddPasswordAuth` throws. `MapPasswordAuth` without `AddPasswordAuth` throws `InvalidOperationException`.
+| Builder method | Adds |
+| --- | --- |
+| `AddPassword(p => ...)` | Password sign-in. `SignUp` (default true) adds `POST /register`. `Recovery` (default true) adds forgot and reset password. |
+| `AddPasskeys(p => ...)` | Passkey sign-in and passkey step-up. `ServerDomain` sets the relying party. `SignUp` (default true) adds anonymous passkey register. `Management` (default true) adds the signed-in passkey routes. |
+| `AddEmailCode(o => ...)` | Email-code send and verify, and email-code step-up. Takes `EmailCodeOptions`. |
+| `AddJwt(jwt => ...)` | The JWT session. Required before mapping `AuthEndpointsSession.Jwt`. |
+| `AddIdentityBearer()` | The Identity bearer session. Required before mapping `AuthEndpointsSession.IdentityBearer`. |
+| `ConfigureIdentity(i => ...)` | `IdentityOptions`, such as `SignIn.RequireConfirmedAccount` and password rules. |
+
+`MapAuthEndpoints` without `AddAuthEndpoints` throws `Call AddAuthEndpoints before MapAuthEndpoints.` Mapping `Jwt` or `IdentityBearer` without the matching builder call throws and names it. It returns the route group, so `WithTags` and other conventions apply to every route.
 
 `UseAuthEndpoints` adds authentication, authorization, rate limiting, and antiforgery, in that order. Call it after exception-handling middleware. Enable HTTPS in Production yourself. A second call is a no-op.
 
-`MapPasswordAuth<AppUser>` maps the routes under `PasswordAuthOptions.Path`. Cookie login is `POST /auth/login` and returns an empty `200` plus `Set-Cookie: .AspNetCore.Identity.Application`. A host that also calls `AddAuthEndpoints` fails startup validation.
+Cookie login is `POST /auth/login` and returns an empty `200` plus `Set-Cookie: .AspNetCore.Identity.Application`.
 
-Tutorial: [Quick start](https://authendpoints.harten.id/getting-started/quick-start). The building-block list is on [Password auth](https://authendpoints.harten.id/modules/password-auth).
+Tutorial: [Quick start](https://authendpoints.harten.id/getting-started/quick-start). The building-block list is on [AddAuthEndpoints](https://authendpoints.harten.id/modules/add-auth-endpoints).
 
-## Set password facade options
+## Set options
 
-`AddPasswordAuth<TUser, TContext>(Action<PasswordAuthOptions>?)` takes these options. `Session`, `Path`, and `Passkeys.ServerDomain` are fixed by that callback. A later `Configure<PasswordAuthOptions>` that changes any of them fails validation. `EmailConfirmation` can still be set later.
+`AddAuthEndpoints<TUser, TContext>(Action<AuthEndpointsOptions>?)` takes runtime settings. A later `Configure<AuthEndpointsOptions>` applies too.
 
 | Property | Default | Meaning |
 | --- | --- | --- |
-| `Session` | `AuthEndpointsSession.Cookie` | `Cookie` or `Jwt`. `IdentityBearer` fails validation. |
-| `Path` | `/auth` | Rooted prefix for every route this facade maps. |
-| `RequireConfirmedAccount` | `true` | Applied before `ConfigureIdentity`. Unconfirmed sign-in is `401`. |
-| `Passkeys.ServerDomain` | `null` | A non-whitespace value maps passkey sign-in and management. Omit it to leave passkeys off. An empty or whitespace value leaves them off and fails validation in Production. |
 | `EmailConfirmation.ConfirmEmailRedirectUri` | `null` | After `GET` confirm-email, redirect here. Absolute `https` (or `http` in Development), or a rooted path. Null keeps the plain-text response. |
 | `EmailConfirmation.AllowedRedirectOrigins` | empty | Required when the redirect URI is absolute. A rooted path needs no entry. |
-| `Jwt` | `null` | Required `Action<SimpleJwtOptions>` when `Session` is `Jwt`. |
-| `ConfigureIdentity` | `null` | `Action<IdentityOptions>` after `RequireConfirmedAccount`. |
 | `RequireEmailSenderInProduction` | `true` | Production requires a real `IEmailSender<TUser>`. Identity's no-op sender fails startup. Development skips that check. |
-
-`AddPasswordAuth` copies `EmailConfirmation` onto `AuthEndpointsOptions.EmailConfirmation`, which the confirm-email handler reads.
 
 Set the ReAuth lifetime with `Configure<AuthEndpointsReAuthOptions>`. The default is 5 minutes. Startup rejects a lifetime under 1 minute or over 60 minutes. The cookie is a browser-session cookie. The ticket expires after `Lifetime` and stays fixed if the user keeps calling the API.
 
@@ -101,7 +101,7 @@ Load only the file the task needs. Each one is self-contained.
 
 | Task | File |
 | --- | --- |
-| Every password facade route, its auth, CSRF, ReAuth, and rate limit | [references/routes.md](references/routes.md) |
+| Every `MapAuthEndpoints` route, its auth, CSRF, ReAuth, and rate limit | [references/routes.md](references/routes.md) |
 | JWT session, refresh rotation, refresh transport, signing keys | [references/jwt.md](references/jwt.md) |
 | Antiforgery token, header, the bearer-header skip rule, `BearerSchemes`, and `allowBearer: false` | [references/csrf.md](references/csrf.md) |
 | Passkey routes, user ids, and completers | [references/passkeys.md](references/passkeys.md) |
@@ -110,17 +110,16 @@ Load only the file the task needs. Each one is self-contained.
 | GitHub or Google sign-in, linking, unlinking | [references/external-oauth.md](references/external-oauth.md) |
 | List and revoke signed-in sessions | [references/active-sessions.md](references/active-sessions.md) |
 | Tell people from AI agents and API keys, `RequireDirectPerson()`, the any-caller scheme | [references/callers.md](references/callers.md) |
-| More than one session, or a mix neither facade covers | [references/composition.md](references/composition.md) |
-| A host still on `AddAuthEndpoints` and `MapAuthEndpoints` (3.x) | [references/compatibility-facade.md](references/compatibility-facade.md) |
+| More than one session, or a mix the builder does not cover | [references/composition.md](references/composition.md) |
 
 To make this app an OAuth 2.0 authorization server for other apps, CLIs, or MCP clients, use the `authendpoints-openiddict` skill that ships in the `AuthEndpoints.OpenIddict` package.
 
 ## Check production
 
 - Serve the API over HTTPS. `UseAuthEndpoints` leaves HTTPS to the host.
-- Register a real `IEmailSender<TUser>`. The password facade and `AddJwtEndpoints` register `LoggingAccountSecurityEmailSender<TUser>` when no `IAccountSecurityEmailSender<TUser>` is registered. That sender writes registration-attempt notices to the log.
+- Register a real `IEmailSender<TUser>`. `AddPassword` and `AddJwtEndpoints` register `LoggingAccountSecurityEmailSender<TUser>` when no `IAccountSecurityEmailSender<TUser>` is registered. That sender writes registration-attempt notices to the log.
 - For email code, call `UseEmailCodes()`, register a real `IEmailCodeSender<TUser>` outside Development, and use `https` plus `AllowedOrigins` for an absolute magic-link URI in Production.
-- Set `Passkeys.ServerDomain` when passkeys stay on. On the 3.x facade, set `Passkeys.Enabled` to false to turn them off. On the password facade, omit `ServerDomain`.
+- Set `ServerDomain` on `AddPasskeys` when passkeys are on. Leave out `AddPasskeys` to keep them off.
 - For JWT, call `UseRefreshToken()` and set a real issuer, audience, and signing key.
 
 Page: [Prepare for production](https://authendpoints.harten.id/concepts/production).

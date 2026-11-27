@@ -2,7 +2,7 @@
 
 Cookie sessions and JWT cookie refresh need antiforgery on unsafe methods that change an existing session. Login, register, forgot-password, reset-password, and both email-code routes skip antiforgery.
 
-1. `GET /auth/csrfToken` returns `{ "csrfToken" }` and sets the antiforgery cookie. JWT body refresh has no such route. The 3.x cookie facade uses `GET /identity/csrfToken`. The 3.x JWT prefix uses `GET {Jwt.Path}/csrfToken` (default `/auth/csrfToken`) when refresh transport is `Cookie`.
+1. `GET /auth/csrfToken` returns `{ "csrfToken" }` and sets the antiforgery cookie. Identity bearer and JWT body refresh have no such route. A composed host serves it under the prefix of each cookie or JWT cookie-refresh session map.
 2. Send that value in the antiforgery header.
 3. Send cookies (`credentials: "include"`, or Axios `withCredentials`).
 
