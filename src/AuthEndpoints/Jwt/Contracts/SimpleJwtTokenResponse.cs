@@ -8,7 +8,7 @@ public class SimpleJwtTokenResponse
     public string TokenType { get; set; } = "Bearer";
 
     /// <summary>
-    /// Raw refresh token. Present when <see cref="JwtSessionOptions.RefreshTokenTransport"/>
+    /// Raw refresh token. Present when <see cref="SimpleJwtOptions.RefreshTokenTransport"/>
     /// is <see cref="RefreshTokenTransport.Body"/>. Omitted from JSON when null.
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

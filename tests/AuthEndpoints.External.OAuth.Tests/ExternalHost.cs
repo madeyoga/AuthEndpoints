@@ -40,7 +40,9 @@ internal sealed class ExternalHost : IAsyncDisposable
 
     public WebApplication App { get; }
 
-    public static WebApplicationBuilder CreateBuilder(Action<IServiceCollection>? configure = null)
+    public static WebApplicationBuilder CreateBuilder(
+        Action<IServiceCollection>? configure = null,
+        Action<SimpleJwtOptions>? configureJwt = null)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-external-flow-{Guid.NewGuid():N}.sqlite");
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
@@ -82,6 +84,7 @@ internal sealed class ExternalHost : IAsyncDisposable
             jwt.Issuer = "https://jwt.example";
             jwt.Audience = "https://jwt.example";
             jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
+            configureJwt?.Invoke(jwt);
         });
         builder.Services.AddAuthentication()
             .AddScheme<AuthenticationSchemeOptions, NoopHandler>(CookieProvider.Scheme, _ => { })

@@ -24,6 +24,16 @@ public class SimpleJwtOptionsValidator : IValidateOptions<SimpleJwtOptions>
             return ValidateOptionsResult.Fail("SimpleJwtOptions.RefreshTokenTransport is not a known value.");
         }
 
+        if (options.RefreshTokenLifetime <= TimeSpan.Zero)
+        {
+            return ValidateOptionsResult.Fail("SimpleJwtOptions.RefreshTokenLifetime must be greater than zero.");
+        }
+
+        if (options.AbsoluteLifetime <= TimeSpan.Zero)
+        {
+            return ValidateOptionsResult.Fail("SimpleJwtOptions.AbsoluteLifetime must be greater than zero.");
+        }
+
         if (options.SigningOptions == null)
             return ValidateOptionsResult.Fail("Signing options must not be null.");
 

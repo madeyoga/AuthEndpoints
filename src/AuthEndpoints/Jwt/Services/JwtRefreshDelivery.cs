@@ -7,26 +7,26 @@ namespace AuthEndpoints.Jwt;
 
 internal static class JwtRefreshDelivery
 {
-    public static JwtSessionOptions Session(HttpContext httpContext)
+    public static SimpleJwtOptions Session(HttpContext httpContext)
     {
-        return httpContext.RequestServices.GetService<IOptions<JwtSessionOptions>>()?.Value
-            ?? new JwtSessionOptions();
+        return httpContext.RequestServices.GetService<IOptions<SimpleJwtOptions>>()?.Value
+            ?? new SimpleJwtOptions();
     }
 
-    public static JwtSessionOptions Session(IServiceProvider services)
+    public static SimpleJwtOptions Session(IServiceProvider services)
     {
-        return services.GetService<IOptions<JwtSessionOptions>>()?.Value
-            ?? new JwtSessionOptions();
+        return services.GetService<IOptions<SimpleJwtOptions>>()?.Value
+            ?? new SimpleJwtOptions();
     }
 
-    public static bool IsBody(JwtSessionOptions options)
+    public static bool IsBody(SimpleJwtOptions options)
         => options.RefreshTokenTransport == RefreshTokenTransport.Body;
 
     public static void WriteCookie(
         HttpContext httpContext,
         RefreshTokenCookieWriter writer,
         RefreshToken refreshToken,
-        JwtSessionOptions options)
+        SimpleJwtOptions options)
     {
         if (!IsBody(options))
         {
@@ -37,7 +37,7 @@ internal static class JwtRefreshDelivery
     public static void DeleteCookie(
         HttpContext httpContext,
         RefreshTokenCookieWriter writer,
-        JwtSessionOptions options)
+        SimpleJwtOptions options)
     {
         if (!IsBody(options))
         {
@@ -45,7 +45,7 @@ internal static class JwtRefreshDelivery
         }
     }
 
-    public static void ApplyBody(SimpleJwtTokenResponse response, RefreshToken refreshToken, JwtSessionOptions options)
+    public static void ApplyBody(SimpleJwtTokenResponse response, RefreshToken refreshToken, SimpleJwtOptions options)
     {
         if (IsBody(options))
         {
@@ -53,7 +53,7 @@ internal static class JwtRefreshDelivery
         }
     }
 
-    public static async Task<PresentedRefreshToken> ReadPresentedTokenAsync(HttpContext httpContext, JwtSessionOptions options)
+    public static async Task<PresentedRefreshToken> ReadPresentedTokenAsync(HttpContext httpContext, SimpleJwtOptions options)
     {
         if (!IsBody(options))
         {

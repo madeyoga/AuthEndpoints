@@ -56,7 +56,7 @@ public static class JwtApiEndpointRouteBuilderExtensions
     /// <summary>
     /// Maps JWT <c>POST /refresh</c>, <c>GET /verify</c>, and <c>POST /logout</c>.
     /// Cookie transport also maps <c>GET /csrfToken</c> and requires antiforgery on refresh and logout.
-    /// Body transport (<see cref="JwtSessionOptions.RefreshTokenTransport"/>) does not.
+    /// Body transport (<see cref="SimpleJwtOptions.RefreshTokenTransport"/>) does not.
     /// </summary>
     public static IEndpointConventionBuilder MapJwtSessionEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class, new()

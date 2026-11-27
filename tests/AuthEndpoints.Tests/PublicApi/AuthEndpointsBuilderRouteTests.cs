@@ -194,7 +194,7 @@ public class AuthEndpointsBuilderRouteTests
 
         Assert.Equal(
             RefreshTokenTransport.Body,
-            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SimpleJwtOptions>>().Value.RefreshTokenTransport);
         var routes = RouteSurface.ListRoutes(app);
         Assert.DoesNotContain(routes, route => route.Contains("csrfToken", StringComparison.Ordinal));
         var refresh = ((IEndpointRouteBuilder)app).DataSources
@@ -222,72 +222,52 @@ public class AuthEndpointsBuilderRouteTests
     }
 
     [Fact]
-    public void ConfigureJwtSessionOptions_BeforeAddJwtEndpoints_KeepsBodyWhenJwtOptionsStayCookie()
+    public void JwtSessionSettings_ComeFromTheAddJwtEndpointsCallback()
     {
         using var app = RouteSurface.Build(
             builder =>
             {
                 AddIdentity(builder);
-                builder.Services.Configure<JwtSessionOptions>(session =>
-                    session.RefreshTokenTransport = RefreshTokenTransport.Body);
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
-                    jwt.SigningOptions.SymmetricKey = SigningKey);
-            },
-            app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
-
-        Assert.Equal(
-            RefreshTokenTransport.Body,
-            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
-        Assert.DoesNotContain(
-            "csrfToken",
-            string.Join('\n', RouteSurface.ListRoutes(app)),
-            StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void AddJwtEndpoints_BodyTransport_ReplacesEarlierCookieConfigure()
-    {
-        using var app = RouteSurface.Build(
-            builder =>
-            {
-                AddIdentity(builder);
-                builder.Services.Configure<JwtSessionOptions>(session =>
-                    session.RefreshTokenTransport = RefreshTokenTransport.Cookie);
                 builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = SigningKey;
                     jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
+                    jwt.RefreshTokenLifetime = TimeSpan.FromDays(2);
+                    jwt.AbsoluteLifetime = TimeSpan.FromDays(7);
                 });
             },
             app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
 
-        Assert.Equal(
-            RefreshTokenTransport.Body,
-            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
+        var jwt = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SimpleJwtOptions>>().Value;
+        Assert.Equal(RefreshTokenTransport.Body, jwt.RefreshTokenTransport);
+        Assert.Equal(TimeSpan.FromDays(2), jwt.RefreshTokenLifetime);
+        Assert.Equal(TimeSpan.FromDays(7), jwt.AbsoluteLifetime);
+        Assert.DoesNotContain("csrfToken", string.Join('\n', RouteSurface.ListRoutes(app)), StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void ConfigureJwtSessionOptions_AfterAddJwtEndpoints_ReplacesTransport()
+    [Theory]
+    [InlineData("RefreshTokenLifetime")]
+    [InlineData("AbsoluteLifetime")]
+    public void AddJwtEndpoints_RejectsANonPositiveSessionLifetime(string property)
     {
-        using var app = RouteSurface.Build(
-            builder =>
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Development,
+        });
+        var ex = Assert.Throws<Microsoft.Extensions.Options.OptionsValidationException>(() =>
+            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
             {
-                AddIdentity(builder);
-                builder.Services.AddAntiforgery();
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                jwt.SigningOptions.SymmetricKey = SigningKey;
+                if (property == "RefreshTokenLifetime")
                 {
-                    jwt.SigningOptions.SymmetricKey = SigningKey;
-                    jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
-                });
-                builder.Services.Configure<JwtSessionOptions>(session =>
-                    session.RefreshTokenTransport = RefreshTokenTransport.Cookie);
-            },
-            app => app.MapGroup("/auth").MapJwtSessionEndpoints<TestAppUser>());
-
-        Assert.Equal(
-            RefreshTokenTransport.Cookie,
-            app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JwtSessionOptions>>().Value.RefreshTokenTransport);
-        Assert.Contains("GET /auth/csrfToken", string.Join('\n', RouteSurface.ListRoutes(app)), StringComparison.Ordinal);
+                    jwt.RefreshTokenLifetime = TimeSpan.Zero;
+                }
+                else
+                {
+                    jwt.AbsoluteLifetime = TimeSpan.Zero;
+                }
+            }));
+        Assert.Contains($"SimpleJwtOptions.{property} must be greater than zero.", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -116,8 +116,8 @@ public class ExternalSessionAndSchemeTests
     [Fact]
     public async Task Jwt_body_transport_throws_at_map_time()
     {
-        var builder = ExternalHost.CreateBuilder(services =>
-            services.Configure<JwtSessionOptions>(options => options.RefreshTokenTransport = RefreshTokenTransport.Body));
+        var builder = ExternalHost.CreateBuilder(
+            configureJwt: options => options.RefreshTokenTransport = RefreshTokenTransport.Body);
         await using var app = builder.Build();
         using (var scope = app.Services.CreateScope())
         {

@@ -152,7 +152,7 @@ public class PasskeyCeremonyAntiforgeryTests
             {
                 AddIdentity(builder);
                 builder.Services.AddPasskeyEndpoints<TestAppUser>();
-                builder.Services.Configure<JwtSessionOptions>(options =>
+                builder.Services.Configure<SimpleJwtOptions>(options =>
                     options.RefreshTokenTransport = RefreshTokenTransport.Body);
             },
             app => app.MapPasskeyRegisterOptionsEndpoints<TestAppUser>());

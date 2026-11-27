@@ -806,18 +806,6 @@ namespace AuthEndpoints.Jwt
         public JwtPasskeySignInCompleter(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager, Microsoft.AspNetCore.Identity.IUserClaimsPrincipalFactory<TUser> claimsFactory, AuthEndpoints.Jwt.IAccessTokenGenerator accessTokenGenerator, AuthEndpoints.Jwt.IRefreshTokenService refreshTokenService, AuthEndpoints.Jwt.RefreshTokenCookieWriter refreshTokenCookieWriter) { }
         public System.Threading.Tasks.Task<Microsoft.AspNetCore.Http.IResult> CompleteAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, TUser user, AuthEndpoints.Passkey.PasskeySignInCompletionContext context, System.Threading.CancellationToken cancellationToken = default) { }
     }
-    public class JwtSessionOptions
-    {
-        public JwtSessionOptions() { }
-        public System.TimeSpan AbsoluteLifetime { get; set; }
-        public System.TimeSpan RefreshTokenLifetime { get; set; }
-        public AuthEndpoints.Jwt.RefreshTokenTransport RefreshTokenTransport { get; set; }
-    }
-    public class JwtSessionOptionsValidator : Microsoft.Extensions.Options.IValidateOptions<AuthEndpoints.Jwt.JwtSessionOptions>
-    {
-        public JwtSessionOptionsValidator() { }
-        public Microsoft.Extensions.Options.ValidateOptionsResult Validate(string? name, AuthEndpoints.Jwt.JwtSessionOptions options) { }
-    }
     public class RefreshToken
     {
         public RefreshToken() { }
@@ -849,7 +837,7 @@ namespace AuthEndpoints.Jwt
         where TContext : Microsoft.EntityFrameworkCore.DbContext
     {
         public RefreshTokenService(TContext db) { }
-        public RefreshTokenService(TContext db, System.TimeProvider time, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.JwtSessionOptions> sessionOptions) { }
+        public RefreshTokenService(TContext db, System.TimeProvider time, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.SimpleJwtOptions> sessionOptions) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken) { }
         public bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
@@ -897,9 +885,11 @@ namespace AuthEndpoints.Jwt
     public class SimpleJwtOptions
     {
         public SimpleJwtOptions() { }
+        public System.TimeSpan AbsoluteLifetime { get; set; }
         public System.TimeSpan AccessTokenLifetime { get; set; }
         public string Audience { get; set; }
         public string Issuer { get; set; }
+        public System.TimeSpan RefreshTokenLifetime { get; set; }
         public AuthEndpoints.Jwt.RefreshTokenTransport RefreshTokenTransport { get; set; }
         public AuthEndpoints.Jwt.SimpleJwtSigningOptions SigningOptions { get; set; }
         public Microsoft.IdentityModel.Tokens.TokenValidationParameters? TokenValidationParameters { get; set; }
