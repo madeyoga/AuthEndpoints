@@ -7,8 +7,6 @@
     <PackageId>AuthEndpoints.OpenIddict</PackageId>
     <Description>Opt-in OAuth 2.0 and OpenID Connect authorization server for AuthEndpoints apps, built on OpenIddict. Authorization code + PKCE (S256), rotating refresh tokens, a host-rendered consent step, opt-in ID tokens, userinfo, and logout, and optional dynamic client registration.</Description>
     <Version>4.0.0-preview.5</Version>
-    <!-- Uses CallerKinds and GetCallerKind (core 4.3.0), and AuthEndpointsAntiforgeryOptions.BearerSchemes and RequireAntiforgery(allowBearer:) (core 4.2.0). -->
-    <AuthEndpointsMinimumVersion>4.3.0</AuthEndpointsMinimumVersion>
     <Authors>madeyoga</Authors>
     <Company>madeyoga</Company>
     <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>

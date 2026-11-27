@@ -6,8 +6,10 @@ namespace AuthEndpoints.External.OAuth.Tests;
 
 public class PackageDependencyRangeTests
 {
+    // The range is [core version, next major): the add-ons need the core they were built against,
+    // and refuse the next major. See src/AuthEndpoints.DependencyRange.targets.
     [Fact]
-    public void Packed_packages_depend_on_AuthEndpoints_4()
+    public void Packed_packages_depend_on_the_built_core_up_to_its_next_major()
     {
         var root = FindRepoRoot();
         var output = Path.Combine(Path.GetTempPath(), "ae-pack-" + Guid.NewGuid().ToString("N"));
@@ -26,6 +28,7 @@ public class PackageDependencyRangeTests
             Assert.True(result.ExitCode == 0, result.Text);
         }
 
+        var expected = ExpectedCoreRange(root);
         var nupkgs = Directory.GetFiles(output, "*.nupkg");
         Assert.Equal(3, nupkgs.Length);
 
@@ -39,8 +42,16 @@ public class PackageDependencyRangeTests
             var dependency = document
                 .Descendants(ns + "dependency")
                 .Single(element => element.Attribute("id")?.Value == "AuthEndpoints");
-            Assert.Equal("[4.0.0, 5.0.0)", dependency.Attribute("version")?.Value);
+            Assert.Equal(expected, dependency.Attribute("version")?.Value);
         }
+    }
+
+    private static string ExpectedCoreRange(string root)
+    {
+        var core = Path.Combine(root, "src", "AuthEndpoints", "AuthEndpoints.csproj");
+        var version = XDocument.Load(core).Descendants("Version").Single().Value;
+        var major = int.Parse(version.Split('.')[0], System.Globalization.CultureInfo.InvariantCulture);
+        return $"[{version}, {major + 1}.0.0)";
     }
 
     private static (int ExitCode, string Text) Pack(string project, string output)

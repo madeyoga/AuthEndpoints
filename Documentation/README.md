@@ -10,24 +10,16 @@ When cutting a NuGet release, add a note under [`content/versions/<tag>.md`](con
 
 ### Package versions
 
-4.0.0 ships these packages together. The shim and the provider packages depend on `AuthEndpoints` `[4.0.0, 5.0.0)`.
+The tag prefix picks which packages a GitHub release publishes: `v*` for `AuthEndpoints`, `external-oauth-v*` for `AuthEndpoints.External.OAuth`, `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`, and `openiddict-v*` for `AuthEndpoints.OpenIddict`. See [Releases in CONTRIBUTING.md](../CONTRIBUTING.md#releases).
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)
 
-| Package | Version | Notes |
-| --- | --- | --- |
-| `AuthEndpoints` | `4.0.0` | Core library, including the external OAuth endpoints |
-| `AuthEndpoints.External.OAuth` | `4.0.0` | Forwarding shim. Remove it, or keep this version |
-| `AuthEndpoints.OAuth.GitHub` | `4.0.0` | GitHub handler |
-| `AuthEndpoints.OAuth.Google` | `4.0.0` | Google handler |
-
 Releases before 4.0 versioned External.OAuth on its own preview tags. Those notes stay in the changelog.
 
-- Set `<Version>` only on the package(s) you intend to ship. The publish workflow packs the solution and uses `--skip-duplicate`.
 - Changelog `title` should name the package and version.
 - Set frontmatter `tag` to the GitHub release tag so the changelog links correctly.
-- If one GitHub release ships more than one package, use a `###` section per package.
+- One note per release tag. When core and add-ons ship together, each family's release gets its own note.
 
 ## Setup
 

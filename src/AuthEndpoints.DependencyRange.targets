@@ -1,21 +1,36 @@
 <Project>
   <!--
-    Pack reads each ProjectReference version from the referenced project.
-    That value is a minimum (4.0.0 means >= 4.0.0). These packages must refuse AuthEndpoints 5.
-    A package that calls core API added after 4.0.0 sets AuthEndpointsMinimumVersion to the first
-    core version that has it, so restore refuses an older core instead of failing at runtime.
+    Pack writes each ProjectReference as a dependency on the referenced project's <Version>, which NuGet
+    reads as a minimum. For the AuthEndpoints core, this target turns that into the range
+    [core version, next major), for example [5.0.0, 6.0.0) while src/AuthEndpoints is at 5.0.0.
+
+    - The floor is the core version the add-on was built and tested against, so restore refuses an older
+      core that may lack an API the add-on calls, instead of failing at runtime.
+    - The ceiling is the next major, so restore refuses a core with breaking changes.
+
+    Both follow src/AuthEndpoints/AuthEndpoints.csproj; nothing here needs editing for a release.
   -->
-  <PropertyGroup>
-    <AuthEndpointsMinimumVersion Condition="'$(AuthEndpointsMinimumVersion)' == ''">4.0.0</AuthEndpointsMinimumVersion>
-  </PropertyGroup>
   <Target Name="PinAuthEndpointsDependencyRange"
           AfterTargets="_GetProjectReferenceVersions"
           BeforeTargets="GenerateNuspec">
     <ItemGroup>
-      <_ProjectReferencesWithVersions Update="@(_ProjectReferencesWithVersions)"
-                                      Condition="$([System.String]::Copy('%(Identity)').EndsWith('AuthEndpoints.csproj'))">
-        <ProjectVersion>[$(AuthEndpointsMinimumVersion), 5.0.0)</ProjectVersion>
+      <_AuthEndpointsCoreReference Include="@(_ProjectReferencesWithVersions)"
+                                   Condition="'%(Filename)%(Extension)' == 'AuthEndpoints.csproj'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_AuthEndpointsCoreVersion>@(_AuthEndpointsCoreReference->'%(ProjectVersion)')</_AuthEndpointsCoreVersion>
+    </PropertyGroup>
+    <Error Condition="'$(_AuthEndpointsCoreVersion)' == ''"
+           Text="$(MSBuildProjectName) imports AuthEndpoints.DependencyRange.targets but has no ProjectReference to AuthEndpoints.csproj." />
+    <PropertyGroup>
+      <_AuthEndpointsCoreMajor>$([System.Version]::Parse($(_AuthEndpointsCoreVersion.Split('-')[0])).Major)</_AuthEndpointsCoreMajor>
+      <_AuthEndpointsNextMajor>$([MSBuild]::Add($(_AuthEndpointsCoreMajor), 1)).0.0</_AuthEndpointsNextMajor>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProjectReferencesWithVersions Update="@(_AuthEndpointsCoreReference)">
+        <ProjectVersion>[$(_AuthEndpointsCoreVersion), $(_AuthEndpointsNextMajor))</ProjectVersion>
       </_ProjectReferencesWithVersions>
+      <_AuthEndpointsCoreReference Remove="@(_AuthEndpointsCoreReference)" />
     </ItemGroup>
   </Target>
 </Project>

@@ -23,6 +23,17 @@ jobs:
         with:
           dotnet-version: 10.x
 
+      # The tag prefix picks the packages: v* (AuthEndpoints), external-oauth-v* (External.OAuth,
+      # OAuth.GitHub, OAuth.Google), openiddict-v* (OpenIddict). Fails on an unknown prefix, a tag
+      # that doesn't match <Version>, or a pre-release flag that doesn't match the version.
+      - name: Select packages for this tag
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+        run: |
+          bash .github/scripts/release-packages.sh "$TAG" "$PRERELEASE" > "$RUNNER_TEMP/release-projects.txt"
+          cat "$RUNNER_TEMP/release-projects.txt"
+
       - name: Restore Dependencies
         run: dotnet restore AuthEndpoints.sln --locked-mode
 
@@ -32,16 +43,23 @@ jobs:
       - name: Clean
         run: |
           dotnet clean AuthEndpoints.sln -c Release
-          rm -rf **/bin **/obj nupkgs
+          rm -rf nupkgs
 
       - name: Build
         run: dotnet build AuthEndpoints.sln -c Release --no-restore
 
-      - name: Create Output Directory
-        run: mkdir nupkgs
-
       - name: Make Nuget Packages
-        run: dotnet pack AuthEndpoints.sln -c Release --no-build --output nupkgs
+        run: |
+          mkdir nupkgs
+          while IFS= read -r project; do
+            dotnet pack "$project" -c Release --no-build --output nupkgs
+          done < "$RUNNER_TEMP/release-projects.txt"
+          expected=$(wc -l < "$RUNNER_TEMP/release-projects.txt")
+          actual=$(find nupkgs -name '*.nupkg' | wc -l)
+          if [ "$actual" -ne "$expected" ]; then
+            echo "::error::Packed $actual packages for $expected projects."
+            exit 1
+          fi
 
       - name: List Generated Packages
         run: ls -la nupkgs/
@@ -58,9 +76,25 @@ jobs:
           # nuget.org profile username (NOT email)
           user: ${{ secrets.NUGET_USER }}
 
+      # --skip-duplicate lets a re-run finish an earlier partial push. A run that pushes nothing
+      # fails, so a forgotten version bump can't pass as a release.
       - name: Publish To Nuget
-        run: >
-          dotnet nuget push nupkgs/*.nupkg
-          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
-          --source https://api.nuget.org/v3/index.json
-          --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          pushed=0
+          for package in nupkgs/*.nupkg; do
+            output=$(dotnet nuget push "$package" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --skip-duplicate 2>&1) || { echo "$output"; exit 1; }
+            echo "$output"
+            if grep -q "Your package was pushed" <<< "$output"; then
+              pushed=$((pushed + 1))
+            fi
+          done
+          if [ "$pushed" -eq 0 ]; then
+            echo "::error::Every package for this tag is already on NuGet. Nothing was pushed."
+            exit 1
+          fi
+          echo "Pushed $pushed package(s)."
