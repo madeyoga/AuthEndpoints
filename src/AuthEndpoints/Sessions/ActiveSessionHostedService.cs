@@ -142,7 +142,7 @@ internal sealed class ActiveSessionHostedService<TContext> : BackgroundService
     internal static async Task<int> CleanupOnceAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
-        return await scope.ServiceProvider.GetRequiredService<IActiveSessionStore>().CleanupAsync();
+        return await scope.ServiceProvider.GetRequiredService<ActiveSessionService>().CleanupAsync();
     }
 }
 

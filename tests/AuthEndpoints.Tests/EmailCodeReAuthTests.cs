@@ -115,11 +115,7 @@ public partial class EmailCodeEndpointTests
         var loaded = new Barrier(21);
         await using var host = await EmailCodeHost.StartAsync(
             options => options.MaxAttempts = maxAttempts,
-            configureServices: services => services.AddScoped<IEmailCodeStore>(sp => new GatedEmailCodeStore(
-                CreateStore(sp),
-                counter,
-                loaded,
-                EmailCodeRowPurpose.ReAuth)),
+            configureServices: services => AddGatedEmailCodes(services, counter, loaded, EmailCodeRowPurpose.ReAuth),
             useRateLimiter: false);
         var email = UniqueEmail("reauth-cap");
         await SeedAsync(host.App, email, password: null);

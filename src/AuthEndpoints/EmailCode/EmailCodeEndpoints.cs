@@ -1,13 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using AuthEndpoints.SignIn;
-using System.Reflection;
 using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -27,7 +25,7 @@ internal static class EmailCodeEndpoints<TUser>
         var services = httpContext.RequestServices;
         var userManager = services.GetRequiredService<UserManager<TUser>>();
         var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
-        var store = services.GetRequiredService<IEmailCodeStore>();
+        var store = services.GetRequiredService<EmailCodeService>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(EmailCodeLog.Category);
         var response = new EmailCodeSendResponse(
             (int)options.CodeLifetime.TotalSeconds,
@@ -78,35 +76,14 @@ internal static class EmailCodeEndpoints<TUser>
             }
         }
 
-        EmailCodeIssueResult issued;
-        try
-        {
-            issued = await store.IssueAsync(
-                email,
-                eligible ? userId : null,
-                eligible ? stamp : null,
-                EmailCodeRowPurpose.SignIn,
-                rememberSignupEmail,
-                cancellationToken);
-        }
-        catch (Exception ex) when (IsTransientTransactionConflict(ex, cancellationToken))
-        {
-            try
-            {
-                issued = await store.IssueAsync(
-                    email,
-                    eligible ? userId : null,
-                    eligible ? stamp : null,
-                    EmailCodeRowPurpose.SignIn,
-                    rememberSignupEmail,
-                    cancellationToken);
-            }
-            catch (Exception retryEx) when (IsTransientTransactionConflict(retryEx, cancellationToken))
-            {
-                EmailCodeLog.SendSuppressed(logger, userId, hashPrefix, "conflict");
-                return TypedResults.Ok(response);
-            }
-        }
+        // The store retries a deadlock or serialization failure itself, and reports one that persists as "conflict".
+        var issued = await store.IssueAsync(
+            email,
+            eligible ? userId : null,
+            eligible ? stamp : null,
+            EmailCodeRowPurpose.SignIn,
+            rememberSignupEmail,
+            cancellationToken);
 
         if (issued.Suppressed)
         {
@@ -164,7 +141,7 @@ internal static class EmailCodeEndpoints<TUser>
         var userManager = services.GetRequiredService<UserManager<TUser>>();
         var signInManager = services.GetRequiredService<SignInManager<TUser>>();
         var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
-        var store = services.GetRequiredService<IEmailCodeStore>();
+        var store = services.GetRequiredService<EmailCodeService>();
         var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger(EmailCodeLog.Category);
 
         if (!TryReadProof(request, options, out var proof))
@@ -338,7 +315,7 @@ internal static class EmailCodeEndpoints<TUser>
 
     private static async Task<ResolvedUser> ResolveUserAsync(
         UserManager<TUser> userManager,
-        IEmailCodeStore store,
+        EmailCodeService store,
         EmailCodeOptions options,
         EmailCodeEntry row,
         EmailCodeProof proof,
@@ -406,7 +383,7 @@ internal static class EmailCodeEndpoints<TUser>
     }
 
     private static async Task<ResolvedUser> RejectUnknownAsync(
-        IEmailCodeStore store,
+        EmailCodeService store,
         EmailCodeEntry row,
         EmailCodeProof proof,
         ILogger logger,
@@ -483,24 +460,24 @@ internal static class EmailCodeEndpoints<TUser>
 
             if (created.Errors.Any(error => error.Code is "DuplicateUserName" or "DuplicateEmail"))
             {
-                return await DuplicateOrFailAsync(userManager, userStore, user, email);
+                return await DuplicateOrFailAsync(userManager, user, email);
             }
 
             return SignupCreateResult.Fail();
         }
-        catch (DbUpdateException)
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested
+            && services.GetService<IUserCreateFailureHandler<TUser>>() is { } handler
+            && handler.TryRecover(user, ex))
         {
-            return await DuplicateOrFailAsync(userManager, userStore, user, email);
+            return await DuplicateOrFailAsync(userManager, user, email);
         }
     }
 
     private static async Task<SignupCreateResult> DuplicateOrFailAsync(
         UserManager<TUser> userManager,
-        IUserStore<TUser> userStore,
         TUser user,
         string email)
     {
-        DetachTrackedUser(userStore, user);
         var existing = await userManager.FindByEmailAsync(email);
         if (existing is null || ReferenceEquals(existing, user))
         {
@@ -510,23 +487,8 @@ internal static class EmailCodeEndpoints<TUser>
         return SignupCreateResult.Duplicate(existing);
     }
 
-    private static void DetachTrackedUser(IUserStore<TUser> userStore, TUser user)
-    {
-        PropertyInfo? contextProperty = userStore.GetType().GetProperty("Context");
-        if (contextProperty?.GetValue(userStore) is not DbContext context)
-        {
-            return;
-        }
-
-        var entry = context.Entry(user);
-        if (entry.State != EntityState.Detached)
-        {
-            entry.State = EntityState.Detached;
-        }
-    }
-
     private static async Task ReleaseConsumedReservationAsync(
-        IEmailCodeStore store,
+        EmailCodeService store,
         EmailCodeEntry row,
         CancellationToken cancellationToken)
     {
@@ -683,12 +645,6 @@ internal static class EmailCodeEndpoints<TUser>
 
         var stamp = await userManager.UpdateSecurityStampAsync(user);
         return stamp.Succeeded;
-    }
-
-    private static bool IsTransientTransactionConflict(Exception exception, CancellationToken cancellationToken)
-    {
-        return !cancellationToken.IsCancellationRequested
-            && EmailCodeTransactionFailures.IsDeadlockOrSerializationFailure(exception);
     }
 
     private static string HashPrefix(UserManager<TUser> userManager, string email)

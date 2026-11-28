@@ -15,6 +15,8 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
         builder.Property(e => e.SecurityStamp).IsRequired();
         builder.Property(e => e.AbsoluteExpiresAt).IsRequired();
         builder.Ignore(e => e.Token);
+        // Stored only with active sessions: UseActiveSessions maps it, so apps without sessions keep their schema.
+        builder.Ignore(e => e.SessionId);
     }
 }
 

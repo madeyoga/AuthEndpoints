@@ -106,11 +106,9 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton(TimeProvider.System);
             services.TryAddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>();
             services.TryAddSingleton<IEmailCodeModelCheck, EmailCodeModelCheck<TContext>>();
-            services.TryAddScoped<IEmailCodeStore>(sp => new EmailCodeStore<TContext>(
-                sp.GetRequiredService<TContext>(),
-                sp.GetRequiredService<TimeProvider>(),
-                sp.GetRequiredService<IOptions<EmailCodeOptions>>().Value,
-                sp.GetRequiredService<ILookupNormalizer>()));
+            services.TryAddScoped<IEmailCodeStore>(sp => new EmailCodeStore<TContext>(sp.GetRequiredService<TContext>()));
+            services.TryAddScoped<EmailCodeService>();
+            services.TryAddScoped<IUserCreateFailureHandler<TUser>, EntityFrameworkUserCreateFailureHandler<TUser, TContext>>();
             services.TryAddScoped<IEmailCodeSender<TUser>>(sp =>
             {
                 var environment = sp.GetRequiredService<IHostEnvironment>();

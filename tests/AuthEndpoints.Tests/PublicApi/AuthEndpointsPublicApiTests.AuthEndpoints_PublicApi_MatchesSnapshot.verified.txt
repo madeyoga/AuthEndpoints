@@ -166,11 +166,30 @@ namespace AuthEndpoints.EmailCode
         public System.DateTime? SupersededAt { get; set; }
         public string? UserId { get; set; }
     }
+    public sealed class EmailCodeIssueRules
+    {
+        public EmailCodeIssueRules() { }
+        public System.DateTime? CooldownSince { get; init; }
+        public required System.DateTime DeleteExpiredBefore { get; init; }
+        public required AuthEndpoints.EmailCode.EmailCodeLiveness Liveness { get; init; }
+    }
+    public enum EmailCodeIssueStatus
+    {
+        Issued = 0,
+        Cooldown = 1,
+        Conflict = 2,
+    }
     public sealed class EmailCodeLinkContext
     {
         public EmailCodeLinkContext() { }
         public required string LinkUri { get; init; }
         public required string Token { get; init; }
+    }
+    public readonly struct EmailCodeLiveness : System.IEquatable<AuthEndpoints.EmailCode.EmailCodeLiveness>
+    {
+        public EmailCodeLiveness(System.DateTime Now, int MaxAttempts) { }
+        public int MaxAttempts { get; init; }
+        public System.DateTime Now { get; init; }
     }
     public sealed class EmailCodeMagicLinkOptions
     {
@@ -260,6 +279,17 @@ namespace AuthEndpoints.EmailCode
         where TUser :  class
     {
         System.Threading.Tasks.Task SendSignInCodeAsync(AuthEndpoints.EmailCode.EmailCodeMessage<TUser> message, System.Threading.CancellationToken cancellationToken = default);
+    }
+    public interface IEmailCodeStore
+    {
+        System.Threading.Tasks.Task<int> CountIssuedSinceAsync(string emailHash, AuthEndpoints.EmailCode.EmailCodeRowPurpose purpose, System.DateTime since, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.EmailCode.EmailCodeEntry?> FindLiveByEmailAsync(string emailHash, AuthEndpoints.EmailCode.EmailCodeRowPurpose purpose, string? userId, AuthEndpoints.EmailCode.EmailCodeLiveness liveness, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.EmailCode.EmailCodeEntry?> FindLiveByLinkTokenAsync(string linkTokenHash, AuthEndpoints.EmailCode.EmailCodeLiveness liveness, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.EmailCode.EmailCodeIssueStatus> IssueAsync(AuthEndpoints.EmailCode.EmailCodeEntry entry, AuthEndpoints.EmailCode.EmailCodeIssueRules rules, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryConsumeAsync(string id, AuthEndpoints.EmailCode.EmailCodeLiveness liveness, bool attemptReserved, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryReleaseAttemptAsync(string id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryReserveAttemptAsync(string id, AuthEndpoints.EmailCode.EmailCodeLiveness liveness, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryUnconsumeAsync(string id, System.Threading.CancellationToken cancellationToken);
     }
     public static class ServiceCollectionExtensions
     {
@@ -536,6 +566,11 @@ namespace AuthEndpoints.Identity
     {
         System.Threading.Tasks.Task NotifyAsync(AuthEndpoints.Identity.AccountSecurityEvent<TUser> securityEvent, System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IUserCreateFailureHandler<TUser>
+        where TUser :  class
+    {
+        bool TryRecover(TUser user, System.Exception exception);
+    }
     public static class IdentityApiEndpointRouteBuilderExtensions
     {
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapBearerAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
@@ -713,6 +748,18 @@ namespace AuthEndpoints.Jwt
         System.Threading.Tasks.Task RevokeFamilyAsync(string familyId);
         System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp);
     }
+    public interface IRefreshTokenStore
+    {
+        System.Threading.Tasks.Task CreateAsync(AuthEndpoints.Jwt.RefreshToken token, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> FindByHashAsync(string tokenHash, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.DateTime?> FindFamilyAbsoluteExpiresAtAsync(string familyId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<string>> FindFamilySessionIdsAsync(string familyId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task RevokeAsync(string id, System.DateTime revokedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task RevokeFamilyAsync(string familyId, System.DateTime revokedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task RevokeSessionsAsync(System.Collections.Generic.IReadOnlyCollection<string> sessionIds, System.DateTime revokedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task SetSessionAsync(string tokenId, string sessionId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryRotateAsync(string presentedId, AuthEndpoints.Jwt.RefreshToken successor, System.DateTime revokedAt, System.Threading.CancellationToken cancellationToken);
+    }
     public static class JwtApiEndpointRouteBuilderExtensions
     {
         public static Microsoft.AspNetCore.Builder.IEndpointConventionBuilder MapJwtAuthEndpoints<TUser>(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder endpoints)
@@ -732,6 +779,7 @@ namespace AuthEndpoints.Jwt
         public string? ReplacedByTokenId { get; set; }
         public System.DateTime? RevokedAt { get; set; }
         public required string SecurityStamp { get; set; }
+        public string? SessionId { get; set; }
         [System.ComponentModel.DataAnnotations.Schema.NotMapped]
         public string? Token { get; set; }
         public required string TokenHash { get; set; }
@@ -749,11 +797,9 @@ namespace AuthEndpoints.Jwt
         public void Delete(Microsoft.AspNetCore.Http.HttpContext context) { }
         public void Write(Microsoft.AspNetCore.Http.HttpContext context, AuthEndpoints.Jwt.RefreshToken refreshToken, Microsoft.AspNetCore.Http.CookieOptions? options = null) { }
     }
-    public class RefreshTokenService<TContext> : AuthEndpoints.Jwt.IRefreshTokenService
-        where TContext : Microsoft.EntityFrameworkCore.DbContext
+    public class RefreshTokenService : AuthEndpoints.Jwt.IRefreshTokenService
     {
-        public RefreshTokenService(TContext db) { }
-        public RefreshTokenService(TContext db, System.TimeProvider time, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.SimpleJwtOptions> sessionOptions) { }
+        public RefreshTokenService(AuthEndpoints.Jwt.IRefreshTokenStore store, System.TimeProvider time, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.SimpleJwtOptions> sessionOptions) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken) { }
         public bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
@@ -1039,6 +1085,17 @@ namespace AuthEndpoints.Sessions
         public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddActiveSessions<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Sessions.ActiveSessionOptions>? configure = null)
             where TUser :  class
             where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public interface IActiveSessionStore
+    {
+        System.Threading.Tasks.Task<int> DeleteEndedAsync(System.DateTime now, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.Sessions.ActiveSession?> FindAsync(string id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.Sessions.ActiveSession>> ListActiveAsync(string userId, System.DateTime now, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<string>> ListUnrevokedIdsAsync(string userId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task RevokeAsync(System.Collections.Generic.IReadOnlyCollection<string> ids, System.DateTime revokedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task TouchAsync(string id, System.DateTime lastSeenAt, System.DateTime? expiresAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryCreateAsync(AuthEndpoints.Sessions.ActiveSession session, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task UpdateStampAsync(string id, string securityStamp, System.DateTime lastSeenAt, System.DateTime? expiresAt, System.Threading.CancellationToken cancellationToken);
     }
     public sealed record RevokeOtherSessionsResponse : System.IEquatable<AuthEndpoints.Sessions.RevokeOtherSessionsResponse>
     {

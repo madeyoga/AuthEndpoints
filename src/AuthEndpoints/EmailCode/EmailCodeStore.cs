@@ -1,114 +1,77 @@
 ﻿using System.Data;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AuthEndpoints.EmailCode;
 
-internal sealed class EmailCodeIssueResult
-{
-    public bool Suppressed { get; init; }
-
-    public string? SuppressedReason { get; init; }
-
-    public required string Id { get; init; }
-
-    public required string Code { get; init; }
-
-    public string? LinkToken { get; init; }
-
-    public required string EmailHash { get; init; }
-
-    public required DateTime ExpiresAt { get; init; }
-}
-
-internal static class EmailCodeRetention
-{
-    public static readonly TimeSpan ExpiredRowRetention = TimeSpan.FromHours(24);
-}
-
+/// <summary>
+/// EF Core <see cref="IEmailCodeStore"/>. Issuing runs in a <see cref="IsolationLevel.Serializable"/> transaction
+/// through the context's execution strategy, and is tried once more after a deadlock or serialization failure.
+/// Every other method is one conditional statement. Rows are read untracked, and nothing stays tracked after a call,
+/// so a later <c>SaveChanges</c> on the shared context cannot write a stale row back.
+/// </summary>
 internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
     where TContext : DbContext
 {
     private readonly TContext _db;
-    private readonly TimeProvider _time;
-    private readonly EmailCodeOptions _options;
-    private readonly ILookupNormalizer _normalizer;
 
-    public EmailCodeStore(TContext db, TimeProvider time, EmailCodeOptions options, ILookupNormalizer normalizer)
+    public EmailCodeStore(TContext db)
     {
         _db = db;
-        _time = time;
-        _options = options;
-        _normalizer = normalizer;
     }
 
-    public async Task<EmailCodeIssueResult> IssueAsync(
-        string email,
-        string? userId,
-        string? securityStamp,
-        EmailCodeRowPurpose purpose,
-        bool rememberSignupEmail = false,
-        CancellationToken cancellationToken = default)
+    public async Task<EmailCodeIssueStatus> IssueAsync(
+        EmailCodeEntry entry,
+        EmailCodeIssueRules rules,
+        CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(email);
+        ArgumentNullException.ThrowIfNull(entry);
+        ArgumentNullException.ThrowIfNull(rules);
 
-        string emailHash = HashEmail(email);
         try
         {
-            return await IssueOnceAsync(email, emailHash, userId, securityStamp, purpose, rememberSignupEmail, cancellationToken);
+            return await IssueOnceAsync(entry, rules, cancellationToken);
         }
         catch (Exception ex) when (IsTransientTransactionConflict(ex, cancellationToken))
         {
             try
             {
-                return await IssueOnceAsync(email, emailHash, userId, securityStamp, purpose, rememberSignupEmail, cancellationToken);
+                return await IssueOnceAsync(entry, rules, cancellationToken);
             }
             catch (Exception retryEx) when (IsTransientTransactionConflict(retryEx, cancellationToken))
             {
-                return Suppressed(emailHash, "conflict");
+                return EmailCodeIssueStatus.Conflict;
             }
         }
     }
 
-    private async Task<EmailCodeIssueResult> IssueOnceAsync(
-        string email,
-        string emailHash,
-        string? userId,
-        string? securityStamp,
-        EmailCodeRowPurpose purpose,
-        bool rememberSignupEmail,
+    private async Task<EmailCodeIssueStatus> IssueOnceAsync(
+        EmailCodeEntry entry,
+        EmailCodeIssueRules rules,
         CancellationToken cancellationToken)
     {
         IExecutionStrategy strategy = _db.Database.CreateExecutionStrategy();
         return await strategy.ExecuteAsync(
             async ct =>
             {
-                DateTime now = UtcNow();
-                string id = Guid.NewGuid().ToString();
-                string code = EmailCodeGenerator.CreateCode(_options.CodeLength);
-                var reAuth = purpose == EmailCodeRowPurpose.ReAuth;
-                string? linkToken = null;
-                string? linkTokenHash = null;
-                if (!reAuth && _options.MagicLink.Enabled)
-                {
-                    linkToken = EmailCodeGenerator.CreateLinkToken();
-                    linkTokenHash = EmailCodeHasher.HashLinkToken(linkToken);
-                }
-
-                TimeSpan lifetime = reAuth ? _options.ReAuth.CodeLifetime : _options.CodeLifetime;
+                string emailHash = entry.EmailHash;
+                EmailCodeRowPurpose purpose = entry.Purpose;
+                DateTime now = rules.Liveness.Now;
+                int maxAttempts = rules.Liveness.MaxAttempts;
 
                 await using var transaction = await _db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-                EmailCodeEntry? row = null;
                 try
                 {
                     DetachEmail(emailHash);
-                    if (await IsWithinResendCooldownAsync(email, purpose, ct))
+                    if (rules.CooldownSince is { } since
+                        && await _db.Set<EmailCodeEntry>().AnyAsync(
+                            e => e.EmailHash == emailHash && e.Purpose == purpose && e.CreatedAt > since,
+                            ct))
                     {
-                        return Suppressed(emailHash);
+                        return EmailCodeIssueStatus.Cooldown;
                     }
 
-                    DateTime deleteBefore = now - EmailCodeRetention.ExpiredRowRetention;
+                    DateTime deleteBefore = rules.DeleteExpiredBefore;
                     await _db.Set<EmailCodeEntry>()
                         .Where(e => e.EmailHash == emailHash && e.Purpose == purpose && e.ExpiresAt < deleteBefore)
                         .ExecuteDeleteAsync(ct);
@@ -118,46 +81,20 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
                             && e.Purpose == purpose
                             && e.ConsumedAt == null
                             && e.SupersededAt == null
-                            && e.Attempts < _options.MaxAttempts
+                            && e.Attempts < maxAttempts
                             && e.ExpiresAt > now)
                         .ExecuteUpdateAsync(
                             setters => setters.SetProperty(e => e.SupersededAt, now),
                             ct);
 
-                    row = new EmailCodeEntry
-                    {
-                        Id = id,
-                        EmailHash = emailHash,
-                        Purpose = purpose,
-                        UserId = userId,
-                        CodeHash = EmailCodeHasher.HashCode(id, code),
-                        LinkTokenHash = linkTokenHash,
-                        SecurityStamp = securityStamp,
-                        SignupEmail = reAuth || !rememberSignupEmail ? null : email.Trim(),
-                        CreatedAt = now,
-                        ExpiresAt = now.Add(lifetime),
-                        Attempts = 0
-                    };
-                    _db.Add(row);
+                    _db.Add(entry);
                     await _db.SaveChangesAsync(ct);
                     await transaction.CommitAsync(ct);
-                    return new EmailCodeIssueResult
-                    {
-                        Id = row.Id,
-                        Code = code,
-                        LinkToken = linkToken,
-                        EmailHash = emailHash,
-                        ExpiresAt = row.ExpiresAt
-                    };
+                    return EmailCodeIssueStatus.Issued;
                 }
-                catch
+                finally
                 {
-                    if (row is not null)
-                    {
-                        Detach(row);
-                    }
-
-                    throw;
+                    Detach(entry);
                 }
             },
             cancellationToken);
@@ -170,22 +107,23 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
     }
 
     public Task<EmailCodeEntry?> FindLiveByEmailAsync(
-        string email,
+        string emailHash,
         EmailCodeRowPurpose purpose,
-        string? userId = null,
-        CancellationToken cancellationToken = default)
+        string? userId,
+        EmailCodeLiveness liveness,
+        CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(email);
+        ArgumentNullException.ThrowIfNull(emailHash);
 
-        string emailHash = HashEmail(email);
-        DateTime now = UtcNow();
+        DateTime now = liveness.Now;
+        int maxAttempts = liveness.MaxAttempts;
         var query = _db.Set<EmailCodeEntry>()
             .AsNoTracking()
             .Where(e => e.EmailHash == emailHash
                 && e.Purpose == purpose
                 && e.ConsumedAt == null
                 && e.SupersededAt == null
-                && e.Attempts < _options.MaxAttempts
+                && e.Attempts < maxAttempts
                 && e.ExpiresAt > now);
         if (userId is not null)
         {
@@ -198,199 +136,131 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+    public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(
+        string linkTokenHash,
+        EmailCodeLiveness liveness,
+        CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(token);
+        ArgumentNullException.ThrowIfNull(linkTokenHash);
 
-        string tokenHash = EmailCodeHasher.HashLinkToken(token);
-        DateTime now = UtcNow();
+        DateTime now = liveness.Now;
+        int maxAttempts = liveness.MaxAttempts;
         return _db.Set<EmailCodeEntry>()
             .AsNoTracking()
-            .Where(e => e.LinkTokenHash == tokenHash
+            .Where(e => e.LinkTokenHash == linkTokenHash
                 && e.Purpose == EmailCodeRowPurpose.SignIn
                 && e.ConsumedAt == null
                 && e.SupersededAt == null
-                && e.Attempts < _options.MaxAttempts
+                && e.Attempts < maxAttempts
                 && e.ExpiresAt > now)
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public bool CodeMatches(EmailCodeEntry row, string submittedCode)
+    public async Task<bool> TryReserveAttemptAsync(string id, EmailCodeLiveness liveness, CancellationToken cancellationToken)
     {
-        return EmailCodeHasher.CodeMatches(row.Id, submittedCode, row.CodeHash);
-    }
-
-    public async Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-    {
-        DateTime now = UtcNow();
+        DetachId(id);
+        DateTime now = liveness.Now;
+        int maxAttempts = liveness.MaxAttempts;
         int affected = await _db.Set<EmailCodeEntry>()
-            .Where(e => e.Id == row.Id
+            .Where(e => e.Id == id
                 && e.ConsumedAt == null
                 && e.SupersededAt == null
-                && e.Attempts < _options.MaxAttempts
+                && e.Attempts < maxAttempts
                 && e.ExpiresAt > now)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(e => e.Attempts, e => e.Attempts + 1),
                 cancellationToken);
-
-        Detach(row);
         return affected == 1;
     }
 
-    public async Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+    public async Task<bool> TryReleaseAttemptAsync(string id, CancellationToken cancellationToken)
     {
+        DetachId(id);
         int affected = await _db.Set<EmailCodeEntry>()
-            .Where(e => e.Id == row.Id && e.ConsumedAt == null && e.Attempts > 0)
+            .Where(e => e.Id == id && e.ConsumedAt == null && e.Attempts > 0)
             .ExecuteUpdateAsync(
                 setters => setters.SetProperty(e => e.Attempts, e => e.Attempts - 1),
                 cancellationToken);
-
-        Detach(row);
         return affected == 1;
     }
 
-    public Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-    {
-        return ConsumeAsync(row, allowReservedAttempt: false, cancellationToken);
-    }
-
-    public Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-    {
-        return ConsumeAsync(row, allowReservedAttempt: true, cancellationToken);
-    }
-
-    public async Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-    {
-        if (row.ConsumedAt is null)
-        {
-            return false;
-        }
-
-        int affected = await _db.Set<EmailCodeEntry>()
-            .Where(e => e.Id == row.Id && e.ConsumedAt != null)
-            .ExecuteUpdateAsync(
-                setters => setters.SetProperty(e => e.ConsumedAt, (DateTime?)null),
-                cancellationToken);
-
-        if (affected == 0)
-        {
-            return false;
-        }
-
-        row.ConsumedAt = null;
-        Detach(row);
-        return true;
-    }
-
-    public async Task<bool> IsWithinResendCooldownAsync(
-        string email,
-        EmailCodeRowPurpose purpose,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(email);
-        if (_options.ResendCooldown <= TimeSpan.Zero)
-        {
-            return false;
-        }
-
-        string emailHash = HashEmail(email);
-        DateTime since = UtcNow() - _options.ResendCooldown;
-        return await _db.Set<EmailCodeEntry>()
-            .AnyAsync(
-                e => e.EmailHash == emailHash && e.Purpose == purpose && e.CreatedAt > since,
-                cancellationToken);
-    }
-
-    public async Task<bool> HasReachedSendCapAsync(
-        string email,
-        EmailCodeRowPurpose purpose,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(email);
-        string emailHash = HashEmail(email);
-        DateTime since = UtcNow() - _options.SendWindow;
-        int count = await _db.Set<EmailCodeEntry>()
-            .CountAsync(
-                e => e.EmailHash == emailHash && e.Purpose == purpose && e.CreatedAt >= since,
-                cancellationToken);
-        return count >= _options.MaxSendsPerEmail;
-    }
-
-    private async Task<bool> ConsumeAsync(
-        EmailCodeEntry row,
-        bool allowReservedAttempt,
+    public async Task<bool> TryConsumeAsync(
+        string id,
+        EmailCodeLiveness liveness,
+        bool attemptReserved,
         CancellationToken cancellationToken)
     {
-        DateTime now = UtcNow();
-        int maxAttempts = _options.MaxAttempts;
-        var query = _db.Set<EmailCodeEntry>().Where(e => e.Id == row.Id
+        DetachId(id);
+        DateTime now = liveness.Now;
+        int maxAttempts = liveness.MaxAttempts;
+        var query = _db.Set<EmailCodeEntry>().Where(e => e.Id == id
             && e.ConsumedAt == null
             && e.SupersededAt == null
             && e.ExpiresAt > now);
-        query = allowReservedAttempt
+        query = attemptReserved
             ? query.Where(e => e.Attempts <= maxAttempts)
             : query.Where(e => e.Attempts < maxAttempts);
 
         int affected = await query.ExecuteUpdateAsync(
             setters => setters.SetProperty(e => e.ConsumedAt, now),
             cancellationToken);
-
-        if (affected == 0)
-        {
-            return false;
-        }
-
-        row.ConsumedAt = now;
-        Detach(row);
-        return true;
+        return affected == 1;
     }
 
-    private string HashEmail(string email)
+    public async Task<bool> TryUnconsumeAsync(string id, CancellationToken cancellationToken)
     {
-        string? normalized = _normalizer.NormalizeEmail(email.Trim());
-        if (string.IsNullOrEmpty(normalized))
-        {
-            throw new InvalidOperationException("ILookupNormalizer.NormalizeEmail returned no value.");
-        }
-
-        return EmailCodeHasher.HashEmail(normalized);
+        DetachId(id);
+        int affected = await _db.Set<EmailCodeEntry>()
+            .Where(e => e.Id == id && e.ConsumedAt != null)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(e => e.ConsumedAt, (DateTime?)null),
+                cancellationToken);
+        return affected == 1;
     }
 
-    private static EmailCodeIssueResult Suppressed(string emailHash, string reason = "cooldown")
+    public Task<int> CountIssuedSinceAsync(
+        string emailHash,
+        EmailCodeRowPurpose purpose,
+        DateTime since,
+        CancellationToken cancellationToken)
     {
-        return new EmailCodeIssueResult
-        {
-            Suppressed = true,
-            SuppressedReason = reason,
-            Id = "",
-            Code = "",
-            EmailHash = emailHash,
-            ExpiresAt = default
-        };
-    }
-
-    private DateTime UtcNow()
-    {
-        return _time.GetUtcNow().UtcDateTime;
+        ArgumentNullException.ThrowIfNull(emailHash);
+        return _db.Set<EmailCodeEntry>()
+            .CountAsync(
+                e => e.EmailHash == emailHash && e.Purpose == purpose && e.CreatedAt >= since,
+                cancellationToken);
     }
 
     private void DetachEmail(string emailHash)
     {
-        foreach (var entry in _db.ChangeTracker.Entries<EmailCodeEntry>().ToList())
+        foreach (var tracked in _db.ChangeTracker.Entries<EmailCodeEntry>().ToList())
         {
-            if (entry.Entity.EmailHash == emailHash)
+            if (tracked.Entity.EmailHash == emailHash)
             {
-                entry.State = EntityState.Detached;
+                tracked.State = EntityState.Detached;
+            }
+        }
+    }
+
+    // The conditional updates bypass the change tracker. Detach a copy of the row that a caller attached to this
+    // context, so a later query or SaveChanges does not see or write back its old values.
+    private void DetachId(string id)
+    {
+        foreach (var tracked in _db.ChangeTracker.Entries<EmailCodeEntry>().ToList())
+        {
+            if (tracked.Entity.Id == id)
+            {
+                tracked.State = EntityState.Detached;
             }
         }
     }
 
     private void Detach(EmailCodeEntry row)
     {
-        var entry = _db.Entry(row);
-        if (entry.State != EntityState.Detached)
+        var tracked = _db.Entry(row);
+        if (tracked.State != EntityState.Detached)
         {
-            entry.State = EntityState.Detached;
+            tracked.State = EntityState.Detached;
         }
     }
 }

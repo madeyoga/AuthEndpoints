@@ -495,7 +495,7 @@ public partial class EmailCodeEndpointTests
             using (var scope = host.App.Services.CreateScope())
             {
                 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-                var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
+                var store = scope.ServiceProvider.GetRequiredService<EmailCodeService>();
                 var user = await userManager.FindByEmailAsync(email);
                 var issued = await store.IssueAsync(
                     email,
@@ -544,7 +544,7 @@ public partial class EmailCodeEndpointTests
             off.Clock.Advance(TimeSpan.FromSeconds(61));
             using (var scope = off.App.Services.CreateScope())
             {
-                var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
+                var store = scope.ServiceProvider.GetRequiredService<EmailCodeService>();
                 var issued = await store.IssueAsync(email, null, null, EmailCodeRowPurpose.SignIn);
                 Assert.False(issued.Suppressed);
                 code = issued.Code;
@@ -1171,10 +1171,7 @@ public partial class EmailCodeEndpointTests
         var loaded = new Barrier(21);
         await using var host = await EmailCodeHost.StartAsync(
             options => options.MaxAttempts = maxAttempts,
-            configureServices: services => services.AddScoped<IEmailCodeStore>(sp => new GatedEmailCodeStore(
-                CreateStore(sp),
-                counter,
-                loaded)),
+            configureServices: services => AddGatedEmailCodes(services, counter, loaded),
             useRateLimiter: false);
         var email = UniqueEmail("cap-race");
         await SeedAsync(host.App, email);
@@ -1251,7 +1248,7 @@ public partial class EmailCodeEndpointTests
     {
         var loaded = new Barrier(2);
         await using var host = await EmailCodeHost.StartAsync(configureServices: services =>
-            services.AddScoped<IEmailCodeStore>(sp => new GatedEmailCodeStore(CreateStore(sp), new CompareCounter(), loaded)));
+            AddGatedEmailCodes(services, new CompareCounter(), loaded));
         var email = UniqueEmail("recovery-race");
         await SeedAsync(host.App, email, twoFactor: true);
         var recoveryCode = await RecoveryCodeAsync(host.App, email);
@@ -1293,7 +1290,7 @@ public partial class EmailCodeEndpointTests
     }
 
     [Fact]
-    public async Task Send_SerializationFailure_ReturnsTheSameBodyAsANormalSend()
+    public async Task Send_StoreConflict_ReturnsTheSameBodyAsANormalSend()
     {
         string normalBody;
         await using (var host = await EmailCodeHost.StartAsync())
@@ -1305,15 +1302,16 @@ public partial class EmailCodeEndpointTests
             normalBody = await response.Content.ReadAsStringAsync();
         }
 
-        var throwing = new SerializationFailureStore();
+        // The store retries a serialization failure itself (EmailCodeStoreTests), so the endpoint calls it once.
+        var conflicting = new ConflictEmailCodeStore();
         await using var failed = await EmailCodeHost.StartAsync(configureServices: services =>
-            services.AddScoped<IEmailCodeStore>(_ => throwing));
+            services.AddScoped<IEmailCodeStore>(_ => conflicting));
         var conflictEmail = UniqueEmail("conflict");
         await SeedAsync(failed.App, conflictEmail);
         var conflict = await PostAsync(failed.Client, "/identity/emailCode/send", new { email = conflictEmail });
         Assert.Equal(HttpStatusCode.OK, conflict.StatusCode);
         Assert.Equal(normalBody, await conflict.Content.ReadAsStringAsync());
-        Assert.Equal(2, throwing.IssueCalls);
+        Assert.Equal(1, conflicting.IssueCalls);
         Assert.Empty(Codes(failed.Mail, conflictEmail));
     }
 
@@ -1551,11 +1549,7 @@ public partial class EmailCodeEndpointTests
 
     private static EmailCodeStore<TestDbContext> CreateStore(IServiceProvider services)
     {
-        return new EmailCodeStore<TestDbContext>(
-            services.GetRequiredService<TestDbContext>(),
-            services.GetRequiredService<TimeProvider>(),
-            services.GetRequiredService<IOptions<EmailCodeOptions>>().Value,
-            services.GetRequiredService<ILookupNormalizer>());
+        return new EmailCodeStore<TestDbContext>(services.GetRequiredService<TestDbContext>());
     }
 
     private static WebApplication BuildMapHost<TContext>()
@@ -2072,60 +2066,56 @@ public partial class EmailCodeEndpointTests
         protected override bool ShouldRetryOn(Exception exception) => false;
     }
 
-    private sealed class SerializationFailureStore : IEmailCodeStore
+    /// <summary>A store that cannot issue atomically: every <c>IssueAsync</c> reports a conflict.</summary>
+    private sealed class ConflictEmailCodeStore : IEmailCodeStore
     {
         public int IssueCalls { get; private set; }
 
-        public Task<EmailCodeIssueResult> IssueAsync(
-            string email,
-            string? userId,
-            string? securityStamp,
-            EmailCodeRowPurpose purpose,
-            bool rememberSignupEmail = false,
-            CancellationToken cancellationToken = default)
+        public Task<EmailCodeIssueStatus> IssueAsync(
+            EmailCodeEntry entry,
+            EmailCodeIssueRules rules,
+            CancellationToken cancellationToken)
         {
             IssueCalls++;
-            throw EmailCodeFailureExceptions.SqlDeadlock();
+            return Task.FromResult(EmailCodeIssueStatus.Conflict);
         }
 
         public Task<EmailCodeEntry?> FindLiveByEmailAsync(
-            string email,
+            string emailHash,
             EmailCodeRowPurpose purpose,
-            string? userId = null,
-            CancellationToken cancellationToken = default)
+            string? userId,
+            EmailCodeLiveness liveness,
+            CancellationToken cancellationToken)
             => Task.FromResult<EmailCodeEntry?>(null);
 
-        public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+        public Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(
+            string linkTokenHash,
+            EmailCodeLiveness liveness,
+            CancellationToken cancellationToken)
             => Task.FromResult<EmailCodeEntry?>(null);
 
-        public bool CodeMatches(EmailCodeEntry row, string submittedCode) => false;
-
-        public Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+        public Task<bool> TryReserveAttemptAsync(string id, EmailCodeLiveness liveness, CancellationToken cancellationToken)
             => Task.FromResult(false);
 
-        public Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+        public Task<bool> TryReleaseAttemptAsync(string id, CancellationToken cancellationToken)
             => Task.FromResult(false);
 
-        public Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+        public Task<bool> TryConsumeAsync(
+            string id,
+            EmailCodeLiveness liveness,
+            bool attemptReserved,
+            CancellationToken cancellationToken)
             => Task.FromResult(false);
 
-        public Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
+        public Task<bool> TryUnconsumeAsync(string id, CancellationToken cancellationToken)
             => Task.FromResult(false);
 
-        public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-            => Task.FromResult(false);
-
-        public Task<bool> IsWithinResendCooldownAsync(
-            string email,
+        public Task<int> CountIssuedSinceAsync(
+            string emailHash,
             EmailCodeRowPurpose purpose,
-            CancellationToken cancellationToken = default)
-            => Task.FromResult(false);
-
-        public Task<bool> HasReachedSendCapAsync(
-            string email,
-            EmailCodeRowPurpose purpose,
-            CancellationToken cancellationToken = default)
-            => Task.FromResult(false);
+            DateTime since,
+            CancellationToken cancellationToken)
+            => Task.FromResult(0);
     }
 
     private sealed class CompareCounter
@@ -2137,98 +2127,111 @@ public partial class EmailCodeEndpointTests
         public void Increment() => Interlocked.Increment(ref _compares);
     }
 
-    private sealed class GatedEmailCodeStore : IEmailCodeStore
+    /// <summary>
+    /// Holds every request at a barrier once it has loaded its row (so they race the attempt reservation), and counts
+    /// code compares. <paramref name="gatePurpose"/> limits both to one row purpose.
+    /// </summary>
+    private static void AddGatedEmailCodes(
+        IServiceCollection services,
+        CompareCounter compares,
+        Barrier afterLoad,
+        EmailCodeRowPurpose? gatePurpose = null)
     {
-        private readonly EmailCodeStore<TestDbContext> _inner;
-        private readonly CompareCounter _compares;
-        private readonly Barrier _afterLoad;
-        private readonly EmailCodeRowPurpose? _gatePurpose;
+        services.AddScoped<IEmailCodeStore>(sp => new GatedEmailCodeStore(CreateStore(sp), afterLoad, gatePurpose));
+        services.AddScoped<EmailCodeService>(sp => new CountingEmailCodeService(
+            sp.GetRequiredService<IEmailCodeStore>(),
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<IOptions<EmailCodeOptions>>(),
+            sp.GetRequiredService<ILookupNormalizer>(),
+            compares,
+            gatePurpose));
+    }
 
-        public GatedEmailCodeStore(
-            EmailCodeStore<TestDbContext> inner,
-            CompareCounter compares,
-            Barrier afterLoad,
-            EmailCodeRowPurpose? gatePurpose = null)
+    private sealed class CountingEmailCodeService(
+        IEmailCodeStore store,
+        TimeProvider time,
+        IOptions<EmailCodeOptions> options,
+        ILookupNormalizer normalizer,
+        CompareCounter compares,
+        EmailCodeRowPurpose? gatePurpose)
+        : EmailCodeService(store, time, options, normalizer)
+    {
+        public override bool CodeMatches(EmailCodeEntry row, string submittedCode)
         {
-            _inner = inner;
-            _compares = compares;
-            _afterLoad = afterLoad;
-            _gatePurpose = gatePurpose;
-        }
+            if (gatePurpose is null || row.Purpose == gatePurpose)
+            {
+                compares.Increment();
+            }
 
-        public Task<EmailCodeIssueResult> IssueAsync(
-            string email,
-            string? userId,
-            string? securityStamp,
-            EmailCodeRowPurpose purpose,
-            bool rememberSignupEmail = false,
-            CancellationToken cancellationToken = default)
-            => _inner.IssueAsync(email, userId, securityStamp, purpose, rememberSignupEmail, cancellationToken);
+            return base.CodeMatches(row, submittedCode);
+        }
+    }
+
+    private sealed class GatedEmailCodeStore(
+        IEmailCodeStore inner,
+        Barrier afterLoad,
+        EmailCodeRowPurpose? gatePurpose) : IEmailCodeStore
+    {
+        public Task<EmailCodeIssueStatus> IssueAsync(
+            EmailCodeEntry entry,
+            EmailCodeIssueRules rules,
+            CancellationToken cancellationToken)
+            => inner.IssueAsync(entry, rules, cancellationToken);
 
         public async Task<EmailCodeEntry?> FindLiveByEmailAsync(
-            string email,
+            string emailHash,
             EmailCodeRowPurpose purpose,
-            string? userId = null,
-            CancellationToken cancellationToken = default)
+            string? userId,
+            EmailCodeLiveness liveness,
+            CancellationToken cancellationToken)
         {
-            var row = await _inner.FindLiveByEmailAsync(email, purpose, userId, cancellationToken);
+            var row = await inner.FindLiveByEmailAsync(emailHash, purpose, userId, liveness, cancellationToken);
             if (row is not null && Gates(row))
             {
-                Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
+                Assert.True(afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
 
             return row;
         }
 
-        public async Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(string token, CancellationToken cancellationToken = default)
+        public async Task<EmailCodeEntry?> FindLiveByLinkTokenAsync(
+            string linkTokenHash,
+            EmailCodeLiveness liveness,
+            CancellationToken cancellationToken)
         {
-            var row = await _inner.FindLiveByLinkTokenAsync(token, cancellationToken);
+            var row = await inner.FindLiveByLinkTokenAsync(linkTokenHash, liveness, cancellationToken);
             if (row is not null && Gates(row))
             {
-                Assert.True(_afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
+                Assert.True(afterLoad.SignalAndWait(TimeSpan.FromSeconds(30)));
             }
 
             return row;
         }
 
-        private bool Gates(EmailCodeEntry row) => _gatePurpose is null || row.Purpose == _gatePurpose;
+        private bool Gates(EmailCodeEntry row) => gatePurpose is null || row.Purpose == gatePurpose;
 
-        public bool CodeMatches(EmailCodeEntry row, string submittedCode)
-        {
-            if (_gatePurpose is null || row.Purpose == _gatePurpose)
-            {
-                _compares.Increment();
-            }
+        public Task<bool> TryReserveAttemptAsync(string id, EmailCodeLiveness liveness, CancellationToken cancellationToken)
+            => inner.TryReserveAttemptAsync(id, liveness, cancellationToken);
 
-            return _inner.CodeMatches(row, submittedCode);
-        }
+        public Task<bool> TryReleaseAttemptAsync(string id, CancellationToken cancellationToken)
+            => inner.TryReleaseAttemptAsync(id, cancellationToken);
 
-        public Task<bool> TryReserveAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-            => _inner.TryReserveAttemptAsync(row, cancellationToken);
+        public Task<bool> TryConsumeAsync(
+            string id,
+            EmailCodeLiveness liveness,
+            bool attemptReserved,
+            CancellationToken cancellationToken)
+            => inner.TryConsumeAsync(id, liveness, attemptReserved, cancellationToken);
 
-        public Task<bool> TryReleaseAttemptAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-            => _inner.TryReleaseAttemptAsync(row, cancellationToken);
+        public Task<bool> TryUnconsumeAsync(string id, CancellationToken cancellationToken)
+            => inner.TryUnconsumeAsync(id, cancellationToken);
 
-        public Task<bool> TryConsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-            => _inner.TryConsumeAsync(row, cancellationToken);
-
-        public Task<bool> TryConsumeReservedAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-            => _inner.TryConsumeReservedAsync(row, cancellationToken);
-
-        public Task<bool> TryUnconsumeAsync(EmailCodeEntry row, CancellationToken cancellationToken = default)
-            => _inner.TryUnconsumeAsync(row, cancellationToken);
-
-        public Task<bool> IsWithinResendCooldownAsync(
-            string email,
+        public Task<int> CountIssuedSinceAsync(
+            string emailHash,
             EmailCodeRowPurpose purpose,
-            CancellationToken cancellationToken = default)
-            => _inner.IsWithinResendCooldownAsync(email, purpose, cancellationToken);
-
-        public Task<bool> HasReachedSendCapAsync(
-            string email,
-            EmailCodeRowPurpose purpose,
-            CancellationToken cancellationToken = default)
-            => _inner.HasReachedSendCapAsync(email, purpose, cancellationToken);
+            DateTime since,
+            CancellationToken cancellationToken)
+            => inner.CountIssuedSinceAsync(emailHash, purpose, since, cancellationToken);
     }
 
     private enum SignupCreateMode
