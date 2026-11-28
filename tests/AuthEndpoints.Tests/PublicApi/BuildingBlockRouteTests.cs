@@ -237,7 +237,7 @@ public class BuildingBlockRouteTests
         // The setup from issue #475: password auth plus passkey sign-in and management, without anonymous sign-up.
         using var app = RouteSurface.Build(builder =>
         {
-            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+            builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
             builder.Services.AddPasskeySignInEndpoints<TestAppUser>();
             builder.Services.AddPasskeyManagementEndpoints();
         }, app =>
@@ -284,7 +284,7 @@ public class BuildingBlockRouteTests
                     })
                     .AddEntityFrameworkStores<TestDbContext>()
                     .AddDefaultTokenProviders();
-                builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+                builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>();
             },
             app =>
             {
@@ -303,7 +303,7 @@ public class BuildingBlockRouteTests
         using var app = BuildIdentity(services =>
         {
             services.AddAccountManagementEndpoints();
-            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>();
         }, mapped =>
         {
             mapped.MapGroup("/identity").MapAccountManagementEndpoints<TestAppUser>();
@@ -328,7 +328,7 @@ public class BuildingBlockRouteTests
         var signInOnly = MapIdentity(services =>
         {
             services.AddAccountManagementEndpoints();
-            services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>();
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSignInEndpoints<TestAppUser>();
         }, app =>
         {
             app.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: false);
@@ -338,7 +338,7 @@ public class BuildingBlockRouteTests
         using var sendOnly = BuildIdentity(services =>
         {
             services.AddAccountManagementEndpoints();
-            services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>();
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSendEndpoints<TestAppUser>();
         }, mapped =>
         {
             mapped.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: true);
@@ -351,7 +351,7 @@ public class BuildingBlockRouteTests
         using var app = BuildIdentity(services =>
         {
             services.AddAccountManagementEndpoints();
-            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>();
         }, mapped =>
         {
             mapped.MapGroup("/identity").MapReAuthEndpoints<TestAppUser>(requireAntiforgery: true);
@@ -401,7 +401,7 @@ public class BuildingBlockRouteTests
         var password = MapIdentity(services =>
         {
             services.AddAntiforgery();
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -414,7 +414,7 @@ public class BuildingBlockRouteTests
         var session = MapIdentity(services =>
         {
             services.AddAntiforgery();
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -947,8 +947,8 @@ public class BuildingBlockRouteTests
         AssertIdempotent(services => services.AddCookieSessionEndpoints());
         AssertIdempotent(services => services.AddBearerSessionEndpoints());
         AssertIdempotent(services => services.AddAccountManagementEndpoints());
-        AssertIdempotent(services => services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>());
-        AssertIdempotent(services => services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>());
+        AssertIdempotent(services => services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSendEndpoints<TestAppUser>());
+        AssertIdempotent(services => services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSignInEndpoints<TestAppUser>());
         AssertIdempotent(services => services.AddPasskeySignUpEndpoints());
         AssertIdempotent(services => services.AddPasskeySignInEndpoints());
         AssertIdempotent(services => services.AddPasskeyRegisterOptionsEndpoints());
@@ -960,11 +960,11 @@ public class BuildingBlockRouteTests
 
         var identity = new ServiceCollection();
         identity.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("identity-once"));
-        identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+        identity.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
         var identityCount = identity.Count;
-        identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+        identity.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
         Assert.Equal(identityCount, identity.Count);
-        identity.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>(o => o.Password.RequiredLength = 8);
+        identity.AddAuthEndpointsIdentity<TestAppUser>(o => o.Password.RequiredLength = 8).AddEntityFrameworkStores<TestDbContext>();
         using var provider = identity.BuildServiceProvider();
         var options = provider.GetRequiredService<IOptions<IdentityOptions>>().Value;
         Assert.Equal(8, options.Password.RequiredLength);
@@ -976,8 +976,8 @@ public class BuildingBlockRouteTests
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("identity-second-builder"));
-        services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
-        services.AddAuthEndpoints<TestAppUser, TestDbContext>().ConfigureIdentity(identity =>
+        services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
+        services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().ConfigureIdentity(identity =>
         {
             identity.SignIn.RequireConfirmedAccount = false;
             identity.Password.RequiredLength = 8;
@@ -994,8 +994,8 @@ public class BuildingBlockRouteTests
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-late-roles"));
-        services.AddAuthEndpointsIdentity<TestAppUser, TestRolesDbContext>();
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
+        services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestRolesDbContext>();
+        services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestRolesDbContext>();
 
         using var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<RoleManager<IdentityRole>>());
@@ -1007,8 +1007,8 @@ public class BuildingBlockRouteTests
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-same-role"));
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
+        services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestRolesDbContext>();
+        services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestRolesDbContext>();
 
         using var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetService<RoleManager<IdentityRole>>());
@@ -1019,10 +1019,10 @@ public class BuildingBlockRouteTests
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestRolesDbContext>(o => o.UseInMemoryDatabase("identity-role-conflict"));
-        services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>();
+        services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestRolesDbContext>();
 
         var conflict = Assert.Throws<InvalidOperationException>(() =>
-            services.AddAuthEndpoints<TestAppUser, OtherRole, TestRolesDbContext>());
+            services.AddAuthEndpoints<TestAppUser>().AddRoles<OtherRole>().AddEntityFrameworkStores<TestRolesDbContext>());
         Assert.Contains("RoleManager<IdentityRole>", conflict.Message, StringComparison.Ordinal);
         Assert.Contains("RoleManager<OtherRole>", conflict.Message, StringComparison.Ordinal);
     }
@@ -1032,7 +1032,7 @@ public class BuildingBlockRouteTests
     {
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("builder-plus-add"));
-        services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .AddPassword()
             .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost")
             .AddJwt(jwt => jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!");
@@ -1042,7 +1042,7 @@ public class BuildingBlockRouteTests
         services.AddBearerSessionEndpoints();
         services.AddAccountManagementEndpoints();
         services.AddPasskeyEndpoints<TestAppUser>();
-        services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+        services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
         services.AddBearerAuthEndpoints();
 
         using var provider = services.BuildServiceProvider();

@@ -37,7 +37,7 @@ Maintainers publish to NuGet by publishing a GitHub release. The tag prefix pick
 
 | Tag | Packages |
 | --- | --- |
-| `v<version>` | `AuthEndpoints` |
+| `v<version>` | `AuthEndpoints`, `AuthEndpoints.EntityFrameworkCore` |
 | `external-oauth-v<version>` | `AuthEndpoints.External.OAuth`, `AuthEndpoints.OAuth.GitHub`, `AuthEndpoints.OAuth.Google` |
 | `openiddict-v<version>` | `AuthEndpoints.OpenIddict` |
 

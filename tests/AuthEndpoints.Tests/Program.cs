@@ -63,8 +63,9 @@ if (builderSession is { } session)
         ? true
         : requireConfirmedAccount;
     var auth = builder.Services
-        .AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
+        .AddAuthEndpoints<TestAppUser>(o =>
             ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins))
+        .AddEntityFrameworkStores<TestDbContext>()
         .ConfigureIdentity(identity => ConfigureTestIdentity(identity, confirmed))
         .AddPassword()
         .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
@@ -91,7 +92,8 @@ else if (useExternal)
     builder.Services.AddPasswordSignInEndpoints();
     builder.Services.AddCookieSessionEndpoints();
     builder.Services.AddAccountManagementEndpoints();
-    builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+    builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>();
+    builder.Services.AddEmailCodeEndpoints<TestAppUser>(options =>
         ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
     builder.Services.AddExternalAuthEndpoints<TestAppUser>(options =>
         {
@@ -113,10 +115,12 @@ else if (useSplit)
     builder.Services.AddPasswordEndpoints();
     builder.Services.AddCookieSessionEndpoints();
     builder.Services.AddAccountManagementEndpoints();
-    builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+    builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>();
+    builder.Services.AddEmailCodeEndpoints<TestAppUser>(options =>
         ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
-    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options => ConfigureJwt(options, builder.Configuration));
+    builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>();
+    builder.Services.AddJwtEndpoints<TestAppUser>(options => ConfigureJwt(options, builder.Configuration));
     builder.Services.AddOptions<AuthEndpointsOptions>()
         .Configure(o => ApplyEmailConfirmation(o, confirmEmailRedirectUri, confirmEmailAllowedOrigins));
 }
@@ -127,7 +131,9 @@ else
         .AddEntityFrameworkStores<TestDbContext>()
         .AddDefaultTokenProviders();
 
-    builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options => ConfigureJwt(options, builder.Configuration));
+    builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>();
+
+    builder.Services.AddJwtEndpoints<TestAppUser>(options => ConfigureJwt(options, builder.Configuration));
 
     builder.Services.AddAuthorization();
     builder.Services.AddAntiforgery();
@@ -136,7 +142,8 @@ else
     builder.Services.AddPasskeyEndpoints<TestAppUser>();
     if (emailCode)
     {
-        builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>();
+        builder.Services.AddEmailCodeEndpoints<TestAppUser>(options =>
             ConfigureEmailCode(options, emailCodeSignUp, emailCodeLink));
     }
     builder.Services.AddOptions<AuthEndpointsOptions>()

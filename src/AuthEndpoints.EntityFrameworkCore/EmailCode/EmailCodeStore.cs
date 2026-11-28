@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -17,6 +17,12 @@ internal sealed class EmailCodeStore<TContext> : IEmailCodeStore
 
     public EmailCodeStore(TContext db)
     {
+        if (db.Model.FindEntityType(typeof(EmailCodeEntry)) is null)
+        {
+            throw new NotSupportedException(
+                $"Email-code sign-in needs the email-code table. Call modelBuilder.UseEmailCodes() in {typeof(TContext).Name}.OnModelCreating.");
+        }
+
         _db = db;
     }
 

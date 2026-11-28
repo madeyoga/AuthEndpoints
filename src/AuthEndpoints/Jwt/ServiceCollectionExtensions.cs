@@ -3,7 +3,6 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -15,9 +14,8 @@ internal sealed class JwtEndpointsModule;
 
 public static class ServiceCollectionExtensions
 {
-    private static SimpleJwtBuilder AddSimpleJwtCore<TUser, TContext>(this IServiceCollection services, SimpleJwtOptions options)
+    private static SimpleJwtBuilder AddSimpleJwtCore<TUser>(this IServiceCollection services, SimpleJwtOptions options)
         where TUser : class
-        where TContext : DbContext
     {
         services.AddModule<JwtEndpointsModule>();
         SignInCompleterRegistry.AddJwtCompleter(services);
@@ -46,7 +44,6 @@ public static class ServiceCollectionExtensions
 
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
-        services.TryAddScoped<IRefreshTokenStore>(sp => new RefreshTokenStore<TContext>(sp.GetRequiredService<TContext>()));
         services.TryAddScoped<IRefreshTokenService, RefreshTokenService>();
         services.TryAddScoped<RefreshTokenCookieWriter>();
         services.TryAddScoped<IdentityErrorDescriber>();
@@ -58,19 +55,17 @@ public static class ServiceCollectionExtensions
         return new SimpleJwtBuilder(identityUserType, typeof(TUser), services, options);
     }
 
-    public static SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this IServiceCollection services)
+    public static SimpleJwtBuilder AddJwtEndpoints<TUser>(this IServiceCollection services)
         where TUser : class
-        where TContext : DbContext
     {
-        return services.AddJwtEndpoints<TUser, TContext>(o => { }, o => { });
+        return services.AddJwtEndpoints<TUser>(o => { }, o => { });
     }
 
-    public static SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(
+    public static SimpleJwtBuilder AddJwtEndpoints<TUser>(
         this IServiceCollection services,
         Action<SimpleJwtOptions> setup,
         Action<JwtBearerOptions>? jwtSetup = null)
         where TUser : class
-        where TContext : DbContext
     {
         var sjOptions = new SimpleJwtOptions();
         setup(sjOptions);
@@ -97,6 +92,6 @@ public static class ServiceCollectionExtensions
                 jwtSetup?.Invoke(options);
             });
 
-        return AddSimpleJwtCore<TUser, TContext>(services, sjOptions);
+        return AddSimpleJwtCore<TUser>(services, sjOptions);
     }
 }

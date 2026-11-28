@@ -1,0 +1,42 @@
+﻿namespace AuthEndpoints
+{
+    public static class EntityFrameworkCoreServiceCollectionExtensions
+    {
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddAuthEndpointsEntityFrameworkStores<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static AuthEndpoints.AuthEndpointsBuilder AddEntityFrameworkStores<TContext>(this AuthEndpoints.AuthEndpointsBuilder builder)
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+}
+namespace AuthEndpoints.EmailCode
+{
+    public class EmailCodeConfiguration : Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<AuthEndpoints.EmailCode.EmailCodeEntry>
+    {
+        public EmailCodeConfiguration() { }
+        public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<AuthEndpoints.EmailCode.EmailCodeEntry> builder) { }
+    }
+    public static class EmailCodeModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseEmailCodes(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+}
+namespace AuthEndpoints.Jwt
+{
+    public class RefreshTokenConfiguration : Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<AuthEndpoints.Jwt.RefreshToken>
+    {
+        public RefreshTokenConfiguration() { }
+        public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<AuthEndpoints.Jwt.RefreshToken> builder) { }
+    }
+    public static class RefreshTokenModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseRefreshToken(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+}
+namespace AuthEndpoints.Sessions
+{
+    public static class ActiveSessionModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseActiveSessions(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
+    }
+}

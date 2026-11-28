@@ -22,6 +22,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\src\AuthEndpoints.OpenIddict\AuthEndpoints.OpenIddict.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.EntityFrameworkCore\AuthEndpoints.EntityFrameworkCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

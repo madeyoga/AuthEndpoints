@@ -106,7 +106,7 @@ public class UserIdHelperTests
         var services = new ServiceCollection();
 
         var ex = Assert.Throws<InvalidOperationException>(
-            () => services.AddJwtEndpoints<NotAnIdentityUser, TestDbContext>(o =>
+            () => services.AddAuthEndpointsEntityFrameworkStores<NotAnIdentityUser, TestDbContext>().AddJwtEndpoints<NotAnIdentityUser>(o =>
             {
                 o.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             }));

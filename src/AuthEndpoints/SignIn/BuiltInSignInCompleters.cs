@@ -35,7 +35,7 @@ internal sealed class CookieSignInCompleter<TUser> : ISignInCompleter<TUser>
 
         if (context.Method == SignInMethod.External)
         {
-            return await CompleteExternalAsync(httpContext, user, context);
+            return await CompleteExternalAsync(httpContext, user, context, cancellationToken);
         }
 
         // LoginCookie: persistent only when useSessionCookies=false. useCookies is ignored.
@@ -70,7 +70,11 @@ internal sealed class CookieSignInCompleter<TUser> : ISignInCompleter<TUser>
         return _signInManager.SignInAsync(user, isPersistent);
     }
 
-    private async Task<IResult> CompleteExternalAsync(HttpContext httpContext, TUser user, SignInCompletionContext context)
+    private async Task<IResult> CompleteExternalAsync(
+        HttpContext httpContext,
+        TUser user,
+        SignInCompletionContext context,
+        CancellationToken cancellationToken)
     {
         var options = httpContext.RequestServices.GetService<IOptions<ExternalAuthOptions>>()?.Value;
         if (options is null)
@@ -212,7 +216,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
 
         if (context.Method == SignInMethod.External)
         {
-            return await CompleteExternalAsync(httpContext, user, context);
+            return await CompleteExternalAsync(httpContext, user, context, cancellationToken);
         }
 
         var claimsPrincipal = await _claimsFactory.CreateAsync(user);
@@ -220,7 +224,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
         var securityStamp = await _userManager.GetSecurityStampAsync(user);
         var session = JwtRefreshDelivery.Session(httpContext);
-        var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
+        var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp, cancellationToken: cancellationToken);
         JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
 
         var response = new SimpleJwtTokenResponse
@@ -234,7 +238,11 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         return Results.Ok(response);
     }
 
-    private async Task<IResult> CompleteExternalAsync(HttpContext httpContext, TUser user, SignInCompletionContext context)
+    private async Task<IResult> CompleteExternalAsync(
+        HttpContext httpContext,
+        TUser user,
+        SignInCompletionContext context,
+        CancellationToken cancellationToken)
     {
         var session = JwtRefreshDelivery.Session(httpContext);
         if (JwtRefreshDelivery.IsBody(session))
@@ -248,7 +256,7 @@ internal sealed class JwtSignInCompleter<TUser> : ISignInCompleter<TUser>
         var userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? throw new InvalidOperationException("User principal is missing NameIdentifier.");
         var securityStamp = await _userManager.GetSecurityStampAsync(user);
-        var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp);
+        var refreshToken = await _refreshTokenService.CreateAsync(userId, securityStamp, cancellationToken: cancellationToken);
         JwtRefreshDelivery.WriteCookie(httpContext, _refreshTokenCookieWriter, refreshToken, session);
         await httpContext.SignOutAsync(IdentityConstants.ExternalScheme);
         return Results.Redirect(ExternalSignInRedirect.Url(httpContext, context.ReturnUrl));

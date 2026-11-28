@@ -1408,7 +1408,7 @@ public partial class EmailCodeEndpointTests
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>, DevelopmentEmailCodeSender<TestAppUser>>();
         }
 
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(options => options.RequireEmailSenderInProduction = false)
+        builder.Services.AddAuthEndpoints<TestAppUser>(options => options.RequireEmailSenderInProduction = false).AddEntityFrameworkStores<TestDbContext>()
             .AddEmailCode(emailCode => emailCode.RequireSenderOutsideDevelopment = requireSender);
         return builder.Build();
     }
@@ -1424,7 +1424,7 @@ public partial class EmailCodeEndpointTests
             options.UseInMemoryDatabase("EmailCodeBuilder_" + Guid.NewGuid().ToString("N")));
         builder.Services.AddSingleton<IEmailSender<TestAppUser>, TestEmailSender>();
         builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>, CapturingEmailSender>();
-        var auth = builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        var auth = builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false)
             .AddPassword();
         if (emailCode)
@@ -1562,7 +1562,7 @@ public partial class EmailCodeEndpointTests
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TContext>(options =>
             options.UseInMemoryDatabase("EmailCodeMap_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddEmailCodeEndpoints<TestAppUser, TContext>();
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TContext>().AddEmailCodeEndpoints<TestAppUser>();
         return builder.Build();
     }
 
@@ -1843,14 +1843,14 @@ public partial class EmailCodeEndpointTests
             builder.Services.AddAuthorization();
             builder.Services.AddAntiforgery();
             builder.Services.AddCookieAuthEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(options =>
             {
                 options.SendsPerIpPerMinute = 100;
                 configure?.Invoke(options);
             });
             if (jwt)
             {
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwtOptions =>
+                builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwtOptions =>
                 {
                     jwtOptions.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                 });

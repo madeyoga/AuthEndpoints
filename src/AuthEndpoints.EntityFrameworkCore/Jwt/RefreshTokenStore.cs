@@ -14,6 +14,12 @@ internal sealed class RefreshTokenStore<TContext> : IRefreshTokenStore
 
     public RefreshTokenStore(TContext db)
     {
+        if (db.Model.FindEntityType(typeof(RefreshToken)) is null)
+        {
+            throw new InvalidOperationException(
+                $"JWT needs the refresh-token table. Call modelBuilder.UseRefreshToken() in {typeof(TContext).Name}.OnModelCreating.");
+        }
+
         _db = db;
     }
 

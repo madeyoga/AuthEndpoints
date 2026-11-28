@@ -491,7 +491,7 @@ public sealed class EnumerationResponseTests : IAsyncLifetime
             builder.Services.AddAuthorization();
             builder.Services.AddAntiforgery();
             builder.Services.AddCookieAuthEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(options =>
             {
                 options.ResendCooldown = TimeSpan.Zero;
                 options.MaxSendsPerEmail = 100;

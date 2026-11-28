@@ -48,7 +48,7 @@ Defaults:
 ```csharp
 using AuthEndpoints.OpenIddict;
 
-builder.Services.AddAuthEndpoints<AppUser, AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
+builder.Services.AddAuthEndpoints<AppUser>().AddEntityFrameworkStores<AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
 
 builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 {

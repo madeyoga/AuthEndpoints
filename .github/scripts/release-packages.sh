@@ -39,10 +39,11 @@ case "$tag" in
     version="${tag#v}"
     projects=(
       src/AuthEndpoints/AuthEndpoints.csproj
+      src/AuthEndpoints.EntityFrameworkCore/AuthEndpoints.EntityFrameworkCore.csproj
     )
     ;;
   *)
-    fail "Tag '$tag' has no known prefix. Use v<version> (AuthEndpoints), external-oauth-v<version> (External.OAuth, OAuth.GitHub, OAuth.Google) or openiddict-v<version> (OpenIddict)."
+    fail "Tag '$tag' has no known prefix. Use v<version> (AuthEndpoints, EntityFrameworkCore), external-oauth-v<version> (External.OAuth, OAuth.GitHub, OAuth.Google) or openiddict-v<version> (OpenIddict)."
     ;;
 esac
 

@@ -11,18 +11,20 @@
     {
         public static Microsoft.AspNetCore.Builder.IApplicationBuilder UseAuthEndpoints(this Microsoft.AspNetCore.Builder.IApplicationBuilder app) { }
     }
-    public sealed class AuthEndpointsBuilder<TUser, TContext>
-        where TUser :  class, new ()
-        where TContext : Microsoft.EntityFrameworkCore.DbContext
+    public abstract class AuthEndpointsBuilder
     {
         public Microsoft.AspNetCore.Identity.IdentityBuilder Identity { get; }
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
-        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddEmailCode(System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null) { }
-        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddIdentityBearer() { }
-        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddJwt(System.Action<AuthEndpoints.Jwt.SimpleJwtOptions> configure) { }
-        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddPasskeys(System.Action<AuthEndpoints.PasskeyFeatureOptions>? configure = null) { }
-        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddPassword(System.Action<AuthEndpoints.PasswordFeatureOptions>? configure = null) { }
-        public AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> ConfigureIdentity(System.Action<Microsoft.AspNetCore.Identity.IdentityOptions> configure) { }
+        public System.Type UserType { get; }
+        public AuthEndpoints.AuthEndpointsBuilder AddEmailCode(System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null) { }
+        public AuthEndpoints.AuthEndpointsBuilder AddIdentityBearer() { }
+        public AuthEndpoints.AuthEndpointsBuilder AddJwt(System.Action<AuthEndpoints.Jwt.SimpleJwtOptions> configure) { }
+        public AuthEndpoints.AuthEndpointsBuilder AddPasskeys(System.Action<AuthEndpoints.PasskeyFeatureOptions>? configure = null) { }
+        public AuthEndpoints.AuthEndpointsBuilder AddPassword(System.Action<AuthEndpoints.PasswordFeatureOptions>? configure = null) { }
+        public AuthEndpoints.AuthEndpointsBuilder AddRoles<TRole>()
+            where TRole :  class { }
+        public AuthEndpoints.AuthEndpointsBuilder AddStores(AuthEndpoints.AuthEndpointsStores stores) { }
+        public AuthEndpoints.AuthEndpointsBuilder ConfigureIdentity(System.Action<Microsoft.AspNetCore.Identity.IdentityOptions> configure) { }
     }
     public static class AuthEndpointsEndpointRouteBuilderExtensions
     {
@@ -42,19 +44,20 @@
     }
     public static class AuthEndpointsServiceCollectionExtensions
     {
-        public static AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddAuthEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static AuthEndpoints.AuthEndpointsBuilder<TUser, TContext> AddAuthEndpoints<TUser, TRole, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
-            where TUser :  class, new ()
-            where TRole :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static AuthEndpoints.AuthEndpointsBuilder AddAuthEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.AuthEndpointsOptions>? configure = null)
+            where TUser :  class, new () { }
     }
     public enum AuthEndpointsSession
     {
         Cookie = 0,
         IdentityBearer = 1,
         Jwt = 2,
+    }
+    public abstract class AuthEndpointsStores
+    {
+        protected AuthEndpointsStores() { }
+        public abstract void Register<TUser>(Microsoft.Extensions.DependencyInjection.IServiceCollection services, Microsoft.AspNetCore.Identity.IdentityBuilder identity)
+            where TUser :  class, new ();
     }
     public sealed class EmailConfirmationOptions
     {
@@ -126,11 +129,6 @@ namespace AuthEndpoints.EmailCode
     {
         public DevelopmentEmailCodeSender(Microsoft.Extensions.Logging.ILogger<AuthEndpoints.EmailCode.DevelopmentEmailCodeSender<TUser>> logger) { }
         public System.Threading.Tasks.Task SendSignInCodeAsync(AuthEndpoints.EmailCode.EmailCodeMessage<TUser> message, System.Threading.CancellationToken cancellationToken = default) { }
-    }
-    public class EmailCodeConfiguration : Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<AuthEndpoints.EmailCode.EmailCodeEntry>
-    {
-        public EmailCodeConfiguration() { }
-        public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<AuthEndpoints.EmailCode.EmailCodeEntry> builder) { }
     }
     public static class EmailCodeEndpointRouteBuilderExtensions
     {
@@ -211,10 +209,6 @@ namespace AuthEndpoints.EmailCode
         public required AuthEndpoints.EmailCode.EmailCodePurpose Purpose { get; init; }
         public TUser User { get; init; }
     }
-    public static class EmailCodeModelBuilderExtensions
-    {
-        public static Microsoft.EntityFrameworkCore.ModelBuilder UseEmailCodes(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
-    }
     public sealed class EmailCodeOptions
     {
         public EmailCodeOptions() { }
@@ -293,15 +287,12 @@ namespace AuthEndpoints.EmailCode
     }
     public static class ServiceCollectionExtensions
     {
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSendEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
+            where TUser :  class, new () { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSendEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
+            where TUser :  class, new () { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddEmailCodeSignInEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.EmailCode.EmailCodeOptions>? configure = null)
+            where TUser :  class, new () { }
     }
 }
 namespace AuthEndpoints.External.OAuth
@@ -512,9 +503,8 @@ namespace AuthEndpoints.Identity
     }
     public static class AuthEndpointsIdentityServiceCollectionExtensions
     {
-        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpointsIdentity<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Microsoft.AspNetCore.Identity.IdentityOptions>? configure = null)
-            where TUser :  class, new ()
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.AspNetCore.Identity.IdentityBuilder AddAuthEndpointsIdentity<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<Microsoft.AspNetCore.Identity.IdentityOptions>? configure = null)
+            where TUser :  class, new () { }
     }
     public sealed class BearerRefreshRequest
     {
@@ -726,10 +716,6 @@ namespace AuthEndpoints.Jwt
         public DefaultAuthenticator(Microsoft.AspNetCore.Identity.UserManager<TUser> userManager, Microsoft.AspNetCore.Identity.SignInManager<TUser> signInManager) { }
         public System.Threading.Tasks.Task<AuthEndpoints.Jwt.AuthenticationResult<TUser>> AuthenticateAsync(string username, string password) { }
     }
-    public static class EntityFrameworkCoreHelpers
-    {
-        public static Microsoft.EntityFrameworkCore.ModelBuilder UseRefreshToken(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
-    }
     public interface IAccessTokenGenerator
     {
         string GenerateAccessToken(System.Security.Claims.ClaimsPrincipal user);
@@ -741,12 +727,12 @@ namespace AuthEndpoints.Jwt
     }
     public interface IRefreshTokenService
     {
-        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null);
-        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken);
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken, System.Threading.CancellationToken cancellationToken = default);
         bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken);
-        System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken);
-        System.Threading.Tasks.Task RevokeFamilyAsync(string familyId);
-        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp);
+        System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task RevokeFamilyAsync(string familyId, System.Threading.CancellationToken cancellationToken = default);
+        System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp, System.Threading.CancellationToken cancellationToken = default);
     }
     public interface IRefreshTokenStore
     {
@@ -785,11 +771,6 @@ namespace AuthEndpoints.Jwt
         public required string TokenHash { get; set; }
         public required string UserId { get; set; }
     }
-    public class RefreshTokenConfiguration : Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<AuthEndpoints.Jwt.RefreshToken>
-    {
-        public RefreshTokenConfiguration() { }
-        public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<AuthEndpoints.Jwt.RefreshToken> builder) { }
-    }
     public class RefreshTokenCookieWriter
     {
         public static readonly string CookieName;
@@ -800,12 +781,12 @@ namespace AuthEndpoints.Jwt
     public class RefreshTokenService : AuthEndpoints.Jwt.IRefreshTokenService
     {
         public RefreshTokenService(AuthEndpoints.Jwt.IRefreshTokenStore store, System.TimeProvider time, Microsoft.Extensions.Options.IOptions<AuthEndpoints.Jwt.SimpleJwtOptions> sessionOptions) { }
-        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null) { }
-        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> GetRefreshTokenAsync(string rawToken, System.Threading.CancellationToken cancellationToken = default) { }
         public bool IsValid(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
-        public System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken) { }
-        public System.Threading.Tasks.Task RevokeFamilyAsync(string familyId) { }
-        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp) { }
+        public System.Threading.Tasks.Task RevokeAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task RevokeFamilyAsync(string familyId, System.Threading.CancellationToken cancellationToken = default) { }
+        public System.Threading.Tasks.Task<AuthEndpoints.Jwt.RefreshToken?> RotateAsync(AuthEndpoints.Jwt.RefreshToken refreshToken, string securityStamp, System.Threading.CancellationToken cancellationToken = default) { }
     }
     public enum RefreshTokenTransport
     {
@@ -814,12 +795,10 @@ namespace AuthEndpoints.Jwt
     }
     public static class ServiceCollectionExtensions
     {
-        public static AuthEndpoints.Jwt.SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
-            where TUser :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static AuthEndpoints.Jwt.SimpleJwtBuilder AddJwtEndpoints<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Jwt.SimpleJwtOptions> setup, System.Action<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>? jwtSetup = null)
-            where TUser :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static AuthEndpoints.Jwt.SimpleJwtBuilder AddJwtEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services)
+            where TUser :  class { }
+        public static AuthEndpoints.Jwt.SimpleJwtBuilder AddJwtEndpoints<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Jwt.SimpleJwtOptions> setup, System.Action<Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerOptions>? jwtSetup = null)
+            where TUser :  class { }
     }
     public class SimpleJwtBuilder
     {
@@ -1045,6 +1024,7 @@ namespace AuthEndpoints.Sessions
 {
     public class ActiveSession
     {
+        public const int MaxUserAgentLength = 512;
         public ActiveSession() { }
         public System.DateTime CreatedAt { get; set; }
         public System.DateTime ExpiresAt { get; set; }
@@ -1069,10 +1049,6 @@ namespace AuthEndpoints.Sessions
         public System.DateTime LastSeenAt { get; init; }
         public string? UserAgent { get; init; }
     }
-    public static class ActiveSessionModelBuilderExtensions
-    {
-        public static Microsoft.EntityFrameworkCore.ModelBuilder UseActiveSessions(this Microsoft.EntityFrameworkCore.ModelBuilder builder) { }
-    }
     public sealed class ActiveSessionOptions
     {
         public ActiveSessionOptions() { }
@@ -1082,9 +1058,8 @@ namespace AuthEndpoints.Sessions
     }
     public static class ActiveSessionServiceCollectionExtensions
     {
-        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddActiveSessions<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Sessions.ActiveSessionOptions>? configure = null)
-            where TUser :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static Microsoft.Extensions.DependencyInjection.IServiceCollection AddActiveSessions<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.Sessions.ActiveSessionOptions>? configure = null)
+            where TUser :  class { }
     }
     public interface IActiveSessionStore
     {

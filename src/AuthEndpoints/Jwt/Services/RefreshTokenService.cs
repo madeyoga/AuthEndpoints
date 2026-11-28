@@ -24,12 +24,15 @@ public class RefreshTokenService : IRefreshTokenService
         _session = sessionOptions.Value;
     }
 
-    public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken)
+    public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken, CancellationToken cancellationToken = default)
     {
-        return _store.FindByHashAsync(HashToken(rawToken), CancellationToken.None);
+        return _store.FindByHashAsync(HashToken(rawToken), cancellationToken);
     }
 
-    public async Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp)
+    public async Task<RefreshToken?> RotateAsync(
+        RefreshToken refreshToken,
+        string securityStamp,
+        CancellationToken cancellationToken = default)
     {
         var now = UtcNow;
         var absoluteExpiresAt = AsUtc(refreshToken.AbsoluteExpiresAt);
@@ -60,11 +63,14 @@ public class RefreshTokenService : IRefreshTokenService
 
         // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
         // The raw token is attached only after the store call, so a store never sees it.
+        // Not cancellable: a store that threw on an aborted request instead of returning false would skip the
+        // family revoke below, and leave the winner's family live after a lost race.
         if (!await _store.TryRotateAsync(refreshToken.Id, successor, now, CancellationToken.None))
         {
             // The winner has stored its successor. Reuse of this token revokes the family,
             // including that successor, so parallel refreshes sign every client out.
-            await RevokeFamilyAsync(refreshToken.FamilyId);
+            // Not cancellable: an aborted request must not skip reuse detection.
+            await RevokeFamilyAsync(refreshToken.FamilyId, CancellationToken.None);
             return null;
         }
 
@@ -74,23 +80,27 @@ public class RefreshTokenService : IRefreshTokenService
         return successor;
     }
 
-    public async Task RevokeAsync(RefreshToken refreshToken)
+    public async Task RevokeAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
     {
         var now = UtcNow;
-        await _store.RevokeAsync(refreshToken.Id, now, CancellationToken.None);
+        await _store.RevokeAsync(refreshToken.Id, now, cancellationToken);
         refreshToken.RevokedAt ??= now;
     }
 
-    public Task RevokeFamilyAsync(string familyId)
+    public Task RevokeFamilyAsync(string familyId, CancellationToken cancellationToken = default)
     {
-        return _store.RevokeFamilyAsync(familyId, UtcNow, CancellationToken.None);
+        return _store.RevokeFamilyAsync(familyId, UtcNow, cancellationToken);
     }
 
-    public async Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
+    public async Task<RefreshToken> CreateAsync(
+        string userId,
+        string securityStamp,
+        string? familyId = null,
+        CancellationToken cancellationToken = default)
     {
         var now = UtcNow;
         var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
-        var absoluteExpiresAt = await ResolveAbsoluteExpiresAtAsync(familyId, now);
+        var absoluteExpiresAt = await ResolveAbsoluteExpiresAtAsync(familyId, now, cancellationToken);
         var expiresAt = now.Add(_session.RefreshTokenLifetime);
         if (expiresAt > absoluteExpiresAt)
         {
@@ -107,7 +117,7 @@ public class RefreshTokenService : IRefreshTokenService
             AbsoluteExpiresAt = absoluteExpiresAt,
         };
 
-        await _store.CreateAsync(newRefreshToken, CancellationToken.None);
+        await _store.CreateAsync(newRefreshToken, cancellationToken);
         newRefreshToken.Token = rawToken;
         return newRefreshToken;
     }
@@ -126,7 +136,7 @@ public class RefreshTokenService : IRefreshTokenService
         return Convert.ToHexString(bytes);
     }
 
-    private async Task<DateTime> ResolveAbsoluteExpiresAtAsync(string? familyId, DateTime now)
+    private async Task<DateTime> ResolveAbsoluteExpiresAtAsync(string? familyId, DateTime now, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(familyId))
         {
@@ -134,7 +144,7 @@ public class RefreshTokenService : IRefreshTokenService
         }
 
         // Joining a family must not start a new absolute window.
-        var existing = await _store.FindFamilyAbsoluteExpiresAtAsync(familyId, CancellationToken.None);
+        var existing = await _store.FindFamilyAbsoluteExpiresAtAsync(familyId, cancellationToken);
         return existing is { } found ? AsUtc(found) : now.Add(_session.AbsoluteLifetime);
     }
 

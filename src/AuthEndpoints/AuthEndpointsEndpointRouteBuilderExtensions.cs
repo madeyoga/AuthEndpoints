@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity;
 ﻿using AuthEndpoints.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -42,6 +43,7 @@ public static class AuthEndpointsEndpointRouteBuilderExtensions
 
         // Validates the options here rather than at the first request.
         _ = endpoints.ServiceProvider.GetRequiredService<IOptions<AuthEndpointsOptions>>().Value;
+        StoreChecks.EnsureRegistered<IUserStore<TUser>>(endpoints.ServiceProvider, "AddAuthEndpoints");
 
         var features = AuthEndpointsFeatures.For(endpoints);
         switch (session)

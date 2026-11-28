@@ -3,7 +3,6 @@ using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -18,15 +17,15 @@ public static class ActiveSessionServiceCollectionExtensions
     /// <summary>
     /// Turns on active session tracking for cookie and JWT sign-ins: every successful sign-in records a
     /// session that the user can list and revoke (<see cref="ActiveSessionEndpointRouteBuilderExtensions.MapActiveSessionEndpoints{TUser}"/>).
-    /// Also call <see cref="ActiveSessionModelBuilderExtensions.UseActiveSessions"/> in <c>OnModelCreating</c>.
+    /// Sessions are stored through <see cref="IActiveSessionStore"/>: with AuthEndpoints.EntityFrameworkCore, also call
+    /// <c>modelBuilder.UseActiveSessions()</c> in <c>OnModelCreating</c>.
     /// With JWT, call this after <c>AddJwtEndpoints</c> and any custom token services.
     /// Identity bearer tokens are not supported and fail startup.
     /// </summary>
-    public static IServiceCollection AddActiveSessions<TUser, TContext>(
+    public static IServiceCollection AddActiveSessions<TUser>(
         this IServiceCollection services,
         Action<ActiveSessionOptions>? configure = null)
         where TUser : class
-        where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
         if (services.HasModule<ActiveSessionsModule>())
@@ -51,12 +50,11 @@ public static class ActiveSessionServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
         services.TryAddSingleton<ActiveSessionValidationCache>();
-        services.TryAddScoped<IActiveSessionStore>(sp => new ActiveSessionStore<TContext>(sp.GetRequiredService<TContext>()));
         services.TryAddScoped<ActiveSessionService>();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, ActiveSessionCookieEvents>());
-        services.AddHostedService<ActiveSessionHostedService<TContext>>();
-        services.AddTransient<IStartupFilter, ActiveSessionStartupFilter<TContext>>();
+        services.AddHostedService<ActiveSessionHostedService>();
+        services.AddTransient<IStartupFilter, ActiveSessionStartupFilter>();
 
         Decorate<IRefreshTokenService>(services, (sp, inner) => new ActiveSessionRefreshTokenService(
             inner,

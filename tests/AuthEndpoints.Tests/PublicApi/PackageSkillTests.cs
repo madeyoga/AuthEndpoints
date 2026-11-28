@@ -49,6 +49,9 @@ public class PackageSkillTests
     {
         var body = File.ReadAllText(Path.Combine(SkillDirectory("authendpoints"), "SKILL.md"));
         Assert.Contains($"| `AuthEndpoints` | {PackageVersion("AuthEndpoints")} |", body);
+        Assert.Contains($"| `AuthEndpoints.EntityFrameworkCore` | {PackageVersion("AuthEndpoints.EntityFrameworkCore")} |", body);
+        // Released together under the v* tag, so the two versions move together.
+        Assert.Equal(PackageVersion("AuthEndpoints"), PackageVersion("AuthEndpoints.EntityFrameworkCore"));
     }
 
     [Theory]

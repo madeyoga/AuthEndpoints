@@ -79,7 +79,7 @@ internal sealed class ExternalHost : IAsyncDisposable
         builder.Services.AddSingleton<IExternalAuthProvider>(SpyProvider);
         builder.Services.AddSingleton<IExternalAuthProvider>(LegacyProvider);
         builder.Services.AddSingleton<IExternalAuthProvider>(SessionProvider);
-        builder.Services.AddJwtEndpoints<FlowUser, FlowDb>(jwt =>
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<FlowUser, FlowDb>().AddJwtEndpoints<FlowUser>(jwt =>
         {
             jwt.Issuer = "https://jwt.example";
             jwt.Audience = "https://jwt.example";

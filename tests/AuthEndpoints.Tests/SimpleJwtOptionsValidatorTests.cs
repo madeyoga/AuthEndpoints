@@ -162,7 +162,7 @@ public class SimpleJwtOptionsValidatorTests
         var services = new ServiceCollection();
 
         var ex = Assert.Throws<OptionsValidationException>(() =>
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters();
                 options.SigningOptions.Algorithm = SimpleJwtSigningOptions.SigningAlgorithm.Rsa;
@@ -179,7 +179,7 @@ public class SimpleJwtOptionsValidatorTests
         var services = new ServiceCollection();
 
         var ex = Assert.Throws<OptionsValidationException>(() =>
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters();
                 options.SigningOptions.Algorithm = SimpleJwtSigningOptions.SigningAlgorithm.X509;
@@ -195,7 +195,7 @@ public class SimpleJwtOptionsValidatorTests
         using var rsa = RSA.Create(2048);
         var services = new ServiceCollection();
 
-        var builder = services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+        var builder = services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
         {
             options.Issuer = "https://example.com";
             options.Audience = "https://example.com";
@@ -212,7 +212,7 @@ public class SimpleJwtOptionsValidatorTests
         using var certificate = CreateCertificate();
         var services = new ServiceCollection();
 
-        var builder = services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+        var builder = services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
         {
             options.Issuer = "https://example.com";
             options.Audience = "https://example.com";
@@ -319,7 +319,7 @@ public class SimpleJwtOptionsValidatorTests
             .AddEntityFrameworkStores<TestDbContext>()
             .AddDefaultTokenProviders();
         SimpleJwtSigningOptions signing = null!;
-        builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
         {
             options.Issuer = "https://example.com";
             options.Audience = "https://example.com";

@@ -4,7 +4,6 @@ using AuthEndpoints.SignIn;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -23,32 +22,30 @@ internal sealed class EmailCodeSignInEndpointsModule;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the email-code store, Identity sign-in completer, send rate-limit policy,
+    /// Registers the email-code service, Identity sign-in completer, send rate-limit policy,
     /// and options validation. In Development, registers <see cref="DevelopmentEmailCodeSender{TUser}"/>
     /// when no <see cref="IEmailCodeSender{TUser}"/> is already registered.
     /// </summary>
-    public static IServiceCollection AddEmailCodeEndpoints<TUser, TContext>(
+    public static IServiceCollection AddEmailCodeEndpoints<TUser>(
         this IServiceCollection services,
         Action<EmailCodeOptions>? configure = null)
         where TUser : class, new()
-        where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddEmailCodeSendEndpoints<TUser, TContext>(configure);
-        services.AddEmailCodeSignInEndpoints<TUser, TContext>();
+        services.AddEmailCodeSendEndpoints<TUser>(configure);
+        services.AddEmailCodeSignInEndpoints<TUser>();
         return services;
     }
 
     /// <summary>
-    /// Registers the email-code store, sender, and send rate-limit policy used by <c>POST /emailCode/send</c>.
+    /// Registers the email-code service, sender, and send rate-limit policy used by <c>POST /emailCode/send</c>.
     /// Safe to call more than once. In Development, registers <see cref="DevelopmentEmailCodeSender{TUser}"/>
     /// when no <see cref="IEmailCodeSender{TUser}"/> is already registered.
     /// </summary>
-    public static IServiceCollection AddEmailCodeSendEndpoints<TUser, TContext>(
+    public static IServiceCollection AddEmailCodeSendEndpoints<TUser>(
         this IServiceCollection services,
         Action<EmailCodeOptions>? configure = null)
         where TUser : class, new()
-        where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -58,22 +55,21 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddModule<EmailCodeSendEndpointsModule>();
-        AddEmailCodeInfrastructure<TUser, TContext>(services, configure);
+        AddEmailCodeInfrastructure<TUser>(services, configure);
         AddEmailCodeSendRateLimiting(services);
         services.AddConfirmIdentityEmailCodeRateLimiting();
         return services;
     }
 
     /// <summary>
-    /// Registers the email-code store, Identity sign-in completer, and login rate-limit policy
+    /// Registers the email-code service, Identity sign-in completer, and login rate-limit policy
     /// used by <c>POST /emailCode/verify</c>.
     /// Safe to call more than once.
     /// </summary>
-    public static IServiceCollection AddEmailCodeSignInEndpoints<TUser, TContext>(
+    public static IServiceCollection AddEmailCodeSignInEndpoints<TUser>(
         this IServiceCollection services,
         Action<EmailCodeOptions>? configure = null)
         where TUser : class, new()
-        where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
 
@@ -83,17 +79,16 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddModule<EmailCodeSignInEndpointsModule>();
-        AddEmailCodeInfrastructure<TUser, TContext>(services, configure);
+        AddEmailCodeInfrastructure<TUser>(services, configure);
         services.AddLoginRateLimiting();
         SignInCompleterRegistry.AddIdentityCompleters(services);
         return services;
     }
 
-    private static void AddEmailCodeInfrastructure<TUser, TContext>(
+    private static void AddEmailCodeInfrastructure<TUser>(
         IServiceCollection services,
         Action<EmailCodeOptions>? configure)
         where TUser : class, new()
-        where TContext : DbContext
     {
         if (!services.HasModule<EmailCodeInfrastructureModule>())
         {
@@ -105,10 +100,7 @@ public static class ServiceCollectionExtensions
                 ServiceDescriptor.Singleton<IValidateOptions<EmailCodeOptions>, EmailCodeSenderValidator<TUser>>());
             services.TryAddSingleton(TimeProvider.System);
             services.TryAddSingleton<ILookupNormalizer, UpperInvariantLookupNormalizer>();
-            services.TryAddSingleton<IEmailCodeModelCheck, EmailCodeModelCheck<TContext>>();
-            services.TryAddScoped<IEmailCodeStore>(sp => new EmailCodeStore<TContext>(sp.GetRequiredService<TContext>()));
             services.TryAddScoped<EmailCodeService>();
-            services.TryAddScoped<IUserCreateFailureHandler<TUser>, EntityFrameworkUserCreateFailureHandler<TUser, TContext>>();
             services.TryAddScoped<IEmailCodeSender<TUser>>(sp =>
             {
                 var environment = sp.GetRequiredService<IHostEnvironment>();

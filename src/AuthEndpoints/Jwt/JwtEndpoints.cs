@@ -84,7 +84,7 @@ internal static class JwtEndpoints<TUser>
         };
 
         var session = JwtRefreshDelivery.Session(context);
-        var refreshToken = await refreshTokenService.CreateAsync(userId, securityStamp);
+        var refreshToken = await refreshTokenService.CreateAsync(userId, securityStamp, cancellationToken: context.RequestAborted);
         JwtRefreshDelivery.WriteCookie(context, refreshTokenCookieWriter, refreshToken, session);
         JwtRefreshDelivery.ApplyBody(response, refreshToken, session);
 
@@ -115,7 +115,7 @@ internal static class JwtEndpoints<TUser>
                     : "Missing refresh token cookie."));
         }
 
-        var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);
+        var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue, context.RequestAborted);
 
         if (refreshToken == null)
         {
@@ -155,7 +155,7 @@ internal static class JwtEndpoints<TUser>
             return InvalidRefresh(context, refreshTokenCookieWriter, session);
         }
 
-        var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp);
+        var newRefreshToken = await refreshTokenService.RotateAsync(refreshToken, currentStamp, context.RequestAborted);
         if (newRefreshToken is null)
         {
             // Lost the rotation race (the family is revoked) or the token expired between checks.
@@ -200,7 +200,7 @@ internal static class JwtEndpoints<TUser>
         var refreshTokenValue = presented.Value;
         if (!string.IsNullOrEmpty(refreshTokenValue))
         {
-            var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue);
+            var refreshToken = await refreshTokenService.GetRefreshTokenAsync(refreshTokenValue, context.RequestAborted);
             if (refreshToken != null)
             {
                 await refreshTokenService.RevokeFamilyAsync(refreshToken.FamilyId);

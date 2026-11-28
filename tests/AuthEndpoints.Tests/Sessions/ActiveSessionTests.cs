@@ -196,7 +196,7 @@ public class ActiveSessionTests
                 .ExecuteUpdateAsync(s => s.SetProperty(x => x.ExpiresAt, DateTime.UtcNow.AddMinutes(-1)));
         }
 
-        Assert.Equal(2, await ActiveSessionHostedService<ActiveSessionsDbContext>.CleanupOnceAsync(host.App.Services));
+        Assert.Equal(2, await ActiveSessionHostedService.CleanupOnceAsync(host.App.Services));
 
         using (var scope = host.App.Services.CreateScope())
         {
@@ -317,7 +317,7 @@ public class ActiveSessionTests
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase($"sessions-missing-{Guid.NewGuid():N}"));
         builder.Services.AddIdentityApiEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
-        builder.Services.AddActiveSessions<TestAppUser, TestDbContext>();
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddActiveSessions<TestAppUser>();
         await using var app = builder.Build();
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => app.StartAsync());
         Assert.Contains("UseActiveSessions", error.Message, StringComparison.Ordinal);
@@ -661,7 +661,7 @@ public class ActiveSessionTests
             builder.Services.AddCookieSessionEndpoints();
             builder.Services.AddBearerSessionEndpoints();
             builder.Services.AddAccountManagementEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, ActiveSessionsDbContext>(o =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, ActiveSessionsDbContext>().AddEmailCodeEndpoints<TestAppUser>(o =>
             {
                 o.ResendCooldown = TimeSpan.Zero;
                 o.SendsPerIpPerMinute = 100;
@@ -677,7 +677,7 @@ public class ActiveSessionTests
                 builder.Services.ConfigureApplicationCookie(o => o.EventsType = typeof(CountingCookieEvents));
             }
 
-            builder.Services.AddActiveSessions<TestAppUser, ActiveSessionsDbContext>(o =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, ActiveSessionsDbContext>().AddActiveSessions<TestAppUser>(o =>
             {
                 if (revalidation is { } interval)
                 {
@@ -820,14 +820,14 @@ public class ActiveSessionTests
             builder.WebHost.UseTestServer();
             builder.Services.AddDbContext<ActiveSessionsDbContext>(o => o.UseSqlite($"Data Source={path};Default Timeout=30"));
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(new CapturingEmailSender());
-            builder.Services.AddAuthEndpoints<TestAppUser, ActiveSessionsDbContext>()
+            builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<ActiveSessionsDbContext>()
                 .AddPassword()
                 .AddJwt(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                     jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
                 });
-            builder.Services.AddActiveSessions<TestAppUser, ActiveSessionsDbContext>();
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, ActiveSessionsDbContext>().AddActiveSessions<TestAppUser>();
 
             var app = builder.Build();
             await CreateDatabaseAsync(app);

@@ -39,14 +39,14 @@ public class AuthEndpointsBuilderTests
     public void RequireConfirmedAccount_DefaultsToTrue_AndConfigureIdentityReplacesIt()
     {
         var builder = NewBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         using (var app = builder.Build())
         {
             Assert.True(app.Services.GetRequiredService<IOptions<IdentityOptions>>().Value.SignIn.RequireConfirmedAccount);
         }
 
         var relaxed = NewBuilder();
-        relaxed.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        relaxed.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false);
         using var relaxedApp = relaxed.Build();
         Assert.False(relaxedApp.Services.GetRequiredService<IOptions<IdentityOptions>>().Value.SignIn.RequireConfirmedAccount);
@@ -316,7 +316,7 @@ public class AuthEndpointsBuilderTests
     public void LaterConfigure_EmailConfirmation_Applies()
     {
         var builder = NewBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o => o.EmailConfirmation.ConfirmEmailRedirectUri = "/first");
+        builder.Services.AddAuthEndpoints<TestAppUser>(o => o.EmailConfirmation.ConfirmEmailRedirectUri = "/first").AddEntityFrameworkStores<TestDbContext>();
         builder.Services.Configure<AuthEndpointsOptions>(o =>
         {
             o.EmailConfirmation.ConfirmEmailRedirectUri = "/later";
@@ -333,7 +333,7 @@ public class AuthEndpointsBuilderTests
     public void Production_MissingEmailSender_FailsValidation()
     {
         var builder = NewBuilder(Environments.Production);
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         using var app = builder.Build();
 
         var ex = Assert.ThrowsAny<Exception>(() =>
@@ -345,7 +345,7 @@ public class AuthEndpointsBuilderTests
     public void Production_EmailSenderCheck_CanBeTurnedOff()
     {
         var builder = NewBuilder(Environments.Production);
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o => o.RequireEmailSenderInProduction = false)
+        builder.Services.AddAuthEndpoints<TestAppUser>(o => o.RequireEmailSenderInProduction = false).AddEntityFrameworkStores<TestDbContext>()
             .AddPassword();
         using var app = builder.Build();
 
@@ -357,8 +357,8 @@ public class AuthEndpointsBuilderTests
     {
         var builder = NewBuilder(Environments.Production);
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(o =>
-            o.EmailConfirmation.ConfirmEmailRedirectUri = "https://spa.example.com/confirmed");
+        builder.Services.AddAuthEndpoints<TestAppUser>(o =>
+            o.EmailConfirmation.ConfirmEmailRedirectUri = "https://spa.example.com/confirmed").AddEntityFrameworkStores<TestDbContext>();
         using var app = builder.Build();
 
         var ex = Assert.ThrowsAny<Exception>(() =>
@@ -380,7 +380,7 @@ public class AuthEndpointsBuilderTests
     public void MapJwt_WithoutAddJwt_ThrowsNamedFix()
     {
         var builder = NewBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         using var app = builder.Build();
         var ex = Assert.Throws<InvalidOperationException>(() =>
             app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Jwt));
@@ -391,7 +391,7 @@ public class AuthEndpointsBuilderTests
     public void MapIdentityBearer_WithoutAddIdentityBearer_ThrowsNamedFix()
     {
         var builder = NewBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         using var app = builder.Build();
         var ex = Assert.Throws<InvalidOperationException>(() =>
             app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.IdentityBearer));
@@ -404,7 +404,7 @@ public class AuthEndpointsBuilderTests
     public void Map_PathMustBeRooted()
     {
         var builder = NewBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         using var app = builder.Build();
         var ex = Assert.Throws<ArgumentException>(() =>
             app.MapAuthEndpoints<TestAppUser>("auth", AuthEndpointsSession.Cookie));
@@ -416,7 +416,7 @@ public class AuthEndpointsBuilderTests
     {
         var builder = NewBuilder();
         var ex = Assert.ThrowsAny<Exception>(() =>
-            builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddJwt(_ => { }));
+            builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddJwt(_ => { }));
         Assert.Contains("SymmetricKey", ex.ToString(), StringComparison.Ordinal);
     }
 
@@ -425,8 +425,8 @@ public class AuthEndpointsBuilderTests
     {
         var builder = NewBuilder();
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword(p => p.SignUp = false);
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword(p => p.SignUp = false);
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         using var app = builder.Build();
         app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie);
 
@@ -439,7 +439,7 @@ public class AuthEndpointsBuilderTests
     public void AddAuthEndpoints_Roles_ResolvesRoleStoreWithoutRemoveAll()
     {
         var builder = NewRolesBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestRolesDbContext>().AddPassword();
 
         using var app = builder.Build();
         using var scope = app.Services.CreateScope();
@@ -456,7 +456,7 @@ public class AuthEndpointsBuilderTests
     public void AddAuthEndpoints_WithoutRoles_ResolvesUserOnlyStore()
     {
         var builder = NewBuilder();
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
 
         using var app = builder.Build();
         using var scope = app.Services.CreateScope();
@@ -524,7 +524,7 @@ public class AuthEndpointsBuilderTests
     private static async Task<WebApplication> StartAsync(
         CapturingEmailSender mail,
         AuthEndpointsSession session,
-        Action<AuthEndpointsBuilder<TestAppUser, TestDbContext>> add,
+        Action<AuthEndpointsBuilder> add,
         Action<AuthEndpointsOptions>? configure = null)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -536,7 +536,7 @@ public class AuthEndpointsBuilderTests
         builder.Services.AddDbContext<TestDbContext>(o => o.UseSqlite($"Data Source={path}"));
         builder.Services.AddSingleton(mail);
         builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
-        add(builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>(configure));
+        add(builder.Services.AddAuthEndpoints<TestAppUser>(configure).AddEntityFrameworkStores<TestDbContext>());
         var app = builder.Build();
         using (var scope = app.Services.CreateScope())
         {
@@ -560,7 +560,7 @@ public class AuthEndpointsBuilderTests
         builder.WebHost.UseTestServer();
         var path = Path.Combine(Path.GetTempPath(), $"ae-builder-roles-{Guid.NewGuid():N}.sqlite");
         builder.Services.AddDbContext<TestRolesDbContext>(o => o.UseSqlite($"Data Source={path}"));
-        builder.Services.AddAuthEndpoints<TestAppUser, IdentityRole, TestRolesDbContext>().AddPassword();
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestRolesDbContext>().AddPassword();
         var app = builder.Build();
         using (var scope = app.Services.CreateScope())
         {
