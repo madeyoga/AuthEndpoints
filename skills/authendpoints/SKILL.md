@@ -3,7 +3,7 @@ name: authendpoints
 description: "Wire AuthEndpoints in an ASP.NET Core host. AddPasswordAuth, UseAuthEndpoints, and MapPasswordAuth are the password session (cookie by default, prefix /auth). AddAuthEndpoints is the 3.x compatibility facade. Covers JWT, Identity bearer, passkeys, CSRF, ReAuth, email code, GitHub or Google, active sessions, and composing building blocks. Use when the project references the AuthEndpoints package, the user asks for Identity auth API endpoints, or the task is login, register, session, or token flows for a first-party web or mobile client. Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
-  version: "4.3.0"
+  version: "4.4.0"
 ---
 
 # Wire AuthEndpoints
@@ -20,7 +20,7 @@ Current packages:
 
 | Package | Version | Role |
 | --- | --- | --- |
-| `AuthEndpoints` | 4.3.0 | Endpoints, both facades, and external OAuth types in namespace `AuthEndpoints.External.OAuth` |
+| `AuthEndpoints` | 4.4.0 | Endpoints, both facades, and external OAuth types in namespace `AuthEndpoints.External.OAuth` |
 | `AuthEndpoints.OAuth.GitHub` | 4.0.1 | Registers the GitHub handler. The host maps the routes. |
 | `AuthEndpoints.OAuth.Google` | 4.0.1 | Registers the Google handler. The host maps the routes. |
 | `AuthEndpoints.External.OAuth` | 4.0.1 | Forwarding shim. Remove the reference. |
