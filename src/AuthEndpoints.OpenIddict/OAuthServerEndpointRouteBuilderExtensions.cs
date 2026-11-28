@@ -2,7 +2,6 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -47,7 +46,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
 
         // Validates OAuthServerOptions now instead of on the first request.
         _ = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
-        marker.EnsureModel(endpoints.ServiceProvider);
+        marker.EnsureStores(endpoints.ServiceProvider);
 
         endpoints.MapAuthEndpointsOpenIddict();
         return new OAuthServerEndpoints(
@@ -205,43 +204,47 @@ public static class OAuthServerEndpointRouteBuilderExtensions
             document.ResourceName));
 }
 
-/// <summary>Remembers the DbContext and key types so mapping does not need them again.</summary>
+/// <summary>Remembers the user key type so mapping does not need it again.</summary>
 internal abstract class OAuthServerMarker
 {
     public abstract RouteHandlerBuilder MapAuthorize(IEndpointRouteBuilder endpoints);
 
-    /// <summary>Throws when the DbContext model lacks the tables added by <c>UseAuthEndpointsOpenIddict</c>. Builds the model only.</summary>
-    public abstract void EnsureModel(IServiceProvider services);
-
-    /// <summary>The scoped DbContext that OpenIddict's stores use in <paramref name="services"/>.</summary>
-    public abstract DbContext Context(IServiceProvider services);
+    /// <summary>
+    /// Throws when a store the server needs is not registered, or cannot be created. Resolving the EF Core stores also
+    /// checks that the model has the tables added by <c>UseAuthEndpointsOpenIddict</c>.
+    /// </summary>
+    public abstract void EnsureStores(IServiceProvider services);
 }
 
-internal sealed class OAuthServerMarker<TContext, TKey> : OAuthServerMarker
-    where TContext : DbContext
+internal sealed class OAuthServerMarker<TKey> : OAuthServerMarker
     where TKey : IEquatable<TKey>
 {
-    public override void EnsureModel(IServiceProvider services)
+    public override void EnsureStores(IServiceProvider services)
     {
         using var scope = services.CreateScope();
-        var model = scope.ServiceProvider.GetRequiredService<TContext>().Model;
-        if (model.FindEntityType(typeof(OAuthRequest<TKey>)) is null
-            || model.FindEntityType(typeof(OAuthDeveloperApp<TKey>)) is null
-            || model.FindEntityType(typeof(global::OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreApplication)) is null)
-        {
-            throw new InvalidOperationException(
-                $"{typeof(TContext).Name} has no OAuth server tables for user key type {typeof(TKey).Name}. " +
-                "Call modelBuilder.UseAuthEndpointsOpenIddict<TUser>() in OnModelCreating, with the same TUser as AddOAuthServer, then add a migration.");
-        }
+        Require<IOAuthRequestStore<TKey>>(scope.ServiceProvider);
+        Require<IOAuthDeveloperAppStore<TKey>>(scope.ServiceProvider);
+        Require<IOAuthServerQueries>(scope.ServiceProvider);
     }
 
-    public override DbContext Context(IServiceProvider services) => services.GetRequiredService<TContext>();
+    private static void Require<TStore>(IServiceProvider services)
+        where TStore : class
+    {
+        if (services.GetService<TStore>() is null)
+        {
+            var name = typeof(TStore).IsGenericType
+                ? $"{typeof(TStore).Name[..typeof(TStore).Name.IndexOf('`')]}<{typeof(TKey).Name}>"
+                : typeof(TStore).Name;
+            throw new InvalidOperationException(
+                $"The OAuth server needs an {name}. AddOAuthServer<TUser, TContext>() registers the EF Core one; a custom store registers its own.");
+        }
+    }
 
     public override RouteHandlerBuilder MapAuthorize(IEndpointRouteBuilder endpoints)
         => endpoints.MapMethods(
             OAuthServerConstants.AuthorizationEndpointPath,
             [HttpMethods.Get, HttpMethods.Post],
-            OAuthAuthorizeEndpoint<TContext, TKey>.HandleAsync)
+            OAuthAuthorizeEndpoint<TKey>.HandleAsync)
             .DisableAntiforgery();
 }
 

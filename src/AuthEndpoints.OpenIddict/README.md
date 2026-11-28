@@ -84,6 +84,20 @@ dotnet ef migrations add OAuthServer
 
 Pass `userForeignKey: false` when the users table is in a different DbContext.
 
+#### Storage
+
+The server reads and writes through public store interfaces, and `AddOAuthServer<TUser, TContext>` registers EF Core implementations of each:
+
+| Interface | Holds |
+| --- | --- |
+| `IOAuthRequestStore<TKey>` | Pending consent requests (`OAuthRequests`). `TryConsumeAsync` is atomic, so of two answers to one request only one wins. |
+| `IOAuthDeveloperAppStore<TKey>` | Developer app rows (`OAuthDeveloperApps`): who owns each app and whether it may be used. |
+| `IOAuthServerQueries` | Bulk reads of OpenIddict's tables: a user's live grants, an app's valid grants, and redirect URIs for many clients. A custom implementation can convert each authorization with `OAuthAuthorizationRecord.ReadAsync`. |
+| `IOAuthServerEventTransactions` | Optional. Holds [audit events](#audit-events) until the host's transaction commits. |
+| `IOAuthAuthorizationRefresher` | Optional. Reloads a grant after OpenIddict reports a concurrency failure. |
+
+A store that is not registered fails `MapOAuthServer` with a message that names it. OpenIddict's own stores (applications, authorizations, scopes, tokens) come from OpenIddict.
+
 ### 3. Map the routes
 
 ```csharp

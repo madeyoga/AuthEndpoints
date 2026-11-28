@@ -85,7 +85,7 @@ public sealed record OAuthConsentResult(
 
 /// <summary>
 /// Reads, approves, and denies pending consent requests. Use it from the host's own consent endpoints,
-/// or map the defaults with <c>MapOAuthConsentEndpoints</c>. It uses the scoped DbContext, so a host
+/// or map the defaults with <c>MapOAuthConsentEndpoints</c>. It uses the scoped stores, so a host
 /// transaction around a call also covers the OpenIddict rows it writes.
 /// </summary>
 public interface IOAuthConsentService
@@ -117,8 +117,9 @@ public interface IOAuthConsentService
     Task<bool> RevokeAuthorizationAsync(string authorizationId, CancellationToken cancellationToken = default);
 }
 
-internal sealed class OAuthConsentService<TContext, TKey>(
-    TContext db,
+internal sealed class OAuthConsentService<TKey>(
+    IOAuthRequestStore<TKey> requests,
+    IOAuthDeveloperAppStore<TKey> apps,
     IHttpContextAccessor httpContextAccessor,
     IOAuthPrincipalFactory principalFactory,
     IOAuthUserValidator userValidator,
@@ -134,14 +135,11 @@ internal sealed class OAuthConsentService<TContext, TKey>(
     IOAuthScopeDescriptions scopeDescriptions,
     OAuthServerEventDispatcher events,
     TimeProvider clock) : IOAuthConsentService
-    where TContext : DbContext
     where TKey : IEquatable<TKey>
 {
-    private DbSet<OAuthRequest<TKey>> Requests => db.Set<OAuthRequest<TKey>>();
-
     public async Task<OAuthPendingRequest?> FindAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
     {
-        if (!TryKey(userId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(userId, out var key))
         {
             return null;
         }
@@ -162,7 +160,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(createPrincipal);
-        if (!TryKey(userId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(userId, out var key))
         {
             return OAuthConsentResult.NotFound;
         }
@@ -247,7 +245,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
     public async Task<OAuthConsentResult> DenyAsync(Guid requestId, string userId, CancellationToken cancellationToken = default)
     {
-        if (!TryKey(userId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(userId, out var key))
         {
             return OAuthConsentResult.NotFound;
         }
@@ -322,35 +320,24 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             && await OAuthLoopbackRedirects.IsRegisteredAsync(applications, application, row.RedirectUri, cancellationToken);
 
     /// <summary>
-    /// The usable request, with the developer app row for its client when there is one. One statement: the app is
-    /// a left join on its unique client id, so seeded and dynamically registered clients cost nothing extra.
-    /// The app is read when the card is fetched, not copied at authorize.
+    /// The usable request, with the developer app row for its client when there is one. Seeded and dynamically registered
+    /// clients have none. The app is read when the card is fetched, not copied at authorize.
     /// </summary>
     private async Task<LoadedRequest?> LoadAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
     {
-        var now = clock.GetUtcNow();
-        var loaded = await (
-                from request in Requests.AsNoTracking()
-                where request.Id == requestId && request.UserId.Equals(key)
-                    && request.ConsumedAt == null && request.ExpiresAt > now
-                join app in db.Set<OAuthDeveloperApp<TKey>>().AsNoTracking()
-                    on request.ClientId equals app.ClientId into apps
-                from app in apps.DefaultIfEmpty()
-                select new { Request = request, App = app })
-            .FirstOrDefaultAsync(cancellationToken);
-        return loaded is null ? null : new LoadedRequest(loaded.Request, loaded.App);
+        var request = await requests.FindLiveAsync(requestId, key, clock.GetUtcNow(), cancellationToken);
+        if (request is null)
+        {
+            return null;
+        }
+
+        var app = (await apps.FindByClientIdsAsync([request.ClientId], cancellationToken)).FirstOrDefault();
+        return new LoadedRequest(request, app);
     }
 
     /// <summary>Marks the request used. Only one caller wins when two race.</summary>
-    private async Task<bool> ConsumeAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
-    {
-        var now = clock.GetUtcNow();
-        var won = await Requests
-            .Where(request => request.Id == requestId && request.UserId.Equals(key)
-                && request.ConsumedAt == null && request.ExpiresAt > now)
-            .ExecuteUpdateAsync(set => set.SetProperty(request => request.ConsumedAt, now), cancellationToken);
-        return won == 1;
-    }
+    private Task<bool> ConsumeAsync(Guid requestId, TKey key, CancellationToken cancellationToken)
+        => requests.TryConsumeAsync(requestId, key, clock.GetUtcNow(), cancellationToken);
 
     private async Task<OAuthPendingRequest> ToPendingAsync(LoadedRequest loaded, string userId, CancellationToken cancellationToken)
     {
@@ -375,7 +362,7 @@ internal sealed class OAuthConsentService<TContext, TKey>(
         }
 
         var owner = await ownerDisplay.GetOwnerAsync(
-            new OAuthDeveloperAppOwnerContext(app.Id, app.ClientId, KeyToString(app.OwnerId)), cancellationToken);
+            new OAuthDeveloperAppOwnerContext(app.Id, app.ClientId, OAuthUserKeys<TKey>.Format(app.OwnerId)), cancellationToken);
         return pending with
         {
             HomepageUrl = app.HomepageUrl,
@@ -400,30 +387,6 @@ internal sealed class OAuthConsentService<TContext, TKey>(
 
     private sealed record LoadedRequest(OAuthRequest<TKey> Request, OAuthDeveloperApp<TKey>? App);
 
-    internal static bool TryKey(string? value, out TKey key)
-    {
-        key = default!;
-        if (string.IsNullOrEmpty(value))
-        {
-            return false;
-        }
-
-        try
-        {
-            var converted = TypeDescriptor.GetConverter(typeof(TKey)).ConvertFromInvariantString(value);
-            if (converted is TKey typed)
-            {
-                key = typed;
-                return true;
-            }
-        }
-        catch (Exception ex) when (ex is FormatException or NotSupportedException or ArgumentException)
-        {
-        }
-
-        return false;
-    }
-
     /// <summary>Describes the scopes in the culture of the current request, through <see cref="IOAuthScopeDescriptions"/>.</summary>
     private async Task<OAuthPendingRequest> WithScopeDetailsAsync(OAuthPendingRequest pending, CancellationToken cancellationToken)
         => pending with
@@ -431,6 +394,4 @@ internal sealed class OAuthConsentService<TContext, TKey>(
             ScopeDetails = await scopeDescriptions.DescribeAsync(pending.Scopes, CultureInfo.CurrentUICulture, cancellationToken),
         };
 
-    internal static string KeyToString(TKey key)
-        => Convert.ToString(key, CultureInfo.InvariantCulture) ?? string.Empty;
 }

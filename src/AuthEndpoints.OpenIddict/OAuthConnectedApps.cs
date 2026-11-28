@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
@@ -82,18 +81,16 @@ public interface IOAuthConnectedAppService
         string userId, string authorizationId, OAuthRevokedBy revokedBy, string? actorId, CancellationToken cancellationToken = default);
 }
 
-internal sealed class OAuthConnectedAppService<TContext, TKey>(
-    TContext db,
+internal sealed class OAuthConnectedAppService<TKey>(
+    IOAuthServerQueries queries,
+    IOAuthDeveloperAppStore<TKey> developerApps,
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
     OAuthServerEventDispatcher events,
     IOAuthScopeDescriptions scopeDescriptions,
     TimeProvider clock) : IOAuthConnectedAppService
-    where TContext : DbContext
     where TKey : IEquatable<TKey>
 {
-    private static readonly JsonSerializerOptions Relaxed = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-
     public async Task<IReadOnlyList<OAuthConnectedApp>> ListAsync(string userId, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(userId);
@@ -110,10 +107,9 @@ internal sealed class OAuthConnectedAppService<TContext, TKey>(
             .Distinct(StringComparer.Ordinal)
             .ToList();
         var homepages = developerClientIds.Count == 0
-            ? []
-            : await db.Set<OAuthDeveloperApp<TKey>>().AsNoTracking()
-                .Where(app => developerClientIds.Contains(app.ClientId))
-                .ToDictionaryAsync(app => app.ClientId, app => app.HomepageUrl, StringComparer.Ordinal, cancellationToken);
+            ? new Dictionary<string, string>(StringComparer.Ordinal)
+            : (await developerApps.FindByClientIdsAsync(developerClientIds, cancellationToken))
+                .ToDictionary(app => app.ClientId, app => app.HomepageUrl, StringComparer.Ordinal);
 
         // Through IOAuthScopeDescriptions, so the list shows the same text as the consent card, including descriptions
         // an app loads from its own store.
@@ -183,32 +179,15 @@ internal sealed class OAuthConnectedAppService<TContext, TKey>(
 
     /// <summary>
     /// The user's grants. Without <paramref name="authorizationId"/>, only live ones (valid, and permanent or with a valid
-    /// unexpired token). With it, that grant when it is valid and owned. The database narrows by subject or by the stored user
-    /// id's text; ownership is then checked exactly.
+    /// unexpired token). With it, that grant when it is valid and owned. Ownership is checked exactly here, whatever the
+    /// store returned.
     /// </summary>
     private async Task<IReadOnlyList<OAuthAuthorizationRecord>> OwnedAsync(
         string userId, string? authorizationId, CancellationToken cancellationToken)
     {
-        var now = clock.GetUtcNow().UtcDateTime;
-        var relaxed = JsonSerializer.Serialize(userId, Relaxed);
-        var strict = JsonSerializer.Serialize(userId);
-        const string valid = OpenIddictConstants.Statuses.Valid;
-        const string permanent = OpenIddictConstants.AuthorizationTypes.Permanent;
-        var rows = authorizationId is null
-            ? await OAuthAuthorizationRecord.QueryAsync(
-                db,
-                authorization => authorization.Status == valid
-                    && authorization.Application != null
-                    && (authorization.Subject == userId
-                        || (authorization.Properties != null
-                            && (authorization.Properties.Contains(relaxed) || authorization.Properties.Contains(strict))))
-                    && (authorization.Type == permanent
-                        || authorization.Tokens.Any(token => token.Status == valid && token.ExpirationDate > now)),
-                cancellationToken)
-            : await OAuthAuthorizationRecord.QueryAsync(
-                db,
-                authorization => authorization.Id == authorizationId && authorization.Status == valid,
-                cancellationToken);
+        IReadOnlyList<OAuthAuthorizationRecord> rows = authorizationId is null
+            ? await queries.ListLiveGrantsAsync(userId, clock.GetUtcNow(), cancellationToken)
+            : await queries.FindValidGrantAsync(authorizationId, cancellationToken) is { } grant ? [grant] : [];
 
         // The stored approving user wins over the subject, which a principal factory may have set to someone else.
         return rows.Where(row => string.Equals(row.UserId, userId, StringComparison.Ordinal) && row.ClientId is not null).ToList();

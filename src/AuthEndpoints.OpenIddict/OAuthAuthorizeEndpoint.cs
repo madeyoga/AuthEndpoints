@@ -2,7 +2,6 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -14,8 +13,7 @@ namespace AuthEndpoints.OpenIddict;
 /// PKCE, and requested scopes when this runs (passthrough mode). This adds the resource and default-scope rules,
 /// sends signed-out users to the host login page, and stores a pending consent for the host consent page.
 /// </summary>
-internal static class OAuthAuthorizeEndpoint<TContext, TKey>
-    where TContext : DbContext
+internal static class OAuthAuthorizeEndpoint<TKey>
     where TKey : IEquatable<TKey>
 {
     private const int MaxStateLength = 2048;
@@ -26,7 +24,7 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
 
     public static async Task<IResult> HandleAsync(
         HttpContext http,
-        TContext db,
+        IOAuthRequestStore<TKey> requests,
         IOpenIddictApplicationManager applications,
         IOAuthDeveloperAppGate developerApps,
         IOptions<OAuthServerOptions> options,
@@ -137,7 +135,7 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
             return Reject(OpenIddictConstants.Errors.ConsentRequired, "The user must approve this client.");
         }
 
-        if (!OAuthConsentService<TContext, TKey>.TryKey(userId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(userId, out var key))
         {
             throw new InvalidOperationException(
                 $"The '{settings.UserIdClaimType}' claim is not a valid {typeof(TKey).Name} user id.");
@@ -168,8 +166,7 @@ internal static class OAuthAuthorizeEndpoint<TContext, TKey>
             CreatedAt = now,
             ExpiresAt = now + settings.ConsentLifetime,
         };
-        db.Set<OAuthRequest<TKey>>().Add(row);
-        await db.SaveChangesAsync(cancellationToken);
+        await requests.CreateAsync(row, cancellationToken);
         return Results.Redirect(QueryHelpers.AddQueryString(
             settings.ConsentUrl!, settings.ConsentRequestParameter, row.Id.ToString()));
     }

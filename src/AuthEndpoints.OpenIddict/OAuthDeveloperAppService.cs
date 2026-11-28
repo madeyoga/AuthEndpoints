@@ -3,10 +3,8 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
-using OpenIddict.EntityFrameworkCore.Models;
 
 namespace AuthEndpoints.OpenIddict;
 
@@ -128,36 +126,31 @@ internal interface IOAuthDeveloperAppGate
     ValueTask<bool> AllowsAsync(object application, CancellationToken cancellationToken);
 }
 
-internal sealed class OAuthDeveloperAppService<TContext, TKey>(
-    TContext db,
+internal sealed class OAuthDeveloperAppService<TKey>(
+    IOAuthDeveloperAppStore<TKey> apps,
+    IOAuthServerQueries queries,
     IOpenIddictApplicationManager applications,
     IOpenIddictAuthorizationManager authorizations,
     IOpenIddictTokenManager tokens,
     IOptions<OAuthServerOptions> options,
     OAuthServerEventDispatcher events,
     TimeProvider clock) : IOAuthDeveloperAppService, IOAuthDeveloperAppGate
-    where TContext : DbContext
     where TKey : IEquatable<TKey>
 {
-    private DbSet<OAuthDeveloperApp<TKey>> Apps => db.Set<OAuthDeveloperApp<TKey>>();
-
     public async Task<IReadOnlyList<OAuthDeveloperAppInfo>> ListAsync(string ownerId, CancellationToken cancellationToken = default)
     {
-        if (!OAuthConsentService<TContext, TKey>.TryKey(ownerId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(ownerId, out var key))
         {
             return [];
         }
 
-        var rows = await Apps.AsNoTracking()
-            .Where(app => app.OwnerId.Equals(key))
-            .OrderBy(app => app.CreatedAt)
-            .ToListAsync(cancellationToken);
+        var rows = await apps.ListByOwnerAsync(key, cancellationToken);
         return await ToInfoAsync(rows, cancellationToken);
     }
 
     public async Task<OAuthDeveloperAppInfo?> FindAsync(Guid id, string ownerId, CancellationToken cancellationToken = default)
     {
-        var row = await LoadAsync(id, ownerId, tracking: false, cancellationToken);
+        var row = await LoadAsync(id, ownerId, cancellationToken);
         return row is null ? null : (await ToInfoAsync([row], cancellationToken))[0];
     }
 
@@ -165,7 +158,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         string ownerId, OAuthDeveloperAppInput input, bool confidential, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if (!OAuthConsentService<TContext, TKey>.TryKey(ownerId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(ownerId, out var key))
         {
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.NotFound);
         }
@@ -176,7 +169,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Invalid, Errors: errors);
         }
 
-        var owned = await Apps.CountAsync(app => app.OwnerId.Equals(key), cancellationToken);
+        var owned = await apps.CountByOwnerAsync(key, cancellationToken);
         if (owned >= settings.DeveloperApps.MaxAppsPerUser)
         {
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.LimitReached);
@@ -222,15 +215,14 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
 
         // The row goes first. An application without a row is refused and swept, so a failure here never
         // leaves a usable client behind.
-        Apps.Add(row);
-        await db.SaveChangesAsync(cancellationToken);
+        await apps.CreateAsync(row, cancellationToken);
         try
         {
             await applications.CreateAsync(descriptor, cancellationToken);
         }
         catch
         {
-            await Apps.Where(app => app.Id == row.Id).ExecuteDeleteAsync(CancellationToken.None);
+            await apps.DeleteAsync(row.Id, CancellationToken.None);
             throw;
         }
 
@@ -248,7 +240,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         Guid id, string ownerId, OAuthDeveloperAppInput input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
-        var row = await LoadAsync(id, ownerId, tracking: true, cancellationToken);
+        var row = await LoadAsync(id, ownerId, cancellationToken);
         if (row is null || await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is not { } application)
         {
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.NotFound);
@@ -293,9 +285,13 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         if (needsReview)
         {
             // Saved before the new redirects go live, so a failure later never leaves them on an active app.
-            row.Status = OAuthDeveloperAppStatus.PendingApproval;
+            // Compare-and-set: an admin who disabled the app meanwhile keeps it disabled.
             row.UpdatedAt = clock.GetUtcNow();
-            await db.SaveChangesAsync(cancellationToken);
+            if (await apps.SetStatusAsync(
+                    row.Id, OAuthDeveloperAppStatus.PendingApproval, OAuthDeveloperAppStatus.Active, row.UpdatedAt, cancellationToken))
+            {
+                row.Status = OAuthDeveloperAppStatus.PendingApproval;
+            }
         }
 
         // The hashed secret round-trips unchanged, so OpenIddict keeps it as is.
@@ -305,24 +301,25 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         row.HomepageUrl = input.HomepageUrl!.Trim();
         row.Description = Description(input.Description);
         row.UpdatedAt = clock.GetUtcNow();
-        await db.SaveChangesAsync(cancellationToken);
+        // Only the owner's values: the status stays as stored, whatever this request loaded.
+        await apps.UpdateDetailsAsync(row.Id, row.Name, row.HomepageUrl, row.Description, row.UpdatedAt, cancellationToken);
         return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout));
     }
 
     public async Task<bool> DeleteAsync(Guid id, string ownerId, CancellationToken cancellationToken = default)
     {
-        var row = await LoadAsync(id, ownerId, tracking: false, cancellationToken);
+        var row = await LoadAsync(id, ownerId, cancellationToken);
         if (row is null)
         {
             return false;
         }
 
         // Row first: if deleting the application fails, the gate already refuses it and cleanup removes it.
-        await Apps.Where(app => app.Id == row.Id).ExecuteDeleteAsync(cancellationToken);
+        await apps.DeleteAsync(row.Id, cancellationToken);
         if (await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is { } application)
         {
             await DeleteApplicationAsync(
-                db, applications, tokens, authorizations, application, events, OAuthRevokedBy.ClientDeleted, cancellationToken);
+                applications, tokens, authorizations, application, events, OAuthRevokedBy.ClientDeleted, cancellationToken);
         }
 
         return true;
@@ -330,7 +327,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
 
     public async Task<OAuthDeveloperAppResult> RotateSecretAsync(Guid id, string ownerId, CancellationToken cancellationToken = default)
     {
-        var row = await LoadAsync(id, ownerId, tracking: true, cancellationToken);
+        var row = await LoadAsync(id, ownerId, cancellationToken);
         if (row is null || await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is not { } application)
         {
             return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.NotFound);
@@ -346,7 +343,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         var now = clock.GetUtcNow();
         row.SecretCreatedAt = now;
         row.UpdatedAt = now;
-        await db.SaveChangesAsync(cancellationToken);
+        await apps.SetSecretCreatedAtAsync(row.Id, now, cancellationToken);
         var redirects = await RedirectsAsync(application, cancellationToken);
         var postLogout = (await applications.GetPostLogoutRedirectUrisAsync(application, cancellationToken)).ToArray();
         return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout), secret);
@@ -355,16 +352,13 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
     public async Task<IReadOnlyList<OAuthDeveloperAppInfo>> ListByStatusAsync(
         OAuthDeveloperAppStatus status, CancellationToken cancellationToken = default)
     {
-        var rows = await Apps.AsNoTracking()
-            .Where(app => app.Status == status)
-            .OrderBy(app => app.CreatedAt)
-            .ToListAsync(cancellationToken);
+        var rows = await apps.ListByStatusAsync(status, cancellationToken);
         return await ToInfoAsync(rows, cancellationToken);
     }
 
     public async Task<bool> SetStatusAsync(Guid id, OAuthDeveloperAppStatus status, CancellationToken cancellationToken = default)
     {
-        var row = await Apps.FirstOrDefaultAsync(app => app.Id == id, cancellationToken);
+        var row = await apps.FindAsync(id, cancellationToken);
         if (row is null)
         {
             return false;
@@ -372,12 +366,12 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
 
         row.Status = status;
         row.UpdatedAt = clock.GetUtcNow();
-        await db.SaveChangesAsync(cancellationToken);
+        await apps.SetStatusAsync(row.Id, status, expected: null, row.UpdatedAt, cancellationToken);
         if (status != OAuthDeveloperAppStatus.Active
             && await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is { } application
             && await applications.GetIdAsync(application, cancellationToken) is { Length: > 0 } applicationId)
         {
-            var valid = await events.ValidAuthorizationsAsync(db, applicationId, cancellationToken);
+            var valid = await events.ValidAuthorizationsAsync(applicationId, cancellationToken);
             await tokens.RevokeByApplicationIdAsync(applicationId, cancellationToken);
             await authorizations.RevokeByApplicationIdAsync(applicationId, cancellationToken);
             foreach (var authorization in valid)
@@ -399,9 +393,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         }
 
         var clientId = await applications.GetClientIdAsync(application, cancellationToken);
-        return await Apps.AnyAsync(
-            app => app.Id == id && app.ClientId == clientId && app.Status == OAuthDeveloperAppStatus.Active,
-            cancellationToken);
+        return !string.IsNullOrEmpty(clientId) && await apps.IsActiveAsync(id, clientId, cancellationToken);
     }
 
     /// <summary>The row id a developer app's OpenIddict application points to, or <see langword="null"/> for other clients.</summary>
@@ -419,7 +411,6 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
     }
 
     internal static async Task DeleteApplicationAsync(
-        TContext db,
         IOpenIddictApplicationManager applications,
         IOpenIddictTokenManager tokens,
         IOpenIddictAuthorizationManager authorizations,
@@ -431,7 +422,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         if (await applications.GetIdAsync(application, cancellationToken) is { Length: > 0 } applicationId)
         {
             // Listed before the bulk revoke, so each grant it ends can be reported. Empty without subscribers.
-            var valid = await events.ValidAuthorizationsAsync(db, applicationId, cancellationToken);
+            var valid = await events.ValidAuthorizationsAsync(applicationId, cancellationToken);
 
             // Revoke first so issued tokens stop working even if a later step fails.
             await tokens.RevokeByApplicationIdAsync(applicationId, cancellationToken);
@@ -445,59 +436,36 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         await applications.DeleteAsync(application, cancellationToken);
     }
 
-    private async Task<OAuthDeveloperApp<TKey>?> LoadAsync(Guid id, string ownerId, bool tracking, CancellationToken cancellationToken)
+    private async Task<OAuthDeveloperApp<TKey>?> LoadAsync(Guid id, string ownerId, CancellationToken cancellationToken)
     {
-        if (!OAuthConsentService<TContext, TKey>.TryKey(ownerId, out var key))
+        if (!OAuthUserKeys<TKey>.TryParse(ownerId, out var key))
         {
             return null;
         }
 
-        var query = tracking ? Apps : Apps.AsNoTracking();
-        return await query.FirstOrDefaultAsync(app => app.Id == id && app.OwnerId.Equals(key), cancellationToken);
+        var row = await apps.FindAsync(id, cancellationToken);
+        return row is not null && row.OwnerId.Equals(key) ? row : null;
     }
 
     /// <summary>One query for the redirect URIs of every listed app.</summary>
     private async Task<IReadOnlyList<OAuthDeveloperAppInfo>> ToInfoAsync(
-        List<OAuthDeveloperApp<TKey>> rows, CancellationToken cancellationToken)
+        IReadOnlyList<OAuthDeveloperApp<TKey>> rows, CancellationToken cancellationToken)
     {
         if (rows.Count == 0)
         {
             return [];
         }
 
-        var clientIds = rows.Select(row => row.ClientId).ToList();
-        var stored = await db.Set<OpenIddictEntityFrameworkCoreApplication>().AsNoTracking()
-            .Where(application => clientIds.Contains(application.ClientId!))
-            .Select(application => new { application.ClientId, application.RedirectUris, application.PostLogoutRedirectUris })
-            .ToListAsync(cancellationToken);
-        var redirects = stored.ToDictionary(
-            application => application.ClientId!,
-            application => (ParseRedirects(application.RedirectUris), ParseRedirects(application.PostLogoutRedirectUris)),
-            StringComparer.Ordinal);
+        var redirects = await queries.FindRedirectUrisAsync(rows.Select(row => row.ClientId).ToList(), cancellationToken);
         return rows
-            .Select(row => redirects.TryGetValue(row.ClientId, out var uris) ? ToInfo(row, uris.Item1, uris.Item2) : ToInfo(row, [], []))
+            .Select(row => redirects.TryGetValue(row.ClientId, out var uris)
+                ? ToInfo(row, uris.RedirectUris, uris.PostLogoutRedirectUris)
+                : ToInfo(row, [], []))
             .ToList();
     }
 
     private async Task<IReadOnlyList<string>> RedirectsAsync(object application, CancellationToken cancellationToken)
         => (await applications.GetRedirectUrisAsync(application, cancellationToken)).ToArray();
-
-    private static IReadOnlyList<string> ParseRedirects(string? json)
-    {
-        if (string.IsNullOrEmpty(json))
-        {
-            return [];
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<string[]>(json) ?? [];
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
-    }
 
     private static OAuthDeveloperAppInfo ToInfo(
         OAuthDeveloperApp<TKey> row, IReadOnlyList<string> redirects, IReadOnlyList<string> postLogoutRedirects) => new(
@@ -513,7 +481,7 @@ internal sealed class OAuthDeveloperAppService<TContext, TKey>(
         row.UpdatedAt,
         row.SecretCreatedAt)
     {
-        OwnerId = OAuthConsentService<TContext, TKey>.KeyToString(row.OwnerId),
+        OwnerId = OAuthUserKeys<TKey>.Format(row.OwnerId),
         PostLogoutRedirectUris = postLogoutRedirects,
     };
 

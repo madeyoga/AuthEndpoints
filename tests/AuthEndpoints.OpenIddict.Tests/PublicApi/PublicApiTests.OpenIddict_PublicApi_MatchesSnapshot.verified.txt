@@ -1,5 +1,9 @@
 ﻿namespace AuthEndpoints.OpenIddict
 {
+    public interface IOAuthAuthorizationRefresher
+    {
+        System.Threading.Tasks.ValueTask RefreshAsync(object authorization, System.Threading.CancellationToken cancellationToken);
+    }
     public interface IOAuthClientMetadataHostFilter
     {
         System.Threading.Tasks.ValueTask<bool> IsAllowedAsync(System.Uri clientId, System.Threading.CancellationToken cancellationToken);
@@ -33,9 +37,33 @@
         System.Threading.Tasks.Task<bool> SetStatusAsync(System.Guid id, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, System.Threading.CancellationToken cancellationToken = default);
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperAppResult> UpdateAsync(System.Guid id, string ownerId, AuthEndpoints.OpenIddict.OAuthDeveloperAppInput input, System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IOAuthDeveloperAppStore<TKey>
+        where TKey : System.IEquatable<TKey>
+    {
+        System.Threading.Tasks.Task<int> CountByOwnerAsync(TKey ownerId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task CreateAsync(AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey> app, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> DeleteAsync(System.Guid id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>?> FindAsync(System.Guid id, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>>> FindByClientIdsAsync(System.Collections.Generic.IReadOnlyCollection<string> clientIds, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>>> FindByIdsAsync(System.Collections.Generic.IReadOnlyCollection<System.Guid> ids, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> IsActiveAsync(System.Guid id, string clientId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>>> ListByOwnerAsync(TKey ownerId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>>> ListByStatusAsync(AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> SetSecretCreatedAtAsync(System.Guid id, System.DateTimeOffset secretCreatedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> SetStatusAsync(System.Guid id, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus? expected, System.DateTimeOffset updatedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> UpdateDetailsAsync(System.Guid id, string name, string homepageUrl, string? description, System.DateTimeOffset updatedAt, System.Threading.CancellationToken cancellationToken);
+    }
     public interface IOAuthPrincipalFactory
     {
         System.Threading.Tasks.ValueTask<System.Security.Claims.ClaimsPrincipal?> CreateAsync(AuthEndpoints.OpenIddict.OAuthPrincipalContext context, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IOAuthRequestStore<TKey>
+        where TKey : System.IEquatable<TKey>
+    {
+        System.Threading.Tasks.Task CreateAsync(AuthEndpoints.OpenIddict.OAuthRequest<TKey> request, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<int> DeleteExpiredAsync(System.DateTimeOffset now, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthRequest<TKey>?> FindLiveAsync(System.Guid id, TKey userId, System.DateTimeOffset now, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> TryConsumeAsync(System.Guid id, TKey userId, System.DateTimeOffset now, System.Threading.CancellationToken cancellationToken);
     }
     public interface IOAuthScopeDescriptions
     {
@@ -45,9 +73,20 @@
     {
         System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthCleanupResult> SweepAsync(System.Threading.CancellationToken cancellationToken = default);
     }
+    public interface IOAuthServerEventTransactions
+    {
+        bool TryDefer(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> publish);
+    }
     public interface IOAuthServerEvents
     {
         System.Threading.Tasks.ValueTask OnEventAsync(AuthEndpoints.OpenIddict.OAuthServerEvent serverEvent, System.Threading.CancellationToken cancellationToken);
+    }
+    public interface IOAuthServerQueries
+    {
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyDictionary<string, AuthEndpoints.OpenIddict.OAuthClientRedirectUris>> FindRedirectUrisAsync(System.Collections.Generic.IReadOnlyCollection<string> clientIds, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<AuthEndpoints.OpenIddict.OAuthAuthorizationRecord?> FindValidGrantAsync(string authorizationId, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthAuthorizationRecord>> ListLiveGrantsAsync(string userId, System.DateTimeOffset now, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthAuthorizationRecord>> ListValidGrantsAsync(string applicationId, System.Threading.CancellationToken cancellationToken);
     }
     public interface IOAuthUserValidator
     {
@@ -73,6 +112,20 @@
         public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthAudience(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, string audience) { }
         public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthScope(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, params string[] scopes) { }
         public static Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder RequireOAuthScopeWhenDelegated(this Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder policy, params string[] scopes) { }
+    }
+    public sealed record OAuthAuthorizationRecord : System.IEquatable<AuthEndpoints.OpenIddict.OAuthAuthorizationRecord>
+    {
+        public OAuthAuthorizationRecord(string? Id, string? UserId, string? ClientId, string? ClientKind, System.Collections.Generic.IReadOnlyList<string> Scopes, string? Resource, System.DateTimeOffset? LastUsedAt) { }
+        public string? ClientId { get; init; }
+        public string? ClientKind { get; init; }
+        public string? ClientName { get; init; }
+        public System.DateTimeOffset? CreatedAt { get; init; }
+        public string? Id { get; init; }
+        public System.DateTimeOffset? LastUsedAt { get; init; }
+        public string? Resource { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
+        public string? UserId { get; init; }
+        public static System.Threading.Tasks.ValueTask<AuthEndpoints.OpenIddict.OAuthAuthorizationRecord> ReadAsync(OpenIddict.Abstractions.IOpenIddictAuthorizationManager authorizations, OpenIddict.Abstractions.IOpenIddictApplicationManager applications, object authorization, System.Threading.CancellationToken cancellationToken) { }
     }
     public static class OAuthClaimsPrincipalExtensions
     {
@@ -118,6 +171,12 @@
         public System.TimeSpan MaxCacheDuration { get; set; }
         public int MaxDocumentBytes { get; set; }
         public System.TimeSpan MinCacheDuration { get; set; }
+    }
+    public sealed record OAuthClientRedirectUris : System.IEquatable<AuthEndpoints.OpenIddict.OAuthClientRedirectUris>
+    {
+        public OAuthClientRedirectUris(System.Collections.Generic.IReadOnlyList<string> RedirectUris, System.Collections.Generic.IReadOnlyList<string> PostLogoutRedirectUris) { }
+        public System.Collections.Generic.IReadOnlyList<string> PostLogoutRedirectUris { get; init; }
+        public System.Collections.Generic.IReadOnlyList<string> RedirectUris { get; init; }
     }
     public sealed record OAuthConnectedApp : System.IEquatable<AuthEndpoints.OpenIddict.OAuthConnectedApp>
     {
