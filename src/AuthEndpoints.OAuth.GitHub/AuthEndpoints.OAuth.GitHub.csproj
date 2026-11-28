@@ -28,7 +28,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\AuthEndpoints\AuthEndpoints.csproj" />
-    <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.0.0" />
+    <PackageReference Include="AspNet.Security.OAuth.GitHub" Version="10.1.0" />
   </ItemGroup>
 
   <Import Project="..\AuthEndpoints.DependencyRange.targets" />
