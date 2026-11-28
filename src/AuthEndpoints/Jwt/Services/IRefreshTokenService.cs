@@ -5,9 +5,10 @@ namespace AuthEndpoints.Jwt;
 /// <see cref="IRefreshTokenStore"/>.
 /// </summary>
 /// <remarks>
-/// AuthEndpoints passes the request's cancellation token to lookups, creates and rotations. It passes
-/// <see cref="CancellationToken.None"/> to the revokes that reuse detection and sign-out depend on, so a client that
-/// aborts its request cannot skip them.
+/// AuthEndpoints passes the request's cancellation token to lookups and creates. The writes that reuse detection and
+/// sign-out depend on are not cancellable: <see cref="RefreshTokenService"/> runs the rotation compare-and-swap and
+/// every revoke with <see cref="CancellationToken.None"/>, so a client that aborts its request cannot skip them.
+/// A custom implementation should do the same.
 /// </remarks>
 public interface IRefreshTokenService
 {
@@ -31,8 +32,8 @@ public interface IRefreshTokenService
     /// <summary>
     /// Atomically revokes <paramref name="refreshToken"/> and issues a single successor in the same family.
     /// Returns <c>null</c> when the token is already expired or revoked.
-    /// Returns <c>null</c> when another request already rotated the token, and in that case revokes the family
-    /// whatever <paramref name="cancellationToken"/> says.
+    /// Returns <c>null</c> when another request already rotated the token, and in that case revokes the family.
+    /// The default implementation ignores <paramref name="cancellationToken"/> for the rotation and the revoke.
     /// </summary>
     Task<RefreshToken?> RotateAsync(
         RefreshToken refreshToken,

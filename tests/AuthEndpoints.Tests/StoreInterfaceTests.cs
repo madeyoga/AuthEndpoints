@@ -351,12 +351,18 @@ public class StoreInterfaceTests
         public Task CreateAsync(RefreshToken token, CancellationToken cancellationToken) => Task.CompletedTask;
 
         public Task<bool> TryRotateAsync(string presentedId, RefreshToken successor, DateTime revokedAt, CancellationToken cancellationToken)
-            => Task.FromResult(false);
+        {
+            // Like EF Core's BeginTransactionAsync and ExecuteUpdateAsync: a cancelled token throws instead of
+            // reporting the lost race.
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(false);
+        }
 
         public Task RevokeAsync(string id, DateTime revokedAt, CancellationToken cancellationToken) => Task.CompletedTask;
 
         public Task RevokeFamilyAsync(string familyId, DateTime revokedAt, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             RevokedFamily = familyId;
             RevokeFamilyToken = cancellationToken;
             return Task.CompletedTask;

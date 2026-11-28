@@ -63,7 +63,9 @@ public class RefreshTokenService : IRefreshTokenService
 
         // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
         // The raw token is attached only after the store call, so a store never sees it.
-        if (!await _store.TryRotateAsync(refreshToken.Id, successor, now, cancellationToken))
+        // Not cancellable: a store that threw on an aborted request instead of returning false would skip the
+        // family revoke below, and leave the winner's family live after a lost race.
+        if (!await _store.TryRotateAsync(refreshToken.Id, successor, now, CancellationToken.None))
         {
             // The winner has stored its successor. Reuse of this token revokes the family,
             // including that successor, so parallel refreshes sign every client out.
