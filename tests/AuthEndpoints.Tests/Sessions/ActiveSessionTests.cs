@@ -221,8 +221,8 @@ public class ActiveSessionTests
             await using var db = new ActiveSessionsDbContext(options);
             await db.Database.EnsureCreatedAsync();
             var time = new ManualTime(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
-            var store = new ActiveSessionStore<ActiveSessionsDbContext>(
-                db,
+            var store = new ActiveSessionService(
+                new ActiveSessionStore<ActiveSessionsDbContext>(db),
                 time,
                 Options.Create(new ActiveSessionOptions { LastSeenUpdateInterval = TimeSpan.FromMinutes(5) }));
 
@@ -266,7 +266,7 @@ public class ActiveSessionTests
 
         using (var scope = host.App.Services.CreateScope())
         {
-            var store = scope.ServiceProvider.GetRequiredService<IActiveSessionStore>();
+            var store = scope.ServiceProvider.GetRequiredService<ActiveSessionService>();
             var userId = (await scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>().FindByEmailAsync(email))!.Id;
             Assert.True(await store.RevokeAsync(userId, session.Id));
         }
@@ -293,7 +293,7 @@ public class ActiveSessionTests
 
         using (var scope = host.App.Services.CreateScope())
         {
-            var store = scope.ServiceProvider.GetRequiredService<IActiveSessionStore>();
+            var store = scope.ServiceProvider.GetRequiredService<ActiveSessionService>();
             var current = Assert.Single(await host.ListAsync(access), s => s.Current).Id;
             var userId = (await scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>().FindByEmailAsync(email))!.Id;
             Assert.Equal(1, await store.RevokeOthersAsync(userId, current));
@@ -416,7 +416,7 @@ public class ActiveSessionTests
                 .AddInterceptors(racing)
                 .Options;
             await using var racedDb = new ActiveSessionsDbContext(options);
-            var raced = new ActiveSessionStore<ActiveSessionsDbContext>(racedDb, TimeProvider.System, Options.Create(new ActiveSessionOptions()));
+            var raced = new ActiveSessionService(new ActiveSessionStore<ActiveSessionsDbContext>(racedDb), TimeProvider.System, Options.Create(new ActiveSessionOptions()));
 
             await raced.CreateAsync("race", "u1", "ua", "stamp", expires);
 
@@ -443,7 +443,7 @@ public class ActiveSessionTests
         var result = await ActiveSessionEndpoints<TestAppUser>.RevokeOthers(
             context,
             users,
-            scope.ServiceProvider.GetRequiredService<IActiveSessionStore>());
+            scope.ServiceProvider.GetRequiredService<ActiveSessionService>());
 
         Assert.IsType<Conflict>(result.Result);
         Assert.Equal(1, await host.CountActiveAsync(email));
@@ -461,7 +461,7 @@ public class ActiveSessionTests
         using (var scope = host.App.Services.CreateScope())
         {
             var userId = (await scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>().FindByEmailAsync(email))!.Id;
-            Assert.True(await scope.ServiceProvider.GetRequiredService<IActiveSessionStore>().RevokeAsync(userId, sessionId));
+            Assert.True(await scope.ServiceProvider.GetRequiredService<ActiveSessionService>().RevokeAsync(userId, sessionId));
         }
 
         // Access tokens are self-contained: the revoked session's token is accepted until it expires.
@@ -470,7 +470,7 @@ public class ActiveSessionTests
         Assert.False((await host.Client.PostAsJsonAsync("/auth/refresh", new { refreshToken = refresh })).IsSuccessStatusCode);
     }
 
-    private static async Task WithStoreAsync(Func<ActiveSessionStore<ActiveSessionsDbContext>, ActiveSessionsDbContext, string, Task> test)
+    private static async Task WithStoreAsync(Func<ActiveSessionService, ActiveSessionsDbContext, string, Task> test)
     {
         var path = Path.Combine(Path.GetTempPath(), $"ae-sessions-store-{Guid.NewGuid():N}.sqlite");
         try
@@ -478,7 +478,7 @@ public class ActiveSessionTests
             var options = new DbContextOptionsBuilder<ActiveSessionsDbContext>().UseSqlite($"Data Source={path}").Options;
             await using var db = new ActiveSessionsDbContext(options);
             await db.Database.EnsureCreatedAsync();
-            var store = new ActiveSessionStore<ActiveSessionsDbContext>(db, TimeProvider.System, Options.Create(new ActiveSessionOptions()));
+            var store = new ActiveSessionService(new ActiveSessionStore<ActiveSessionsDbContext>(db), TimeProvider.System, Options.Create(new ActiveSessionOptions()));
             await test(store, db, path);
         }
         finally

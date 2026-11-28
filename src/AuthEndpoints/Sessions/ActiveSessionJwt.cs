@@ -37,12 +37,12 @@ internal sealed class ActiveSessionAccessTokenGenerator : IAccessTokenGenerator
 internal sealed class ActiveSessionRefreshTokenService : IRefreshTokenService
 {
     private readonly IRefreshTokenService _inner;
-    private readonly IActiveSessionStore _store;
+    private readonly ActiveSessionService _store;
     private readonly IHttpContextAccessor _http;
 
     public ActiveSessionRefreshTokenService(
         IRefreshTokenService inner,
-        IActiveSessionStore store,
+        ActiveSessionService store,
         IHttpContextAccessor http)
     {
         _inner = inner;
@@ -85,7 +85,7 @@ internal sealed class ActiveSessionRefreshTokenService : IRefreshTokenService
 
     public async Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp)
     {
-        var sessionId = await _store.SessionIdForTokenAsync(refreshToken.Id);
+        var sessionId = refreshToken.SessionId;
         if (sessionId is not null && !await _store.IsActiveAsync(sessionId))
         {
             await _inner.RevokeFamilyAsync(refreshToken.FamilyId);

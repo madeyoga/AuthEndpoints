@@ -46,7 +46,8 @@ public static class ServiceCollectionExtensions
 
         services.TryAddScoped<IAuthenticator<TUser>, DefaultAuthenticator<TUser>>();
         services.TryAddScoped<IAccessTokenGenerator, AccessTokenGenerator>();
-        services.TryAddScoped<IRefreshTokenService, RefreshTokenService<TContext>>();
+        services.TryAddScoped<IRefreshTokenStore>(sp => new RefreshTokenStore<TContext>(sp.GetRequiredService<TContext>()));
+        services.TryAddScoped<IRefreshTokenService, RefreshTokenService>();
         services.TryAddScoped<RefreshTokenCookieWriter>();
         services.TryAddScoped<IdentityErrorDescriber>();
         services.TryAddScoped<JwtSecurityTokenHandler>();

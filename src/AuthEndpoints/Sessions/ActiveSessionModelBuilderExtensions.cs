@@ -38,8 +38,8 @@ public static class ActiveSessionModelBuilderExtensions
         {
             builder.Entity<RefreshToken>(entity =>
             {
-                entity.Property<string?>(RefreshTokenSessionIdProperty).HasMaxLength(64);
-                entity.HasIndex(RefreshTokenSessionIdProperty);
+                entity.Property(e => e.SessionId).HasColumnName(RefreshTokenSessionIdProperty).HasMaxLength(64);
+                entity.HasIndex(e => e.SessionId);
             });
         }
 

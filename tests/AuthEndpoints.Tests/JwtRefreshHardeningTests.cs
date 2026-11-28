@@ -391,8 +391,8 @@ public class JwtRefreshHardeningTests :
         var tracked = await userManager.FindByIdAsync(user.Id);
         Assert.NotNull(tracked);
         var stamp = await userManager.GetSecurityStampAsync(tracked);
-        var service = new RefreshTokenService<TestDbContext>(
-            db,
+        var service = new RefreshTokenService(
+            new RefreshTokenStore<TestDbContext>(db),
             clock,
             Options.Create(new SimpleJwtOptions
             {

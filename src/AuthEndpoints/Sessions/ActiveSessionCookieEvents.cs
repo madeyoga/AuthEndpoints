@@ -89,7 +89,7 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
         var time = services.GetRequiredService<TimeProvider>();
         var expiresAt = context.Properties.ExpiresUtc?.UtcDateTime
             ?? time.GetUtcNow().UtcDateTime.Add(cookie.ExpireTimeSpan);
-        var store = services.GetRequiredService<IActiveSessionStore>();
+        var store = services.GetRequiredService<ActiveSessionService>();
 
         // RefreshSignInAsync keeps the cookie's AuthenticationProperties, so a refreshed sign-in
         // (password change, linking) keeps its session. A fresh sign-in starts with new properties.
@@ -121,7 +121,7 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
     private static async Task ValidateAsync(CookieValidatePrincipalContext context, CookieAuthenticationOptions cookie)
     {
         var services = context.HttpContext.RequestServices;
-        var store = services.GetRequiredService<IActiveSessionStore>();
+        var store = services.GetRequiredService<ActiveSessionService>();
         context.Properties.Items.TryGetValue(ActiveSessionRequest.PropertiesKey, out var id);
 
         if (context.Principal is null)
@@ -186,7 +186,7 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
     private static async Task AdoptAsync(
         CookieValidatePrincipalContext context,
         CookieAuthenticationOptions cookie,
-        IActiveSessionStore store,
+        ActiveSessionService store,
         IdentityOptions identityOptions,
         string userId,
         DateTime now)
@@ -213,7 +213,7 @@ internal sealed class ActiveSessionCookieEvents : IPostConfigureOptions<CookieAu
             return;
         }
 
-        var store = context.HttpContext.RequestServices.GetRequiredService<IActiveSessionStore>();
+        var store = context.HttpContext.RequestServices.GetRequiredService<ActiveSessionService>();
         await store.EndAsync([id]);
     }
 }

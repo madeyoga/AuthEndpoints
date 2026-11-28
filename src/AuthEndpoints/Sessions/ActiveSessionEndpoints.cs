@@ -78,7 +78,7 @@ internal static class ActiveSessionEndpoints<TUser>
     public static async Task<Results<Ok<List<ActiveSessionInfo>>, UnauthorizedHttpResult>> List(
         HttpContext context,
         UserManager<TUser> userManager,
-        IActiveSessionStore store)
+        ActiveSessionService store)
     {
         var user = await userManager.GetUserAsync(context.User);
         if (user is null)
@@ -105,7 +105,7 @@ internal static class ActiveSessionEndpoints<TUser>
         string id,
         HttpContext context,
         UserManager<TUser> userManager,
-        IActiveSessionStore store)
+        ActiveSessionService store)
     {
         var userId = userManager.GetUserId(context.User);
         if (string.IsNullOrEmpty(userId))
@@ -121,7 +121,7 @@ internal static class ActiveSessionEndpoints<TUser>
     public static async Task<Results<Ok<RevokeOtherSessionsResponse>, Conflict, UnauthorizedHttpResult>> RevokeOthers(
         HttpContext context,
         UserManager<TUser> userManager,
-        IActiveSessionStore store)
+        ActiveSessionService store)
     {
         var userId = userManager.GetUserId(context.User);
         if (string.IsNullOrEmpty(userId))

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 ﻿using System.Buffers.Text;
 using System.Collections.Concurrent;
 using AuthEndpoints.EmailCode;
@@ -269,7 +270,7 @@ public class EmailCodeStoreTests
         var barrier = new Barrier(2);
         var results = new ConcurrentBag<(bool Won, Exception? Error)>();
 
-        async Task Consume(EmailCodeStore<MappedEmailCodeDbContext> store, EmailCodeEntity row)
+        async Task Consume(TestEmailCodes store, EmailCodeEntity row)
         {
             Assert.True(barrier.SignalAndWait(TimeSpan.FromSeconds(10)));
             try
@@ -608,17 +609,51 @@ public class EmailCodeStoreTests
         Assert.Null(await context.Set<EmailCodeEntity>().SingleOrDefaultAsync(e => e.Id == reauth.Id));
     }
 
-    private static EmailCodeStore<MappedEmailCodeDbContext> NewStore(
+    private static TestEmailCodes NewStore(
         MappedEmailCodeDbContext context,
         EmailCodeOptions? options = null,
         TimeProvider? time = null,
         ILookupNormalizer? normalizer = null)
     {
-        return new EmailCodeStore<MappedEmailCodeDbContext>(
-            context,
+        return new TestEmailCodes(
+            new EmailCodeStore<MappedEmailCodeDbContext>(context),
             time ?? TimeProvider.System,
             options ?? new EmailCodeOptions { ResendCooldown = TimeSpan.Zero },
             normalizer ?? new UpperInvariantLookupNormalizer());
+    }
+
+    /// <summary>
+    /// <see cref="EmailCodeService"/> over the EF store, plus a read of the resend cooldown for assertions.
+    /// The cooldown itself is applied inside <see cref="IEmailCodeStore.IssueAsync"/>.
+    /// </summary>
+    private sealed class TestEmailCodes : EmailCodeService
+    {
+        private readonly IEmailCodeStore _store;
+        private readonly TimeProvider _time;
+        private readonly EmailCodeOptions _options;
+        private readonly ILookupNormalizer _normalizer;
+
+        public TestEmailCodes(IEmailCodeStore store, TimeProvider time, EmailCodeOptions options, ILookupNormalizer normalizer)
+            : base(store, time, Options.Create(options), normalizer)
+        {
+            _store = store;
+            _time = time;
+            _options = options;
+            _normalizer = normalizer;
+        }
+
+        /// <summary>Whether a row for the address and purpose was created within the cooldown (strictly after its start).</summary>
+        public async Task<bool> IsWithinResendCooldownAsync(string email, EmailCodeRowPurpose purpose)
+        {
+            if (_options.ResendCooldown <= TimeSpan.Zero)
+            {
+                return false;
+            }
+
+            var hash = EmailCodeHasher.HashEmail(_normalizer.NormalizeEmail(email.Trim())!);
+            var since = _time.GetUtcNow().UtcDateTime - _options.ResendCooldown;
+            return await _store.CountIssuedSinceAsync(hash, purpose, since.AddTicks(1), CancellationToken.None) > 0;
+        }
     }
 
     private static async Task<List<string>> SqliteTablesAsync(DbContext context)

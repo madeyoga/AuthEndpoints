@@ -1,36 +1,32 @@
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Jwt;
 
 /// <summary>
-/// Manages hashed refresh tokens with family-based reuse detection and an absolute family lifetime.
+/// Manages hashed refresh tokens with family-based reuse detection and an absolute family lifetime,
+/// over an <see cref="IRefreshTokenStore"/>.
 /// </summary>
-public class RefreshTokenService<TContext> : IRefreshTokenService
-    where TContext : DbContext
+public class RefreshTokenService : IRefreshTokenService
 {
-    private readonly TContext _db;
+    private readonly IRefreshTokenStore _store;
     private readonly TimeProvider _time;
     private readonly SimpleJwtOptions _session;
 
-    public RefreshTokenService(TContext db)
-        : this(db, TimeProvider.System, Options.Create(new SimpleJwtOptions()))
+    public RefreshTokenService(IRefreshTokenStore store, TimeProvider time, IOptions<SimpleJwtOptions> sessionOptions)
     {
-    }
-
-    public RefreshTokenService(TContext db, TimeProvider time, IOptions<SimpleJwtOptions> sessionOptions)
-    {
-        _db = db;
+        ArgumentNullException.ThrowIfNull(store);
+        ArgumentNullException.ThrowIfNull(time);
+        ArgumentNullException.ThrowIfNull(sessionOptions);
+        _store = store;
         _time = time;
         _session = sessionOptions.Value;
     }
 
     public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken)
     {
-        var hash = HashToken(rawToken);
-        return _db.Set<RefreshToken>().Where(t => t.TokenHash == hash).FirstOrDefaultAsync();
+        return _store.FindByHashAsync(HashToken(rawToken), CancellationToken.None);
     }
 
     public async Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp)
@@ -59,83 +55,35 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
             UserId = refreshToken.UserId,
             ExpiresAt = expiresAt,
             AbsoluteExpiresAt = absoluteExpiresAt,
-            Token = rawToken
+            SessionId = refreshToken.SessionId,
         };
 
-        var lostRace = false;
-        await using (var transaction = await _db.Database.BeginTransactionAsync())
+        // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
+        // The raw token is attached only after the store call, so a store never sees it.
+        if (!await _store.TryRotateAsync(refreshToken.Id, successor, now, CancellationToken.None))
         {
-            // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
-            var affected = await _db.Set<RefreshToken>()
-                .Where(t => t.Id == refreshToken.Id && t.RevokedAt == null)
-                .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(t => t.RevokedAt, now)
-                    .SetProperty(t => t.ReplacedByTokenId, successor.Id));
-
-            if (affected == 0)
-            {
-                await transaction.RollbackAsync();
-                lostRace = true;
-            }
-            else
-            {
-                // ExecuteUpdate bypasses the change tracker. Align (or detach) the presented
-                // entity so the upcoming SaveChanges cannot write RevokedAt=null back over the CAS.
-                refreshToken.RevokedAt = now;
-                refreshToken.ReplacedByTokenId = successor.Id;
-                var entry = _db.Entry(refreshToken);
-                if (entry.State != EntityState.Detached)
-                {
-                    entry.State = EntityState.Detached;
-                }
-
-                _db.Add(successor);
-                await _db.SaveChangesAsync();
-                await transaction.CommitAsync();
-            }
-        }
-
-        if (lostRace)
-        {
-            // The winner has committed its successor. Reuse of this token revokes the family,
+            // The winner has stored its successor. Reuse of this token revokes the family,
             // including that successor, so parallel refreshes sign every client out.
             await RevokeFamilyAsync(refreshToken.FamilyId);
             return null;
         }
 
+        successor.Token = rawToken;
+        refreshToken.RevokedAt = now;
+        refreshToken.ReplacedByTokenId = successor.Id;
         return successor;
     }
 
-    public Task RevokeAsync(RefreshToken refreshToken)
-    {
-        refreshToken.RevokedAt = UtcNow;
-        _db.Update(refreshToken);
-        return _db.SaveChangesAsync();
-    }
-
-    public async Task RevokeFamilyAsync(string familyId)
+    public async Task RevokeAsync(RefreshToken refreshToken)
     {
         var now = UtcNow;
-        // ExecuteUpdate does not touch the change tracker. Detach this family's tracked rows
-        // so a later SaveChanges cannot write RevokedAt = null back over the update.
-        foreach (var entry in _db.ChangeTracker.Entries<RefreshToken>().ToList())
-        {
-            if (!string.Equals(entry.Entity.FamilyId, familyId, StringComparison.Ordinal))
-            {
-                continue;
-            }
+        await _store.RevokeAsync(refreshToken.Id, now, CancellationToken.None);
+        refreshToken.RevokedAt ??= now;
+    }
 
-            if (entry.Entity.RevokedAt == null)
-            {
-                entry.Entity.RevokedAt = now;
-            }
-
-            entry.State = EntityState.Detached;
-        }
-
-        await _db.Set<RefreshToken>()
-            .Where(t => t.FamilyId == familyId && t.RevokedAt == null)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.RevokedAt, now));
+    public Task RevokeFamilyAsync(string familyId)
+    {
+        return _store.RevokeFamilyAsync(familyId, UtcNow, CancellationToken.None);
     }
 
     public async Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
@@ -157,11 +105,10 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
             UserId = userId,
             ExpiresAt = expiresAt,
             AbsoluteExpiresAt = absoluteExpiresAt,
-            Token = rawToken
         };
 
-        _db.Add(newRefreshToken);
-        await _db.SaveChangesAsync();
+        await _store.CreateAsync(newRefreshToken, CancellationToken.None);
+        newRefreshToken.Token = rawToken;
         return newRefreshToken;
     }
 
@@ -186,13 +133,8 @@ public class RefreshTokenService<TContext> : IRefreshTokenService
             return now.Add(_session.AbsoluteLifetime);
         }
 
-        var existing = await _db.Set<RefreshToken>()
-            .AsNoTracking()
-            .Where(t => t.FamilyId == familyId)
-            .Select(t => (DateTime?)t.AbsoluteExpiresAt)
-            .FirstOrDefaultAsync();
-
         // Joining a family must not start a new absolute window.
+        var existing = await _store.FindFamilyAbsoluteExpiresAtAsync(familyId, CancellationToken.None);
         return existing is { } found ? AsUtc(found) : now.Add(_session.AbsoluteLifetime);
     }
 

@@ -51,7 +51,8 @@ public static class ActiveSessionServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddHttpContextAccessor();
         services.TryAddSingleton<ActiveSessionValidationCache>();
-        services.TryAddScoped<IActiveSessionStore, ActiveSessionStore<TContext>>();
+        services.TryAddScoped<IActiveSessionStore>(sp => new ActiveSessionStore<TContext>(sp.GetRequiredService<TContext>()));
+        services.TryAddScoped<ActiveSessionService>();
         services.TryAddEnumerable(
             ServiceDescriptor.Singleton<IPostConfigureOptions<CookieAuthenticationOptions>, ActiveSessionCookieEvents>());
         services.AddHostedService<ActiveSessionHostedService<TContext>>();
@@ -59,7 +60,7 @@ public static class ActiveSessionServiceCollectionExtensions
 
         Decorate<IRefreshTokenService>(services, (sp, inner) => new ActiveSessionRefreshTokenService(
             inner,
-            sp.GetRequiredService<IActiveSessionStore>(),
+            sp.GetRequiredService<ActiveSessionService>(),
             sp.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>()));
         Decorate<IAccessTokenGenerator>(services, (sp, inner) => new ActiveSessionAccessTokenGenerator(
             inner,

@@ -185,7 +185,7 @@ public class EmailCodeConfirmIdentitySendTests
             using (var scope = App.Services.CreateScope())
             {
                 var users = scope.ServiceProvider.GetRequiredService<UserManager<TestAppUser>>();
-                var store = scope.ServiceProvider.GetRequiredService<IEmailCodeStore>();
+                var store = scope.ServiceProvider.GetRequiredService<EmailCodeService>();
                 var user = await users.FindByEmailAsync(email);
                 Assert.NotNull(user);
                 var issued = await store.IssueAsync(

@@ -35,6 +35,12 @@ public class RefreshToken
 
     public DateTime? RevokedAt { get; set; }
 
+    /// <summary>
+    /// The active session this token belongs to, when active sessions are on (<c>AddActiveSessions</c>).
+    /// The EF Core model stores it only when <c>UseActiveSessions</c> maps it.
+    /// </summary>
+    public string? SessionId { get; set; }
+
     /// <summary>Raw token for the cookie. Not persisted.</summary>
     [NotMapped]
     public string? Token { get; set; }

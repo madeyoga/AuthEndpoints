@@ -78,7 +78,7 @@ internal static class EmailCodeReAuthEndpoints<TUser>
         }
 
         var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
-        var store = services.GetService<IEmailCodeStore>();
+        var store = services.GetService<EmailCodeService>();
         if (store is null || !await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options))
         {
             return Unavailable();
@@ -105,22 +105,13 @@ internal static class EmailCodeReAuthEndpoints<TUser>
             return TypedResults.Ok(response);
         }
 
-        EmailCodeIssueResult issued;
-        try
-        {
-            issued = await store.IssueAsync(
-                email,
-                userId,
-                stamp,
-                EmailCodeRowPurpose.ReAuth,
-                rememberSignupEmail: false,
-                cancellationToken);
-        }
-        catch (Exception ex) when (IsTransientTransactionConflict(ex, cancellationToken))
-        {
-            EmailCodeLog.SendSuppressed(logger, userId, hashPrefix, "conflict");
-            return TypedResults.Ok(response);
-        }
+        var issued = await store.IssueAsync(
+            email,
+            userId,
+            stamp,
+            EmailCodeRowPurpose.ReAuth,
+            rememberSignupEmail: false,
+            cancellationToken);
 
         if (issued.Suppressed)
         {
@@ -160,7 +151,7 @@ internal static class EmailCodeReAuthEndpoints<TUser>
     {
         var services = context.RequestServices;
         var options = services.GetService<IOptions<EmailCodeOptions>>()?.Value;
-        var store = services.GetService<IEmailCodeStore>();
+        var store = services.GetService<EmailCodeService>();
         // Sign-in shares the store. Send owns the step-up proof.
         if (!AuthEndpointsFeatures.For(services).EmailCode.CanConfirmIdentity
             || options is null
@@ -240,11 +231,5 @@ internal static class EmailCodeReAuthEndpoints<TUser>
         }
 
         return EmailCodeHasher.HashPrefix(EmailCodeHasher.HashEmail(normalized));
-    }
-
-    private static bool IsTransientTransactionConflict(Exception exception, CancellationToken cancellationToken)
-    {
-        return !cancellationToken.IsCancellationRequested
-            && EmailCodeTransactionFailures.IsDeadlockOrSerializationFailure(exception);
     }
 }
