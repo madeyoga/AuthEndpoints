@@ -52,7 +52,7 @@ app.MapPasswordAuth<AppUser>();
 app.Run();
 ```
 
-This maps register, login, logout, email confirmation, password reset, ReAuth, and account management (`/auth/manage/info`, `/auth/manage/2fa`, `/auth/manage/password`) under `/auth`, plus passkeys under `/auth/passkeys` when `ServerDomain` is set; see the [endpoint reference](https://authendpoints.harten.id/modules/endpoints) for every route.
+This maps register, login, logout, email confirmation, password reset, ReAuth, and account management (`/auth/manage/info`, `/auth/manage/2fa`, `POST` and `DELETE /auth/manage/password`) under `/auth`, plus passkeys under `/auth/passkeys` when `ServerDomain` is set. See the [endpoint reference](https://authendpoints.harten.id/modules/endpoints) for every route.
 
 ## Documentation
 

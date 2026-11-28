@@ -23,7 +23,9 @@ app.UseAntiforgery();
 | `MapEmailCodeEndpoints` | `AddEmailCodeEndpoints<TUser, TContext>(...)` and `UseEmailCodes()` |
 | `MapExternalAuthEndpoints` | `AddExternalAuthEndpoints<TUser>()` and `AddGitHub` or `AddGoogle` |
 
-`MapIdentityManagementApi` maps register without login, confirm-email, account management, `POST` and `DELETE /manage/password`, and `POST /confirmIdentity/passkeyOptions`. `MapAccountManagementEndpoints` maps `POST /confirmIdentity/passkeyOptions` when `AddPasskeyEndpoints`, `AddPasskeySignInEndpoints`, or `AddPasskeyManagementEndpoints` was called. It maps `POST /confirmIdentity/emailCode/send` when email-code send is registered. Map it once. Pair it with one of cookie, bearer, or JWT per prefix.
+`MapIdentityManagementApi` maps register without login, confirm-email, account management, `POST` and `DELETE /manage/password`, and `POST /confirmIdentity/passkeyOptions`. That passkey-options route stays mapped even when no passkey method was registered. `MapReAuthEndpoints` does the same. `MapAccountManagementEndpoints` maps `POST /confirmIdentity/passkeyOptions` when `AddPasskeyEndpoints`, `AddPasskeySignInEndpoints`, or `AddPasskeyManagementEndpoints` was called. `AddPasskeySignUpEndpoints` and `AddPasskeyRegisterOptionsEndpoints` alone leave it unmapped. It maps `POST /confirmIdentity/emailCode/send` when email-code send is registered. Map account management once. Pair it with one of cookie, bearer, or JWT per prefix.
+
+`MapSignInEndpoints` maps passkey request options and login when `AddPasskeySignInEndpoints` or `AddPasskeyEndpoints` was called. It maps passkey register only when `AddPasskeySignUpEndpoints` or `AddPasskeyEndpoints` was called. `MapPasskeySignInEndpoints` still maps `POST /passkeys/register` when only sign-in was registered.
 
 `MapPasswordEndpoints()` with no arguments finishes `POST /login` through the cookie completer unless `SignInCompletionOptions.Default` names one. An explicit `PasswordLoginMode` uses `PasswordSignInAsync` and overrides that default. `MapCookieAuthEndpoints` and `MapBearerAuthEndpoints` stay on those 3.4.1 handlers.
 
