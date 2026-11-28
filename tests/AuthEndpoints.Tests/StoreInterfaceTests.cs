@@ -145,6 +145,27 @@ public class StoreInterfaceTests
     }
 
     [Fact]
+    public async Task RefreshTokenService_NeverHandsTheRawTokenToTheStore()
+    {
+        var store = new RecordingRefreshTokenStore();
+        var service = new RefreshTokenService(store, TimeProvider.System, Options.Create(new SimpleJwtOptions()));
+
+        var created = await service.CreateAsync("user", "stamp");
+        var rotated = await service.RotateAsync(created, "stamp");
+
+        Assert.NotNull(created.Token);
+        Assert.NotNull(rotated?.Token);
+        Assert.Equal(2, store.Received.Count);
+        Assert.All(store.Received, token =>
+        {
+            Assert.Null(token.TokenOnArrival);
+            Assert.Equal(64, token.Hash.Length);
+        });
+        Assert.Equal(RefreshTokenService.HashToken(created.Token), store.Received[0].Hash);
+        Assert.Equal(RefreshTokenService.HashToken(rotated!.Token!), store.Received[1].Hash);
+    }
+
+    [Fact]
     public void EfStores_AreTheRegisteredDefaults()
     {
         var services = new ServiceCollection();
@@ -176,6 +197,41 @@ public class StoreInterfaceTests
         AbsoluteExpiresAt = now.AddDays(1),
         SessionId = sessionId,
     };
+
+    private sealed class RecordingRefreshTokenStore : IRefreshTokenStore
+    {
+        public List<(string? TokenOnArrival, string Hash)> Received { get; } = [];
+
+        public Task<RefreshToken?> FindByHashAsync(string tokenHash, CancellationToken cancellationToken)
+            => Task.FromResult<RefreshToken?>(null);
+
+        public Task CreateAsync(RefreshToken token, CancellationToken cancellationToken)
+        {
+            Received.Add((token.Token, token.TokenHash));
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> TryRotateAsync(string presentedId, RefreshToken successor, DateTime revokedAt, CancellationToken cancellationToken)
+        {
+            Received.Add((successor.Token, successor.TokenHash));
+            return Task.FromResult(true);
+        }
+
+        public Task RevokeAsync(string id, DateTime revokedAt, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task RevokeFamilyAsync(string familyId, DateTime revokedAt, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task<DateTime?> FindFamilyAbsoluteExpiresAtAsync(string familyId, CancellationToken cancellationToken)
+            => Task.FromResult<DateTime?>(null);
+
+        public Task SetSessionAsync(string tokenId, string sessionId, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<string>> FindFamilySessionIdsAsync(string familyId, CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyList<string>>([]);
+
+        public Task RevokeSessionsAsync(IReadOnlyCollection<string> sessionIds, DateTime revokedAt, CancellationToken cancellationToken)
+            => Task.CompletedTask;
+    }
 
     private sealed class RecordingEmailCodeStore : IEmailCodeStore
     {

@@ -56,10 +56,10 @@ public class RefreshTokenService : IRefreshTokenService
             ExpiresAt = expiresAt,
             AbsoluteExpiresAt = absoluteExpiresAt,
             SessionId = refreshToken.SessionId,
-            Token = rawToken
         };
 
         // Compare-and-swap: only one concurrent rotator can revoke a still-live token.
+        // The raw token is attached only after the store call, so a store never sees it.
         if (!await _store.TryRotateAsync(refreshToken.Id, successor, now, CancellationToken.None))
         {
             // The winner has stored its successor. Reuse of this token revokes the family,
@@ -68,6 +68,7 @@ public class RefreshTokenService : IRefreshTokenService
             return null;
         }
 
+        successor.Token = rawToken;
         refreshToken.RevokedAt = now;
         refreshToken.ReplacedByTokenId = successor.Id;
         return successor;
@@ -104,10 +105,10 @@ public class RefreshTokenService : IRefreshTokenService
             UserId = userId,
             ExpiresAt = expiresAt,
             AbsoluteExpiresAt = absoluteExpiresAt,
-            Token = rawToken
         };
 
         await _store.CreateAsync(newRefreshToken, CancellationToken.None);
+        newRefreshToken.Token = rawToken;
         return newRefreshToken;
     }
 

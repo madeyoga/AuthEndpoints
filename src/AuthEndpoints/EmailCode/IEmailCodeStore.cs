@@ -3,7 +3,9 @@
 /// <summary>
 /// Reads and writes email-code rows (<see cref="EmailCodeEntry"/>) for email-code sign-in and step-up.
 /// AuthEndpoints generates and hashes codes, links and addresses and decides every rule; a store only stores rows.
-/// A store never sees a raw code, link token or email address.
+/// A store never sees a raw code or link token. Addresses arrive hashed (<see cref="EmailCodeEntry.EmailHash"/>), except
+/// <see cref="EmailCodeEntry.SignupEmail"/>: a sign-up row keeps the address in plain text, so the magic link can create
+/// the account. Protect it like any other stored email address.
 /// </summary>
 /// <remarks>
 /// Each method is one atomic operation. Concurrent calls for the same row must behave as if they ran one after another:
