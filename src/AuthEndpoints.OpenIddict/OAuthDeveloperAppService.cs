@@ -285,9 +285,13 @@ internal sealed class OAuthDeveloperAppService<TKey>(
         if (needsReview)
         {
             // Saved before the new redirects go live, so a failure later never leaves them on an active app.
-            row.Status = OAuthDeveloperAppStatus.PendingApproval;
+            // Compare-and-set: an admin who disabled the app meanwhile keeps it disabled.
             row.UpdatedAt = clock.GetUtcNow();
-            await apps.UpdateAsync(row, cancellationToken);
+            if (await apps.SetStatusAsync(
+                    row.Id, OAuthDeveloperAppStatus.PendingApproval, OAuthDeveloperAppStatus.Active, row.UpdatedAt, cancellationToken))
+            {
+                row.Status = OAuthDeveloperAppStatus.PendingApproval;
+            }
         }
 
         // The hashed secret round-trips unchanged, so OpenIddict keeps it as is.
@@ -297,7 +301,8 @@ internal sealed class OAuthDeveloperAppService<TKey>(
         row.HomepageUrl = input.HomepageUrl!.Trim();
         row.Description = Description(input.Description);
         row.UpdatedAt = clock.GetUtcNow();
-        await apps.UpdateAsync(row, cancellationToken);
+        // Only the owner's values: the status stays as stored, whatever this request loaded.
+        await apps.UpdateDetailsAsync(row.Id, row.Name, row.HomepageUrl, row.Description, row.UpdatedAt, cancellationToken);
         return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout));
     }
 
@@ -338,7 +343,7 @@ internal sealed class OAuthDeveloperAppService<TKey>(
         var now = clock.GetUtcNow();
         row.SecretCreatedAt = now;
         row.UpdatedAt = now;
-        await apps.UpdateAsync(row, cancellationToken);
+        await apps.SetSecretCreatedAtAsync(row.Id, now, cancellationToken);
         var redirects = await RedirectsAsync(application, cancellationToken);
         var postLogout = (await applications.GetPostLogoutRedirectUrisAsync(application, cancellationToken)).ToArray();
         return new OAuthDeveloperAppResult(OAuthDeveloperAppOutcome.Succeeded, ToInfo(row, redirects, postLogout), secret);
@@ -361,7 +366,7 @@ internal sealed class OAuthDeveloperAppService<TKey>(
 
         row.Status = status;
         row.UpdatedAt = clock.GetUtcNow();
-        await apps.UpdateAsync(row, cancellationToken);
+        await apps.SetStatusAsync(row.Id, status, expected: null, row.UpdatedAt, cancellationToken);
         if (status != OAuthDeveloperAppStatus.Active
             && await applications.FindByClientIdAsync(row.ClientId, cancellationToken) is { } application
             && await applications.GetIdAsync(application, cancellationToken) is { Length: > 0 } applicationId)

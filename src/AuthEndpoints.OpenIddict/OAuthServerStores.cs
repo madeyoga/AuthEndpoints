@@ -33,7 +33,10 @@ public interface IOAuthRequestStore<TKey>
 /// Reads and writes developer apps (<see cref="OAuthDeveloperApp{TKey}"/>). The OpenIddict application of an app is
 /// stored by OpenIddict; this store keeps the row that says who owns it and whether it may be used.
 /// </summary>
-/// <remarks>Each method is one atomic operation. Lists are ordered by <see cref="OAuthDeveloperApp{TKey}.CreatedAt"/>.</remarks>
+/// <remarks>
+/// Each method is one atomic operation, and each write sets only the values it names, so concurrent owner and admin
+/// changes do not undo each other. Lists are ordered by <see cref="OAuthDeveloperApp{TKey}.CreatedAt"/>.
+/// </remarks>
 public interface IOAuthDeveloperAppStore<TKey>
     where TKey : IEquatable<TKey>
 {
@@ -60,8 +63,38 @@ public interface IOAuthDeveloperAppStore<TKey>
     /// <summary>Inserts <paramref name="app"/>.</summary>
     Task CreateAsync(OAuthDeveloperApp<TKey> app, CancellationToken cancellationToken);
 
-    /// <summary>Stores every value of <paramref name="app"/> on the row with its <see cref="OAuthDeveloperApp{TKey}.Id"/>.</summary>
-    Task UpdateAsync(OAuthDeveloperApp<TKey> app, CancellationToken cancellationToken);
+    /// <summary>
+    /// Sets the owner-editable values (<see cref="OAuthDeveloperApp{TKey}.Name"/>,
+    /// <see cref="OAuthDeveloperApp{TKey}.HomepageUrl"/>, <see cref="OAuthDeveloperApp{TKey}.Description"/>) and
+    /// <see cref="OAuthDeveloperApp{TKey}.UpdatedAt"/>, and returns whether the app exists. Every other value stays as
+    /// stored: an owner's edit must never write back a <see cref="OAuthDeveloperApp{TKey}.Status"/> an admin changed
+    /// meanwhile.
+    /// </summary>
+    Task<bool> UpdateDetailsAsync(
+        Guid id,
+        string name,
+        string homepageUrl,
+        string? description,
+        DateTimeOffset updatedAt,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sets <see cref="OAuthDeveloperApp{TKey}.Status"/> and <see cref="OAuthDeveloperApp{TKey}.UpdatedAt"/>, and returns
+    /// whether it did. With <paramref name="expected"/>, only when the stored status equals it (compare-and-set), so an
+    /// owner's edit that sends an active app back to review cannot undo a concurrent admin decision.
+    /// </summary>
+    Task<bool> SetStatusAsync(
+        Guid id,
+        OAuthDeveloperAppStatus status,
+        OAuthDeveloperAppStatus? expected,
+        DateTimeOffset updatedAt,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Sets <see cref="OAuthDeveloperApp{TKey}.SecretCreatedAt"/> and <see cref="OAuthDeveloperApp{TKey}.UpdatedAt"/> to
+    /// <paramref name="secretCreatedAt"/>, and returns whether the app exists. Every other value stays as stored.
+    /// </summary>
+    Task<bool> SetSecretCreatedAtAsync(Guid id, DateTimeOffset secretCreatedAt, CancellationToken cancellationToken);
 
     /// <summary>Deletes the app, and returns whether it existed.</summary>
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken);

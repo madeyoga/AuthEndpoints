@@ -49,7 +49,9 @@
         System.Threading.Tasks.Task<bool> IsActiveAsync(System.Guid id, string clientId, System.Threading.CancellationToken cancellationToken);
         System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>>> ListByOwnerAsync(TKey ownerId, System.Threading.CancellationToken cancellationToken);
         System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey>>> ListByStatusAsync(AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, System.Threading.CancellationToken cancellationToken);
-        System.Threading.Tasks.Task UpdateAsync(AuthEndpoints.OpenIddict.OAuthDeveloperApp<TKey> app, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> SetSecretCreatedAtAsync(System.Guid id, System.DateTimeOffset secretCreatedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> SetStatusAsync(System.Guid id, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus status, AuthEndpoints.OpenIddict.OAuthDeveloperAppStatus? expected, System.DateTimeOffset updatedAt, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<bool> UpdateDetailsAsync(System.Guid id, string name, string homepageUrl, string? description, System.DateTimeOffset updatedAt, System.Threading.CancellationToken cancellationToken);
     }
     public interface IOAuthPrincipalFactory
     {

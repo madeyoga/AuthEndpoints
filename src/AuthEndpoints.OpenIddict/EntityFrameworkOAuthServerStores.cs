@@ -148,24 +148,51 @@ internal sealed class EntityFrameworkOAuthDeveloperAppStore<TContext, TKey> : IO
         }
     }
 
-    public async Task UpdateAsync(OAuthDeveloperApp<TKey> app, CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(app);
-        await Apps
-            .Where(row => row.Id == app.Id)
+    public async Task<bool> UpdateDetailsAsync(
+        Guid id,
+        string name,
+        string homepageUrl,
+        string? description,
+        DateTimeOffset updatedAt,
+        CancellationToken cancellationToken)
+        => await Apps
+            .Where(row => row.Id == id)
             .ExecuteUpdateAsync(
                 set => set
-                    .SetProperty(row => row.OwnerId, app.OwnerId)
-                    .SetProperty(row => row.ClientId, app.ClientId)
-                    .SetProperty(row => row.Name, app.Name)
-                    .SetProperty(row => row.HomepageUrl, app.HomepageUrl)
-                    .SetProperty(row => row.Description, app.Description)
-                    .SetProperty(row => row.Confidential, app.Confidential)
-                    .SetProperty(row => row.Status, app.Status)
-                    .SetProperty(row => row.UpdatedAt, app.UpdatedAt)
-                    .SetProperty(row => row.SecretCreatedAt, app.SecretCreatedAt),
-                cancellationToken);
+                    .SetProperty(row => row.Name, name)
+                    .SetProperty(row => row.HomepageUrl, homepageUrl)
+                    .SetProperty(row => row.Description, description)
+                    .SetProperty(row => row.UpdatedAt, updatedAt),
+                cancellationToken) == 1;
+
+    public async Task<bool> SetStatusAsync(
+        Guid id,
+        OAuthDeveloperAppStatus status,
+        OAuthDeveloperAppStatus? expected,
+        DateTimeOffset updatedAt,
+        CancellationToken cancellationToken)
+    {
+        var query = Apps.Where(row => row.Id == id);
+        if (expected is { } current)
+        {
+            query = query.Where(row => row.Status == current);
+        }
+
+        return await query.ExecuteUpdateAsync(
+            set => set
+                .SetProperty(row => row.Status, status)
+                .SetProperty(row => row.UpdatedAt, updatedAt),
+            cancellationToken) == 1;
     }
+
+    public async Task<bool> SetSecretCreatedAtAsync(Guid id, DateTimeOffset secretCreatedAt, CancellationToken cancellationToken)
+        => await Apps
+            .Where(row => row.Id == id)
+            .ExecuteUpdateAsync(
+                set => set
+                    .SetProperty(row => row.SecretCreatedAt, secretCreatedAt)
+                    .SetProperty(row => row.UpdatedAt, secretCreatedAt),
+                cancellationToken) == 1;
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
         => await Apps.Where(app => app.Id == id).ExecuteDeleteAsync(cancellationToken) > 0;

@@ -78,13 +78,10 @@ public sealed class OAuthStoreTests : IAsyncLifetime
         await store.CreateAsync(app, CancellationToken.None);
         await store.CreateAsync(other, CancellationToken.None);
 
-        app.Name = "Renamed";
-        app.HomepageUrl = "https://renamed.example";
-        app.Description = "New";
-        app.Status = OAuthDeveloperAppStatus.Disabled;
-        app.UpdatedAt = Now.AddHours(1);
-        app.SecretCreatedAt = Now.AddHours(1);
-        await store.UpdateAsync(app, CancellationToken.None);
+        Assert.True(await store.UpdateDetailsAsync(app.Id, "Renamed", "https://renamed.example", "New", Now.AddHours(1), CancellationToken.None));
+        Assert.True(await store.SetStatusAsync(app.Id, OAuthDeveloperAppStatus.Disabled, expected: null, Now.AddHours(1), CancellationToken.None));
+        Assert.True(await store.SetSecretCreatedAtAsync(app.Id, Now.AddHours(1), CancellationToken.None));
+        Assert.False(await store.UpdateDetailsAsync(Guid.NewGuid(), "x", "https://x.example", null, Now, CancellationToken.None));
 
         var stored = (await store.FindAsync(app.Id, CancellationToken.None))!;
         Assert.Equal("Renamed", stored.Name);
@@ -107,6 +104,29 @@ public sealed class OAuthStoreTests : IAsyncLifetime
         Assert.True(await store.DeleteAsync(app.Id, CancellationToken.None));
         Assert.False(await store.DeleteAsync(app.Id, CancellationToken.None));
         Assert.Empty(_db.ChangeTracker.Entries());
+    }
+
+    [Fact]
+    public async Task DeveloperAppStore_OwnerWrites_NeverUndoAnAdminDisable()
+    {
+        // The owner's request loaded the app while it was active; an admin disables it before the owner saves.
+        var store = new EntityFrameworkOAuthDeveloperAppStore<TestDb, string>(_db);
+        var app = App("owner", "client-1", Now);
+        await store.CreateAsync(app, CancellationToken.None);
+        var loadedByOwner = (await store.FindAsync(app.Id, CancellationToken.None))!;
+        Assert.Equal(OAuthDeveloperAppStatus.Active, loadedByOwner.Status);
+        Assert.True(await store.SetStatusAsync(app.Id, OAuthDeveloperAppStatus.Disabled, expected: null, Now, CancellationToken.None));
+
+        await store.UpdateDetailsAsync(app.Id, "Renamed", loadedByOwner.HomepageUrl, null, Now, CancellationToken.None);
+        await store.SetSecretCreatedAtAsync(app.Id, Now, CancellationToken.None);
+        // An edit that sends an active app back to review is a compare-and-set, and loses to the admin.
+        Assert.False(await store.SetStatusAsync(
+            app.Id, OAuthDeveloperAppStatus.PendingApproval, OAuthDeveloperAppStatus.Active, Now, CancellationToken.None));
+
+        var stored = (await store.FindAsync(app.Id, CancellationToken.None))!;
+        Assert.Equal(OAuthDeveloperAppStatus.Disabled, stored.Status);
+        Assert.Equal("Renamed", stored.Name);
+        Assert.False(await store.IsActiveAsync(app.Id, "client-1", CancellationToken.None));
     }
 
     [Fact]
