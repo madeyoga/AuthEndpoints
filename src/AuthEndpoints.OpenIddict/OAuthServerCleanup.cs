@@ -1,5 +1,4 @@
 using System.Globalization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,11 +24,10 @@ public interface IOAuthServerCleanup
     Task<OAuthCleanupResult> SweepAsync(CancellationToken cancellationToken = default);
 }
 
-internal sealed class OAuthServerCleanup<TContext, TKey>(
+internal sealed class OAuthServerCleanup<TKey>(
     IServiceScopeFactory scopes,
     TimeProvider clock,
     IOptions<OAuthServerOptions> options) : IOAuthServerCleanup
-    where TContext : DbContext
     where TKey : IEquatable<TKey>
 {
     public async Task<OAuthCleanupResult> SweepAsync(CancellationToken cancellationToken = default)
@@ -39,16 +37,15 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
         var applications = services.GetRequiredService<IOpenIddictApplicationManager>();
         var authorizations = services.GetRequiredService<IOpenIddictAuthorizationManager>();
         var tokens = services.GetRequiredService<IOpenIddictTokenManager>();
-        var db = services.GetRequiredService<TContext>();
+        var requestStore = services.GetRequiredService<IOAuthRequestStore<TKey>>();
+        var developerApps = services.GetRequiredService<IOAuthDeveloperAppStore<TKey>>();
         var settings = options.Value;
         var now = clock.GetUtcNow();
 
         var clients = await DeleteUnusedClientsAsync(applications, authorizations, tokens, settings, now, cancellationToken);
         var events = services.GetRequiredService<OAuthServerEventDispatcher>();
-        var orphans = await DeleteOrphanedDeveloperAppsAsync(db, applications, authorizations, tokens, events, cancellationToken);
-        var requests = await db.Set<OAuthRequest<TKey>>()
-            .Where(request => request.ExpiresAt <= now)
-            .ExecuteDeleteAsync(cancellationToken);
+        var orphans = await DeleteOrphanedDeveloperAppsAsync(developerApps, applications, authorizations, tokens, events, cancellationToken);
+        var requests = await requestStore.DeleteExpiredAsync(now, cancellationToken);
         var threshold = now - settings.PruneAfter;
         var prunedTokens = await tokens.PruneAsync(threshold, cancellationToken);
         var prunedAuthorizations = await authorizations.PruneAsync(threshold, cancellationToken);
@@ -56,7 +53,7 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
     }
 
     private static async Task<int> DeleteOrphanedDeveloperAppsAsync(
-        TContext db,
+        IOAuthDeveloperAppStore<TKey> developerApps,
         IOpenIddictApplicationManager applications,
         IOpenIddictAuthorizationManager authorizations,
         IOpenIddictTokenManager tokens,
@@ -66,7 +63,7 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
         var marked = new List<(object Application, Guid Id)>();
         await foreach (var application in applications.ListAsync(cancellationToken: cancellationToken))
         {
-            if (await OAuthDeveloperAppService<TContext, TKey>.DeveloperAppIdAsync(applications, application, cancellationToken) is { } id)
+            if (await OAuthDeveloperAppService<TKey>.DeveloperAppIdAsync(applications, application, cancellationToken) is { } id)
             {
                 marked.Add((application, id));
             }
@@ -79,11 +76,7 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
 
         // Rows are written before their application, so a missing row never belongs to an app being created.
         var ids = marked.Select(item => item.Id).ToList();
-        var existing = await db.Set<OAuthDeveloperApp<TKey>>()
-            .Where(app => ids.Contains(app.Id))
-            .Select(app => app.Id)
-            .ToListAsync(cancellationToken);
-        var kept = existing.ToHashSet();
+        var kept = (await developerApps.FindByIdsAsync(ids, cancellationToken)).Select(app => app.Id).ToHashSet();
         var deleted = 0;
         foreach (var (application, id) in marked)
         {
@@ -92,8 +85,8 @@ internal sealed class OAuthServerCleanup<TContext, TKey>(
                 continue;
             }
 
-            await OAuthDeveloperAppService<TContext, TKey>.DeleteApplicationAsync(
-                db, applications, tokens, authorizations, application, events, OAuthRevokedBy.Cleanup, cancellationToken);
+            await OAuthDeveloperAppService<TKey>.DeleteApplicationAsync(
+                applications, tokens, authorizations, application, events, OAuthRevokedBy.Cleanup, cancellationToken);
             deleted++;
         }
 

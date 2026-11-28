@@ -4,14 +4,10 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.AspNetCore;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
-using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
 
 namespace AuthEndpoints.OpenIddict;
@@ -136,7 +132,7 @@ public sealed record OAuthServerEvent(OAuthServerEventType Type, DateTimeOffset 
 /// request, one after another, so keep them fast or hand the event to a queue. One that throws is logged and skipped:
 /// the OAuth flow and the other subscribers carry on.
 /// <para>
-/// When the change behind an event happens while the host has a transaction open on the server's DbContext
+/// With the EF Core stores, when the change behind an event happens while the host has a transaction open on the server's DbContext
 /// (<c>db.Database.BeginTransactionAsync()</c>, for example around <see cref="IOAuthConsentService.ApproveAsync(Guid, string, CancellationToken)"/>), the
 /// event is held back: subscribers get it after that transaction commits, and never if it rolls back. Commit or roll back
 /// through the <c>IDbContextTransaction</c> EF Core returned; a transaction EF Core cannot see (<c>TransactionScope</c>,
@@ -162,8 +158,8 @@ internal sealed partial class OAuthServerEventDispatcher(
     public DateTimeOffset Now => clock.GetUtcNow();
 
     /// <summary>
-    /// Raises the event now, or, while the scoped DbContext has a transaction open, once that transaction commits
-    /// (dropped on rollback).
+    /// Raises the event now, or, while the store has a transaction open (<see cref="IOAuthServerEventTransactions"/>), once
+    /// that transaction commits (dropped on rollback).
     /// </summary>
     public ValueTask RaiseAsync(OAuthServerEvent serverEvent, CancellationToken cancellationToken)
     {
@@ -172,10 +168,9 @@ internal sealed partial class OAuthServerEventDispatcher(
             return ValueTask.CompletedTask;
         }
 
-        if (services.GetService<OAuthEventTransactions>() is { } transactions
-            && services.GetService<OAuthServerMarker>()?.Context(services) is { Database.CurrentTransaction: { } transaction })
+        if (services.GetService<IOAuthServerEventTransactions>() is { } transactions
+            && transactions.TryDefer(token => PublishAsync(serverEvent, token)))
         {
-            transactions.Defer(transaction.GetDbTransaction(), token => PublishAsync(serverEvent, token));
             return ValueTask.CompletedTask;
         }
 
@@ -248,21 +243,27 @@ internal sealed partial class OAuthServerEventDispatcher(
     /// subscribers.
     /// </summary>
     public async ValueTask<IReadOnlyList<OAuthAuthorizationRecord>> ValidAuthorizationsAsync(
-        DbContext db, string applicationId, CancellationToken cancellationToken)
+        string applicationId, CancellationToken cancellationToken)
         => HasSubscribers
-            ? await OAuthAuthorizationRecord.QueryAsync(
-                db,
-                authorization => authorization.Application!.Id == applicationId
-                    && authorization.Status == OpenIddictConstants.Statuses.Valid,
-                cancellationToken)
+            ? await services.GetRequiredService<IOAuthServerQueries>().ListValidGrantsAsync(applicationId, cancellationToken)
             : [];
 
     [LoggerMessage(Level = LogLevel.Error, Message = "An OAuth server event subscriber failed. Event: {EventType}. Subscriber: {Subscriber}")]
     private partial void LogSubscriberFailed(Exception ex, OAuthServerEventType eventType, string subscriber);
 }
 
-/// <summary>A grant as the store holds it, with the properties this package adds.</summary>
-internal sealed record OAuthAuthorizationRecord(
+/// <summary>
+/// A grant (an OpenIddict authorization) as AuthEndpoints reports it: the approving user, the client, and the properties
+/// this package adds. Returned by <see cref="IOAuthServerQueries"/>.
+/// </summary>
+/// <param name="Id">The OpenIddict authorization id.</param>
+/// <param name="UserId">The approving user: the <see cref="OAuthServerConstants.AuthorizationUserProperty"/> property, or the subject.</param>
+/// <param name="ClientId">The client id, or <see langword="null"/> when the client is no longer stored.</param>
+/// <param name="ClientKind">One of <see cref="OAuthClientKinds"/>, or <see langword="null"/> without a stored client.</param>
+/// <param name="Scopes">The granted scopes.</param>
+/// <param name="Resource">The <see cref="OAuthServerConstants.AuthorizationResourceProperty"/> property.</param>
+/// <param name="LastUsedAt">The <see cref="OAuthServerConstants.AuthorizationLastUsedProperty"/> property.</param>
+public sealed record OAuthAuthorizationRecord(
     string? Id,
     string? UserId,
     string? ClientId,
@@ -278,86 +279,9 @@ internal sealed record OAuthAuthorizationRecord(
     public string? ClientName { get; init; }
 
     /// <summary>
-    /// Reads grants straight from OpenIddict's EF Core tables, untracked, with their client in the same query.
-    /// Untracked matters: a bulk revoke or delete that follows must not find stale tracked copies.
+    /// Reads one grant through OpenIddict's managers, whatever stores them. Use it to build the records of a custom
+    /// <see cref="IOAuthServerQueries"/>.
     /// </summary>
-    public static async Task<IReadOnlyList<OAuthAuthorizationRecord>> QueryAsync(
-        DbContext db,
-        Expression<Func<OpenIddictEntityFrameworkCoreAuthorization, bool>> filter,
-        CancellationToken cancellationToken)
-    {
-        var rows = await db.Set<OpenIddictEntityFrameworkCoreAuthorization>()
-            .AsNoTracking()
-            .Where(filter)
-            .Select(authorization => new
-            {
-                authorization.Id,
-                authorization.Subject,
-                authorization.Scopes,
-                authorization.Properties,
-                authorization.CreationDate,
-                ClientId = authorization.Application == null ? null : authorization.Application.ClientId,
-                ClientName = authorization.Application == null ? null : authorization.Application.DisplayName,
-                Settings = authorization.Application == null ? null : authorization.Application.Settings,
-            })
-            .ToListAsync(cancellationToken);
-        return rows.Select(row =>
-        {
-            var properties = ParseObject(row.Properties);
-            return new OAuthAuthorizationRecord(
-                row.Id,
-                OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationUserProperty) ?? row.Subject,
-                row.ClientId,
-                row.ClientId is null ? null : OAuthClientKinds.From(ParseSettings(row.Settings)),
-                ParseArray(row.Scopes),
-                OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationResourceProperty),
-                OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty))
-            {
-                CreatedAt = row.CreationDate is { } created ? new DateTimeOffset(DateTime.SpecifyKind(created, DateTimeKind.Utc)) : null,
-                ClientName = row.ClientName,
-            };
-        }).ToList();
-    }
-
-    private static Dictionary<string, JsonElement> ParseObject(string? json)
-    {
-        if (string.IsNullOrEmpty(json))
-        {
-            return [];
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json) ?? [];
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
-    }
-
-    private static Dictionary<string, string> ParseSettings(string? json)
-        => ParseObject(json)
-            .Where(pair => pair.Value.ValueKind == JsonValueKind.String)
-            .ToDictionary(pair => pair.Key, pair => pair.Value.GetString()!, StringComparer.Ordinal);
-
-    private static string[] ParseArray(string? json)
-    {
-        if (string.IsNullOrEmpty(json))
-        {
-            return [];
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<string[]>(json) ?? [];
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
-    }
-
     public static async ValueTask<OAuthAuthorizationRecord> ReadAsync(
         IOpenIddictAuthorizationManager authorizations,
         IOpenIddictApplicationManager applications,
@@ -367,13 +291,18 @@ internal sealed record OAuthAuthorizationRecord(
         var properties = await authorizations.GetPropertiesAsync(authorization, cancellationToken);
         var userId = OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationUserProperty)
             ?? await authorizations.GetSubjectAsync(authorization, cancellationToken);
+        ArgumentNullException.ThrowIfNull(authorizations);
+        ArgumentNullException.ThrowIfNull(applications);
+        ArgumentNullException.ThrowIfNull(authorization);
         string? clientId = null;
         string? kind = null;
+        string? clientName = null;
         if (await authorizations.GetApplicationIdAsync(authorization, cancellationToken) is { Length: > 0 } applicationId
             && await applications.FindByIdAsync(applicationId, cancellationToken) is { } application)
         {
             clientId = await applications.GetClientIdAsync(application, cancellationToken);
             kind = OAuthClientKinds.From(await applications.GetSettingsAsync(application, cancellationToken));
+            clientName = await applications.GetDisplayNameAsync(application, cancellationToken);
         }
 
         var created = await authorizations.GetCreationDateAsync(authorization, cancellationToken);
@@ -387,6 +316,7 @@ internal sealed record OAuthAuthorizationRecord(
             OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty))
         {
             CreatedAt = created,
+            ClientName = clientName,
         };
     }
 }
@@ -518,119 +448,18 @@ internal sealed partial class RaiseTokenEvents(
     }
 
     /// <summary>
-    /// The store marks the failed entry unchanged, but the request's DbContext still tracks the values this write set,
-    /// with a concurrency token the database never stored. Reload it so a later update of the same grant in this request
-    /// (another handler, or host code) starts from the stored row instead of failing again.
+    /// A store may still hold the values this write set, with a concurrency token it never stored (EF Core's change tracker
+    /// does). Refresh the grant so a later update of it in this request (another handler, or host code) starts from the
+    /// stored values instead of failing again.
     /// </summary>
     private async Task ResetAsync(object authorization, CancellationToken cancellationToken)
     {
-        if (services.GetService<OAuthServerMarker>()?.Context(services) is not { } db)
+        if (services.GetService<IOAuthAuthorizationRefresher>() is { } refresher)
         {
-            return;
-        }
-
-        var entry = db.Entry(authorization);
-        if (entry.State == EntityState.Detached)
-        {
-            return;
-        }
-
-        if (await entry.GetDatabaseValuesAsync(cancellationToken) is { } stored)
-        {
-            entry.OriginalValues.SetValues(stored);
-            entry.CurrentValues.SetValues(stored);
-            entry.State = EntityState.Unchanged;
-        }
-        else
-        {
-            // Deleted meanwhile.
-            entry.State = EntityState.Detached;
+            await refresher.RefreshAsync(authorization, cancellationToken);
         }
     }
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "The OAuth grant's last-used time was not recorded")]
     private partial void LogLastUsedSkipped(Exception ex);
-}
-
-/// <summary>
-/// Holds the events raised while a DbContext has a transaction open, and publishes them when EF Core reports the commit,
-/// or drops them on rollback or a failed commit. Added to the server's DbContext as an interceptor. Keyed by the
-/// transaction, which is never reused, so events of a transaction disposed without commit or rollback are simply
-/// collected with it, even when the DbContext itself is pooled.
-/// </summary>
-internal sealed partial class OAuthEventTransactions(ILogger<OAuthEventTransactions> logger) : DbTransactionInterceptor
-{
-    private readonly ConditionalWeakTable<DbTransaction, List<Func<CancellationToken, ValueTask>>> _pending = new();
-
-    public void Defer(DbTransaction transaction, Func<CancellationToken, ValueTask> publish)
-    {
-        var queue = _pending.GetOrCreateValue(transaction);
-        lock (queue)
-        {
-            queue.Add(publish);
-        }
-    }
-
-    public override void TransactionCommitted(DbTransaction transaction, TransactionEndEventData eventData)
-        => PublishAsync(transaction).AsTask().GetAwaiter().GetResult();
-
-    public override Task TransactionCommittedAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
-        => PublishAsync(transaction).AsTask();
-
-    public override void TransactionRolledBack(DbTransaction transaction, TransactionEndEventData eventData)
-        => Drop(transaction);
-
-    public override Task TransactionRolledBackAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
-    {
-        Drop(transaction);
-        return Task.CompletedTask;
-    }
-
-    public override void TransactionFailed(DbTransaction transaction, TransactionErrorEventData eventData)
-        => Drop(transaction);
-
-    public override Task TransactionFailedAsync(DbTransaction transaction, TransactionErrorEventData eventData, CancellationToken cancellationToken = default)
-    {
-        Drop(transaction);
-        return Task.CompletedTask;
-    }
-
-    private async ValueTask PublishAsync(DbTransaction transaction)
-    {
-        if (Take(transaction) is not { } queue)
-        {
-            return;
-        }
-
-        foreach (var publish in queue)
-        {
-            // The transaction has committed: what happened is final, so a cancelled request still gets its audit trail.
-            await publish(CancellationToken.None);
-        }
-    }
-
-    private void Drop(DbTransaction transaction)
-    {
-        if (Take(transaction) is { Count: > 0 } queue)
-        {
-            LogDropped(queue.Count);
-        }
-    }
-
-    private List<Func<CancellationToken, ValueTask>>? Take(DbTransaction transaction)
-    {
-        if (!_pending.TryGetValue(transaction, out var queue))
-        {
-            return null;
-        }
-
-        _pending.Remove(transaction);
-        lock (queue)
-        {
-            return [.. queue];
-        }
-    }
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "{Count} OAuth server event(s) were not raised because the host's transaction did not commit")]
-    private partial void LogDropped(int count);
 }

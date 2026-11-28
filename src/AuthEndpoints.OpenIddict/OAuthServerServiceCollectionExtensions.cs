@@ -191,13 +191,23 @@ public static class OAuthServerServiceCollectionExtensions
         // Events raised inside a host transaction wait for its commit.
         services.TryAddSingleton<OAuthEventTransactions>();
         services.ConfigureDbContext<TContext>((provider, db) => db.AddInterceptors(provider.GetRequiredService<OAuthEventTransactions>()));
-        services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<,>).MakeGenericType(typeof(TContext), keyType));
-        services.TryAddScoped(typeof(IOAuthConnectedAppService), typeof(OAuthConnectedAppService<,>).MakeGenericType(typeof(TContext), keyType));
-        var developerApps = typeof(OAuthDeveloperAppService<,>).MakeGenericType(typeof(TContext), keyType);
+        // EF Core stores. The services below read and write only through these interfaces.
+        services.TryAddScoped(
+            typeof(IOAuthRequestStore<>).MakeGenericType(keyType),
+            typeof(EntityFrameworkOAuthRequestStore<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddScoped(
+            typeof(IOAuthDeveloperAppStore<>).MakeGenericType(keyType),
+            typeof(EntityFrameworkOAuthDeveloperAppStore<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddScoped<IOAuthServerQueries, EntityFrameworkOAuthServerQueries<TContext>>();
+        services.TryAddScoped<IOAuthServerEventTransactions, EntityFrameworkOAuthServerEventTransactions<TContext>>();
+        services.TryAddScoped<IOAuthAuthorizationRefresher, EntityFrameworkOAuthAuthorizationRefresher<TContext>>();
+        services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<>).MakeGenericType(keyType));
+        services.TryAddScoped(typeof(IOAuthConnectedAppService), typeof(OAuthConnectedAppService<>).MakeGenericType(keyType));
+        var developerApps = typeof(OAuthDeveloperAppService<>).MakeGenericType(keyType);
         services.TryAddScoped(developerApps);
         services.TryAddScoped(typeof(IOAuthDeveloperAppService), provider => provider.GetRequiredService(developerApps));
         services.TryAddScoped(typeof(IOAuthDeveloperAppGate), provider => provider.GetRequiredService(developerApps));
-        services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddSingleton(typeof(IOAuthServerCleanup), typeof(OAuthServerCleanup<>).MakeGenericType(keyType));
         services.TryAddSingleton<OAuthRegistrationRateLimiter>();
         // Token and revocation endpoint limit. Inert unless TokenRateLimit.Enabled or AddTokenRateLimiter.
         services.TryAddSingleton<OAuthTokenRateLimiter>();
@@ -212,7 +222,7 @@ public static class OAuthServerServiceCollectionExtensions
                 provider.GetRequiredService<IOptions<OAuthServerOptions>>().Value.ClientMetadataDocuments))
             // The default HttpClient logging writes request URLs. Keep fetches out of the logs.
             .RemoveAllLoggers();
-        services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<,>).MakeGenericType(typeof(TContext), keyType));
+        services.TryAddSingleton(typeof(OAuthServerMarker), typeof(OAuthServerMarker<>).MakeGenericType(keyType));
         services.AddHostedService<OAuthServerCleanupService>();
         // An OAuth access token arrives in Authorization: Bearer, so RequireAntiforgery() lets it skip the CSRF check
         // like Identity bearer and JWT. Routes a token must never call use RequireAntiforgery(allowBearer: false).

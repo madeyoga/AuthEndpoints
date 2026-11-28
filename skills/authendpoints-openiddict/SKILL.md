@@ -90,6 +90,8 @@ dotnet ef migrations add OAuthServer
 
 Pass `userForeignKey: false` when the users table is in a different DbContext.
 
+The server reads and writes through `IOAuthRequestStore<TKey>`, `IOAuthDeveloperAppStore<TKey>` and `IOAuthServerQueries`; `AddOAuthServer` registers EF Core implementations. Do not query `OAuthRequests`, `OAuthDeveloperApps` or OpenIddict's tables from host code to change server state: use `IOAuthConsentService`, `IOAuthDeveloperAppService` and `IOAuthConnectedAppService`. A missing store fails `MapOAuthServer` with a message that names it.
+
 ## Map the routes
 
 ```csharp
