@@ -46,7 +46,7 @@ public static class ReAuthEndpoints<TUser>
             && AuthEndpointsFeatures.For(services).EmailCode.CanConfirmIdentity)
         {
             var options = services.GetRequiredService<IOptions<EmailCodeOptions>>().Value;
-            emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options);
+            emailCode = await EmailCodeReAuthGate.IsAvailableAsync(userManager, user, options, passkeyCount);
         }
 
         return TypedResults.Ok(new AuthMethodsResponse(
