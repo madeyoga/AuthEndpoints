@@ -65,7 +65,8 @@ With it on, the authorization server metadata has `client_id_metadata_document_s
 - **Hosts.** `DeniedHosts` and `AllowedHosts` take host names, or `*.example.com` for subdomains. Empty `AllowedHosts` accepts any public host. For a decision the lists cannot express, register a filter; it runs before every fetch and before a stored client is reused:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { … })
+builder.Services.AddOAuthServer<AppUser>(options => { … })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddClientMetadataHostFilter<TrustedClientHosts>();
 
 public sealed class TrustedClientHosts(AppDbContext db) : IOAuthClientMetadataHostFilter

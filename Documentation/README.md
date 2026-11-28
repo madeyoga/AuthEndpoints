@@ -10,7 +10,7 @@ When cutting a NuGet release, add a note under [`content/versions/<tag>.md`](con
 
 ### Package versions
 
-The tag prefix picks which packages a GitHub release publishes: `v*` for `AuthEndpoints` and `AuthEndpoints.EntityFrameworkCore`, `external-oauth-v*` for `AuthEndpoints.External.OAuth`, `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`, and `openiddict-v*` for `AuthEndpoints.OpenIddict`. See [Releases in CONTRIBUTING.md](../CONTRIBUTING.md#releases).
+The tag prefix picks which packages a GitHub release publishes: `v*` for `AuthEndpoints` and `AuthEndpoints.EntityFrameworkCore`, `external-oauth-v*` for `AuthEndpoints.External.OAuth`, `AuthEndpoints.OAuth.GitHub` and `AuthEndpoints.OAuth.Google`, and `openiddict-v*` for `AuthEndpoints.OpenIddict` and `AuthEndpoints.OpenIddict.EntityFrameworkCore`. See [Releases in CONTRIBUTING.md](../CONTRIBUTING.md#releases).
 
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints?label=AuthEndpoints&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints/)
 [![nuget](https://img.shields.io/nuget/v/AuthEndpoints.External.OAuth?label=External.OAuth&logo=NuGet&style=flat-square)](https://www.nuget.org/packages/AuthEndpoints.External.OAuth/)

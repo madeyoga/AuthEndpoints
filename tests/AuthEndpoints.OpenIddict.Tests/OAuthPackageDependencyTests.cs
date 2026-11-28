@@ -47,6 +47,43 @@ public class OAuthPackageDependencyTests
         }
     }
 
+    // The EF Core store package implements the store interfaces of AuthEndpoints.OpenIddict, so it ranges that
+    // package the same way: from the version it was built against up to the next major.
+    [Fact]
+    public void Packed_ef_store_package_requires_the_built_openiddict_package_up_to_its_next_major()
+    {
+        var root = FindRepoRoot();
+        var output = Path.Combine(Path.GetTempPath(), "ae-oidc-ef-pack-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(output);
+        try
+        {
+            var project = Path.Combine(root, "src", "AuthEndpoints.OpenIddict.EntityFrameworkCore", "AuthEndpoints.OpenIddict.EntityFrameworkCore.csproj");
+            var result = Pack(project, output);
+            Assert.True(result.ExitCode == 0, result.Text);
+
+            var nupkg = Assert.Single(Directory.GetFiles(output, "AuthEndpoints.OpenIddict.EntityFrameworkCore.*.nupkg"));
+            using var zip = ZipFile.OpenRead(nupkg);
+            var nuspec = zip.Entries.Single(entry => entry.FullName.EndsWith(".nuspec", StringComparison.OrdinalIgnoreCase));
+            using var reader = nuspec.Open();
+            var document = XDocument.Load(reader);
+            XNamespace ns = document.Root!.Name.Namespace;
+            var dependencies = document.Descendants(ns + "dependency").ToArray();
+            var version = XDocument
+                .Load(Path.Combine(root, "src", "AuthEndpoints.OpenIddict", "AuthEndpoints.OpenIddict.csproj"))
+                .Descendants("Version")
+                .Single()
+                .Value;
+            var major = int.Parse(version.Split('.')[0], System.Globalization.CultureInfo.InvariantCulture);
+            var openIddict = dependencies.Single(element => element.Attribute("id")?.Value == "AuthEndpoints.OpenIddict");
+            Assert.Equal($"[{version}, {major + 1}.0.0)", openIddict.Attribute("version")?.Value);
+            Assert.Contains(dependencies, element => element.Attribute("id")?.Value == "OpenIddict.EntityFrameworkCore");
+        }
+        finally
+        {
+            Directory.Delete(output, recursive: true);
+        }
+    }
+
     private static (int ExitCode, string Text) Pack(string project, string output)
     {
         var start = new ProcessStartInfo

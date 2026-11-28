@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>AuthEndpoints.OpenIddict.EntityFrameworkCore</PackageId>
+    <Description>EF Core storage for AuthEndpoints.OpenIddict: OpenIddict's EF Core stores, plus the pending-consent and developer-app tables. Call AddEntityFrameworkStores on the AddOAuthServer builder.</Description>
+    <!-- Released with AuthEndpoints.OpenIddict under the same openiddict-v* tag, so it keeps the same version. -->
+    <Version>4.0.0-preview.5</Version>
+    <Authors>madeyoga</Authors>
+    <Company>madeyoga</Company>
+    <PackageProjectUrl>https://authendpoints.harten.id</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/madeyoga/AuthEndpoints</RepositoryUrl>
+    <PackageTags>auth;endpoints;aspnetcore;oauth;openiddict;efcore;entityframeworkcore</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>True</IsPackable>
+    <!-- [AuthEndpoints.OpenIddict version, next major): the store contracts it implements are versioned there. -->
+    <AuthEndpointsRangedProjects>AuthEndpoints.OpenIddict.csproj</AuthEndpointsRangedProjects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <InternalsVisibleTo Include="AuthEndpoints.OpenIddict.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\AuthEndpoints.OpenIddict\AuthEndpoints.OpenIddict.csproj" />
+    <PackageReference Include="OpenIddict.EntityFrameworkCore" Version="7.7.2" />
+  </ItemGroup>
+
+  <Import Project="..\AuthEndpoints.DependencyRange.targets" />
+
+</Project>

@@ -89,7 +89,7 @@ public sealed class OAuthServerEventTransactionTests
         services.AddLogging();
         services.AddDbContextPool<TestDb>(options => options.UseSqlite($"Data Source={path};Pooling=False"));
         services.AddIdentityCore<IdentityUser>().AddEntityFrameworkStores<TestDb>();
-        services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>();
+        services.AddAuthEndpointsOpenIddict<IdentityUser>().AddEntityFrameworkStores<TestDb>();
         await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = false });
         await using var scope = provider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TestDb>();

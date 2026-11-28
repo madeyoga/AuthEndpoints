@@ -33,7 +33,7 @@ The recipe is a shortcut for these calls, which stay public for hosts that want 
 ```csharp
 builder.Services.AddAuthorization();
 builder.Services.AddAntiforgery();
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { … });
+builder.Services.AddAuthEndpointsOpenIddict<AppUser>(options => { … }).AddEntityFrameworkStores<AppDbContext>();
 
 app.MapAuthEndpointsOpenIddict();        // authorize, plus registration and resource metadata when enabled
 app.MapOAuthConsentEndpoints();          // optional JSON consent API

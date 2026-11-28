@@ -432,10 +432,17 @@
         "type": "Project",
         "dependencies": {
           "AuthEndpoints": "[4.3.0, )",
-          "OpenIddict.EntityFrameworkCore": "[7.7.2, )",
+          "OpenIddict.Core": "[7.7.2, )",
           "OpenIddict.Server.AspNetCore": "[7.7.2, )",
           "OpenIddict.Validation.AspNetCore": "[7.7.2, )",
           "OpenIddict.Validation.ServerIntegration": "[7.7.2, )"
+        }
+      },
+      "authendpoints.openiddict.entityframeworkcore": {
+        "type": "Project",
+        "dependencies": {
+          "AuthEndpoints.OpenIddict": "[4.0.0-preview.5, )",
+          "OpenIddict.EntityFrameworkCore": "[7.7.2, )"
         }
       }
     }

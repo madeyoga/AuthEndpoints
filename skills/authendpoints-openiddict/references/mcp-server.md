@@ -3,7 +3,7 @@
 An AI assistant or other MCP client connects to an MCP server your app hosts, and each person signs in as themselves. The assistant's token carries that person's roles and only the scopes they approved. The [full guide](https://authendpoints.harten.id/guides/mcp-server-oauth) walks through every step. In short, for an app that serves `/api` to cookie users and `/mcp` to assistants:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     options.Issuer = new Uri("https://app.example.com/");
     options.Audience = "https://app.example.com/api";
@@ -31,7 +31,7 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 
     options.AccessTokenClaims.Roles = true;
     options.AccessTokenClaims.UserId = true;
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization(options => options.AddPolicy("mcp", policy => policy
     .RequireOAuthAudience("https://app.example.com/mcp")

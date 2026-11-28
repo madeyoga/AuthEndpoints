@@ -109,7 +109,7 @@ internal static class OAuthAuthorizeEndpoint<TKey>
                 return Reject(OpenIddictConstants.Errors.InvalidRequest, "prompt=login and max_age are not supported.");
             }
 
-            if ((request.Nonce?.Length ?? 0) > OAuthRequestLimits.NonceLength)
+            if ((request.Nonce?.Length ?? 0) > OAuthStoreLimits.NonceLength)
             {
                 return Reject(OpenIddictConstants.Errors.InvalidRequest, "nonce is too long.");
             }

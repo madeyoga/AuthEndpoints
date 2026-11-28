@@ -17,13 +17,13 @@ A token's audience is the resource the client asked for at `/connect/authorize` 
 Once `AcceptedAudiences` has entries, `AccessTokenScheme` lets a token for any accepted audience through, and a policy that only requires an authenticated user no longer tells them apart. Check the audience on each route. `RequireOAuthAudience` authenticates with `AccessTokenScheme` and requires the token's `aud` to contain the given resource:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     options.Audience = "https://auth.example.com/api";
     options.AdditionalResources.Add("https://auth.example.com/mcp");
     options.AcceptedAudiences.Add("https://auth.example.com/mcp");
     // ...
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -42,12 +42,12 @@ A token for `/mcp` then gets `403` from `/api`, and the other way round. With pr
 A validated access token has `sub` and the granted scopes, but no roles and no `ClaimTypes.NameIdentifier`, so `RequireRole` policies and `UserManager.GetUserId(User)` see a token caller as a user without either. Turn on `AccessTokenClaims` to add them:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     // ...
     options.AccessTokenClaims.Roles = true;  // the approving user's Identity roles, as `role` claims
     options.AccessTokenClaims.UserId = true; // ClaimTypes.NameIdentifier from sub
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization(options => options.AddPolicy("reports", policy => policy
     .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
@@ -100,11 +100,11 @@ if (user.IsOAuthDelegated() && !user.HasOAuthScope("reports.read"))
 The form body is never read. To accept `?access_token=` on chosen paths, list their prefixes in `QueryStringTokenPaths`. This is what SignalR and raw WebSocket hosts need, because a browser cannot set headers on a WebSocket or `EventSource` request:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     // ...
     options.QueryStringTokenPaths.Add("/hubs");
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization("api");
 ```
@@ -161,7 +161,8 @@ Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares
 For another algorithm or partition, pass your own limiter. It replaces the built-in one and turns the limit on:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+builder.Services.AddOAuthServer<AppUser>(options => { /* … */ })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddTokenRateLimiter(_ => PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context =>
         RateLimitPartition.GetTokenBucketLimiter(
             $"{context.Endpoint}:{context.ClientId}",
@@ -199,7 +200,8 @@ The approving user's id and stamp are stored in the code and refresh token only.
 Implement `IOAuthServerEvents` to keep an audit trail of what the OAuth server did, and register it with `AddServerEvents<T>()`. Register as many as you need; each gets every event, in registration order. With none registered (the default), nothing is raised.
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+builder.Services.AddOAuthServer<AppUser>(options => { /* … */ })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddServerEvents<OAuthAuditLog>();
 
 public sealed class OAuthAuditLog(AppDbContext db) : IOAuthServerEvents

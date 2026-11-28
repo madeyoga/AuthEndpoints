@@ -125,6 +125,7 @@
         public string? Resource { get; init; }
         public System.Collections.Generic.IReadOnlyList<string> Scopes { get; init; }
         public string? UserId { get; init; }
+        public static AuthEndpoints.OpenIddict.OAuthAuthorizationRecord FromStore(string? id, string? subject, System.Collections.Generic.IReadOnlyList<string> scopes, System.Collections.Generic.IReadOnlyDictionary<string, System.Text.Json.JsonElement> properties, string? clientId, string? clientName, System.Collections.Generic.IReadOnlyDictionary<string, string>? clientSettings, System.DateTimeOffset? createdAt) { }
         public static System.Threading.Tasks.ValueTask<AuthEndpoints.OpenIddict.OAuthAuthorizationRecord> ReadAsync(OpenIddict.Abstractions.IOpenIddictAuthorizationManager authorizations, OpenIddict.Abstractions.IOpenIddictApplicationManager applications, object authorization, System.Threading.CancellationToken cancellationToken) { }
     }
     public static class OAuthClaimsPrincipalExtensions
@@ -486,6 +487,7 @@
     {
         public Microsoft.Extensions.DependencyInjection.OpenIddictBuilder OpenIddict { get; }
         public Microsoft.Extensions.DependencyInjection.IServiceCollection Services { get; }
+        public System.Type UserType { get; }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddClientMetadataHostFilter<TFilter>()
             where TFilter :  class, AuthEndpoints.OpenIddict.IOAuthClientMetadataHostFilter { }
         public AuthEndpoints.OpenIddict.OAuthServerBuilder AddDeveloperAppOwnerDisplay<TDisplay>()
@@ -586,11 +588,6 @@
         AuthorizationRevoked = 5,
         ClientRegistered = 6,
     }
-    public static class OAuthServerModelBuilderExtensions
-    {
-        public static Microsoft.EntityFrameworkCore.ModelBuilder UseAuthEndpointsOpenIddict<TUser>(this Microsoft.EntityFrameworkCore.ModelBuilder builder, bool userForeignKey = true)
-            where TUser :  class { }
-    }
     public sealed class OAuthServerOptions
     {
         public OAuthServerOptions() { }
@@ -641,12 +638,18 @@
     {
         [System.Obsolete("Use OAuthServerConstants.AccessTokenScheme.")]
         public const string ValidationScheme = "OpenIddict.Validation.AspNetCore";
-        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
-            where TUser :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
-        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddOAuthServer<TUser, TContext>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
-            where TUser :  class
-            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+            where TUser :  class { }
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddOAuthServer<TUser>(this Microsoft.Extensions.DependencyInjection.IServiceCollection services, System.Action<AuthEndpoints.OpenIddict.OAuthServerOptions>? configure = null)
+            where TUser :  class { }
+    }
+    public static class OAuthStoreLimits
+    {
+        public const int AuthenticationMethodsLength = 128;
+        public const int ClientIdLength = 255;
+        public const int DeveloperAppDescriptionLength = 1000;
+        public const int DeveloperAppNameLength = 200;
+        public const int NonceLength = 512;
     }
     public sealed class OAuthTokenRateLimitOptions
     {

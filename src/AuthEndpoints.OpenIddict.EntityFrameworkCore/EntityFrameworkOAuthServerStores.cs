@@ -293,22 +293,16 @@ internal sealed class EntityFrameworkOAuthServerQueries<TContext>(TContext db) :
                 Settings = authorization.Application == null ? null : authorization.Application.Settings,
             })
             .ToListAsync(cancellationToken);
-        return rows.Select(row =>
-        {
-            var properties = ParseObject(row.Properties);
-            return new OAuthAuthorizationRecord(
+        return rows.Select(row => OAuthAuthorizationRecord.FromStore(
                 row.Id,
-                OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationUserProperty) ?? row.Subject,
-                row.ClientId,
-                row.ClientId is null ? null : OAuthClientKinds.From(ParseSettings(row.Settings)),
+                row.Subject,
                 ParseArray(row.Scopes),
-                OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationResourceProperty),
-                OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty))
-            {
-                CreatedAt = row.CreationDate is { } created ? new DateTimeOffset(DateTime.SpecifyKind(created, DateTimeKind.Utc)) : null,
-                ClientName = row.ClientName,
-            };
-        }).ToList();
+                ParseObject(row.Properties),
+                row.ClientId,
+                row.ClientName,
+                row.ClientId is null ? null : ParseSettings(row.Settings),
+                row.CreationDate is { } created ? new DateTimeOffset(DateTime.SpecifyKind(created, DateTimeKind.Utc)) : null))
+            .ToList();
     }
 
     private static Dictionary<string, JsonElement> ParseObject(string? json)
