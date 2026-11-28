@@ -378,7 +378,7 @@ public class SetPasswordEndpointTests
             })
             .AddEntityFrameworkStores<TestDbContext>()
             .AddDefaultTokenProviders();
-        builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
         {
             options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
         });
@@ -518,7 +518,7 @@ public class SetPasswordEndpointTests
             builder.Services.AddCookieSessionEndpoints();
             builder.Services.AddBearerSessionEndpoints();
             builder.Services.AddAccountManagementEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(options =>
             {
                 options.ResendCooldown = TimeSpan.Zero;
                 options.SendsPerIpPerMinute = 100;

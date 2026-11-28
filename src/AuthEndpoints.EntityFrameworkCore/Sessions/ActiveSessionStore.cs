@@ -1,3 +1,4 @@
+using AuthEndpoints.Jwt;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthEndpoints.Sessions;
@@ -13,6 +14,19 @@ internal sealed class ActiveSessionStore<TContext> : IActiveSessionStore
 
     public ActiveSessionStore(TContext db)
     {
+        if (db.Model.FindEntityType(typeof(ActiveSession)) is null)
+        {
+            throw new InvalidOperationException(
+                $"AddActiveSessions needs the session table. Call modelBuilder.UseActiveSessions() in {typeof(TContext).Name}.OnModelCreating.");
+        }
+
+        if (db.Model.FindEntityType(typeof(RefreshToken)) is { } refreshTokens
+            && refreshTokens.FindProperty(nameof(RefreshToken.SessionId)) is null)
+        {
+            throw new InvalidOperationException(
+                $"Active sessions with JWT need the refresh-token SessionId column. Call modelBuilder.UseRefreshToken() before modelBuilder.UseActiveSessions() in {typeof(TContext).Name}.OnModelCreating.");
+        }
+
         _db = db;
     }
 

@@ -105,7 +105,7 @@ public class PasskeyCeremonyAntiforgeryTests
             builder =>
             {
                 builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+                builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
                     .AddPassword()
                     .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost")
                     .AddIdentityBearer();
@@ -331,7 +331,7 @@ public class PasskeyCeremonyAntiforgeryTests
         AuthEndpointsSession session,
         RefreshTokenTransport transport)
     {
-        var auth = services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        var auth = services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .AddPassword()
             .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
         if (session == AuthEndpointsSession.Jwt)

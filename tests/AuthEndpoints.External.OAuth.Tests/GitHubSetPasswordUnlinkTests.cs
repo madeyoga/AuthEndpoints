@@ -46,7 +46,7 @@ public class GitHubSetPasswordUnlinkTests
         builder.Services.AddPasswordSignInEndpoints();
         builder.Services.AddCookieSessionEndpoints();
         builder.Services.AddAccountManagementEndpoints();
-        builder.Services.AddEmailCodeEndpoints<FlowUser, FlowDb>();
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<FlowUser, FlowDb>().AddEmailCodeEndpoints<FlowUser>();
         builder.Services.AddExternalAuthEndpoints<FlowUser>(options => options.DefaultReturnUrl = "/")
             .AddGitHub(github =>
             {

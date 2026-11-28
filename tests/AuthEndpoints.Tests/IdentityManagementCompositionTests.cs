@@ -69,7 +69,7 @@ public class IdentityManagementCompositionTests
         await using var host = await StartHostAsync(
             configureServices: services =>
             {
-                services.AddJwtEndpoints<TestAppUser, TestDbContext>(o =>
+                services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(o =>
                 {
                     o.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                 });

@@ -42,7 +42,7 @@ The default recipe is one registration call, one model call, and one map call, i
 ```csharp
 using AuthEndpoints.OpenIddict;
 
-builder.Services.AddAuthEndpoints<AppUser, AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
+builder.Services.AddAuthEndpoints<AppUser>().AddEntityFrameworkStores<AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
 
 builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 {

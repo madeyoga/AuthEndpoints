@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -26,8 +25,7 @@ internal sealed class IdentityBearerEndpointMarker
 /// <summary>
 /// Deletes expired and ended session records on a timer.
 /// </summary>
-internal sealed class ActiveSessionHostedService<TContext> : BackgroundService
-    where TContext : DbContext
+internal sealed class ActiveSessionHostedService : BackgroundService
 {
     private readonly IServiceProvider _services;
     private readonly ActiveSessionOptions _options;
@@ -47,22 +45,11 @@ internal sealed class ActiveSessionHostedService<TContext> : BackgroundService
     {
         using var scope = services.CreateScope();
         var provider = scope.ServiceProvider;
-        var db = provider.GetRequiredService<TContext>();
-
-        if (db.Model.FindEntityType(typeof(ActiveSession)) is null)
-        {
-            throw new InvalidOperationException(
-                $"AddActiveSessions needs the session table. Call modelBuilder.UseActiveSessions() in {typeof(TContext).Name}.OnModelCreating.");
-        }
+        // Resolving the store also runs its own checks, such as an EF Core store's check that the session table is mapped.
+        StoreChecks.EnsureResolvable<IActiveSessionStore>(provider, "AddActiveSessions");
 
         if (AuthEndpointsFeatures.For(provider).Jwt)
         {
-            if (db.Model.FindEntityType(typeof(RefreshToken))?.FindProperty(ActiveSessionModelBuilderExtensions.RefreshTokenSessionIdProperty) is null)
-            {
-                throw new InvalidOperationException(
-                    $"Active sessions with JWT need the refresh-token SessionId column. Call modelBuilder.UseRefreshToken() before modelBuilder.UseActiveSessions() in {typeof(TContext).Name}.OnModelCreating.");
-            }
-
             if (provider.GetService<IRefreshTokenService>() is not ActiveSessionRefreshTokenService
                 || provider.GetService<IAccessTokenGenerator>() is not ActiveSessionAccessTokenGenerator)
             {
@@ -149,15 +136,14 @@ internal sealed class ActiveSessionHostedService<TContext> : BackgroundService
 /// <summary>
 /// Checks the setup once the request pipeline (and so every mapped endpoint) is built; a bad setup fails startup.
 /// </summary>
-internal sealed class ActiveSessionStartupFilter<TContext>(IServiceProvider services) : IStartupFilter
-    where TContext : DbContext
+internal sealed class ActiveSessionStartupFilter(IServiceProvider services) : IStartupFilter
 {
     public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
     {
         return app =>
         {
             next(app);
-            ActiveSessionHostedService<TContext>.Validate(services);
+            ActiveSessionHostedService.Validate(services);
         };
     }
 }

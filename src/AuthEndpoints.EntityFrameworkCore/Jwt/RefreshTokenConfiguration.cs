@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AuthEndpoints.Jwt;
@@ -20,11 +20,11 @@ public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     }
 }
 
-public static class EntityFrameworkCoreHelpers
+public static class RefreshTokenModelBuilderExtensions
 {
     /// <summary>
     /// Maps the JWT refresh-token entity (<c>AuthEndpoints.AuthEndpointsRefreshTokens</c>).
-    /// Call from your <c>DbContext.OnModelCreating</c> when using <c>AddJwtEndpoints</c> / <c>MapJwtAuthEndpoints</c>.
+    /// Call from your <c>DbContext.OnModelCreating</c> when you use JWT (<c>AddJwt</c> or <c>AddJwtEndpoints</c>).
     /// </summary>
     public static ModelBuilder UseRefreshToken(this ModelBuilder builder)
     {

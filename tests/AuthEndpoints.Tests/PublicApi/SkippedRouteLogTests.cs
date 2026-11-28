@@ -129,7 +129,7 @@ public class SkippedRouteLogTests
     }
 
     private static LogCapture Map(
-        Action<AuthEndpointsBuilder<TestAppUser, TestDbContext>> add,
+        Action<AuthEndpointsBuilder> add,
         Action<WebApplication> map,
         Action<WebApplicationBuilder>? configure = null)
     {
@@ -138,7 +138,7 @@ public class SkippedRouteLogTests
         {
             Capture(builder, log);
             configure?.Invoke(builder);
-            add(builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>());
+            add(builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>());
             builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
         }, map);
         return log;

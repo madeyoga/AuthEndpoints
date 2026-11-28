@@ -12,6 +12,7 @@ public class ReleasePackagesScriptTests
     private static readonly string Repo = FindRepoRoot();
 
     private const string Core = "src/AuthEndpoints/AuthEndpoints.csproj";
+    private const string EntityFrameworkCore = "src/AuthEndpoints.EntityFrameworkCore/AuthEndpoints.EntityFrameworkCore.csproj";
     private const string ExternalShim = "src/AuthEndpoints.External.OAuth/AuthEndpoints.External.OAuth.csproj";
     private const string GitHub = "src/AuthEndpoints.OAuth.GitHub/AuthEndpoints.OAuth.GitHub.csproj";
     private const string Google = "src/AuthEndpoints.OAuth.Google/AuthEndpoints.OAuth.Google.csproj";
@@ -19,7 +20,7 @@ public class ReleasePackagesScriptTests
 
     public static TheoryData<string, string[]> Families => new()
     {
-        { "v", [Core] },
+        { "v", [Core, EntityFrameworkCore] },
         { "external-oauth-v", [ExternalShim, GitHub, Google] },
         { "openiddict-v", [OpenIddict] },
     };

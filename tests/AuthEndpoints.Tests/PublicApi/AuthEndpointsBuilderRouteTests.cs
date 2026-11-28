@@ -103,7 +103,7 @@ public class AuthEndpointsBuilderRouteTests
         var surface = RouteSurface.Capture(
             builder =>
             {
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddEmailCode();
+                builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddEmailCode();
                 builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
             },
             app => app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie));
@@ -124,7 +124,7 @@ public class AuthEndpointsBuilderRouteTests
         var surface = RouteSurface.Capture(
             builder =>
             {
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+                builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
                     .AddPassword()
                     .AddPasskeys(passkeys => passkeys.SignUp = false);
                 builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
@@ -144,7 +144,7 @@ public class AuthEndpointsBuilderRouteTests
         var surface = RouteSurface.Capture(
             builder =>
             {
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+                builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
                     .AddPassword(password =>
                     {
                         password.SignUp = false;
@@ -184,7 +184,7 @@ public class AuthEndpointsBuilderRouteTests
             builder =>
             {
                 AddIdentity(builder);
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = SigningKey;
                     jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
@@ -213,7 +213,7 @@ public class AuthEndpointsBuilderRouteTests
         });
         builder.Services.AddDbContext<TestDbContext>(o => o.UseInMemoryDatabase("jwt-transport-" + Guid.NewGuid().ToString("N")));
         var ex = Assert.ThrowsAny<Exception>(() =>
-            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = SigningKey;
                 jwt.RefreshTokenTransport = (RefreshTokenTransport)9;
@@ -228,7 +228,7 @@ public class AuthEndpointsBuilderRouteTests
             builder =>
             {
                 AddIdentity(builder);
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = SigningKey;
                     jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
@@ -255,7 +255,7 @@ public class AuthEndpointsBuilderRouteTests
             EnvironmentName = Environments.Development,
         });
         var ex = Assert.Throws<Microsoft.Extensions.Options.OptionsValidationException>(() =>
-            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = SigningKey;
                 if (property == "RefreshTokenLifetime")
@@ -299,7 +299,7 @@ public class AuthEndpointsBuilderRouteTests
         var surface = RouteSurface.Capture(
             builder =>
             {
-                builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+                builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
                 builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
             },
             app => app.MapAuthEndpoints<TestAppUser>("/sign-in", AuthEndpointsSession.Cookie));
@@ -354,7 +354,7 @@ public class AuthEndpointsBuilderRouteTests
         bool passkeys,
         RefreshTokenTransport? transport)
     {
-        var auth = services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        var auth = services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         if (passkeys)
         {
             auth.AddPasskeys(o => o.ServerDomain = "localhost");
@@ -382,7 +382,7 @@ public class AuthEndpointsBuilderRouteTests
         bool passkeys,
         RefreshTokenTransport? transport)
     {
-        services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+        services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
         services.AddCookieSessionEndpoints();
         services.AddAccountManagementEndpoints();
         services.AddPasswordSignInEndpoints();
@@ -400,7 +400,7 @@ public class AuthEndpointsBuilderRouteTests
 
         if (session == AuthEndpointsSession.Jwt)
         {
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt => ConfigureJwt(jwt, transport));
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt => ConfigureJwt(jwt, transport));
         }
         else if (session == AuthEndpointsSession.IdentityBearer)
         {

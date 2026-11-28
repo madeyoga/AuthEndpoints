@@ -75,7 +75,7 @@ public class AuthEndpointsFeaturesTests
     [Fact]
     public void BuilderAddPasskeys_TurnsOnEachPasskeyFeature_ButNotTheBundle()
     {
-        var features = Resolve(services => services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        var features = Resolve(services => services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .AddPasskeys(options => options.ServerDomain = "localhost"));
 
         Assert.False(features.Passkeys.Bundle);
@@ -84,7 +84,7 @@ public class AuthEndpointsFeaturesTests
         Assert.True(features.Passkeys.CanRequestRegisterOptions);
         Assert.True(features.Passkeys.CanManage);
 
-        var withoutSignUp = Resolve(services => services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        var withoutSignUp = Resolve(services => services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .AddPasskeys(options => options.SignUp = false));
         Assert.False(withoutSignUp.Passkeys.CanSignUp);
         Assert.False(withoutSignUp.Passkeys.CanRequestRegisterOptions);
@@ -129,8 +129,8 @@ public class AuthEndpointsFeaturesTests
     [Fact]
     public void EmailCode_CanConfirmIdentity_OnlyWithSend()
     {
-        var signInOnly = Resolve(services => services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>());
-        var sendOnly = Resolve(services => services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>());
+        var signInOnly = Resolve(services => services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSignInEndpoints<TestAppUser>());
+        var sendOnly = Resolve(services => services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSendEndpoints<TestAppUser>());
 
         Assert.Equal(new EmailCodeFeatures(CanSend: false, CanSignIn: true), signInOnly.EmailCode);
         Assert.False(signInOnly.EmailCode.CanConfirmIdentity);

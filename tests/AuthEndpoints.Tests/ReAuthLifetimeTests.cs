@@ -253,7 +253,7 @@ public class ReAuthLifetimeTests
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(o =>
             o.UseInMemoryDatabase("ReAuthLifetimeBuilder_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false)
             .AddPassword()
             .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");

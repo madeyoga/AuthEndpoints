@@ -22,14 +22,14 @@ public class RecipeRouteTests
     {
         var routes = Map(services =>
         {
-            services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>(options =>
+            services.AddAuthEndpointsIdentity<TestAppUser>(options =>
             {
                 options.User.RequireUniqueEmail = true;
-            });
+            }).AddEntityFrameworkStores<TestDbContext>();
             services.AddCookieSessionEndpoints();
             services.AddAccountManagementEndpoints();
             services.AddSingleton<IEmailCodeSender<TestAppUser>>(new CapturingEmailSender());
-            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options => options.AllowSignUp = true);
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(options => options.AllowSignUp = true);
         }, app =>
         {
             var auth = app.MapGroup("/auth");
@@ -147,7 +147,7 @@ public class RecipeRouteTests
             services.AddPasswordEndpoints();
             services.AddAccountManagementEndpoints();
             services.AddAntiforgery();
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -314,13 +314,13 @@ public class RecipeRouteTests
             builder.Services.AddSingleton(mail);
             builder.Services.AddSingleton<IEmailSender<TestAppUser>>(mail);
             builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(mail);
-            builder.Services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>(options =>
+            builder.Services.AddAuthEndpointsIdentity<TestAppUser>(options =>
             {
                 options.User.RequireUniqueEmail = true;
-            });
+            }).AddEntityFrameworkStores<TestDbContext>();
             builder.Services.AddCookieSessionEndpoints();
             builder.Services.AddAccountManagementEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(options => options.AllowSignUp = true);
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(options => options.AllowSignUp = true);
 
             var app = builder.Build();
             using (var scope = app.Services.CreateScope())

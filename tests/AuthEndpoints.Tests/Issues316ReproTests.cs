@@ -56,7 +56,7 @@ public sealed class Issues316ReproTests
         builder.Services.AddDbContext<TestDbContext>(options =>
             options.UseInMemoryDatabase("issue-316-" + Guid.NewGuid().ToString("N")));
         builder.Services.AddSingleton<IEmailSender<TestAppUser>, TestEmailSender>();
-        var auth = builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword();
+        var auth = builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword();
         if (serverDomain is not null)
         {
             auth.AddPasskeys(passkeys => passkeys.ServerDomain = serverDomain);

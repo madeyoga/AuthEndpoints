@@ -5,8 +5,6 @@ namespace AuthEndpoints.Sessions;
 
 internal static class ActiveSessionStore
 {
-    public const int MaxUserAgentLength = 512;
-
     public static string? TrimUserAgent(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -14,7 +12,7 @@ internal static class ActiveSessionStore
             return null;
         }
 
-        return value.Length <= MaxUserAgentLength ? value : value[..MaxUserAgentLength];
+        return value.Length <= ActiveSession.MaxUserAgentLength ? value : value[..ActiveSession.MaxUserAgentLength];
     }
 
     public static DateTime AsUtc(DateTime value) =>

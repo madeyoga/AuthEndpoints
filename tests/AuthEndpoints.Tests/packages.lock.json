@@ -454,7 +454,13 @@
       "authendpoints": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.2, )",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.2, )"
+        }
+      },
+      "authendpoints.entityframeworkcore": {
+        "type": "Project",
+        "dependencies": {
+          "AuthEndpoints": "[4.3.0, )",
           "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "[10.0.2, )"
         }
       },

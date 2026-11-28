@@ -58,7 +58,7 @@ public class PerSessionSharedRouteTests
             {
                 AddIdentity(builder);
                 builder.Services.AddAntiforgery();
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                 });
@@ -75,7 +75,7 @@ public class PerSessionSharedRouteTests
             {
                 AddIdentity(builder);
                 builder.Services.AddAntiforgery();
-                builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+                builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
                 {
                     jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
                     jwt.RefreshTokenTransport = RefreshTokenTransport.Body;
@@ -204,9 +204,9 @@ public class PerSessionSharedRouteTests
             builder.Services.AddPasswordEndpoints();
             builder.Services.AddCookieSessionEndpoints();
             builder.Services.AddAccountManagementEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>();
             builder.Services.AddPasskeyEndpoints<TestAppUser>();
-            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -318,7 +318,7 @@ public class PerSessionSharedRouteTests
         using (var jwt = RouteSurface.Build(builder =>
         {
             AddIdentity(builder);
-            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(options =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(options =>
             {
                 options.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -344,7 +344,7 @@ public class PerSessionSharedRouteTests
         {
             Identity(builder);
             builder.Services.AddPasswordEndpoints();
-            builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>();
             builder.Services.AddPasskeyEndpoints<TestAppUser>();
             builder.Services.AddCookieSessionEndpoints();
         }, app =>
@@ -402,7 +402,7 @@ public class PerSessionSharedRouteTests
     private static void EmailCode(WebApplicationBuilder builder)
     {
         AddIdentity(builder);
-        builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>();
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>();
     }
 
     private static IReadOnlyList<string> Routes(Action<WebApplicationBuilder> configure, Action<WebApplication> map)

@@ -3,10 +3,15 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using AuthEndpoints.Sessions;
 using AuthEndpoints.Tests.Sessions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace AuthEndpoints.Tests;
@@ -171,7 +176,7 @@ public class StoreInterfaceTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddDbContext<ActiveSessionsDbContext>(options => options.UseSqlite("Data Source=:memory:"));
-        services.AddAuthEndpoints<TestAppUser, ActiveSessionsDbContext>()
+        services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<ActiveSessionsDbContext>()
             .AddEmailCode()
             .AddJwt(jwt =>
             {
@@ -179,12 +184,194 @@ public class StoreInterfaceTests
                 jwt.Audience = "https://audience.test";
                 jwt.SigningOptions.SymmetricKey = new string('k', 64);
             });
-        services.AddActiveSessions<TestAppUser, ActiveSessionsDbContext>();
+        services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, ActiveSessionsDbContext>().AddActiveSessions<TestAppUser>();
 
         Assert.Contains(services, d => d.ServiceType == typeof(IEmailCodeStore));
         Assert.Contains(services, d => d.ServiceType == typeof(IRefreshTokenStore));
         Assert.Contains(services, d => d.ServiceType == typeof(IActiveSessionStore));
         Assert.Contains(services, d => d.ServiceType == typeof(IUserCreateFailureHandler<TestAppUser>));
+    }
+
+    [Fact]
+    public void Core_DoesNotReferenceEntityFrameworkCore()
+    {
+        var references = typeof(AuthEndpointsOptions).Assembly.GetReferencedAssemblies().Select(a => a.Name!).ToList();
+        Assert.DoesNotContain(references, name => name.StartsWith("Microsoft.EntityFrameworkCore", StringComparison.Ordinal));
+        Assert.DoesNotContain(references, name => name.StartsWith("Microsoft.AspNetCore.Identity.EntityFrameworkCore", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void MapAuthEndpoints_WithoutStores_NamesTheMissingUserStore()
+    {
+        using var app = Host(builder => builder.Services.AddAuthEndpoints<TestAppUser>().AddPassword());
+
+        var error = Assert.Throws<InvalidOperationException>(() => app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie));
+        Assert.Contains("IUserStore<TestAppUser>", error.Message, StringComparison.Ordinal);
+        Assert.Contains("AuthEndpoints.EntityFrameworkCore", error.Message, StringComparison.Ordinal);
+        Assert.Contains("AddEntityFrameworkStores<TContext>()", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MapEmailCode_WithIdentityStoresOnly_NamesTheMissingEmailCodeStore()
+    {
+        using var app = Host(builder =>
+        {
+            builder.Services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
+            builder.Services.AddEmailCodeEndpoints<TestAppUser>();
+        });
+
+        var error = Assert.Throws<InvalidOperationException>(() => app.MapEmailCodeEndpoints<TestAppUser>());
+        Assert.Contains("needs an IEmailCodeStore", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MapJwt_WithoutRefreshTokenStore_NamesIt_ButACustomServiceNeedsNone()
+    {
+        using var missing = Host(builder =>
+        {
+            builder.Services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
+            builder.Services.AddJwtEndpoints<TestAppUser>(Jwt);
+        });
+        var error = Assert.Throws<InvalidOperationException>(() => missing.MapJwtSessionEndpoints<TestAppUser>());
+        Assert.Contains("needs an IRefreshTokenStore", error.Message, StringComparison.Ordinal);
+
+        using var custom = Host(builder =>
+        {
+            builder.Services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
+            builder.Services.AddJwtEndpoints<TestAppUser>(Jwt).AddRefreshTokenService<NoStoreRefreshTokens>();
+        });
+        custom.MapJwtSessionEndpoints<TestAppUser>();
+    }
+
+    [Fact]
+    public void MapEmailCode_WithEfStoresButNoTable_NamesUseEmailCodes()
+    {
+        using var app = Host(builder => builder.Services.AddAuthEndpoints<TestAppUser>()
+            .AddEntityFrameworkStores<IdentityOnlyDbContext>()
+            .AddEmailCode());
+
+        var error = Assert.Throws<NotSupportedException>(() => app.MapEmailCodeEndpoints<TestAppUser>());
+        Assert.Contains("modelBuilder.UseEmailCodes()", error.Message, StringComparison.Ordinal);
+        Assert.Contains(nameof(IdentityOnlyDbContext), error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AddRoles_BeforeStores_RegistersTheRoleStore_AfterStores_Throws()
+    {
+        var services = new ServiceCollection();
+        services.AddAuthEndpoints<TestAppUser>().AddRoles<IdentityRole>().AddEntityFrameworkStores<TestDbContext>();
+        Assert.Contains(services, d => d.ServiceType == typeof(IRoleStore<IdentityRole>));
+        Assert.Contains(services, d => d.ServiceType == typeof(IUserStore<TestAppUser>));
+
+        var late = new ServiceCollection().AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
+        var error = Assert.Throws<InvalidOperationException>(() => late.AddRoles<IdentityRole>());
+        Assert.Contains("Call AddRoles before AddEntityFrameworkStores", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task RefreshTokenService_LostRace_RevokesTheFamilyEvenWhenTheRequestIsCancelled()
+    {
+        var store = new LosingRotationStore();
+        var service = new RefreshTokenService(store, TimeProvider.System, Options.Create(new SimpleJwtOptions()));
+        var presented = Token("presented", DateTime.UtcNow, sessionId: null);
+        using var aborted = new CancellationTokenSource();
+        aborted.Cancel();
+
+        Assert.Null(await service.RotateAsync(presented, "stamp", aborted.Token));
+
+        Assert.Equal("family", store.RevokedFamily);
+        Assert.False(store.RevokeFamilyToken.IsCancellationRequested);
+    }
+
+    private static void Jwt(SimpleJwtOptions jwt)
+    {
+        jwt.Issuer = "https://issuer.test";
+        jwt.Audience = "https://audience.test";
+        jwt.SigningOptions.SymmetricKey = new string('k', 64);
+    }
+
+    [Fact]
+    public void Development_BuildValidation_NamesTheMissingStore()
+    {
+        // In Development, Build() validates DI before any endpoint is mapped, so the framework's message comes first.
+        // It still names the interface; the map-time message above adds the fix when validation is off.
+        var error = Assert.Throws<AggregateException>(() => Host(
+            builder =>
+            {
+                builder.Services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
+                builder.Services.AddEmailCodeEndpoints<TestAppUser>();
+            },
+            Environments.Development));
+        Assert.Contains(nameof(IEmailCodeStore), error.Message, StringComparison.Ordinal);
+    }
+
+    private static WebApplication Host(Action<WebApplicationBuilder> configure, string? environment = null)
+    {
+        // Production skips Build()'s DI validation, so the map-time check is the first to run.
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = environment ?? Environments.Production });
+        builder.WebHost.UseTestServer();
+        var name = "StoreInterface_" + Guid.NewGuid().ToString("N");
+        builder.Services.AddDbContext<TestDbContext>(options => options.UseInMemoryDatabase(name));
+        builder.Services.AddDbContext<IdentityOnlyDbContext>(options => options.UseInMemoryDatabase(name + "_identity"));
+        builder.Services.AddSingleton<IEmailSender<TestAppUser>, TestEmailSender>();
+        configure(builder);
+        return builder.Build();
+    }
+
+    public sealed class IdentityOnlyDbContext(DbContextOptions<IdentityOnlyDbContext> options)
+        : Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityDbContext<TestAppUser>(options);
+
+    private sealed class NoStoreRefreshTokens : IRefreshTokenService
+    {
+        public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken, CancellationToken cancellationToken = default)
+            => Task.FromResult<RefreshToken?>(null);
+
+        public Task RevokeAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task RevokeFamilyAsync(string familyId, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null, CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp, CancellationToken cancellationToken = default)
+            => Task.FromResult<RefreshToken?>(null);
+
+        public bool IsValid(RefreshToken refreshToken) => false;
+    }
+
+    private sealed class LosingRotationStore : IRefreshTokenStore
+    {
+        public string? RevokedFamily { get; private set; }
+
+        public CancellationToken RevokeFamilyToken { get; private set; }
+
+        public Task<RefreshToken?> FindByHashAsync(string tokenHash, CancellationToken cancellationToken)
+            => Task.FromResult<RefreshToken?>(null);
+
+        public Task CreateAsync(RefreshToken token, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task<bool> TryRotateAsync(string presentedId, RefreshToken successor, DateTime revokedAt, CancellationToken cancellationToken)
+            => Task.FromResult(false);
+
+        public Task RevokeAsync(string id, DateTime revokedAt, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task RevokeFamilyAsync(string familyId, DateTime revokedAt, CancellationToken cancellationToken)
+        {
+            RevokedFamily = familyId;
+            RevokeFamilyToken = cancellationToken;
+            return Task.CompletedTask;
+        }
+
+        public Task<DateTime?> FindFamilyAbsoluteExpiresAtAsync(string familyId, CancellationToken cancellationToken)
+            => Task.FromResult<DateTime?>(null);
+
+        public Task SetSessionAsync(string tokenId, string sessionId, CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<string>> FindFamilySessionIdsAsync(string familyId, CancellationToken cancellationToken)
+            => Task.FromResult<IReadOnlyList<string>>([]);
+
+        public Task RevokeSessionsAsync(IReadOnlyCollection<string> sessionIds, DateTime revokedAt, CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 
     private static RefreshToken Token(string hash, DateTime now, string? sessionId) => new()

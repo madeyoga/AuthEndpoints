@@ -72,7 +72,7 @@ public class JwtExternalBodyTransportTests
             .AddSignInManager()
             .AddDefaultTokenProviders();
         builder.Services.AddAuthentication();
-        builder.Services.AddJwtEndpoints<ExternalJwtUser, ExternalJwtDb>(options =>
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<ExternalJwtUser, ExternalJwtDb>().AddJwtEndpoints<ExternalJwtUser>(options =>
         {
             options.Issuer = "https://jwt.example";
             options.Audience = "https://jwt.example";
@@ -108,21 +108,28 @@ public class JwtExternalBodyTransportTests
     {
         public int CreateCalls { get; private set; }
 
-        public Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
+        public Task<RefreshToken> CreateAsync(
+            string userId,
+            string securityStamp,
+            string? familyId = null,
+            CancellationToken cancellationToken = default)
         {
             CreateCalls++;
             throw new InvalidOperationException("CreateAsync must not run.");
         }
 
-        public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken) => Task.FromResult<RefreshToken?>(null);
+        public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken, CancellationToken cancellationToken = default) => Task.FromResult<RefreshToken?>(null);
 
         public bool IsValid(RefreshToken refreshToken) => false;
 
-        public Task RevokeAsync(RefreshToken refreshToken) => Task.CompletedTask;
+        public Task RevokeAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task RevokeFamilyAsync(string familyId) => Task.CompletedTask;
+        public Task RevokeFamilyAsync(string familyId, CancellationToken cancellationToken = default) => Task.CompletedTask;
 
-        public Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp) =>
+        public Task<RefreshToken?> RotateAsync(
+            RefreshToken refreshToken,
+            string securityStamp,
+            CancellationToken cancellationToken = default) =>
             Task.FromResult<RefreshToken?>(null);
     }
 }

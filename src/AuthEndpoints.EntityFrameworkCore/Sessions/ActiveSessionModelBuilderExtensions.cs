@@ -13,7 +13,7 @@ internal sealed class ActiveSessionConfiguration : IEntityTypeConfiguration<Acti
         builder.Property(e => e.Id).HasMaxLength(64);
         builder.Property(e => e.UserId).IsRequired();
         builder.HasIndex(e => e.UserId);
-        builder.Property(e => e.UserAgent).HasMaxLength(ActiveSessionStore.MaxUserAgentLength);
+        builder.Property(e => e.UserAgent).HasMaxLength(ActiveSession.MaxUserAgentLength);
         builder.Property(e => e.SecurityStamp).IsRequired();
         builder.HasIndex(e => e.ExpiresAt);
     }
@@ -25,8 +25,8 @@ public static class ActiveSessionModelBuilderExtensions
 
     /// <summary>
     /// Maps the session entity (<c>AuthEndpoints.AuthEndpointsActiveSessions</c>) for
-    /// <see cref="ActiveSessionServiceCollectionExtensions.AddActiveSessions{TUser, TContext}(Microsoft.Extensions.DependencyInjection.IServiceCollection, System.Action{ActiveSessionOptions}?)"/>.
-    /// With JWT, call <see cref="EntityFrameworkCoreHelpers.UseRefreshToken"/> first: this adds a nullable
+    /// <c>AddActiveSessions</c>.
+    /// With JWT, call <see cref="RefreshTokenModelBuilderExtensions.UseRefreshToken"/> first: this adds a nullable
     /// <c>SessionId</c> column to the refresh-token table.
     /// </summary>
     public static ModelBuilder UseActiveSessions(this ModelBuilder builder)

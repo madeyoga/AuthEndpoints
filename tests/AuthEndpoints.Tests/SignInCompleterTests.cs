@@ -396,7 +396,7 @@ public class SignInCompleterTests
                 .AddEntityFrameworkStores<TestDbContext>();
             services.AddPasskeyEndpoints<TestAppUser>();
             services.Configure<IdentityPasskeyOptions>(o => o.ServerDomain = "localhost");
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -498,7 +498,7 @@ public class SignInCompleterTests
         {
             services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
                 .AddEntityFrameworkStores<TestDbContext>();
-            services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(_ => { });
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(_ => { });
             services.AddSignInCompleter<OtherSignInUser, OtherUserCompleter>("MySession");
             services.Configure<SignInCompletionOptions>(o => o.Default = "MySession");
         }, app => app.MapEmailCodeEndpoints<TestAppUser>()));
@@ -516,7 +516,7 @@ public class SignInCompleterTests
             services.AddIdentityApiEndpoints<TestAppUser>(o => o.Stores.SchemaVersion = IdentitySchemaVersions.Version3)
                 .AddEntityFrameworkStores<TestDbContext>();
             services.AddPasswordEndpoints();
-            services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });
@@ -563,10 +563,10 @@ public class SignInCompleterTests
             })
             .AddEntityFrameworkStores<TestDbContext>();
         services.AddCookieAuthEndpoints();
-        services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(_ => { });
+        services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(_ => { });
         services.AddPasskeyEndpoints<TestAppUser>();
         services.Configure<IdentityPasskeyOptions>(passkeys => passkeys.ServerDomain = "localhost");
-        services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+        services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
         {
             jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
         });
@@ -905,7 +905,7 @@ internal sealed class SignInHost : IAsyncDisposable
         builder.Services.AddAntiforgery();
         builder.Services.AddCookieAuthEndpoints();
         builder.Services.AddBearerSessionEndpoints();
-        builder.Services.AddEmailCodeEndpoints<TestAppUser, TestDbContext>(email =>
+        builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeEndpoints<TestAppUser>(email =>
         {
             email.ResendCooldown = TimeSpan.Zero;
             email.SendsPerIpPerMinute = 100;
@@ -914,7 +914,7 @@ internal sealed class SignInHost : IAsyncDisposable
         builder.Services.Configure<IdentityPasskeyOptions>(passkeys => passkeys.ServerDomain = "localhost");
         if (options.AddJwt)
         {
-            builder.Services.AddJwtEndpoints<TestAppUser, TestDbContext>(jwt =>
+            builder.Services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(jwt =>
             {
                 jwt.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
             });

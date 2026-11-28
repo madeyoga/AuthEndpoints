@@ -3,7 +3,8 @@
 Call `.AddJwt(...)` on `AddAuthEndpoints` and map `AuthEndpointsSession.Jwt`. Call `modelBuilder.UseRefreshToken()` and migrate. The table is `AuthEndpoints.AuthEndpointsRefreshTokens`. The absolute family lifetime adds non-null `AbsoluteExpiresAt`. Backfill existing rows from `ExpiresAt`. Recreate the table when upgrading from plaintext storage.
 
 ```cs
-builder.Services.AddAuthEndpoints<AppUser, AppDbContext>()
+builder.Services.AddAuthEndpoints<AppUser>()
+	.AddEntityFrameworkStores<AppDbContext>()
 	.AddPassword()
 	.AddJwt(jwt =>
 	{

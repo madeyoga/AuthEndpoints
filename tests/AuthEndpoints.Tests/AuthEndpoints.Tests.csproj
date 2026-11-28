@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\AuthEndpoints\AuthEndpoints.csproj" />
+    <ProjectReference Include="..\..\src\AuthEndpoints.EntityFrameworkCore\AuthEndpoints.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\..\src\AuthEndpoints.OAuth.GitHub\AuthEndpoints.OAuth.GitHub.csproj" />
     <ProjectReference Include="..\..\src\AuthEndpoints.OAuth.Google\AuthEndpoints.OAuth.Google.csproj" />
   </ItemGroup>

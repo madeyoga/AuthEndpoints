@@ -18,9 +18,9 @@ app.UseAntiforgery();
 | `MapIdentityManagementApi` | `AddAuthEndpointsIdentity` (sets `RequireConfirmedAccount` true, then your callback) or `AddIdentityApiEndpoints` plus EF stores and token providers. Bare `AddIdentityApiEndpoints` leaves `RequireConfirmedAccount` false. Also `AddPasswordEndpoints` and `AddAccountManagementEndpoints`. |
 | `MapCookieAuthEndpoints` | `AddCookieAuthEndpoints()` |
 | `MapBearerAuthEndpoints` | `AddBearerAuthEndpoints()` |
-| `MapJwtAuthEndpoints` | `AddJwtEndpoints<TUser, TContext>(...)` and `UseRefreshToken()` |
+| `MapJwtAuthEndpoints` | `AddJwtEndpoints<TUser>(...)`, an `IRefreshTokenStore` (`AddAuthEndpointsEntityFrameworkStores<TUser, TContext>()`), and `UseRefreshToken()` |
 | `MapPasskeyEndpoints` | `AddPasskeyEndpoints<TUser>()` |
-| `MapEmailCodeEndpoints` | `AddEmailCodeEndpoints<TUser, TContext>(...)` and `UseEmailCodes()` |
+| `MapEmailCodeEndpoints` | `AddEmailCodeEndpoints<TUser>(...)`, an `IEmailCodeStore` (`AddAuthEndpointsEntityFrameworkStores<TUser, TContext>()`), and `UseEmailCodes()` |
 | `MapExternalAuthEndpoints` | `AddExternalAuthEndpoints<TUser>()` and `AddGitHub` or `AddGoogle` |
 
 `MapIdentityManagementApi` maps register without login, confirm-email, account management, `POST` and `DELETE /manage/password`, and `POST /confirmIdentity/passkeyOptions`. `MapAccountManagementEndpoints` maps `POST /confirmIdentity/passkeyOptions` when `AddPasskeyEndpoints`, `AddPasskeySignInEndpoints`, or `AddPasskeyManagementEndpoints` was called. It maps `POST /confirmIdentity/emailCode/send` when email-code send is registered. Map it once. Pair it with one of cookie, bearer, or JWT per prefix.

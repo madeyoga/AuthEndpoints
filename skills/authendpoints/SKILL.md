@@ -14,13 +14,14 @@ Use the symbols, routes, and option names on this page and in `references/`. Do 
 
 This skill ships inside the `AuthEndpoints` package, so the copy under `~/.nuget/packages/authendpoints/<version>/skills/authendpoints/` matches the API of that version. A copy taken from the repository with `npx skills add` follows the main branch and can describe a newer release than the one the app restores. When the two differ, prefer the copy in the NuGet cache.
 
-The host needs the .NET 10 SDK (`net10.0`), ASP.NET Core Identity, and EF Core. `TUser` is a class with a public parameterless constructor. The usual user type derives from `IdentityUser<TKey>`. The key may be `string`, `Guid`, `long`, or another Identity key. `AddJwtEndpoints` throws `{TypeName} must derive from IdentityUser<TKey> to use AuthEndpoints.` when `TUser` does not derive from `IdentityUser<TKey>`. Passwordless passkey registration throws that same message in that case. A key other than `string` or `Guid` throws `Passwordless passkey registration requires IdentityUser with a string or Guid key so the user id can be chosen before CreateAsync.`
+The host needs the .NET 10 SDK (`net10.0`) and ASP.NET Core Identity. For EF Core storage it also references `AuthEndpoints.EntityFrameworkCore`; other storage registers `IUserStore<TUser>` and the AuthEndpoints store interfaces (`IEmailCodeStore`, `IRefreshTokenStore`, `IActiveSessionStore`) itself. `TUser` is a class with a public parameterless constructor. The usual user type derives from `IdentityUser<TKey>`. The key may be `string`, `Guid`, `long`, or another Identity key. `AddJwtEndpoints` throws `{TypeName} must derive from IdentityUser<TKey> to use AuthEndpoints.` when `TUser` does not derive from `IdentityUser<TKey>`. Passwordless passkey registration throws that same message in that case. A key other than `string` or `Guid` throws `Passwordless passkey registration requires IdentityUser with a string or Guid key so the user id can be chosen before CreateAsync.`
 
 Current packages:
 
 | Package | Version | Role |
 | --- | --- | --- |
 | `AuthEndpoints` | 4.3.0 | Endpoints, the `AddAuthEndpoints` builder, and external OAuth types in namespace `AuthEndpoints.External.OAuth` |
+| `AuthEndpoints.EntityFrameworkCore` | 4.3.0 | EF Core stores: `AddEntityFrameworkStores<TContext>()`, `UseEmailCodes`, `UseRefreshToken`, `UseActiveSessions`. Same version as `AuthEndpoints` |
 | `AuthEndpoints.OAuth.GitHub` | 4.0.1 | Registers the GitHub handler. The host maps the routes. |
 | `AuthEndpoints.OAuth.Google` | 4.0.1 | Registers the Google handler. The host maps the routes. |
 | `AuthEndpoints.External.OAuth` | 4.0.1 | Forwarding shim. Remove the reference. |
@@ -40,12 +41,13 @@ Map one sign-in stack per prefix. Cookie and bearer both map `POST /logout`, so 
 
 ## Wire one session
 
-`AddAuthEndpoints<TUser, TContext>()` registers Identity (`RequireConfirmedAccount` true, schema version 3), account management, and the cookie session, and returns `AuthEndpointsBuilder<TUser, TContext>`. Each builder method adds one sign-in method or session. `MapAuthEndpoints<TUser>(path, session)` maps exactly what was added under one prefix. Roles use `AddAuthEndpoints<TUser, TRole, TContext>` so `AddRoles<TRole>()` runs before `AddEntityFrameworkStores`. `IUserStore<TUser>` then implements `IUserRoleStore<TUser>`, `RoleManager<TRole>` resolves, and sign-in uses `UserClaimsPrincipalFactory<TUser, TRole>`. The context is `IdentityDbContext<TUser, TRole, TKey>` or the equivalent.
+`AddAuthEndpoints<TUser>()` registers Identity (`RequireConfirmedAccount` true, schema version 3), account management, and the cookie session, and returns `AuthEndpointsBuilder`. It registers no storage: `.AddEntityFrameworkStores<TContext>()` from the `AuthEndpoints.EntityFrameworkCore` package adds the Identity EF stores and the email-code, refresh-token and session stores. Each builder method adds one sign-in method or session. `MapAuthEndpoints<TUser>(path, session)` maps exactly what was added under one prefix. Roles: call `.AddRoles<TRole>()` before `.AddEntityFrameworkStores<TContext>()`; after it, `AddRoles` throws. `IUserStore<TUser>` then implements `IUserRoleStore<TUser>`, `RoleManager<TRole>` resolves, and sign-in uses `UserClaimsPrincipalFactory<TUser, TRole>`. The context is `IdentityDbContext<TUser, TRole, TKey>` or the equivalent.
 
 ```cs
 builder.Services.AddDbContext<AppDbContext>(/* your provider */);
 
-builder.Services.AddAuthEndpoints<AppUser, AppDbContext>()
+builder.Services.AddAuthEndpoints<AppUser>()
+	.AddEntityFrameworkStores<AppDbContext>()
 	.AddPassword()
 	.AddPasskeys(p => p.ServerDomain = "example.com"); // omit to leave passkeys off
 
@@ -78,7 +80,7 @@ Tutorial: [Quick start](https://authendpoints.harten.id/getting-started/quick-st
 
 ## Set options
 
-`AddAuthEndpoints<TUser, TContext>(Action<AuthEndpointsOptions>?)` takes runtime settings. A later `Configure<AuthEndpointsOptions>` applies too.
+`AddAuthEndpoints<TUser>(Action<AuthEndpointsOptions>?)` takes runtime settings. A later `Configure<AuthEndpointsOptions>` applies too.
 
 | Property | Default | Meaning |
 | --- | --- | --- |

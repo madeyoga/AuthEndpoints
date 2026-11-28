@@ -120,10 +120,10 @@ public class EmailCodeConfirmIdentitySendTests
             return StartAsync(
                 services =>
                 {
-                    services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+                    services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
                     services.AddCookieSessionEndpoints();
                     services.AddAccountManagementEndpoints();
-                    services.AddEmailCodeSignInEndpoints<TestAppUser, TestDbContext>();
+                    services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSignInEndpoints<TestAppUser>();
                 },
                 app =>
                 {
@@ -139,10 +139,10 @@ public class EmailCodeConfirmIdentitySendTests
             return StartAsync(
                 services =>
                 {
-                    services.AddAuthEndpointsIdentity<TestAppUser, TestDbContext>();
+                    services.AddAuthEndpointsIdentity<TestAppUser>().AddEntityFrameworkStores<TestDbContext>();
                     services.AddCookieSessionEndpoints();
                     services.AddAccountManagementEndpoints();
-                    services.AddEmailCodeSendEndpoints<TestAppUser, TestDbContext>();
+                    services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddEmailCodeSendEndpoints<TestAppUser>();
                 },
                 app =>
                 {
@@ -161,7 +161,7 @@ public class EmailCodeConfirmIdentitySendTests
         public static Task<SendHost> StartBuilderAsync()
         {
             return StartAsync(
-                services => services.AddAuthEndpoints<TestAppUser, TestDbContext>().AddPassword().AddEmailCode(),
+                services => services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>().AddPassword().AddEmailCode(),
                 app => app.MapAuthEndpoints<TestAppUser>("/auth", AuthEndpointsSession.Cookie));
         }
 

@@ -315,7 +315,7 @@ public partial class EmailCodeEndpointTests
         builder.Services.AddSingleton<CapturingEmailSender>();
         builder.Services.AddSingleton<IEmailSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
         builder.Services.AddSingleton<IEmailCodeSender<TestAppUser>>(sp => sp.GetRequiredService<CapturingEmailSender>());
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .ConfigureIdentity(identity => identity.SignIn.RequireConfirmedAccount = false)
             .AddPassword()
             .AddEmailCode();

@@ -37,7 +37,7 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TestDbContext>(o =>
             o.UseInMemoryDatabase("PasskeyCompleterBuilder_" + Guid.NewGuid().ToString("N")));
-        builder.Services.AddAuthEndpoints<TestAppUser, TestDbContext>()
+        builder.Services.AddAuthEndpoints<TestAppUser>().AddEntityFrameworkStores<TestDbContext>()
             .AddPasskeys(passkeys => passkeys.ServerDomain = "localhost");
         builder.Services.AddTransient<IEmailSender<TestAppUser>, TestEmailSender>();
 
@@ -355,7 +355,7 @@ public class PasskeySignInCompleterTests : IClassFixture<TestWebApplicationFacto
             })
             .AddEntityFrameworkStores<TestDbContext>()
             .AddDefaultTokenProviders();
-        services.AddJwtEndpoints<TestAppUser, TestDbContext>(o =>
+        services.AddAuthEndpointsEntityFrameworkStores<TestAppUser, TestDbContext>().AddJwtEndpoints<TestAppUser>(o =>
         {
             o.SigningOptions.SymmetricKey = "TestOnly_AuthEndpoints_Jwt_SigningKey_32chars!";
         });

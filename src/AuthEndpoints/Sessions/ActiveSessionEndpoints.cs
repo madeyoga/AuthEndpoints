@@ -35,7 +35,7 @@ public static class ActiveSessionEndpointRouteBuilderExtensions
     /// Maps <c>GET /sessions</c> (the caller's sessions, current one marked),
     /// <c>DELETE /sessions/{id}</c>, and <c>POST /sessions/revokeOthers</c>.
     /// Revoking needs a recent re-authentication (<c>RequireReauth</c>) and, for cookie callers, a CSRF token.
-    /// Call <see cref="ActiveSessionServiceCollectionExtensions.AddActiveSessions{TUser, TContext}(Microsoft.Extensions.DependencyInjection.IServiceCollection, System.Action{ActiveSessionOptions}?)"/> first.
+    /// Call <see cref="ActiveSessionServiceCollectionExtensions.AddActiveSessions{TUser}(Microsoft.Extensions.DependencyInjection.IServiceCollection, System.Action{ActiveSessionOptions}?)"/> first.
     /// </summary>
     public static IEndpointConventionBuilder MapActiveSessionEndpoints<TUser>(this IEndpointRouteBuilder endpoints)
         where TUser : class

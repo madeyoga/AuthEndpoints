@@ -28,16 +28,18 @@ The route-by-route comparison is in [AuthEndpoints compared with MapIdentityApi]
 
 ## Getting started
 
-Requires .NET 10, ASP.NET Core Identity, and EF Core.
+Requires .NET 10 and ASP.NET Core Identity. `AuthEndpoints.EntityFrameworkCore` stores users and sign-in data with EF Core; other storage can implement the store interfaces instead.
 
 ```bash
 dotnet add package AuthEndpoints
+dotnet add package AuthEndpoints.EntityFrameworkCore
 ```
 
 ```cs
 builder.Services.AddDbContext<AppDbContext>(/* your provider */);
 
-builder.Services.AddAuthEndpoints<AppUser, AppDbContext>()
+builder.Services.AddAuthEndpoints<AppUser>()
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddPassword()
     .AddPasskeys(p => p.ServerDomain = "example.com"); // omit to leave passkeys off
 

@@ -52,21 +52,27 @@ internal sealed class ActiveSessionRefreshTokenService : IRefreshTokenService
 
     public IRefreshTokenService Inner => _inner;
 
-    public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken) => _inner.GetRefreshTokenAsync(rawToken);
+    public Task<RefreshToken?> GetRefreshTokenAsync(string rawToken, CancellationToken cancellationToken = default)
+        => _inner.GetRefreshTokenAsync(rawToken, cancellationToken);
 
-    public Task RevokeAsync(RefreshToken refreshToken) => _inner.RevokeAsync(refreshToken);
+    public Task RevokeAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default)
+        => _inner.RevokeAsync(refreshToken, cancellationToken);
 
     public bool IsValid(RefreshToken refreshToken) => _inner.IsValid(refreshToken);
 
-    public async Task RevokeFamilyAsync(string familyId)
+    public async Task RevokeFamilyAsync(string familyId, CancellationToken cancellationToken = default)
     {
-        await _inner.RevokeFamilyAsync(familyId);
+        await _inner.RevokeFamilyAsync(familyId, cancellationToken);
         await _store.EndFamilyAsync(familyId);
     }
 
-    public async Task<RefreshToken> CreateAsync(string userId, string securityStamp, string? familyId = null)
+    public async Task<RefreshToken> CreateAsync(
+        string userId,
+        string securityStamp,
+        string? familyId = null,
+        CancellationToken cancellationToken = default)
     {
-        var token = await _inner.CreateAsync(userId, securityStamp, familyId);
+        var token = await _inner.CreateAsync(userId, securityStamp, familyId, cancellationToken);
         var http = _http.HttpContext;
 
         var sessionId = familyId is null ? null : await _store.SessionIdForFamilyAsync(familyId);
@@ -83,16 +89,19 @@ internal sealed class ActiveSessionRefreshTokenService : IRefreshTokenService
         return token;
     }
 
-    public async Task<RefreshToken?> RotateAsync(RefreshToken refreshToken, string securityStamp)
+    public async Task<RefreshToken?> RotateAsync(
+        RefreshToken refreshToken,
+        string securityStamp,
+        CancellationToken cancellationToken = default)
     {
         var sessionId = refreshToken.SessionId;
         if (sessionId is not null && !await _store.IsActiveAsync(sessionId))
         {
-            await _inner.RevokeFamilyAsync(refreshToken.FamilyId);
+            await _inner.RevokeFamilyAsync(refreshToken.FamilyId, CancellationToken.None);
             return null;
         }
 
-        var successor = await _inner.RotateAsync(refreshToken, securityStamp);
+        var successor = await _inner.RotateAsync(refreshToken, securityStamp, cancellationToken);
         if (successor is null)
         {
             return null;

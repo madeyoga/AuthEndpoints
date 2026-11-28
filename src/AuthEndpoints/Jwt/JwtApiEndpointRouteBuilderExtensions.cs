@@ -12,7 +12,7 @@ public static class JwtApiEndpointRouteBuilderExtensions
 {
     /// <summary>
     /// Maps JWT auth endpoints (create, refresh, verify, logout, csrfToken).
-    /// Call <see cref="ServiceCollectionExtensions.AddJwtEndpoints{TUser, TContext}(IServiceCollection)"/>,
+    /// Call <see cref="ServiceCollectionExtensions.AddJwtEndpoints{TUser}(IServiceCollection)"/>,
     /// <c>UseRateLimiter()</c>, and <c>UseAntiforgery()</c>.
     /// Pair with <c>MapIdentityManagementApi</c> for register/manage.
     /// </summary>
@@ -67,6 +67,7 @@ public static class JwtApiEndpointRouteBuilderExtensions
             AuthEndpointsFeatures.For(endpoints).Jwt,
             "AddJwtEndpoints",
             "MapJwtSessionEndpoints");
+        StoreChecks.EnsureResolves<IRefreshTokenService, IRefreshTokenStore>(endpoints.ServiceProvider, "JWT");
 
         var body = JwtRefreshDelivery.IsBody(JwtRefreshDelivery.Session(endpoints.ServiceProvider));
         var routeGroup = endpoints.MapGroup("");
