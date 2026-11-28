@@ -2,7 +2,7 @@
 
 Set `Passkeys.ServerDomain`. Routes are under `/auth/passkeys`. Register and login finish in the facade session. Cookie passkey register returns `{ "credentialId" }`. When the account can sign in, the response also sets the application cookie. When it cannot, the body is still `credentialId` and the response sets no session. A JWT session that can sign in returns `accessToken` and `tokenType` `Bearer`, plus the refresh token for the configured transport. That body has no `credentialId`. Every cookie flag returns that same JWT body. When the account cannot sign in, JWT register returns an empty `200`. Passkey sign-in skips the second factor.
 
-The default user id is `Guid.NewGuid()` (UUID v4). Register `IPasskeyUserIdFactory`, or call `AddPasskeyUserIdFactory`, to choose a different id. Passwordless register that creates a user sends the same confirmation email as password register. The completer skips a session until the account can sign in.
+The default user id is `Guid.NewGuid()` (UUID v4). `AddPasskeyRegisterOptionsEndpoints`, `AddPasskeySignInEndpoints`, `AddPasskeySignUpEndpoints`, and `AddPasskeyEndpoints` register `DefaultPasskeyUserIdFactory` when no factory is registered. `POST /passkeys/register/options` uses that factory. Call `AddPasskeyUserIdFactory` to replace it, before or after those methods. Passwordless register that creates a user sends the same confirmation email as password register. The completer skips a session until the account can sign in.
 
 `POST /auth/passkeys/requestOptions` takes optional JSON `{ "email" }`. An empty or unknown email still returns `200` options. An email can reveal passkeys through `allowCredentials`. Omit `email` for discoverable login.
 

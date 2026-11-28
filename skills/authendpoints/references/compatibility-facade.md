@@ -1,6 +1,6 @@
 # Keep a 3.x host on the compatibility facade
 
-`AddAuthEndpoints` and `MapAuthEndpoints` are the 3.x facade. The methods remain in 4.x. Names, options, `AuthEndpointsSignIn`, and the `/identity`, `/account`, and `/auth` routes stay at 3.4.1. `POST /manage/password` and `POST /confirmIdentity/emailCode/send` stay unmapped. `authMethods.emailCode` stays false. Password login, JWT `POST /create`, and email-code verify ignore `SignInCompletionOptions.Default`. A host that also calls `AddPasswordAuth` fails startup validation.
+`AddAuthEndpoints` and `MapAuthEndpoints` are the 3.x facade. The methods remain in 4.x. Names, options, `AuthEndpointsSignIn`, and the `/identity`, `/account`, and `/auth` routes stay at 3.4.1. `POST /manage/password`, `DELETE /manage/password`, and `POST /confirmIdentity/emailCode/send` stay unmapped. `authMethods.emailCode` stays false. Password login, JWT `POST /create`, and email-code verify ignore `SignInCompletionOptions.Default`. A host that also calls `AddPasswordAuth` fails startup validation.
 
 ```cs
 builder.Services.AddAuthEndpoints<AppUser, AppDbContext>(o =>
