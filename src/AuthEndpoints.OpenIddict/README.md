@@ -39,12 +39,19 @@ The default recipe is one registration call, one model call, and one map call, i
 
 ### 1. Register the server
 
+Install the server and its EF Core storage:
+
+```bash
+dotnet add package AuthEndpoints.OpenIddict --prerelease
+dotnet add package AuthEndpoints.OpenIddict.EntityFrameworkCore --prerelease
+```
+
 ```csharp
 using AuthEndpoints.OpenIddict;
 
 builder.Services.AddAuthEndpoints<AppUser>().AddEntityFrameworkStores<AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
 
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     options.Issuer = new Uri("https://auth.example.com/");
     options.Audience = "https://api.example.com/";
@@ -54,12 +61,15 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
     options.ConsentUrl = "https://app.example.com/oauth/consent";
     options.Certificates.Path = "/var/lib/myapp/oauth-keys";
 })
+.AddEntityFrameworkStores<AppDbContext>()
 .BindConfiguration("OAuthServer"); // optional: appsettings values override the code above
 ```
 
 `TUser` is your Identity user type and must derive from `IdentityUser<TKey>`, as everywhere else in AuthEndpoints. The key type (`string`, `Guid`, …) is read from it.
 
 The app fails at startup when a required setting is missing: `Issuer`, `Audience`, `LoginUrl`, `ConsentUrl`, and exactly one certificate source. These are the settings only your app can decide. `Scopes` lists what clients may ask for.
+
+`AddEntityFrameworkStores<AppDbContext>()` comes from `AuthEndpoints.OpenIddict.EntityFrameworkCore` and stores the server in your `DbContext`. To store it elsewhere, see [Storage](#storage).
 
 `AddOAuthServer` also registers the authorization and antiforgery services that the consent and developer app routes need. It returns `OAuthServerBuilder`, so `AddPrincipalFactory<T>()`, `AddDeveloperAppOwnerDisplay<T>()`, `BindConfiguration(…)`, and `.OpenIddict` work as before. Call it once, instead of `AddAuthEndpointsOpenIddict` (see [Without the recipe](#without-the-recipe)).
 
@@ -86,17 +96,18 @@ Pass `userForeignKey: false` when the users table is in a different DbContext.
 
 #### Storage
 
-The server reads and writes through public store interfaces, and `AddOAuthServer<TUser, TContext>` registers EF Core implementations of each:
+`AddOAuthServer<TUser>` registers no storage. The server reads and writes only through store interfaces, and `AddEntityFrameworkStores<TContext>()` from `AuthEndpoints.OpenIddict.EntityFrameworkCore` registers EF Core implementations of each, plus OpenIddict's own EF Core stores:
 
 | Interface | Holds |
 | --- | --- |
+| `IOpenIddictApplicationStore<>`, `IOpenIddictAuthorizationStore<>`, `IOpenIddictScopeStore<>`, `IOpenIddictTokenStore<>` | OpenIddict's clients, grants, scopes and tokens. Defined and documented by OpenIddict. |
 | `IOAuthRequestStore<TKey>` | Pending consent requests (`OAuthRequests`). `TryConsumeAsync` is atomic, so of two answers to one request only one wins. |
-| `IOAuthDeveloperAppStore<TKey>` | Developer app rows (`OAuthDeveloperApps`): who owns each app and whether it may be used. |
-| `IOAuthServerQueries` | Bulk reads of OpenIddict's tables: a user's live grants, an app's valid grants, and redirect URIs for many clients. A custom implementation can convert each authorization with `OAuthAuthorizationRecord.ReadAsync`. |
+| `IOAuthDeveloperAppStore<TKey>` | Developer app rows (`OAuthDeveloperApps`): who owns each app and whether it may be used. Each write changes only its own fields. |
+| `IOAuthServerQueries` | Bulk reads of OpenIddict's tables: a user's live grants, an app's valid grants, and redirect URIs for many clients. A custom implementation builds each grant with `OAuthAuthorizationRecord.ReadAsync`, through OpenIddict's authorization manager, or `OAuthAuthorizationRecord.FromStore`, from its own columns. |
 | `IOAuthServerEventTransactions` | Optional. Holds [audit events](#audit-events) until the host's transaction commits. |
 | `IOAuthAuthorizationRefresher` | Optional. Reloads a grant after OpenIddict reports a concurrency failure. |
 
-A store that is not registered fails `MapOAuthServer` with a message that names it. OpenIddict's own stores (applications, authorizations, scopes, tokens) come from OpenIddict.
+To use other storage, skip the EF Core package, register OpenIddict's stores through `oauth.OpenIddict.AddCore(…)`, and register the AuthEndpoints ones yourself. Each method's XML docs say what must stay atomic, and `OAuthStoreLimits` holds the column lengths the server writes up to. A missing store fails `MapOAuthServer` with a message that names it. The [custom stores](https://authendpoints.harten.id/guides/custom-stores) guide lists every store and how to test one.
 
 ### 3. Map the routes
 
@@ -110,7 +121,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, and the developer app API under `/oauth/apps`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings and the stores when it runs, and with the EF Core stores that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, so a missing setting, store, or model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database. In Development, `WebApplication.Build()` validates the service container first, so a missing store fails there, with the container's own message.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 
@@ -147,7 +158,7 @@ The recipe is a shortcut for these calls, which stay public for hosts that want 
 ```csharp
 builder.Services.AddAuthorization();
 builder.Services.AddAntiforgery();
-builder.Services.AddAuthEndpointsOpenIddict<AppUser, AppDbContext>(options => { … });
+builder.Services.AddAuthEndpointsOpenIddict<AppUser>(options => { … }).AddEntityFrameworkStores<AppDbContext>();
 
 app.MapAuthEndpointsOpenIddict();        // authorize, plus registration and resource metadata when enabled
 app.MapOAuthConsentEndpoints();          // optional JSON consent API
@@ -182,13 +193,13 @@ A token's audience is the resource the client asked for at `/connect/authorize` 
 Once `AcceptedAudiences` has entries, `AccessTokenScheme` lets a token for any accepted audience through, and a policy that only requires an authenticated user no longer tells them apart. Check the audience on each route. `RequireOAuthAudience` authenticates with `AccessTokenScheme` and requires the token's `aud` to contain the given resource:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     options.Audience = "https://auth.example.com/api";
     options.AdditionalResources.Add("https://auth.example.com/mcp");
     options.AcceptedAudiences.Add("https://auth.example.com/mcp");
     // ...
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization(options =>
 {
@@ -207,12 +218,12 @@ A token for `/mcp` then gets `403` from `/api`, and the other way round. With pr
 A validated access token has `sub` and the granted scopes, but no roles and no `ClaimTypes.NameIdentifier`, so `RequireRole` policies and `UserManager.GetUserId(User)` see a token caller as a user without either. Turn on `AccessTokenClaims` to add them:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     // ...
     options.AccessTokenClaims.Roles = true;  // the approving user's Identity roles, as `role` claims
     options.AccessTokenClaims.UserId = true; // ClaimTypes.NameIdentifier from sub
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization(options => options.AddPolicy("reports", policy => policy
     .AddAuthenticationSchemes(OAuthServerConstants.AccessTokenScheme)
@@ -277,11 +288,11 @@ The consent API, the connected apps API, and the developer app API refuse access
 The form body is never read. To accept `?access_token=` on chosen paths, list their prefixes in `QueryStringTokenPaths`. This is what SignalR and raw WebSocket hosts need, because a browser cannot set headers on a WebSocket or `EventSource` request:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     // ...
     options.QueryStringTokenPaths.Add("/hubs");
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 app.MapHub<ChatHub>("/hubs/chat").RequireAuthorization("api");
 ```
@@ -378,7 +389,8 @@ With it on, the authorization server metadata has `client_id_metadata_document_s
 - **Hosts.** `DeniedHosts` and `AllowedHosts` take host names, or `*.example.com` for subdomains. Empty `AllowedHosts` accepts any public host. For a decision the lists cannot express, register a filter; it runs before every fetch and before a stored client is reused:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { … })
+builder.Services.AddOAuthServer<AppUser>(options => { … })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddClientMetadataHostFilter<TrustedClientHosts>();
 
 public sealed class TrustedClientHosts(AppDbContext db) : IOAuthClientMetadataHostFilter
@@ -544,7 +556,8 @@ For seeded and dynamically registered clients all four are `null`. `OAuthPending
 The owner's email and user name may be private, so the package never shows them. To show something, such as a developer or organization name the owner chose to make public, register a display:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { … })
+builder.Services.AddOAuthServer<AppUser>(options => { … })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddDeveloperAppOwnerDisplay<DeveloperProfileOwnerDisplay>();
 
 public sealed class DeveloperProfileOwnerDisplay(AppDbContext db) : IOAuthDeveloperAppOwnerDisplay
@@ -609,7 +622,8 @@ The full, tested code is in the guide [Bind a host context to an OAuth grant](ht
 By default `sub` is the Identity user id. Replace it for every approval:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
+builder.Services.AddOAuthServer<AppUser>(…)
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddPrincipalFactory<MyPrincipalFactory>();
 ```
 
@@ -624,7 +638,8 @@ With `AccessTokenClaims` on, the user's roles and id are added only while `sub` 
 By default `sub` is the Identity user id. Replace it for every approval:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
+builder.Services.AddOAuthServer<AppUser>(…)
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddPrincipalFactory<MyPrincipalFactory>();
 ```
 
@@ -679,7 +694,8 @@ app.MapDelete("/admin/users/{userId}/connected-apps/{authorizationId}", async (
 Implement `IOAuthServerEvents` to keep an audit trail of what the OAuth server did, and register it with `AddServerEvents<T>()`. Register as many as you need; each gets every event, in registration order. With none registered (the default), nothing is raised.
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+builder.Services.AddOAuthServer<AppUser>(options => { /* … */ })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddServerEvents<OAuthAuditLog>();
 
 public sealed class OAuthAuditLog(AppDbContext db) : IOAuthServerEvents
@@ -860,7 +876,7 @@ The app takes its `PathBase` from the `Issuer` path. At startup, a warning lists
 An AI assistant or other MCP client connects to an MCP server your app hosts, and each person signs in as themselves. The assistant's token carries that person's roles and only the scopes they approved. The [full guide](https://authendpoints.harten.id/guides/mcp-server-oauth) walks through every step. In short, for an app that serves `/api` to cookie users and `/mcp` to assistants:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     options.Issuer = new Uri("https://app.example.com/");
     options.Audience = "https://app.example.com/api";
@@ -888,7 +904,7 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
 
     options.AccessTokenClaims.Roles = true;
     options.AccessTokenClaims.UserId = true;
-});
+}).AddEntityFrameworkStores<AppDbContext>();
 
 builder.Services.AddAuthorization(options => options.AddPolicy("mcp", policy => policy
     .RequireOAuthAudience("https://app.example.com/mcp")
@@ -937,7 +953,8 @@ Behind a reverse proxy, call `UseForwardedHeaders` first, or every client shares
 For another algorithm or partition, pass your own limiter. It replaces the built-in one and turns the limit on:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { /* … */ })
+builder.Services.AddOAuthServer<AppUser>(options => { /* … */ })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddTokenRateLimiter(_ => PartitionedRateLimiter.Create<OAuthRateLimitContext, string>(context =>
         RateLimitPartition.GetTokenBucketLimiter(
             $"{context.Endpoint}:{context.ClientId}",

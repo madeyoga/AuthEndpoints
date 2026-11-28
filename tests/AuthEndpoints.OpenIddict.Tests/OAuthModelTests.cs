@@ -132,7 +132,7 @@ public sealed class OAuthModelTests
     {
         var model = new ModelBuilder();
         Assert.Throws<InvalidOperationException>(() => model.UseAuthEndpointsOpenIddict<NotAUser>());
-        Assert.Throws<InvalidOperationException>(() => new ServiceCollection().AddAuthEndpointsOpenIddict<NotAUser, NoUserDb>());
+        Assert.Throws<InvalidOperationException>(() => new ServiceCollection().AddAuthEndpointsOpenIddict<NotAUser>());
     }
 
     [Fact]
@@ -270,14 +270,14 @@ public sealed class OAuthOptionsTests
                 services.AddDbContext<NoopDb>();
                 services.AddDbContext<IdentityDbContext>(o => o.UseSqlite("Data Source=:memory:"));
                 services.AddIdentityCore<IdentityUser>().AddEntityFrameworkStores<IdentityDbContext>();
-                services.AddAuthEndpointsOpenIddict<IdentityUser, NoopDb>(options =>
+                services.AddAuthEndpointsOpenIddict<IdentityUser>(options =>
                 {
                     options.Issuer = new Uri("https://localhost/");
                     options.Audience = "https://localhost/api";
                     options.LoginUrl = "/login";
                     options.ConsentUrl = "/consent";
                     options.Certificates.Path = path;
-                });
+                }).AddEntityFrameworkStores<NoopDb>();
                 using var provider = services.BuildServiceProvider();
                 var server = provider.GetRequiredService<IOptions<global::OpenIddict.Server.OpenIddictServerOptions>>().Value;
                 return server.SigningCredentials.Select(c => c.Key.KeyId).First(id => id is not null)!;

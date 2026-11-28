@@ -85,7 +85,8 @@ For seeded and dynamically registered clients all four are `null`. `OAuthPending
 The owner's email and user name may be private, so the package never shows them. To show something, such as a developer or organization name the owner chose to make public, register a display:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options => { … })
+builder.Services.AddOAuthServer<AppUser>(options => { … })
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddDeveloperAppOwnerDisplay<DeveloperProfileOwnerDisplay>();
 
 public sealed class DeveloperProfileOwnerDisplay(AppDbContext db) : IOAuthDeveloperAppOwnerDisplay
@@ -150,7 +151,8 @@ The full, tested code is in the guide [Bind a host context to an OAuth grant](ht
 By default `sub` is the Identity user id. Replace it for every approval:
 
 ```csharp
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(…)
+builder.Services.AddOAuthServer<AppUser>(…)
+    .AddEntityFrameworkStores<AppDbContext>()
     .AddPrincipalFactory<MyPrincipalFactory>();
 ```
 

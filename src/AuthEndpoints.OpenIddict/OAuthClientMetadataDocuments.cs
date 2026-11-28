@@ -224,7 +224,7 @@ internal sealed class OAuthClientMetadataResolver(
 
 internal static class OAuthClientMetadataUrl
 {
-    private const int MaxLength = OAuthRequestLimits.ClientIdLength;
+    private const int MaxLength = OAuthStoreLimits.ClientIdLength;
 
     /// <summary>Cheap test before any lookup: only <c>https</c> URLs are metadata document client ids.</summary>
     public static bool LooksLikeOne(string clientId) => clientId.StartsWith("https://", StringComparison.OrdinalIgnoreCase);

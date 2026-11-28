@@ -26,7 +26,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var marker = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
-            ?? throw new InvalidOperationException("Call services.AddOAuthServer<TUser, TContext>() first.");
+            ?? throw new InvalidOperationException("Call services.AddOAuthServer<TUser>() first.");
         var parts = new OAuthServerEndpointOptions();
         configure?.Invoke(parts);
         if (parts.ConsentApi)
@@ -75,7 +75,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         var marker = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
-            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser>() first.");
         var settings = endpoints.ServiceProvider.GetRequiredService<IOptions<OAuthServerOptions>>().Value;
 
         if (settings.AccessTokenClaims.Roles)
@@ -177,7 +177,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         _ = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
-            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser>() first.");
         return OAuthDeveloperAppEndpoints.Map(endpoints, prefix);
     }
 
@@ -191,7 +191,7 @@ public static class OAuthServerEndpointRouteBuilderExtensions
     {
         ArgumentNullException.ThrowIfNull(endpoints);
         _ = endpoints.ServiceProvider.GetService<OAuthServerMarker>()
-            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser, TContext>() first.");
+            ?? throw new InvalidOperationException("Call services.AddAuthEndpointsOpenIddict<TUser>() first.");
         return OAuthConnectedAppEndpoints.Map(endpoints, prefix);
     }
 
@@ -222,10 +222,23 @@ internal sealed class OAuthServerMarker<TKey> : OAuthServerMarker
     public override void EnsureStores(IServiceProvider services)
     {
         using var scope = services.CreateScope();
+        try
+        {
+            // With no default application entity, OpenIddict's manager factory throws.
+            scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        }
+        catch (InvalidOperationException exception)
+        {
+            throw new InvalidOperationException("The OAuth server has no OpenIddict stores. " + StoreHint, exception);
+        }
+
         Require<IOAuthRequestStore<TKey>>(scope.ServiceProvider);
         Require<IOAuthDeveloperAppStore<TKey>>(scope.ServiceProvider);
         Require<IOAuthServerQueries>(scope.ServiceProvider);
     }
+
+    private const string StoreHint =
+        "Add the AuthEndpoints.OpenIddict.EntityFrameworkCore package and call AddEntityFrameworkStores<TContext>() on the AddOAuthServer builder, or register your own stores.";
 
     private static void Require<TStore>(IServiceProvider services)
         where TStore : class
@@ -236,7 +249,7 @@ internal sealed class OAuthServerMarker<TKey> : OAuthServerMarker
                 ? $"{typeof(TStore).Name[..typeof(TStore).Name.IndexOf('`')]}<{typeof(TKey).Name}>"
                 : typeof(TStore).Name;
             throw new InvalidOperationException(
-                $"The OAuth server needs an {name}. AddOAuthServer<TUser, TContext>() registers the EF Core one; a custom store registers its own.");
+                $"The OAuth server needs an {name}. " + StoreHint);
         }
     }
 

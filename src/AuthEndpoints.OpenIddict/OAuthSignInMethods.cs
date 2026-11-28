@@ -85,7 +85,7 @@ internal static class OAuthAuthenticationMethods
     public static string? Join(string[] values)
     {
         var joined = string.Join(' ', values);
-        return joined.Length is 0 or > OAuthRequestLimits.AuthenticationMethodsLength ? null : joined;
+        return joined.Length is 0 or > OAuthStoreLimits.AuthenticationMethodsLength ? null : joined;
     }
 
     private static void Add(List<string> values, string value)

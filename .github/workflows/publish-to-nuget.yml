@@ -23,8 +23,8 @@ jobs:
         with:
           dotnet-version: 10.x
 
-      # The tag prefix picks the packages: v* (AuthEndpoints), external-oauth-v* (External.OAuth,
-      # OAuth.GitHub, OAuth.Google), openiddict-v* (OpenIddict). Fails on an unknown prefix, a tag
+      # The tag prefix picks the packages: v* (AuthEndpoints, EntityFrameworkCore), external-oauth-v* (External.OAuth,
+      # OAuth.GitHub, OAuth.Google), openiddict-v* (OpenIddict, OpenIddict.EntityFrameworkCore). Fails on an unknown prefix, a tag
       # that doesn't match <Version>, or a pre-release flag that doesn't match the version.
       - name: Select packages for this tag
         env:

@@ -116,8 +116,8 @@ public interface IOAuthDeveloperAppService
 
 internal static class OAuthDeveloperAppLimits
 {
-    public const int NameLength = 200;
-    public const int DescriptionLength = 1000;
+    public const int NameLength = OAuthStoreLimits.DeveloperAppNameLength;
+    public const int DescriptionLength = OAuthStoreLimits.DeveloperAppDescriptionLength;
 }
 
 /// <summary>Checks whether an OpenIddict application may still be used. Only developer apps can be refused.</summary>

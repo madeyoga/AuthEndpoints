@@ -8,29 +8,40 @@
       core that may lack an API the add-on calls, instead of failing at runtime.
     - The ceiling is the next major, so restore refuses a core with breaking changes.
 
-    Both follow src/AuthEndpoints/AuthEndpoints.csproj; nothing here needs editing for a release.
+    Both follow the referenced project's <Version>; nothing here needs editing for a release.
+
+    A store package ranges the add-on it extends instead, by setting AuthEndpointsRangedProjects, for example
+    AuthEndpoints.OpenIddict.csproj in AuthEndpoints.OpenIddict.EntityFrameworkCore. The list is
+    semicolon-separated project file names; each must be a ProjectReference.
   -->
+  <PropertyGroup>
+    <AuthEndpointsRangedProjects Condition="'$(AuthEndpointsRangedProjects)' == ''">AuthEndpoints.csproj</AuthEndpointsRangedProjects>
+  </PropertyGroup>
+
   <Target Name="PinAuthEndpointsDependencyRange"
           AfterTargets="_GetProjectReferenceVersions"
           BeforeTargets="GenerateNuspec">
     <ItemGroup>
-      <_AuthEndpointsCoreReference Include="@(_ProjectReferencesWithVersions)"
-                                   Condition="'%(Filename)%(Extension)' == 'AuthEndpoints.csproj'" />
+      <_AuthEndpointsRangedName Include="$(AuthEndpointsRangedProjects)" />
+      <_AuthEndpointsRangedReference Include="@(_ProjectReferencesWithVersions)"
+                                     Condition="$([System.String]::Copy(';$(AuthEndpointsRangedProjects);').Contains(';%(Filename)%(Extension);'))" />
+      <_AuthEndpointsRangedFound Include="@(_AuthEndpointsRangedReference->'%(Filename)%(Extension)')" />
+      <_AuthEndpointsRangedMissing Include="@(_AuthEndpointsRangedName)" Exclude="@(_AuthEndpointsRangedFound)" />
     </ItemGroup>
-    <PropertyGroup>
-      <_AuthEndpointsCoreVersion>@(_AuthEndpointsCoreReference->'%(ProjectVersion)')</_AuthEndpointsCoreVersion>
-    </PropertyGroup>
-    <Error Condition="'$(_AuthEndpointsCoreVersion)' == ''"
-           Text="$(MSBuildProjectName) imports AuthEndpoints.DependencyRange.targets but has no ProjectReference to AuthEndpoints.csproj." />
-    <PropertyGroup>
-      <_AuthEndpointsCoreMajor>$([System.Version]::Parse($(_AuthEndpointsCoreVersion.Split('-')[0])).Major)</_AuthEndpointsCoreMajor>
-      <_AuthEndpointsNextMajor>$([MSBuild]::Add($(_AuthEndpointsCoreMajor), 1)).0.0</_AuthEndpointsNextMajor>
-    </PropertyGroup>
+    <Error Condition="'@(_AuthEndpointsRangedMissing)' != ''"
+           Text="$(MSBuildProjectName) imports AuthEndpoints.DependencyRange.targets but has no ProjectReference to @(_AuthEndpointsRangedMissing)." />
     <ItemGroup>
-      <_ProjectReferencesWithVersions Update="@(_AuthEndpointsCoreReference)">
-        <ProjectVersion>[$(_AuthEndpointsCoreVersion), $(_AuthEndpointsNextMajor))</ProjectVersion>
-      </_ProjectReferencesWithVersions>
-      <_AuthEndpointsCoreReference Remove="@(_AuthEndpointsCoreReference)" />
+      <_AuthEndpointsRangedReference>
+        <_Major>$([System.Version]::Parse($([System.String]::Copy('%(ProjectVersion)').Split('-')[0])).Major)</_Major>
+      </_AuthEndpointsRangedReference>
+      <_AuthEndpointsRangedReference>
+        <ProjectVersion>[%(ProjectVersion), $([MSBuild]::Add(%(_Major), 1)).0.0)</ProjectVersion>
+      </_AuthEndpointsRangedReference>
+      <_ProjectReferencesWithVersions Remove="@(_AuthEndpointsRangedReference)" />
+      <_ProjectReferencesWithVersions Include="@(_AuthEndpointsRangedReference)" />
+      <_AuthEndpointsRangedName Remove="@(_AuthEndpointsRangedName)" />
+      <_AuthEndpointsRangedReference Remove="@(_AuthEndpointsRangedReference)" />
+      <_AuthEndpointsRangedFound Remove="@(_AuthEndpointsRangedFound)" />
     </ItemGroup>
   </Target>
 </Project>

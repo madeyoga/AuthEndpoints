@@ -279,8 +279,47 @@ public sealed record OAuthAuthorizationRecord(
     public string? ClientName { get; init; }
 
     /// <summary>
+    /// Builds a record from a grant's stored values, for a custom <see cref="IOAuthServerQueries"/> that reads its own rows.
+    /// Reads the approving user, resource and last-used time from <paramref name="properties"/>, and the client kind from
+    /// <paramref name="clientSettings"/>.
+    /// </summary>
+    /// <param name="id">The authorization id.</param>
+    /// <param name="subject">The authorization's subject, used when the approving-user property is missing.</param>
+    /// <param name="scopes">The granted scopes.</param>
+    /// <param name="properties">The authorization's properties.</param>
+    /// <param name="clientId">The client id, or <see langword="null"/> when the client is no longer stored.</param>
+    /// <param name="clientName">The client's display name.</param>
+    /// <param name="clientSettings">The client's settings.</param>
+    /// <param name="createdAt">When the authorization was created.</param>
+    public static OAuthAuthorizationRecord FromStore(
+        string? id,
+        string? subject,
+        IReadOnlyList<string> scopes,
+        IReadOnlyDictionary<string, JsonElement> properties,
+        string? clientId,
+        string? clientName,
+        IReadOnlyDictionary<string, string>? clientSettings,
+        DateTimeOffset? createdAt)
+    {
+        ArgumentNullException.ThrowIfNull(scopes);
+        ArgumentNullException.ThrowIfNull(properties);
+        return new OAuthAuthorizationRecord(
+            id,
+            OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationUserProperty) ?? subject,
+            clientId,
+            clientId is null ? null : OAuthClientKinds.From(clientSettings ?? new Dictionary<string, string>()),
+            scopes,
+            OAuthAuthorizationProperties.String(properties, OAuthServerConstants.AuthorizationResourceProperty),
+            OAuthAuthorizationProperties.Time(properties, OAuthServerConstants.AuthorizationLastUsedProperty))
+        {
+            CreatedAt = createdAt,
+            ClientName = clientName,
+        };
+    }
+
+    /// <summary>
     /// Reads one grant through OpenIddict's managers, whatever stores them. Use it to build the records of a custom
-    /// <see cref="IOAuthServerQueries"/>.
+    /// <see cref="IOAuthServerQueries"/> from OpenIddict authorization objects.
     /// </summary>
     public static async ValueTask<OAuthAuthorizationRecord> ReadAsync(
         IOpenIddictAuthorizationManager authorizations,

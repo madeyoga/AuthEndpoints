@@ -1,6 +1,6 @@
 ---
 name: authendpoints-openiddict
-description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional client ID metadata documents, dynamic registration, and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
+description: "Turn an AuthEndpoints app into an OAuth 2.0 and OpenID Connect provider with AuthEndpoints.OpenIddict (preview). AddOAuthServer, AddEntityFrameworkStores (AuthEndpoints.OpenIddict.EntityFrameworkCore), UseAuthEndpointsOpenIddict, MapOAuthServer, and SeedOAuthClientsAsync set up authorization code + PKCE, rotating refresh tokens, revocation, metadata, a host-rendered consent step, developer apps, and optional client ID metadata documents, dynamic registration, and protected resource metadata for MCP clients. The openid scope turns on ID tokens, userinfo, logout, and the email, email_verified, and amr claims. Use when the project references AuthEndpoints.OpenIddict, or the task is letting other apps, CLIs, or MCP clients sign users in through this app and get access or ID tokens. Not for signing in to this app with GitHub, Google, or another OpenID provider (use the authendpoints skill). Read this skill instead of decompiling the assembly or web-searching the API."
 license: MIT
 metadata:
   version: "4.0.0-preview.5"
@@ -13,7 +13,7 @@ Use the symbols, routes, and option names on this page and in `references/`. Do 
 
 This skill ships inside the `AuthEndpoints.OpenIddict` package, so the copy under `~/.nuget/packages/authendpoints.openiddict/<version>/skills/authendpoints-openiddict/` matches the API of that version.
 
-The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 4.3.0 or later. The core `AuthEndpoints` package has no OpenIddict dependency. Install this package only in the app that issues tokens.
+The package is a preview built on OpenIddict 7.7 and depends on `AuthEndpoints` 4.3.0 or later. The core `AuthEndpoints` package has no OpenIddict dependency. Install this package only in the app that issues tokens. Its EF Core storage is the separate `AuthEndpoints.OpenIddict.EntityFrameworkCore` package, released under the same version: `AddEntityFrameworkStores<TContext>()` on the `AddOAuthServer` builder, and `UseAuthEndpointsOpenIddict<TUser>()` in the model.
 
 ## Know the routes
 
@@ -50,7 +50,7 @@ using AuthEndpoints.OpenIddict;
 
 builder.Services.AddAuthEndpoints<AppUser>().AddEntityFrameworkStores<AppDbContext>().AddPassword(); // or your existing AuthEndpoints setup
 
-builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
+builder.Services.AddOAuthServer<AppUser>(options =>
 {
     options.Issuer = new Uri("https://auth.example.com/");
     options.Audience = "https://api.example.com/";
@@ -60,6 +60,7 @@ builder.Services.AddOAuthServer<AppUser, AppDbContext>(options =>
     options.ConsentUrl = "https://app.example.com/oauth/consent";
     options.Certificates.Path = "/var/lib/myapp/oauth-keys";
 })
+.AddEntityFrameworkStores<AppDbContext>()
 .BindConfiguration("OAuthServer"); // optional: appsettings values override the code above
 ```
 
@@ -90,7 +91,7 @@ dotnet ef migrations add OAuthServer
 
 Pass `userForeignKey: false` when the users table is in a different DbContext.
 
-The server reads and writes through `IOAuthRequestStore<TKey>`, `IOAuthDeveloperAppStore<TKey>` and `IOAuthServerQueries`; `AddOAuthServer` registers EF Core implementations. Do not query `OAuthRequests`, `OAuthDeveloperApps` or OpenIddict's tables from host code to change server state: use `IOAuthConsentService`, `IOAuthDeveloperAppService` and `IOAuthConnectedAppService`. A missing store fails `MapOAuthServer` with a message that names it.
+The server reads and writes through OpenIddict's stores and `IOAuthRequestStore<TKey>`, `IOAuthDeveloperAppStore<TKey>` and `IOAuthServerQueries`. `AddOAuthServer<TUser>` registers none of them; `AddEntityFrameworkStores<TContext>()` registers EF Core implementations of all. A host with other storage skips that package and registers its own, as described in the README's Storage section. Do not query `OAuthRequests`, `OAuthDeveloperApps` or OpenIddict's tables from host code to change server state: use `IOAuthConsentService`, `IOAuthDeveloperAppService` and `IOAuthConnectedAppService`. A missing store fails `MapOAuthServer` with a message that names it.
 
 ## Map the routes
 
@@ -104,7 +105,7 @@ await app.Services.SeedOAuthClientsAsync();
 app.Run();
 ```
 
-`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, the developer app API under `/oauth/apps`, and the connected apps API under `/oauth/authorizations`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings, and that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, when it runs, so a missing setting or a forgotten model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
+`MapOAuthServer` maps `/connect/authorize`, the consent API under `/oauth`, the developer app API under `/oauth/apps`, and the connected apps API under `/oauth/authorizations`, plus `/connect/register` and `/.well-known/oauth-protected-resource` (with one path-suffixed document per accepted resource) when they are enabled in the options, and `/connect/userinfo` and `/connect/logout` when `openid` is in `Scopes`. OpenIddict serves the token, revocation, metadata, and key set endpoints itself. `MapOAuthServer` checks the settings and the stores when it runs, and with the EF Core stores that `UseAuthEndpointsOpenIddict<TUser>()` is in the model, so a missing setting, store, or model call fails at startup instead of on the first request. The model check builds the EF model only; it does not connect to the database.
 
 The recipe does not seed `options.Clients`. Seeding writes to the database, so it has to run after the schema exists, and only your app knows when that is (`Migrate()` at startup, a migration job, or `EnsureCreated` in tests). Call `SeedOAuthClientsAsync()` at that point. It creates a missing client and updates an existing one.
 

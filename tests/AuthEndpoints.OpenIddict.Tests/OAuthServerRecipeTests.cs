@@ -153,12 +153,12 @@ public sealed class OAuthServerRecipeTests
     [Fact]
     public void Map_returns_the_groups_it_mapped()
     {
-        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser, TestDb>(Valid));
+        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>());
         var all = app.MapOAuthServer();
         Assert.NotNull(all.Consent);
         Assert.NotNull(all.DeveloperApps);
 
-        var other = Build<TestDb>(services => services.AddOAuthServer<IdentityUser, TestDb>(Valid));
+        var other = Build<TestDb>(services => services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>());
         var none = other.MapOAuthServer(parts =>
         {
             parts.ConsentApi = false;
@@ -173,15 +173,15 @@ public sealed class OAuthServerRecipeTests
     {
         var twice = Assert.Throws<InvalidOperationException>(() => Build<TestDb>(services =>
         {
-            services.AddOAuthServer<IdentityUser, TestDb>(Valid);
-            services.AddOAuthServer<IdentityUser, TestDb>(Valid);
+            services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>();
+            services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>();
         }));
         Assert.Contains("already registered", twice.Message, StringComparison.Ordinal);
 
         Assert.Throws<InvalidOperationException>(() => Build<TestDb>(services =>
         {
-            services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(Valid);
-            services.AddOAuthServer<IdentityUser, TestDb>(Valid);
+            services.AddAuthEndpointsOpenIddict<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>();
+            services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>();
         }));
     }
 
@@ -193,10 +193,82 @@ public sealed class OAuthServerRecipeTests
         Assert.Contains("AddOAuthServer", error.Message, StringComparison.Ordinal);
     }
 
+    // #410: AddOAuthServer registers no storage. Mapping without a store package names the fix.
+    [Fact]
+    public void Map_fails_without_stores_and_names_the_store_package()
+    {
+        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser>(Valid), Environments.Production);
+        var error = Assert.Throws<InvalidOperationException>(() => app.MapOAuthServer());
+        Assert.Contains("no OpenIddict stores", error.Message, StringComparison.Ordinal);
+        Assert.Contains("AuthEndpoints.OpenIddict.EntityFrameworkCore", error.Message, StringComparison.Ordinal);
+        Assert.Contains("AddEntityFrameworkStores<TContext>()", error.Message, StringComparison.Ordinal);
+    }
+
+    // In Development, WebApplication.Build() validates the container first, so its own error names the missing store.
+    [Fact]
+    public void Build_fails_without_stores_in_development()
+    {
+        var error = Assert.Throws<AggregateException>(() => Build<TestDb>(services => services.AddOAuthServer<IdentityUser>(Valid)));
+        Assert.Contains("IOAuthRequestStore", error.Message, StringComparison.Ordinal);
+    }
+
+    // OpenIddict's stores are present but the AuthEndpoints ones are not: the map-time check names the first missing one.
+    [Fact]
+    public void Map_fails_without_the_oauth_stores_and_names_the_missing_one()
+    {
+        var app = Build<TestDb>(
+            services =>
+            {
+                var oauth = services.AddOAuthServer<IdentityUser>(Valid);
+                oauth.OpenIddict.AddCore(options => options.UseEntityFrameworkCore().UseDbContext<TestDb>());
+            },
+            Environments.Production);
+        var error = Assert.Throws<InvalidOperationException>(() => app.MapOAuthServer());
+        Assert.Contains("needs an IOAuthRequestStore<String>", error.Message, StringComparison.Ordinal);
+    }
+
+    // The custom-stores guide: a store registered before AddEntityFrameworkStores replaces only that store.
+    [Fact]
+    public void A_store_registered_first_wins_over_the_ef_store()
+    {
+        var services = new ServiceCollection();
+        var oauth = services.AddOAuthServer<IdentityUser>(Valid);
+        services.AddScoped<IOAuthServerQueries, NoQueries>();
+        oauth.AddEntityFrameworkStores<TestDb>();
+
+        Assert.Equal(typeof(NoQueries), Assert.Single(services, d => d.ServiceType == typeof(IOAuthServerQueries)).ImplementationType);
+        Assert.Single(services, d => d.ServiceType == typeof(IOAuthRequestStore<string>));
+    }
+
+    private sealed class NoQueries : IOAuthServerQueries
+    {
+        public Task<IReadOnlyList<OAuthAuthorizationRecord>> ListLiveGrantsAsync(string userId, DateTimeOffset now, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public Task<OAuthAuthorizationRecord?> FindValidGrantAsync(string authorizationId, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public Task<IReadOnlyList<OAuthAuthorizationRecord>> ListValidGrantsAsync(string applicationId, CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+
+        public Task<IReadOnlyDictionary<string, OAuthClientRedirectUris>> FindRedirectUrisAsync(
+            IReadOnlyCollection<string> clientIds,
+            CancellationToken cancellationToken)
+            => throw new NotSupportedException();
+    }
+
+    [Fact]
+    public void Adding_the_ef_stores_twice_fails()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Build<TestDb>(services =>
+            services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>().AddEntityFrameworkStores<TestDb>()));
+        Assert.Contains("already called", error.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Map_fails_when_the_model_lacks_the_oauth_tables()
     {
-        var app = Build<PlainDb>(services => services.AddOAuthServer<IdentityUser, PlainDb>(Valid));
+        var app = Build<PlainDb>(services => services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<PlainDb>());
         var error = Assert.Throws<InvalidOperationException>(() => app.MapOAuthServer());
         Assert.Contains("UseAuthEndpointsOpenIddict<TUser>()", error.Message, StringComparison.Ordinal);
         Assert.Contains(nameof(PlainDb), error.Message, StringComparison.Ordinal);
@@ -205,11 +277,11 @@ public sealed class OAuthServerRecipeTests
     [Fact]
     public void Map_fails_on_invalid_settings_before_any_request()
     {
-        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser, TestDb>(options =>
+        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser>(options =>
         {
             Valid(options);
             options.ConsentUrl = null;
-        }));
+        }).AddEntityFrameworkStores<TestDb>());
         var error = Assert.Throws<Microsoft.Extensions.Options.OptionsValidationException>(() => app.MapOAuthServer());
         Assert.Contains("ConsentUrl", error.Message, StringComparison.Ordinal);
     }
@@ -220,7 +292,7 @@ public sealed class OAuthServerRecipeTests
     [InlineData("//evil.example")]
     public void Map_rejects_a_prefix_that_is_not_rooted(string prefix)
     {
-        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser, TestDb>(Valid));
+        var app = Build<TestDb>(services => services.AddOAuthServer<IdentityUser>(Valid).AddEntityFrameworkStores<TestDb>());
         Assert.Throws<ArgumentException>(() => app.MapOAuthServer(parts => parts.DeveloperAppsPrefix = prefix));
         Assert.Throws<ArgumentException>(() => app.MapOAuthServer(parts => parts.ConsentPrefix = prefix));
 
@@ -258,10 +330,10 @@ public sealed class OAuthServerRecipeTests
     }
 
     /// <summary>A built, never started app. Model building needs a provider but no database.</summary>
-    private static WebApplication Build<TContext>(Action<IServiceCollection> services)
+    private static WebApplication Build<TContext>(Action<IServiceCollection> services, string environment = "Development")
         where TContext : DbContext
     {
-        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = Environments.Development });
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions { EnvironmentName = environment });
         builder.WebHost.UseTestServer();
         builder.Services.AddDbContext<TContext>(options => options.UseSqlite("Data Source=:memory:"));
         builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<TContext>();

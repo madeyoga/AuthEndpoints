@@ -3,7 +3,6 @@ using AuthEndpoints.Identity;
 using AuthEndpoints.Jwt;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -18,13 +17,17 @@ namespace AuthEndpoints.OpenIddict;
 /// <summary>Returned by <c>AddAuthEndpointsOpenIddict</c> for further configuration.</summary>
 public sealed class OAuthServerBuilder
 {
-    internal OAuthServerBuilder(IServiceCollection services, OpenIddictBuilder openIddict)
+    internal OAuthServerBuilder(IServiceCollection services, OpenIddictBuilder openIddict, Type userType)
     {
         Services = services;
         OpenIddict = openIddict;
+        UserType = userType;
     }
 
     public IServiceCollection Services { get; }
+
+    /// <summary>The Identity user type passed to <c>AddOAuthServer</c>. Store packages read its key type from it.</summary>
+    public Type UserType { get; }
 
     /// <summary>The underlying OpenIddict builder, for settings this package does not cover.</summary>
     public OpenIddictBuilder OpenIddict { get; }
@@ -117,49 +120,46 @@ public static class OAuthServerServiceCollectionExtensions
     /// <see cref="OAuthServerOptions.Scopes"/>, <see cref="OAuthServerOptions.LoginUrl"/>,
     /// <see cref="OAuthServerOptions.ConsentUrl"/>, and one <see cref="OAuthServerOptions.Certificates"/> source.
     /// Anonymous registration stays off unless <see cref="OAuthDynamicRegistrationOptions.Enabled"/> is set.
-    /// Then call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> in the DbContext,
-    /// <c>app.MapOAuthServer()</c> after <c>UseAuthentication</c>, and, when <see cref="OAuthServerOptions.Clients"/>
-    /// is used, <c>SeedOAuthClientsAsync()</c> after migrations.
-    /// Use it instead of <see cref="AddAuthEndpointsOpenIddict{TUser, TContext}"/>, once per host.
+    /// Add storage to the returned builder, for example <c>AddEntityFrameworkStores&lt;TContext&gt;()</c> from
+    /// AuthEndpoints.OpenIddict.EntityFrameworkCore (then call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c>
+    /// in the DbContext). Then call <c>app.MapOAuthServer()</c> after <c>UseAuthentication</c>, and, when
+    /// <see cref="OAuthServerOptions.Clients"/> is used, <c>SeedOAuthClientsAsync()</c> after migrations.
+    /// Use it instead of <see cref="AddAuthEndpointsOpenIddict{TUser}"/>, once per host.
     /// </summary>
     /// <typeparam name="TUser">The Identity user type. It must derive from <c>IdentityUser&lt;TKey&gt;</c>.</typeparam>
-    /// <typeparam name="TContext">The EF Core context that holds the OpenIddict, consent, and developer app tables.</typeparam>
     /// <returns>The builder, for <c>AddPrincipalFactory</c>, <c>AddDeveloperAppOwnerDisplay</c>, and OpenIddict settings.</returns>
-    public static OAuthServerBuilder AddOAuthServer<TUser, TContext>(
+    public static OAuthServerBuilder AddOAuthServer<TUser>(
         this IServiceCollection services,
         Action<OAuthServerOptions>? configure = null)
         where TUser : class
-        where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
         if (services.Any(descriptor => descriptor.ServiceType == typeof(OAuthServerMarker)))
         {
             throw new InvalidOperationException(
-                "The OAuth server is already registered. Call AddOAuthServer<TUser, TContext>() once, and not together with AddAuthEndpointsOpenIddict<TUser, TContext>().");
+                "The OAuth server is already registered. Call AddOAuthServer<TUser>() once, and not together with AddAuthEndpointsOpenIddict<TUser>().");
         }
 
         // The consent and developer app routes require a signed-in user and a CSRF token for cookie callers.
         services.AddAuthorization();
         services.AddAntiforgery();
-        return services.AddAuthEndpointsOpenIddict<TUser, TContext>(configure);
+        return services.AddAuthEndpointsOpenIddict<TUser>(configure);
     }
 
     /// <summary>
-    /// Adds an OpenIddict authorization server and local token validation, stored in <typeparamref name="TContext"/>.
+    /// Adds an OpenIddict authorization server and local token validation. Add storage to the returned builder.
     /// Authorization code + PKCE (S256 only), rotating refresh tokens, reference tokens, and a host consent page.
-    /// Call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> in the DbContext and
+    /// With EF Core storage, call <c>modelBuilder.UseAuthEndpointsOpenIddict&lt;TUser&gt;()</c> in the DbContext. Call
     /// <c>app.MapAuthEndpointsOpenIddict()</c> after <c>UseAuthentication</c>.
     /// </summary>
     /// <typeparam name="TUser">
     /// The Identity user type. It must derive from <c>IdentityUser&lt;TKey&gt;</c>; the key type of the consent table comes from it.
     /// Also used to re-check the user on every code exchange and refresh.
     /// </typeparam>
-    /// <typeparam name="TContext">The EF Core context that holds the OpenIddict and consent tables.</typeparam>
-    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser, TContext>(
+    public static OAuthServerBuilder AddAuthEndpointsOpenIddict<TUser>(
         this IServiceCollection services,
         Action<OAuthServerOptions>? configure = null)
         where TUser : class
-        where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
         // Fails here, at registration, when TUser is not an IdentityUser<TKey>.
@@ -188,19 +188,8 @@ public static class OAuthServerServiceCollectionExtensions
         services.TryAddSingleton<IOAuthDeveloperAppOwnerDisplay, NoOAuthDeveloperAppOwnerDisplay>();
         // Audit events. Without an IOAuthServerEvents subscriber, nothing is raised.
         services.TryAddScoped<OAuthServerEventDispatcher>();
-        // Events raised inside a host transaction wait for its commit.
-        services.TryAddSingleton<OAuthEventTransactions>();
-        services.ConfigureDbContext<TContext>((provider, db) => db.AddInterceptors(provider.GetRequiredService<OAuthEventTransactions>()));
-        // EF Core stores. The services below read and write only through these interfaces.
-        services.TryAddScoped(
-            typeof(IOAuthRequestStore<>).MakeGenericType(keyType),
-            typeof(EntityFrameworkOAuthRequestStore<,>).MakeGenericType(typeof(TContext), keyType));
-        services.TryAddScoped(
-            typeof(IOAuthDeveloperAppStore<>).MakeGenericType(keyType),
-            typeof(EntityFrameworkOAuthDeveloperAppStore<,>).MakeGenericType(typeof(TContext), keyType));
-        services.TryAddScoped<IOAuthServerQueries, EntityFrameworkOAuthServerQueries<TContext>>();
-        services.TryAddScoped<IOAuthServerEventTransactions, EntityFrameworkOAuthServerEventTransactions<TContext>>();
-        services.TryAddScoped<IOAuthAuthorizationRefresher, EntityFrameworkOAuthAuthorizationRefresher<TContext>>();
+        // Stores come from a store package, for example AddEntityFrameworkStores<TContext>() from
+        // AuthEndpoints.OpenIddict.EntityFrameworkCore. The services below read and write only through them.
         services.TryAddScoped(typeof(IOAuthConsentService), typeof(OAuthConsentService<>).MakeGenericType(keyType));
         services.TryAddScoped(typeof(IOAuthConnectedAppService), typeof(OAuthConnectedAppService<>).MakeGenericType(keyType));
         var developerApps = typeof(OAuthDeveloperAppService<>).MakeGenericType(keyType);
@@ -234,8 +223,9 @@ public static class OAuthServerServiceCollectionExtensions
             }
         });
 
+        // OpenIddict's own stores (applications, authorizations, scopes, tokens) come from the store package too.
         var openIddict = services.AddOpenIddict()
-            .AddCore(options => options.UseEntityFrameworkCore().UseDbContext<TContext>())
+            .AddCore(_ => { })
             .AddServer(options =>
             {
                 options.SetAuthorizationEndpointUris(OAuthServerConstants.AuthorizationEndpointPath.TrimStart('/'))
@@ -405,7 +395,7 @@ public static class OAuthServerServiceCollectionExtensions
             })
             .PostConfigure(validation => validation.TokenValidationParameters.ClockSkew = TimeSpan.Zero);
 
-        return new OAuthServerBuilder(services, openIddict);
+        return new OAuthServerBuilder(services, openIddict, typeof(TUser));
     }
 
     private static Uri Relative(string path) => new(path.TrimStart('/'), UriKind.Relative);

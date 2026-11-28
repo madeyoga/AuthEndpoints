@@ -17,12 +17,13 @@ public class ReleasePackagesScriptTests
     private const string GitHub = "src/AuthEndpoints.OAuth.GitHub/AuthEndpoints.OAuth.GitHub.csproj";
     private const string Google = "src/AuthEndpoints.OAuth.Google/AuthEndpoints.OAuth.Google.csproj";
     private const string OpenIddict = "src/AuthEndpoints.OpenIddict/AuthEndpoints.OpenIddict.csproj";
+    private const string OpenIddictEntityFrameworkCore = "src/AuthEndpoints.OpenIddict.EntityFrameworkCore/AuthEndpoints.OpenIddict.EntityFrameworkCore.csproj";
 
     public static TheoryData<string, string[]> Families => new()
     {
         { "v", [Core, EntityFrameworkCore] },
         { "external-oauth-v", [ExternalShim, GitHub, Google] },
-        { "openiddict-v", [OpenIddict] },
+        { "openiddict-v", [OpenIddict, OpenIddictEntityFrameworkCore] },
     };
 
     [Theory]

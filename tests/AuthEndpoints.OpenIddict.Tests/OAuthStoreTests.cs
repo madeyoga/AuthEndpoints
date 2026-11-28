@@ -157,7 +157,7 @@ public sealed class OAuthStoreTests : IAsyncLifetime
         services.AddLogging();
         services.AddDbContext<TestDb>(options => options.UseSqlite(_connection));
         services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<TestDb>();
-        services.AddOAuthServer<IdentityUser, TestDb>(options => options.Issuer = new Uri("https://issuer.example/"));
+        services.AddOAuthServer<IdentityUser>(options => options.Issuer = new Uri("https://issuer.example/")).AddEntityFrameworkStores<TestDb>();
         services.RemoveAll<IOAuthRequestStore<string>>();
         using var provider = services.BuildServiceProvider();
 

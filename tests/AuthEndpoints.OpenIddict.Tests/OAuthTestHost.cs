@@ -153,8 +153,8 @@ internal sealed class OAuthTestHost : IAsyncDisposable
         };
         beforeServer?.Invoke(builder.Services);
         var oauth = recipe
-            ? builder.Services.AddOAuthServer<IdentityUser, TestDb>(settings)
-            : builder.Services.AddAuthEndpointsOpenIddict<IdentityUser, TestDb>(settings);
+            ? builder.Services.AddOAuthServer<IdentityUser>(settings).AddEntityFrameworkStores<TestDb>()
+            : builder.Services.AddAuthEndpointsOpenIddict<IdentityUser>(settings).AddEntityFrameworkStores<TestDb>();
         server?.Invoke(oauth);
         if (signInCompleters)
         {

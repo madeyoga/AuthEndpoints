@@ -6,18 +6,6 @@ using OpenIddict.EntityFrameworkCore.Models;
 
 namespace AuthEndpoints.OpenIddict;
 
-internal static class OAuthRequestLimits
-{
-    public const int NonceLength = 512;
-    public const int AuthenticationMethodsLength = 128;
-
-    /// <summary>
-    /// Longest client id, so a client ID metadata document URL fits. OpenIddict's own model allows 100, and
-    /// <c>OAuthRequests</c> allowed 64.
-    /// </summary>
-    public const int ClientIdLength = 255;
-}
-
 public static class OAuthServerModelBuilderExtensions
 {
     /// <summary>
@@ -52,7 +40,7 @@ public static class OAuthServerModelBuilderExtensions
             .HasMaxLength(OAuthServerConstants.ReferenceTokenLength);
         builder.Entity<OpenIddictEntityFrameworkCoreApplication>()
             .Property(application => application.ClientId)
-            .HasMaxLength(OAuthRequestLimits.ClientIdLength);
+            .HasMaxLength(OAuthStoreLimits.ClientIdLength);
         Configure(builder.Entity<OAuthRequest<TKey>>());
         Configure(builder.Entity<OAuthDeveloperApp<TKey>>());
         if (userForeignKey)
@@ -80,9 +68,9 @@ public static class OAuthServerModelBuilderExtensions
         builder.HasKey(row => row.Id);
         builder.Property(row => row.Id).ValueGeneratedNever();
         builder.Property(row => row.ClientId).HasMaxLength(64);
-        builder.Property(row => row.Name).HasMaxLength(OAuthDeveloperAppLimits.NameLength);
+        builder.Property(row => row.Name).HasMaxLength(OAuthStoreLimits.DeveloperAppNameLength);
         builder.Property(row => row.HomepageUrl).HasMaxLength(2048);
-        builder.Property(row => row.Description).HasMaxLength(OAuthDeveloperAppLimits.DescriptionLength);
+        builder.Property(row => row.Description).HasMaxLength(OAuthStoreLimits.DeveloperAppDescriptionLength);
         builder.Property(row => row.Status).HasConversion<string>().HasMaxLength(32);
         builder.HasIndex(row => row.ClientId).IsUnique();
         builder.HasIndex(row => row.OwnerId);
@@ -94,7 +82,7 @@ public static class OAuthServerModelBuilderExtensions
         builder.ToTable(OAuthServerConstants.RequestTable);
         builder.HasKey(row => row.Id);
         builder.Property(row => row.Id).ValueGeneratedNever();
-        builder.Property(row => row.ClientId).HasMaxLength(OAuthRequestLimits.ClientIdLength);
+        builder.Property(row => row.ClientId).HasMaxLength(OAuthStoreLimits.ClientIdLength);
         builder.Property(row => row.ClientName).HasMaxLength(200);
         builder.Property(row => row.RedirectUri).HasMaxLength(2048);
         builder.Property(row => row.RedirectHost).HasMaxLength(255);
@@ -102,8 +90,8 @@ public static class OAuthServerModelBuilderExtensions
         builder.Property(row => row.Scope).HasMaxLength(256);
         builder.Property(row => row.State).HasMaxLength(2048);
         builder.Property(row => row.Resource).HasMaxLength(2048);
-        builder.Property(row => row.Nonce).HasMaxLength(OAuthRequestLimits.NonceLength);
-        builder.Property(row => row.AuthenticationMethods).HasMaxLength(OAuthRequestLimits.AuthenticationMethodsLength);
+        builder.Property(row => row.Nonce).HasMaxLength(OAuthStoreLimits.NonceLength);
+        builder.Property(row => row.AuthenticationMethods).HasMaxLength(OAuthStoreLimits.AuthenticationMethodsLength);
         builder.HasIndex(row => row.UserId);
         builder.HasIndex(row => row.ExpiresAt);
     }

@@ -1,0 +1,13 @@
+﻿namespace AuthEndpoints.OpenIddict
+{
+    public static class OAuthServerEntityFrameworkCoreExtensions
+    {
+        public static AuthEndpoints.OpenIddict.OAuthServerBuilder AddEntityFrameworkStores<TContext>(this AuthEndpoints.OpenIddict.OAuthServerBuilder builder)
+            where TContext : Microsoft.EntityFrameworkCore.DbContext { }
+    }
+    public static class OAuthServerModelBuilderExtensions
+    {
+        public static Microsoft.EntityFrameworkCore.ModelBuilder UseAuthEndpointsOpenIddict<TUser>(this Microsoft.EntityFrameworkCore.ModelBuilder builder, bool userForeignKey = true)
+            where TUser :  class { }
+    }
+}
